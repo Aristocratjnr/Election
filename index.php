@@ -53,12 +53,7 @@
 
     <!-- Helpers -->
     <script src="assets/vendor/js/helpers.js"></script>
-    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
-
-    <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
     <script src="assets/vendor/js/template-customizer.js"></script>
-
-    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="assets/js/front-config.js"></script>
   </head>
@@ -87,7 +82,6 @@
             <a href="landing-page.html" class="app-brand-link">
               <span class="app-brand-logo demo">
                 <span class="text-primary">
-                  
                 </span>
               </span>
               <span class="app-brand-text demo menu-text fw-bold ms-2 ps-1">SmartVote</span>
