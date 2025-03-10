@@ -528,56 +528,8 @@
           </div>
         </div>
         <hr class="m-0 mt-6 mt-md-12" />
-        <!-- Logo slider: Start -->
-        <div class="container">
-          <div class="swiper-logo-carousel pt-8">
-            <div class="swiper" id="swiper-clients-logos">
-              <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                  <img
-                    src="assets/img/front-pages/branding/logo_1-light.png"
-                    alt="client logo"
-                    class="client-logo"
-                    data-app-light-img="front-pages/branding/logo_1-light.png"
-                    data-app-dark-img="front-pages/branding/logo_1-dark.png" />
-                </div>
-                <div class="swiper-slide">
-                  <img
-                    src="assets/img/front-pages/branding/logo_2-light.png"
-                    alt="client logo"
-                    class="client-logo"
-                    data-app-light-img="front-pages/branding/logo_2-light.png"
-                    data-app-dark-img="front-pages/branding/logo_2-dark.png" />
-                </div>
-                <div class="swiper-slide">
-                  <img
-                    src="assets/img/front-pages/branding/logo_3-light.png"
-                    alt="client logo"
-                    class="client-logo"
-                    data-app-light-img="front-pages/branding/logo_3-light.png"
-                    data-app-dark-img="front-pages/branding/logo_3-dark.png" />
-                </div>
-                <div class="swiper-slide">
-                  <img
-                    src="assets/img/front-pages/branding/logo_4-light.png"
-                    alt="client logo"
-                    class="client-logo"
-                    data-app-light-img="front-pages/branding/logo_4-light.png"
-                    data-app-dark-img="front-pages/branding/logo_4-dark.png" />
-                </div>
-                <div class="swiper-slide">
-                  <img
-                    src="assets/img/front-pages/branding/logo_5-light.png"
-                    alt="client logo"
-                    class="client-logo"
-                    data-app-light-img="front-pages/branding/logo_5-light.png"
-                    data-app-dark-img="front-pages/branding/logo_5-dark.png" />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-        <!-- Logo slider: End -->
+    
       </section>
       <section id="landingTeam" class="section-py landing-team">
         <div class="container">
