@@ -46,7 +46,7 @@
             <div class="card-body">
               <!-- Logo -->
               <div class="app-brand justify-content-center">
-                <a href="index.html" class="app-brand-link gap-2">
+                <a href="index.php" class="app-brand-link gap-2">
                     <img src="assets/img/favicon/favicon.ico" alt="logo" width="24%" class="logo-img" />
                     <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
                 </a>

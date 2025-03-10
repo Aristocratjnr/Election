@@ -30,9 +30,6 @@
 
     <link rel="stylesheet" href="assets/vendor/fonts/iconify-icons.css" />
 
-    <!-- Core CSS -->
-    <!-- build:css assets/vendor/css/theme.css  -->
-
     <link rel="stylesheet" href="assets/vendor/libs/pickr/pickr-themes.css" />
 
     <link rel="stylesheet" href="assets/vendor/css/core.css" />
@@ -40,18 +37,10 @@
 
     <link rel="stylesheet" href="assets/vendor/css/pages/front-page.css" />
 
-    <!-- Vendors CSS -->
-
-    <!-- endbuild -->
-
     <link rel="stylesheet" href="assets/vendor/libs/nouislider/nouislider.css" />
     <link rel="stylesheet" href="assets/vendor/libs/swiper/swiper.css" />
 
-    <!-- Page CSS -->
-
     <link rel="stylesheet" href="assets/vendor/css/pages/front-page-landing.css" />
-
-    <!-- Helpers -->
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="assets/vendor/js/template-customizer.js"></script>
 
@@ -244,7 +233,7 @@
                 /></span>
                 <a href="register.php" class="btn btn-primary btn-lg">Get early access</a>
               </div>
-            </div>
+            </div><br><br>
             <div id="heroDashboardAnimation" class="hero-animation-img">
               <a href="../vertical-menu-template/app-ecommerce-dashboard.html" target="_blank">
                 <div id="heroAnimationImg" class="position-relative hero-dashboard-img">
@@ -254,12 +243,6 @@
                     class="animation-img"
                     data-app-light-img="front-pages/landing-page/hero-dashboard-light.png"
                     data-app-dark-img="front-pages/landing-page/hero-dashboard-dark.png" />
-                  <img
-                    src="assets/img/front-pages/landing-page/hero-elements-light.png"
-                    alt="hero elements"
-                    class="position-absolute hero-elements-img animation-img top-0 start-0"
-                    data-app-light-img="front-pages/landing-page/hero-elements-light.png"
-                    data-app-dark-img="front-pages/landing-page/hero-elements-dark.png" />
                 </div>
               </a>
             </div>
