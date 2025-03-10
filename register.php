@@ -57,8 +57,8 @@
               <!-- Logo -->
               <div class="app-brand justify-content-center mb-6">
                 <a href="index.html" class="app-brand-link gap-2">
-                  
-                 
+                <img src="assets/img/favicon/favicon.ico" alt="logo" width="50%" class="logo-img" />
+                <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
                 </a>
               </div>
               <!-- /Logo -->

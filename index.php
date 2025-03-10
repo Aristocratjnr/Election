@@ -82,6 +82,7 @@
             <a href="landing-page.html" class="app-brand-link">
               <span class="app-brand-logo demo">
                 <span class="text-primary">
+                <img src="assets/img/favicon/favicon.ico" alt="logo" width="60%" class="logo-img" />
                 </span>
               </span>
               <span class="app-brand-text demo menu-text fw-bold ms-2 ps-1">SmartVote</span>
