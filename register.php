@@ -108,7 +108,7 @@
                       </svg>
                     </span>
                   </span>
-                  <span class="app-brand-text demo text-heading fw-bold">Sneat</span>
+                  <span class="app-brand-text demo text-heading fw-bold">EMS</span>
                 </a>
               </div>
               <!-- /Logo -->

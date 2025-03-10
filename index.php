@@ -772,12 +772,12 @@
                       class="mb-8 pb-2" />
                     <h4 class="mb-0">Basic</h4>
                     <div class="d-flex align-items-center justify-content-center">
-                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">$19</span>
-                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">$14</span>
+                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">₵19</span>
+                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">₵14</span>
                       <sub class="h6 text-body-secondary mb-n1 ms-1">/mo</sub>
                     </div>
                     <div class="position-relative pt-2">
-                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">$ 168 / year</div>
+                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">₵ 168 / year</div>
                     </div>
                   </div>
                 </div>
@@ -857,12 +857,12 @@
                     <img src="assets/img/front-pages/icons/plane.png" alt="plane icon" class="mb-8 pb-2" />
                     <h4 class="mb-0">Team</h4>
                     <div class="d-flex align-items-center justify-content-center">
-                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">$29</span>
-                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">$22</span>
+                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">₵29</span>
+                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">₵22</span>
                       <sub class="h6 text-body-secondary mb-n1 ms-1">/mo</sub>
                     </div>
                     <div class="position-relative pt-2">
-                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">$ 264 / year</div>
+                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">₵ 264 / year</div>
                     </div>
                   </div>
                 </div>
@@ -944,12 +944,12 @@
                       class="mb-8 pb-2" />
                     <h4 class="mb-0">Enterprise</h4>
                     <div class="d-flex align-items-center justify-content-center">
-                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">$49</span>
-                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">$37</span>
+                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">₵49</span>
+                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">₵37</span>
                       <sub class="h6 text-body-secondary mb-n1 ms-1">/mo</sub>
                     </div>
                     <div class="position-relative pt-2">
-                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">$ 444 / year</div>
+                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">₵ 444 / year</div>
                     </div>
                   </div>
                 </div>
@@ -992,7 +992,7 @@
                         <span class="badge badge-center rounded-pill bg-label-primary p-0 me-3"
                           ><i class="icon-base bx bx-check icon-12px"></i
                         ></span>
-                        >Custom branding & white labeling
+                        Custom branding & white labeling
                       </h6>
                     </li>
                     <li>
@@ -1363,7 +1363,7 @@
                         <div>
                           <p class="mb-0">Email</p>
                           <h6 class="mb-0">
-                            <a href="mailto:example@gmail.com" class="text-heading">example@gmail.com</a>
+                            <a href="ayimobuobi@gmail.com" class="text-heading">ayimobuobi@gmail.com</a>
                           </h6>
                         </div>
                       </div>
