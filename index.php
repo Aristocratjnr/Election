@@ -242,7 +242,7 @@
                     alt="Join community arrow"
                     class="scaleX-n1-rtl"
                 /></span>
-                <a href="#landingPricing" class="btn btn-primary btn-lg">Get early access</a>
+                <a href="register.php" class="btn btn-primary btn-lg">Get early access</a>
               </div>
             </div>
             <div id="heroDashboardAnimation" class="hero-animation-img">
@@ -661,14 +661,14 @@
                       src="assets/img/front-pages/icons/paper-airplane.png"
                       alt="paper airplane icon"
                       class="mb-8 pb-2" />
-                    <h4 class="mb-0">Basic</h4>
+                    <h4 class="mb-0">Free For Students</h4>
                     <div class="d-flex align-items-center justify-content-center">
-                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">₵19</span>
-                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">₵14</span>
+                      <span class="price-monthly h2 text-primary fw-extrabold mb-0">₵0</span>
+                      <span class="price-yearly h2 text-primary fw-extrabold mb-0 d-none">₵0</span>
                       <sub class="h6 text-body-secondary mb-n1 ms-1">/mo</sub>
                     </div>
                     <div class="position-relative pt-2">
-                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">₵ 168 / year</div>
+                      <div class="price-yearly text-body-secondary price-yearly-toggle d-none">₵ 0/ year</div>
                     </div>
                   </div>
                 </div>
@@ -938,8 +938,8 @@
                   </div>
                   <h3 class="mb-0">7.1k+</h3>
                   <p class="fw-medium mb-0">
-                    Support Tickets<br />
-                    Resolved
+                  Elections<br />
+                  Successfully Managed
                   </p>
                 </div>
               </div>
@@ -967,7 +967,7 @@
                   </div>
                   <h3 class="mb-0">50k+</h3>
                   <p class="fw-medium mb-0">
-                    Join Creatives<br />
+                    Join SmartVote<br />
                     Community
                   </p>
                 </div>
@@ -997,8 +997,8 @@
                   </div>
                   <h3 class="mb-0">4.8/5</h3>
                   <p class="fw-medium mb-0">
-                    Highly Rated<br />
-                    Products
+                  Highly Trusted<br />
+                    Election System
                   </p>
                 </div>
               </div>
@@ -1033,7 +1033,7 @@
       </section>
     
 
-     <!-- FAQ: Start -->
+   <!-- FAQ: Start -->
 <section id="landingFAQ" class="section-py bg-body landing-faq">
   <div class="container">
     <div class="text-center mb-4">
@@ -1072,12 +1072,12 @@
                 data-bs-target="#accordionOne"
                 aria-expanded="true"
                 aria-controls="accordionOne">
-                Is SmartVote free to use?
+                Is SmartVote free to use for elections?
               </button>
             </h2>
             <div id="accordionOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
               <div class="accordion-body">
-                SmartVote offers a free tier with basic features for small-scale use. For advanced features and larger deployments, you can upgrade to a paid plan.
+                SmartVote offers a free tier for small-scale elections, such as student council votes or small community polls. For larger elections or advanced features, you can upgrade to a paid plan.
               </div>
             </div>
           </div>
@@ -1090,7 +1090,7 @@
                 data-bs-target="#accordionTwo"
                 aria-expanded="false"
                 aria-controls="accordionTwo">
-                Can I use SmartVote for multiple projects?
+                Can SmartVote handle large-scale elections?
               </button>
             </h2>
             <div
@@ -1099,7 +1099,7 @@
               aria-labelledby="headingTwo"
               data-bs-parent="#accordionExample">
               <div class="accordion-body">
-                Yes, SmartVote allows you to manage multiple projects under a single account. However, for large-scale or enterprise use, you may need to purchase additional licenses.
+                Yes, SmartVote is designed to handle elections of all sizes, from small local polls to large national elections. Our platform scales to meet your needs.
               </div>
             </div>
           </div>
@@ -1112,7 +1112,7 @@
                 data-bs-target="#accordionThree"
                 aria-expanded="false"
                 aria-controls="accordionThree">
-                What is the difference between the free and paid plans?
+                How does SmartVote ensure election security?
               </button>
             </h2>
             <div
@@ -1121,7 +1121,7 @@
               aria-labelledby="headingThree"
               data-bs-parent="#accordionExample">
               <div class="accordion-body">
-                The free plan includes basic features suitable for small projects. Paid plans offer advanced features such as priority support, custom integrations, and the ability to manage larger datasets.
+                SmartVote uses advanced encryption, multi-factor authentication, and blockchain technology to ensure the integrity and security of your elections. Regular audits are conducted to maintain the highest standards.
               </div>
             </div>
           </div>
@@ -1134,7 +1134,7 @@
                 data-bs-target="#accordionFour"
                 aria-expanded="false"
                 aria-controls="accordionFour">
-                Does SmartVote support integrations with other tools?
+                Can I customize the voting process with SmartVote?
               </button>
             </h2>
             <div
@@ -1143,7 +1143,7 @@
               aria-labelledby="headingFour"
               data-bs-parent="#accordionExample">
               <div class="accordion-body">
-                Yes, SmartVote supports integrations with popular tools like Jira, Slack, and Google Workspace. Custom integrations can also be developed for enterprise clients.
+                Absolutely! SmartVote allows you to customize ballot designs, voting rules, and eligibility criteria to fit the specific needs of your election.
               </div>
             </div>
           </div>
@@ -1156,7 +1156,7 @@
                 data-bs-target="#accordionFive"
                 aria-expanded="false"
                 aria-controls="accordionFive">
-                How secure is SmartVote?
+                What kind of support does SmartVote offer?
               </button>
             </h2>
             <div
@@ -1165,7 +1165,7 @@
               aria-labelledby="headingFive"
               data-bs-parent="#accordionExample">
               <div class="accordion-body">
-                SmartVote uses industry-standard encryption and security protocols to ensure your data is safe. Regular security audits are conducted to maintain the highest level of protection.
+                SmartVote provides 24/7 customer support via email, chat, and phone. We also offer detailed documentation and training resources to help you get started.
               </div>
             </div>
           </div>
@@ -1175,7 +1175,6 @@
   </div>
 </section>
 <!-- FAQ: End -->
-
       <!-- CTA: Start -->
       <section id="landingCTA" class="section-py landing-cta position-relative p-lg-0 pb-0">
         <img
@@ -1185,12 +1184,12 @@
           data-app-light-img="front-pages/backgrounds/cta-bg-light.png"
           data-app-dark-img="front-pages/backgrounds/cta-bg-dark.png" />
         <div class="container">
-          <div class="row align-items-center gy-12">
-            <div class="col-lg-6 text-start text-sm-center text-lg-start">
-              <h3 class="cta-title text-primary fw-bold mb-1">Ready to Get Started?</h3>
-              <h5 class="text-body mb-8">Start your project with a 14-day free trial</h5>
-              <a href="payment-page.html" class="btn btn-lg btn-primary">Get Started</a>
-            </div>
+        <div class="row align-items-center gy-12">
+      <div class="col-lg-6 text-start text-sm-center text-lg-start">
+        <h3 class="cta-title text-primary fw-bold mb-1">Ready to Streamline Your Elections?</h3>
+        <h5 class="text-body mb-8">Experience SmartVote EMS with a 30-day free trial</h5>
+        <a href="payment-page.html" class="btn btn-lg btn-primary">Get Started</a>
+      </div>
             <div class="col-lg-6 pt-lg-12 text-center text-lg-end">
               <img
                 src="assets/img/front-pages/landing-page/cta-dashboard.png"
@@ -1265,9 +1264,9 @@
                 <div class="card-body">
                   <h4 class="mb-2">Send a message</h4>
                   <p class="mb-6">
-                    If you would like to discuss anything related to payment, account, licensing,<br
+                  If you would like to discuss anything related to elections, account setup, licensing,<br
                       class="d-none d-lg-block" />
-                    partnerships, or have pre-sales questions, you’re at the right place.
+                    partnerships, or have pre-sales questions, you&apos;re at the right place.
                   </p>
                   <form>
                     <div class="row g-4">
@@ -1325,7 +1324,7 @@
                 <span class="app-brand-text demo text-white fw-bold ms-2 ps-1">SmartVote</span>
               </a>
               <p class="footer-text footer-logo-description mb-6">
-                Most developer friendly & highly customisable Admin Dashboard Template.
+SmartVote is a secure, developer-friendly, and highly customizable educational voting system designed to streamline elections and decision-making in academic institutions.
               </p>
               <form class="footer-form">
                 <label for="footer-email" class="small">Subscribe to newsletter</label>
