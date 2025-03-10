@@ -200,7 +200,7 @@
                 </div>
               </li>
               <li class="nav-item">
-                <a class="nav-link fw-medium text-center" href="../vertical-menu-template/index.html" target="_blank">Admin</a>
+                <a class="nav-link fw-medium justify-between" href="../vertical-menu-template/index.html" target="_blank">Admin</a>
               </li>
             </ul>
           </div>
