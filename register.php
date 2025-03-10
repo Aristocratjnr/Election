@@ -123,7 +123,7 @@
                     class="form-control"
                     id="student_id"
                     name="student"
-                    placeholder="Student ID"
+                    placeholder="Enter Student ID"
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">

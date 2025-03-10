@@ -107,13 +107,13 @@
 
               <form id="formAuthentication" class="mb-6" action="index.html" method="GET">
                 <div class="mb-6 form-control-validation">
-                  <label for="email" class="form-label">Email or Username</label>
+                  <label for="email" class="form-label">Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="email"
-                    name="email-username"
-                    placeholder="Enter your email or username"
+                    id="student_id"
+                    name="student id"
+                    placeholder="Enter Student ID"
                     autofocus />
                 </div>
                 <div class="mb-6 form-password-toggle form-control-validation">
