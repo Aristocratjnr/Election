@@ -1375,7 +1375,7 @@
                         </div>
                         <div>
                           <p class="mb-0">Phone</p>
-                          <h6 class="mb-0"><a href="tel:+1234-568-963" class="text-heading">+1234 568 963</a></h6>
+                          <h6 class="mb-0"><a href="tel:+1234-568-963" class="text-heading">+233 551784926</a></h6>
                         </div>
                       </div>
                     </div>

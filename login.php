@@ -98,11 +98,11 @@
                       </svg>
                     </span>
                   </span>
-                  <span class="app-brand-text demo text-heading fw-bold">EMS</span>
+                  <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
                 </a>
               </div>
               <!-- /Logo -->
-              <h4 class="mb-1">Welcome to EMS👋</h4>
+              <h4 class="mb-1">Welcome to SmartVote👋</h4>
               <p class="mb-6">Please sign-in to your account</p>
 
               <form id="formAuthentication" class="mb-6" action="index.html" method="GET">
