@@ -1349,7 +1349,7 @@ SmartVote is a secure, developer-friendly, and highly customizable educational v
             <span class="footer-bottom-text"> Made by Obuobi Ayim David</span>
           </div>
           <div>
-            <a href="https://github.com/themeselection" class="me-4 text-white" target="_blank">
+            <a href="https://www.github.com/aristocratjnr" class="me-4 text-white" target="_blank">
               <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   fill-rule="evenodd"
