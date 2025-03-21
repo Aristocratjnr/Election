@@ -405,8 +405,9 @@
                           <div class="d-flex align-items-center">
                             
                             <div>
-                              <h6 class="mb-0">Sarah Johnson</h6>
-                              <p class="small text-body-secondary mb-0">CEO of Airbnb</p>
+                              <h6 class="mb-0">Sarah Afrifa</h6>
+                              <p class="small text-body-secondary mb-0">SRC Organizer</p>
+                             
                             </div>
                           </div>
                         </div>
@@ -428,8 +429,9 @@
                           <div class="d-flex align-items-center">
                            
                             <div>
-                              <h6 class="mb-0">Eugenia Moore</h6>
-                              <p class="small text-body-secondary mb-0">Founder of Hubspot</p>
+                              <h6 class="mb-0">Emmanuel Danso</h6>
+                              <p class="small text-body-secondary mb-0">SRC President</p>
+                             
                             </div>
                           </div>
                         </div>
@@ -451,8 +453,9 @@
                           </div>
                           <div class="d-flex align-items-center">
                             <div>
-                              <h6 class="mb-0">Sara Smith</h6>
-                              <p class="small text-body-secondary mb-0">Founder of Continental</p>
+                              <h6 class="mb-0">Lilian Maryes</h6>
+                              <p class="small text-body-secondary mb-0"> SRC Secretary</p>
+                           
                             </div>
                           </div>
                         </div>
@@ -474,8 +477,8 @@
                           <div class="d-flex align-items-center">
                             
                             <div>
-                              <h6 class="mb-0">Eugenia Moore</h6>
-                              <p class="small text-body-secondary mb-0">Founder of Hubspot</p>
+                              <h6 class="mb-0">Gloria Adams</h6>
+                              <p class="small text-body-secondary mb-0">SRC Vice President</p>
                             </div>
                           </div>
                         </div>
@@ -496,8 +499,8 @@
                             <i class="icon-base bx bx-star"></i>
                           </div>
                           <div class="d-flex align-items-center">
-                              <h6 class="mb-0">Sara Smith</h6>
-                              <p class="small text-body-secondary mb-0">Founder of Continental</p>
+                              <h6 class="mb-0">Joseph Appiah</h6>
+                              <p class="small text-body-secondary mb-0">Lecturer</p>
                             </div>
                           </div>
                         </div>
