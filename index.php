@@ -322,7 +322,7 @@
                     
               </div>
               <h5 class="mb-2">Secure Voting</h5>
-              <p class="features-icon-description">End-to-end encryption and blockchain technology ensure the integrity and security of every vote..</p>
+              <p class="features-icon-description">End-to-end encryption and blockchain technology ensure the integrity and security of every vote.</p>
             </div>
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
               <div class="text-center mb-4 text-primary">
@@ -547,8 +547,8 @@
                     alt="human image" />
                 </div>
                 <div class="card-body border border-top-0 border-primary-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Sophie Gilbert</h5>
-                  <p class="text-body-secondary mb-0">Project Manager</p>
+                  <h5 class="card-title mb-0">Obuobi Ayim David</h5>
+                  <p class="text-body-secondary mb-0">Software Engineer</p>
                 </div>
               </div>
             </div>
@@ -561,7 +561,7 @@
                     alt="human image" />
                 </div>
                 <div class="card-body border border-top-0 border-info-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Paul Miles</h5>
+                  <h5 class="card-title mb-0">Mavis Maryes</h5>
                   <p class="text-body-secondary mb-0">UI Designer</p>
                 </div>
               </div>
@@ -576,7 +576,7 @@
                     alt="human image" />
                 </div>
                 <div class="card-body border border-top-0 border-danger-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Nannie Ford</h5>
+                  <h5 class="card-title mb-0">Nannie HayFord</h5>
                   <p class="text-body-secondary mb-0">Development Lead</p>
                 </div>
               </div>
@@ -591,7 +591,7 @@
                     alt="human image" />
                 </div>
                 <div class="card-body border border-top-0 border-success-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Chris Watkins</h5>
+                  <h5 class="card-title mb-0">Chris Jason</h5>
                   <p class="text-body-secondary mb-0">Marketing Manager</p>
                 </div>
               </div>
@@ -1293,7 +1293,7 @@
     <!-- / Sections:End -->
 
     <!-- Footer: Start -->
-    <footer class="landing-footer bg-body footer-text">
+    <foote class="landing-footer bg-body footer-text">
       <div class="footer-top position-relative overflow-hidden z-1">
         <img
           src="assets/img/front-pages/backgrounds/footer-bg.png"
@@ -1337,7 +1337,9 @@ SmartVote is a secure, developer-friendly, and highly customizable educational v
             
           </div>
         </div>
+        </div>
       </div>
+      
       <div class="footer-bottom py-3 py-md-5">
         <div
           class="container d-flex flex-wrap justify-content-between flex-md-row flex-column text-center text-md-start">
@@ -1361,7 +1363,7 @@ SmartVote is a secure, developer-friendly, and highly customizable educational v
                   fill="currentColor" />
               </svg>
         </div>
-      </div>
+      
     </footer>
 
     <script src="assets/vendor/libs/popper/popper.js"></script>
