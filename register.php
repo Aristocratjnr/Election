@@ -90,7 +90,7 @@ echo '<!doctype html>';
                 </div>
                 <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">Student Mail:</label>
-                  <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email" />
+                  <input type="text" class="form-control" id="email" name="email" placeholder="Enter your student mail" />
                 </div>
                 <div class="form-password-toggle form-control-validation">
                   <label class="form-label" for="password">Password:</label>

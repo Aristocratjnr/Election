@@ -103,7 +103,7 @@ echo '<!doctype html>';
                   </div>
                 </div>
                 <div class="mb-6">
-                  <button class="btn btn-primary d-grid w-100" type="submit">Login</button>
+                  <button class="btn btn-primary d-grid w-100" type="submit"><i class="ri-lock-2-fill"></i>Login</button>
                 </div>
               </form>
 
