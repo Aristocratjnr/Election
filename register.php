@@ -89,11 +89,11 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
-                  <label for="email" class="form-label">Email</label>
+                  <label for="email" class="form-label">Student Mail:</label>
                   <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email" />
                 </div>
                 <div class="form-password-toggle form-control-validation">
-                  <label class="form-label" for="password">Password</label>
+                  <label class="form-label" for="password">Password:</label>
                   <div class="input-group input-group-merge">
                     <input
                       type="password"
@@ -124,18 +124,6 @@ echo '<!doctype html>';
                 </a>
               </p>
 
-              <div class="divider my-6">
-                <div class="divider-text">or</div>
-              </div>
-
-              <div class="d-flex justify-content-center">
-                <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-google-plus">
-                  <i class="icon-base bx bxl-google icon-20px"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-          <!-- /Register -->
         </div>
       </div>
     </div>
