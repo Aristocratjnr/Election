@@ -75,7 +75,7 @@ echo '<!doctype html>';
               </div>
               <!-- /Logo -->
               <h4 class="mb-1">Adventure starts here 🚀</h4>
-              <p class="mb-6">Make your app management easy and fun!</p>
+              <p class="mb-6">Make your Voting System Secure and User Friendly</p>
 
               <form id="formAuthentication" class="mb-6" action="index.html" method="GET">
                 <div class="mb-6 form-control-validation">
