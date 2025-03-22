@@ -114,18 +114,6 @@ echo '<!doctype html>';
                 </a>
               </p>
 
-              <div class="divider my-6">
-                <div class="divider-text">or</div>
-              </div>
-
-              <div class="d-flex justify-content-center">
-                <a href="javascript:;" class="btn btn-sm btn-icon rounded-circle btn-text-google-plus">
-                  <i class="icon-base bx bxl-google icon-20px"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-          <!-- /Login -->
         </div>
       </div>
     </div>
@@ -147,6 +135,6 @@ echo '<!doctype html>';
     <?php
   include 'includes/scripts.php';
   ?>
-  
+
   </body>
 </html>
