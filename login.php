@@ -1,4 +1,16 @@
-<!doctype html>
+<?php
+session_start();
+if (isset($_SESSION['login_id'])) {
+  if ($_SESSION['login_type'] == 0) {
+    header("location:index.php?page=dashboard");
+  } else {
+    header("location:index.php?page=vote");
+  }
+  exit();
+}
+
+echo '<!doctype html>';
+?>
 
 <html
   lang="en"
