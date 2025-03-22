@@ -143,5 +143,10 @@ echo '<!doctype html>';
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/pages-auth.js"></script>
+
+    <?php
+  include 'includes/scripts.php';
+  ?>
+  
   </body>
 </html>
