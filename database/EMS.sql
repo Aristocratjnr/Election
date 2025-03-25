@@ -11,14 +11,15 @@
 -- Students Table: Stores student voter information
 CREATE TABLE Students (
     studentID INT PRIMARY KEY AUTO_INCREMENT,  
-    studentNumber VARCHAR(50) NOT NULL UNIQUE, 
     name VARCHAR(100) NOT NULL,  
+    email VARCHAR(100) UNIQUE,  
+    password CHAR(60) NOT NULL,  
     dateOfBirth DATE NOT NULL,  
     department VARCHAR(100) NOT NULL,  
     contactNumber VARCHAR(15),  
-    email VARCHAR(100), 
-    registrationDate DATE NOT NULL,  
-    status ENUM('Active', 'Inactive') DEFAULT 'Active'  
+    registrationDate DATE NOT NULL DEFAULT CURRENT_DATE,  
+    status ENUM('Active', 'Inactive') DEFAULT 'Active',  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Candidates Table: Stores election candidates
@@ -31,15 +32,14 @@ CREATE TABLE Candidates (
     FOREIGN KEY (studentID) REFERENCES Students(studentID) ON DELETE CASCADE
 );
 
-
 -- Elections Table: Stores details of elections
 CREATE TABLE Elections (
     electionID INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,  
     startDate DATE NOT NULL,  
     endDate DATE NOT NULL,  
-    status ENUM('Scheduled', 'Ongoing', 'Completed') DEFAULT 'Scheduled'  
-
+    status ENUM('Scheduled', 'Ongoing', 'Completed') DEFAULT 'Scheduled'
+);
 
 -- Votes Table: Stores votes cast by students
 CREATE TABLE Votes (
@@ -50,7 +50,8 @@ CREATE TABLE Votes (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, 
     FOREIGN KEY (electionID) REFERENCES Elections(electionID) ON DELETE CASCADE,
     FOREIGN KEY (candidateID) REFERENCES Candidates(candidateID) ON DELETE CASCADE,
-    FOREIGN KEY (studentID) REFERENCES Students(studentID) ON DELETE NO ACTION 
+    FOREIGN KEY (studentID) REFERENCES Students(studentID) ON DELETE CASCADE,
+    UNIQUE (electionID, studentID)  
 );
 
 -- Results Table: Stores election results
@@ -63,7 +64,6 @@ CREATE TABLE Results (
     FOREIGN KEY (electionID) REFERENCES Elections(electionID) ON DELETE CASCADE,
     FOREIGN KEY (candidateID) REFERENCES Candidates(candidateID) ON DELETE CASCADE
 );
-
 
 --INSERTED DATA FROM MYSQL WORKBENCH
 
@@ -94,38 +94,40 @@ INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `pe
 INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES ('40857', '2879834', '2309813', '32', '20.7');
 
 
--- Queries Demonstrating Functionality
-
 -- List all registered students
 SELECT * FROM Students;
 
--- List candidates for an election
+-- List candidates for a specific election
 SELECT c.candidateID, s.name AS CandidateName, c.position, c.manifesto 
 FROM Candidates c
-JOIN Students s ON c.studentID = s.studentID;
+JOIN Students s ON c.studentID = s.studentID
+WHERE c.status = 'Approved';
 
--- Show election results
+-- Show election results for completed elections
 SELECT e.name AS ElectionName, s.name AS CandidateName, r.voteCount, r.percentage 
 FROM Results r
 JOIN Candidates c ON r.candidateID = c.candidateID
 JOIN Students s ON c.studentID = s.studentID
 JOIN Elections e ON r.electionID = e.electionID
-WHERE e.status = 'Completed';  
+WHERE e.status = 'Completed'
+ORDER BY r.voteCount DESC;
 
 -- Show upcoming elections
 SELECT * FROM Elections WHERE status = 'Scheduled';
 
--- Show all votes cast in an election
-SELECT v.voteID, e.name AS ElectionName, s.name AS VoterName, c.position, c.manifesto
+-- Show all votes cast in an election (latest votes first)
+SELECT v.voteID, e.name AS ElectionName, s.name AS VoterName, c.position, c.manifesto, v.timestamp
 FROM Votes v
 JOIN Elections e ON v.electionID = e.electionID
 JOIN Students s ON v.studentID = s.studentID
-JOIN Candidates c ON v.candidateID = c.candidateID;
+JOIN Candidates c ON v.candidateID = c.candidateID
+ORDER BY v.timestamp DESC;
 
 -- Count total votes for each candidate in an election
-SELECT c.position, s.name AS CandidateName, COUNT(v.voteID) AS TotalVotes
+SELECT e.name AS ElectionName, c.position, s.name AS CandidateName, COUNT(v.voteID) AS TotalVotes
 FROM Votes v
 JOIN Candidates c ON v.candidateID = c.candidateID
 JOIN Students s ON c.studentID = s.studentID
-GROUP BY c.position, s.name
+JOIN Elections e ON v.electionID = e.electionID
+GROUP BY e.name, c.position, s.name
 ORDER BY TotalVotes DESC;

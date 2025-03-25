@@ -67,7 +67,7 @@ echo '<!doctype html>';
               <h4 class="mb-1">Welcome to SmartVote👋</h4>
               <p class="mb-6">Please sign-in to your account</p>
 
-              <form id="formAuthentication" class="mb-6" action="index.html" method="GET">
+              <form id="formAuthentication" class="mb-6" action="signInAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">Student ID:</label>
                   <input

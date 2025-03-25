@@ -77,7 +77,7 @@ echo '<!doctype html>';
               <h4 class="mb-1">Adventure starts here 🚀</h4>
               <p class="mb-6">Make your Voting System Secure and User Friendly</p>
 
-              <form id="formAuthentication" class="mb-6" action="index.html" method="GET">
+              <form id="formAuthentication" class="mb-6" action="signUpAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="username" class="form-label">Student ID:</label>
                   <input
