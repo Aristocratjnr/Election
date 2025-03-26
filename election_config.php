@@ -1,6 +1,6 @@
 <?php
-include 'config/session.php';
-include 'config/isadmin.php';
+include 'configs/session.php';
+include 'configs/isadmin.php';
 ?>
 <div class="pagetitle">
   <h1>Elections Configuration</h1>

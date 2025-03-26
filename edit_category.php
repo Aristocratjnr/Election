@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'config/dbconnection.php';
+include 'configs/dbconnection.php';
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];

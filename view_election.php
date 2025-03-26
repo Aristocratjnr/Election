@@ -1,5 +1,5 @@
 <?php
-include 'config/dbconnection.php';
+include 'configs/dbconnection.php';
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];

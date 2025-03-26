@@ -1,7 +1,7 @@
 <?php
-include 'config/dbconnection.php';
-include 'config/session.php';
-include 'config/isadmin.php';
+include 'configs/dbconnection.php';
+include 'configs/session.php';
+include 'configs/isadmin.php';
 
 $users = $conn->prepare("SELECT * FROM users");
 $users->execute();

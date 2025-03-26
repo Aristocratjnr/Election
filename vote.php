@@ -1,6 +1,6 @@
 <?php
-include 'config/dbconnection.php';
-include 'config/session.php';
+include 'configs/dbconnection.php';
+include 'configs/session.php';
 
 $status = 1;
 $query = $conn->prepare("SELECT * FROM election WHERE status = ?");

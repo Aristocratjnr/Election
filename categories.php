@@ -1,7 +1,7 @@
 <?php
-include 'config/dbconnection.php';
-include 'config/session.php';
-include 'config/isadmin.php';
+include 'configs/dbconnection.php';
+include 'configs/session.php';
+include 'configs/isadmin.php';
 
 $row = $conn->prepare("SELECT * FROM election ORDER BY created_at DESC");
 $row->execute();

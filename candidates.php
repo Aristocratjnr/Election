@@ -1,7 +1,7 @@
 <?php
-include 'config/dbconnection.php';
-include 'config/session.php';
-include 'config/isadmin.php';
+include './configs/dbconnection.php';
+include './config/session.php';
+include './config/isadmin.php';
 
 if (isset($_GET['election_id']) && is_numeric($_GET['election_id'])) {
     $election_id = $_GET['election_id'];
@@ -48,7 +48,7 @@ $row = $result->fetch_assoc();
             <i class="bi bi-arrows-expand"></i> Scroll Horizontally
         </span>
         <?php
-        $categories = []; // Store categories with empty fellow_candidate_name
+        $categories = []; 
 
         foreach ($result as $key => $value) {
             if (!empty($value['fellow_candidate_name'])) {

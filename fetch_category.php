@@ -1,5 +1,5 @@
 <?php
-include 'config/dbconnection.php';
+include 'configs/dbconnection.php';
 
 if (isset($_GET['election_id']) && is_numeric($_GET['election_id'])) {
     $election_id = $_GET['election_id'];

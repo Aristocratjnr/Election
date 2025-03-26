@@ -1,5 +1,5 @@
 <?php
-include 'config/session.php';
+include 'configs/session.php';
 ?>
 <div class="pagetitle">
     <h1>Get in touch</h1>
