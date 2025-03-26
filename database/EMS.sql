@@ -10,7 +10,7 @@ CREATE TABLE Students (
     contactNumber VARCHAR(15),  
     registrationDate DATE NOT NULL DEFAULT current_timestamp,  
     status ENUM('Active', 'Inactive') DEFAULT 'Active',  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Candidates Table: Stores election candidates
@@ -19,6 +19,7 @@ CREATE TABLE Candidates (
     studentID INT,  
     position VARCHAR(100) NOT NULL,  
     manifesto TEXT, 
+    photo VARCHAR(255),
     status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending', 
     FOREIGN KEY (studentID) REFERENCES Students(studentID) ON DELETE CASCADE
 );
@@ -28,7 +29,9 @@ CREATE TABLE Elections (
     electionID INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,  
     startDate DATE NOT NULL,  
+    description varchar(255) DEFAULT NULL,
     endDate DATE NOT NULL,  
+    createdDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     status ENUM('Scheduled', 'Ongoing', 'Completed') DEFAULT 'Scheduled'
 );
 
@@ -51,17 +54,32 @@ CREATE TABLE Results (
     electionID INT,  
     candidateID INT, 
     voteCount INT DEFAULT 0,  
-    percentage DECIMAL(5,2),  
+    percentage DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(20) DEFAULT 'Preliminary',
+    lastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (electionID) REFERENCES Elections(electionID) ON DELETE CASCADE,
     FOREIGN KEY (candidateID) REFERENCES Candidates(candidateID) ON DELETE CASCADE
 );
 
+-- Categories Table: Stores election categories
+CREATE TABLE Categories (
+    categoryID INT PRIMARY KEY AUTO_INCREMENT,
+    electionID INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    addedBy INT DEFAULT NULL,
+    updatedBy INT DEFAULT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (electionID) REFERENCES Elections(electionID) ON DELETE CASCADE,
+    FOREIGN KEY (addedBy) REFERENCES Students(studentID) ON DELETE SET NULL,
+    FOREIGN KEY (updatedBy) REFERENCES Students(studentID) ON DELETE SET NULL
+);
 
 
 --- Students
-INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572956', 'Aristocrat Junior', '2002-04-18', 'Computer Science', '0551784926', 'ayimobuobi@gmail.com', '2025-03-18', 'Active');
-INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572956', 'Archimedes Great', '2003-02-02', 'Information Technology', '0501888952', 'archimedes@aol.com', '2025-03-18', 'Active');
-INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572956', 'Aristotle Columbus', '2001-09-23', 'Economics', '0251584723', 'aristotle@yahoo.com', '2025-03-18', 'Active');
+INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10958252', '4593956', 'Aristocrat Junior', '2002-04-18', 'Computer Science', '0551784926', 'ayimobuobi@gmail.com', '2025-03-18', 'Active');
+INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10948232', '4572556', 'Archimedes Great', '2003-02-02', 'Information Technology', '0501888952', 'archimedes@aol.com', '2025-03-18', 'Active');
+INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572356', 'Aristotle Columbus', '2001-09-23', 'Economics', '0251584723', 'aristotle@yahoo.com', '2025-03-18', 'Active');
 
 --- Candidates
 INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `status`) VALUES (NULL, '10928212', 'SRC-PRESIDENT', 'I want to be a president', 'Pending');
