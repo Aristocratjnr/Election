@@ -42,7 +42,7 @@
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
               <h6><?php echo $_SESSION['login_name'] ?></h6>
-              <span>Computer Eng.</span>
+              <span>Information Tech.</span>
             </li>
             <li>
               <hr class="dropdown-divider">
