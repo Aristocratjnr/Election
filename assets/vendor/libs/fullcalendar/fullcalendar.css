@@ -1,0 +1,433 @@
+/* Calendar */
+.fc {
+  --fc-neutral-bg-color: color-mix(in sRGB, var(--bs-base-color) 6%, var(--bs-card-bg));
+  --fc-today-bg-color: color-mix(in sRGB, var(--bs-base-color) 6%, var(--bs-card-bg));
+  --fc-border-color: var(--bs-border-color);
+  /* To fix firefox thead border issue */
+  /* To overwrite white color of event text */
+}
+.fc .private-event .fc-event-time,
+.fc .private-event .fc-event-title {
+  color: var(--bs-danger);
+}
+.fc .fc-scrollgrid-section {
+  block-size: 0;
+}
+.fc a[data-navlink]:hover {
+  text-decoration: none;
+}
+.fc .fc-timegrid-slot {
+  block-size: 4em;
+}
+.fc .fc-timeGridWeek-view .fc-timegrid-slot-minor {
+  border-block-start-style: none;
+}
+.fc .fc-timeGridDay-view .fc-timegrid-slot-minor {
+  border-block-start-style: solid;
+}
+.fc .fc-col-header-cell-cushion {
+  color: var(--bs-heading-color);
+  padding-block: 8.7px;
+}
+.fc .fc-toolbar {
+  flex-wrap: wrap;
+}
+.fc .fc-toolbar .fc-prev-button,
+.fc .fc-toolbar .fc-next-button {
+  display: inline-block;
+  border-color: transparent;
+  background-color: transparent;
+}
+.fc .fc-toolbar .fc-prev-button .fc-icon,
+.fc .fc-toolbar .fc-next-button .fc-icon {
+  color: var(--bs-heading-color);
+}
+.fc .fc-toolbar .fc-prev-button:hover, .fc .fc-toolbar .fc-prev-button:active, .fc .fc-toolbar .fc-prev-button:focus,
+.fc .fc-toolbar .fc-next-button:hover,
+.fc .fc-toolbar .fc-next-button:active,
+.fc .fc-toolbar .fc-next-button:focus {
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none !important;
+}
+.fc .fc-toolbar .fc-button {
+  border-radius: 0.375rem;
+}
+.fc .fc-toolbar .fc-button:not(.fc-next-button):not(.fc-prev-button) {
+  padding: 0.4222rem 1.25rem;
+}
+.fc .fc-toolbar .fc-button:not(.fc-next-button):not(.fc-prev-button):active, .fc .fc-toolbar .fc-button:not(.fc-next-button):not(.fc-prev-button):focus {
+  box-shadow: none;
+}
+.fc .fc-toolbar > * > :not(:first-child) {
+  margin-inline-start: 0;
+}
+.fc .fc-toolbar .fc-toolbar-chunk {
+  display: flex;
+  align-items: center;
+}
+.fc .fc-toolbar .fc-button-group .fc-button {
+  text-transform: capitalize;
+}
+.fc .fc-toolbar .fc-button-group .fc-button:not(.fc-prev-button):not(.fc-next-button):not(.fc-button-active, :first-child) {
+  border-inline-start: var(--bs-border-width) solid color-mix(in sRGB, var(--bs-paper-bg) 68%, var(--fc-button-active-border-color));
+}
+.fc .fc-toolbar .fc-button-group .fc-button:not(.fc-prev-button):not(.fc-next-button):not(.fc-button-active, .fc-sidebarToggle-button):hover {
+  border-color: var(--fc-button-active-border-color);
+}
+.fc .fc-toolbar .fc-button-group + div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.fc .fc-toolbar .fc--button:empty,
+.fc .fc-toolbar .fc-toolbar-chunk:empty {
+  display: none;
+}
+.fc .fc-toolbar .fc-sidebarToggle-button + div {
+  margin-inline-start: 0;
+}
+.fc table.fc-scrollgrid .fc-col-header .fc-col-header-cell {
+  border-inline-start: none;
+}
+.fc .fc-view-harness {
+  margin-block: 0;
+  margin-inline: -1.5rem;
+  min-block-size: 650px;
+}
+.fc .fc-view-harness .fc-daygrid-body .fc-daygrid-day .fc-daygrid-day-top {
+  flex-direction: row;
+}
+.fc .fc-view-harness .fc-daygrid-body .fc-daygrid-day .fc-daygrid-day-top .fc-daygrid-day-number {
+  padding: 0.5rem;
+}
+.fc .fc-view-harness .fc-daygrid-body .fc-daygrid-day .fc-daygrid-day-bottom .fc-daygrid-more-link {
+  margin-block-start: 0.625rem;
+}
+.fc .fc-view-harness .fc-event {
+  border: 0;
+  border-radius: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+}
+.fc .fc-view-harness .fc-event .fc-event-title {
+  font-weight: 500;
+}
+.fc .fc-view-harness .fc-daygrid-event-harness {
+  /*
+  ! week & day events are using this style for all day only, not for other events */
+}
+.fc .fc-view-harness .fc-daygrid-event-harness .fc-event.private-event {
+  border-color: transparent !important;
+  background-color: transparent !important;
+}
+.fc .fc-view-harness .fc-event .fc-daygrid-event-dot {
+  display: none;
+}
+.fc .fc-view-harness .fc-timegrid-event .fc-event-time {
+  font-size: 0.6875rem;
+}
+.fc .fc-view-harness .fc-v-event .fc-event-title {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding-block-start: 0.2rem;
+}
+.fc .fc-view-harness .fc-timegrid-event .fc-event-main {
+  padding-block: 0.25rem 0;
+  padding-inline: 0.5rem;
+}
+.fc .fc-daygrid-day-events .fc-event,
+.fc .fc-daygrid-day-events .fc-more-link {
+  margin-inline: 0.5rem;
+}
+@media (max-width: 767.98px) {
+  .fc .fc-daygrid-day-events .fc-daygrid-day-bottom {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .fc .fc-daygrid-day-events .fc-more-link {
+    margin-inline: 0;
+  }
+}
+.fc .fc-day-today {
+  background-clip: padding-box;
+}
+.fc .fc-day-today:not(.fc-col-header-cell) .fc-popover-body {
+  background-color: var(--bs-paper-bg);
+}
+.fc .fc-divider {
+  border-color: var(--bs-border-color);
+  background: var(--bs-border-color);
+}
+.fc .fc-day-disabled {
+  --fc-neutral-bg-color: color-mix(in sRGB, var(--bs-base-color) 16%, var(--bs-card-bg));
+}
+.fc .fc-h-event .fc-event-main,
+.fc .fc-v-event .fc-event-main {
+  color: inherit;
+}
+.fc .fc-daygrid-block-event .fc-event-time,
+.fc .fc-daygrid-dot-event .fc-event-title {
+  font-weight: 500;
+}
+.fc .fc-daygrid-body-natural .fc-daygrid-day-events {
+  margin-block: 0.94rem;
+}
+.fc .fc-daygrid-event-harness + .fc-daygrid-event-harness .fc-daygrid-event {
+  margin-block-start: 0.625rem;
+}
+.fc .fc-timegrid .fc-timegrid-divider {
+  display: none;
+}
+.fc .fc-timegrid .fc-timegrid-event {
+  border-radius: 0;
+  box-shadow: none;
+  padding-block-start: 0.5rem;
+}
+@media (max-width: 767.98px) {
+  .fc .fc-timegrid .fc-timegrid-event {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+.fc .fc-timegrid .fc-timegrid-event .fc-event-time {
+  font-size: inherit;
+}
+.fc .fc-daygrid-event-harness-abs .fc-event {
+  margin-block-end: 0.625rem;
+}
+.fc .fc-timegrid-slot-label-frame {
+  text-align: center;
+}
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  font-size: 0.8125rem;
+}
+.fc .fc-timegrid-axis-cushion {
+  color: var(--bs-secondary-color);
+  padding-block: 0.5rem;
+  padding-inline: 0.4375rem;
+  text-transform: capitalize;
+}
+.fc .fc-timegrid-slot-label-cushion {
+  padding: 0.5rem;
+  color: var(--bs-heading-color);
+  text-transform: uppercase;
+}
+.fc .fc-list-day-cushion,
+.fc .fc-list-table td {
+  padding-inline: 1rem;
+}
+.fc .fc-popover {
+  z-index: 1090;
+  border: 0;
+  background-color: var(--bs-paper-bg);
+}
+.fc .fc-popover .fc-popover-header {
+  padding: 0.566rem;
+  background-color: var(--bs-body-bg);
+}
+.fc .fc-list .fc-list-table {
+  border-block-end: 1px solid;
+  /* FC day */
+  /* FC table list disabled bg */
+}
+.fc .fc-list .fc-list-table th {
+  border: 0;
+  background: var(--bs-body-bg);
+  color: var(--bs-heading-color);
+}
+.fc .fc-list .fc-list-table .fc-list-event {
+  background-color: transparent !important;
+  cursor: pointer;
+}
+.fc .fc-list .fc-list-table .fc-list-event td {
+  color: var(--bs-body-color);
+}
+.fc .fc-list .fc-list-table .fc-list-event:hover td {
+  background-color: color-mix(in sRGB, var(--bs-base-color) 1.5%, var(--bs-paper-bg));
+}
+.fc .fc-list .fc-list-table .fc-list-event:hover .fc-list-day th {
+  color: var(--bs-heading-color);
+}
+.fc .fc-list .fc-list-table .fc-list-event:hover tbody > tr:first-child th {
+  border-block-start: 1px solid var(--bs-border-color);
+}
+.fc .fc-list .fc-list-table tbody > tr:first-child th {
+  border-block-start: 1px solid var(--bs-border-color);
+}
+.fc .fc-list .fc-list-table .fc-timegrid-axis-cushion.fc-scrollgrid-shrink-cushion {
+  color: var(--bs-secondary-color);
+}
+.fc .fc-list .fc-list-table .fc-day-disabled {
+  background-color: rgba(var(--bs-base-color-rgb), 0.16);
+}
+.fc .fc-list .fc-list-table .fc-day-other .fc-daygrid-day-top {
+  color: var(--bs-secondary-color);
+}
+.fc .fc-list .fc-list-empty {
+  background-color: var(--bs-body-bg);
+}
+.fc.fc-theme-standard .fc-list {
+  border: none;
+}
+.fc .fc-day-other .fc-daygrid-day-top {
+  color: var(--bs-secondary-color);
+  opacity: 1;
+}
+
+/* Media Queries */
+@media (max-width: 575.98px) {
+  .fc .fc-header-toolbar .fc-toolbar-chunk + .fc-toolbar-chunk {
+    margin-block-start: 1rem;
+  }
+}
+/* scss-docs-start calendar-modifiers */
+/* Generate contextual modifier classes for colorizing the calendar */
+.app-calendar-wrapper .bg-label-primary .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-primary);
+}
+.app-calendar-wrapper .fc-button-primary:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-primary));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-primary));
+  --fc-button-text-color: var(--bs-primary);
+  --fc-button-active-bg-color: var(--bs-primary);
+  --fc-button-active-border-color: var(--bs-primary);
+  --fc-button-hover-bg-color: var(--bs-primary);
+  --fc-button-hover-border-color: var(--bs-primary);
+}
+.app-calendar-wrapper .fc-button-primary:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-primary:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-primary-contrast);
+}
+
+.app-calendar-wrapper .bg-label-secondary .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-secondary);
+}
+.app-calendar-wrapper .fc-button-secondary:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-secondary));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-secondary));
+  --fc-button-text-color: var(--bs-secondary);
+  --fc-button-active-bg-color: var(--bs-secondary);
+  --fc-button-active-border-color: var(--bs-secondary);
+  --fc-button-hover-bg-color: var(--bs-secondary);
+  --fc-button-hover-border-color: var(--bs-secondary);
+}
+.app-calendar-wrapper .fc-button-secondary:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-secondary:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-secondary-contrast);
+}
+
+.app-calendar-wrapper .bg-label-success .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-success);
+}
+.app-calendar-wrapper .fc-button-success:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-success));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-success));
+  --fc-button-text-color: var(--bs-success);
+  --fc-button-active-bg-color: var(--bs-success);
+  --fc-button-active-border-color: var(--bs-success);
+  --fc-button-hover-bg-color: var(--bs-success);
+  --fc-button-hover-border-color: var(--bs-success);
+}
+.app-calendar-wrapper .fc-button-success:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-success:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-success-contrast);
+}
+
+.app-calendar-wrapper .bg-label-info .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-info);
+}
+.app-calendar-wrapper .fc-button-info:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-info));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-info));
+  --fc-button-text-color: var(--bs-info);
+  --fc-button-active-bg-color: var(--bs-info);
+  --fc-button-active-border-color: var(--bs-info);
+  --fc-button-hover-bg-color: var(--bs-info);
+  --fc-button-hover-border-color: var(--bs-info);
+}
+.app-calendar-wrapper .fc-button-info:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-info:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-info-contrast);
+}
+
+.app-calendar-wrapper .bg-label-warning .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-warning);
+}
+.app-calendar-wrapper .fc-button-warning:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-warning));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-warning));
+  --fc-button-text-color: var(--bs-warning);
+  --fc-button-active-bg-color: var(--bs-warning);
+  --fc-button-active-border-color: var(--bs-warning);
+  --fc-button-hover-bg-color: var(--bs-warning);
+  --fc-button-hover-border-color: var(--bs-warning);
+}
+.app-calendar-wrapper .fc-button-warning:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-warning:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-warning-contrast);
+}
+
+.app-calendar-wrapper .bg-label-danger .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-danger);
+}
+.app-calendar-wrapper .fc-button-danger:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-danger));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-danger));
+  --fc-button-text-color: var(--bs-danger);
+  --fc-button-active-bg-color: var(--bs-danger);
+  --fc-button-active-border-color: var(--bs-danger);
+  --fc-button-hover-bg-color: var(--bs-danger);
+  --fc-button-hover-border-color: var(--bs-danger);
+}
+.app-calendar-wrapper .fc-button-danger:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-danger:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-danger-contrast);
+}
+
+.app-calendar-wrapper .bg-label-light .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-light);
+}
+.app-calendar-wrapper .fc-button-light:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-light));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-light));
+  --fc-button-text-color: var(--bs-light);
+  --fc-button-active-bg-color: var(--bs-light);
+  --fc-button-active-border-color: var(--bs-light);
+  --fc-button-hover-bg-color: var(--bs-light);
+  --fc-button-hover-border-color: var(--bs-light);
+}
+.app-calendar-wrapper .fc-button-light:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-light:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-light-contrast);
+}
+
+.app-calendar-wrapper .bg-label-dark .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-dark);
+}
+.app-calendar-wrapper .fc-button-dark:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-dark));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-dark));
+  --fc-button-text-color: var(--bs-dark);
+  --fc-button-active-bg-color: var(--bs-dark);
+  --fc-button-active-border-color: var(--bs-dark);
+  --fc-button-hover-bg-color: var(--bs-dark);
+  --fc-button-hover-border-color: var(--bs-dark);
+}
+.app-calendar-wrapper .fc-button-dark:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-dark:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-dark-contrast);
+}
+
+.app-calendar-wrapper .bg-label-gray .fc-list-event-dot {
+  --fc-event-border-color: var(--bs-gray);
+}
+.app-calendar-wrapper .fc-button-gray:not(.fc-prev-button):not(.fc-next-button) {
+  --fc-button-bg-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-gray));
+  --fc-button-border-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-gray));
+  --fc-button-text-color: var(--bs-gray);
+  --fc-button-active-bg-color: var(--bs-gray);
+  --fc-button-active-border-color: var(--bs-gray);
+  --fc-button-hover-bg-color: var(--bs-gray);
+  --fc-button-hover-border-color: var(--bs-gray);
+}
+.app-calendar-wrapper .fc-button-gray:not(.fc-prev-button):not(.fc-next-button):hover, .app-calendar-wrapper .fc-button-gray:not(.fc-prev-button):not(.fc-next-button).fc-button-active {
+  --fc-button-text-color: var(--bs-gray-contrast);
+}
+
+/* scss-docs-end calendar-modifiers */
