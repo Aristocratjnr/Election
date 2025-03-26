@@ -40,7 +40,6 @@ Ensure you have the following installed:
 - PHP 8.4
 - MySQL Server
 - Apache/Nginx Server
-- Composer (for dependency management)
 
 ### Steps
 1. **Clone the Repository**

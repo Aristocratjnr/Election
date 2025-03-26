@@ -149,7 +149,7 @@ if (isset($_GET['id'])) {
       })
     }
   })
-  // Real-time validation when the user enters the required field
+
   $("#add-candidate-form").find("input, select").on("input", function() {
     const input = $(this);
     const value = input.val().trim();
