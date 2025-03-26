@@ -12,7 +12,7 @@ $show_results = $temp->fetch_assoc();
 if ($show_results) {
     $check_election = $show_results['id'];
     $voting_status = $show_results['can_vote'];
-    $endtime = $show_results['endtime']; // Election end time
+    $endtime = $show_results['endtime']; 
 
     // Check if user has already voted
     $user_id = $_SESSION['login_id'];
