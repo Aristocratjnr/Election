@@ -1,7 +1,7 @@
 <?php
 session_start();
-require '../config/dbconnection.php';
-include '../config/isadmin.php';
+require 'configs/dbconnection.php';
+include 'configs/isadmin.php';
 
 if (isset($_GET['election_id']) && $_GET['action'] == 'export_category' && is_numeric($_GET['election_id'])) {
     $election_id = $_GET['election_id'];

@@ -7,7 +7,7 @@ class Auth
 	public function __construct()
 	{
 		ob_start();
-		include '../config/dbconnection.php';
+		include 'configs/dbconnection.php';
 
 		$this->db = $conn;
 	}
