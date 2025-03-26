@@ -8,7 +8,7 @@ CREATE TABLE Students (
     dateOfBirth DATE NOT NULL,  
     department VARCHAR(100) NOT NULL,  
     contactNumber VARCHAR(15),  
-    registrationDate DATE NOT NULL DEFAULT CURRENT_DATE,  
+    registrationDate DATE NOT NULL DEFAULT current_timestamp,  
     status ENUM('Active', 'Inactive') DEFAULT 'Active',  
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -56,36 +56,36 @@ CREATE TABLE Results (
     FOREIGN KEY (candidateID) REFERENCES Candidates(candidateID) ON DELETE CASCADE
 );
 
---INSERTED DATA FROM MYSQL WORKBENCH
 
----Students
+
+--- Students
 INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572956', 'Aristocrat Junior', '2002-04-18', 'Computer Science', '0551784926', 'ayimobuobi@gmail.com', '2025-03-18', 'Active');
 INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572956', 'Archimedes Great', '2003-02-02', 'Information Technology', '0501888952', 'archimedes@aol.com', '2025-03-18', 'Active');
 INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572956', 'Aristotle Columbus', '2001-09-23', 'Economics', '0251584723', 'aristotle@yahoo.com', '2025-03-18', 'Active');
 
----Candidates
+--- Candidates
 INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `status`) VALUES (NULL, '10928212', 'SRC-PRESIDENT', 'I want to be a president', 'Pending');
 INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `status`) VALUES (NULL, '10948220', 'TRESURER', 'I want to be a tresurer', 'Pending');
 INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `status`) VALUES (NULL, '10928212', 'SECRETARY', 'I want to be a secretary', 'Pending');
 
----Election
+--- Election
 INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES ('2832234', 'David Ayim Obuobi', '2025-03-18', '2025-03-20', 'Scheduled');
 INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES ('2832235', 'Nana Addo Dankwa', '2025-03-19', '2025-03-22', 'Scheduled');
 INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES ('2832234', 'John Dramani Mahama ', '2025-03-20', '2025-03-23', 'Scheduled');
 
----Votes
+--- Votes
 INSERT INTO `votes` (`voteID`, `electionID`, `candidateID`, `studentID`, `timestamp`) VALUES ('739321', '2832234', '2372714', '10928212', '2025-03-18 21:11:03');
 INSERT INTO `votes` (`voteID`, `electionID`, `candidateID`, `studentID`, `timestamp`) VALUES ('731421', '2789234', '2393814', '10639212', '2025-03-18 21:10:08');
 INSERT INTO `votes` (`voteID`, `electionID`, `candidateID`, `studentID`, `timestamp`) VALUES ('739221', '2802234', '2362314', '10720212', '2025-03-18 21:03:09');
 
 
----Results
+--- Results
 INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES ('44557', '2832234', '237713', '52', '42.7');
 INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES ('47857', '2809234', '237013', '80', '92.7');
 INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES ('40857', '2879834', '2309813', '32', '20.7');
 
 
----List all registered students
+--- List all registered students
 SELECT * FROM Students;
 
 --- List candidates for a specific election
