@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Sanitize and process inputs
     $student_id = trim($_POST["student_id"]);
     $email = trim($_POST["email"]);
-    $password = password_hash($_POST["password"], PASSWORD_BCRYPT); // Secure password hashing
+    $password = password_hash($_POST["password"], PASSWORD_BCRYPT); 
 
     // Ensure column names match your database table
     $stmt = $conn->prepare("INSERT INTO Students (studentNumber, email, password, registrationDate) VALUES (?, ?, ?, NOW())");

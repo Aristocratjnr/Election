@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'configs/dbconnection.php'; // Ensure the database connection file exists
+include 'configs/dbconnection.php'; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $student_id = $_POST['student_id'];

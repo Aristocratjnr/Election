@@ -143,7 +143,7 @@ if ($show_results) {
         </section>
     <?php } else { ?>
         <div class="pagetitle">
-            <h1>Online Voting System</h1>
+            <h1>Smart Vote</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Home</a></li>
@@ -162,7 +162,7 @@ if ($show_results) {
 } else { ?>
     <div class="container">
         <div class="pagetitle">
-            <h1>Smart VOte</h1>
+            <h1>Smart Vote</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Home</a></li>
