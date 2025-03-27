@@ -77,9 +77,9 @@ echo '<!doctype html>';
               <h4 class="mb-1">Adventure starts here 🚀</h4>
               <p class="mb-6">Make your Voting System Secure and User Friendly</p>
 
-              <form id="formAuthentication" class="mb-6" action="signUpAuth.php" method="POST">
+              <form id="register-form" class="mb-6">
                 <div class="mb-6 form-control-validation">
-                  <label for="username" class="form-label">Student ID:</label>
+                  <label for="student-id" class="form-label">Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
@@ -104,16 +104,23 @@ echo '<!doctype html>';
                       aria-describedby="password" />
                     <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                   </div>
-                </div>
-                <div class="my-7 form-control-validation">
-                  <div class="form-check mb-0">
-                    <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" />
-                    <label class="form-check-label" for="terms-conditions">
-                      I agree to
-                      <a href="javascript:void(0);">privacy policy & terms</a>
-                    </label>
+                </div><br>
+                <div class="mb-6 form-control-validation">
+                <div class="form-password-toggle form-control-validation">
+                  <label class="form-label" for="password">Confirm Password:</label>
+                  <div class="input-group input-group-merge">
+                    <input
+                      type="password"
+                      id="comfirmPassword"
+                      class="form-control"
+                      name="password"
+                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                      aria-describedby="confrimPassword" />
+                    <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                   </div>
                 </div>
+                </div>
+                
                 <button class="btn btn-primary d-grid w-100">Sign up</button>
               </form>
 
@@ -152,11 +159,90 @@ echo '<!doctype html>';
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
 
     <!-- Main JS -->
-
     <script src="assets/js/main.js"></script>
+    <script>
+  var registerForm = document.getElementById('register-form');
+  var studentInput = document.getElementById('student_id');
+  var emailInput = document.getElementById('email');
+  var passwordInput = document.getElementById('password');
+  var comfirmPasswordInput = document.getElementById('comfirmPassword');
+  var studentErrorMsg = document.getElementById('name-error-msg');
+  var emailErrorMsg = document.getElementById('email-error-msg');
+  var passwordErrorMsg = document.getElementById('password-error-msg');
+  var comfirmPasswordErrorMsg = document.getElementById('comfirmPassword-error-msg');
 
-    <!-- Page JS -->
-    <script src="assets/js/pages-auth.js"></script>
+  registerForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Reset error messages
+    studentErrorMsg.textContent = '';
+    emailInput.textContent = '';
+    passwordErrorMsg.textContent = '';
+    comfirmPasswordErrorMsg.textContent = '';
+
+    if (!registerForm.checkValidity()) {
+      // Show custom error messages for unvalidated fields
+      if (!emailInput.checkValidity()) {
+        if (emailInput.validity.valueMissing) {
+          emailErrorMsg.textContent = 'Please enter a Student Email.';
+        }
+      }
+
+      if (!studentInput.checkValidity()) {
+        if (studentInput.validity.valueMissing) {
+          studentErrorMsg.textContent = 'Please enter a Student ID.';
+        }
+      }
+
+      if (!passwordInput.checkValidity()) {
+        if (passwordInput.validity.valueMissing) {
+          passwordErrorMsg.textContent = 'Please provide a password.';
+        }
+      }
+
+      if (!comfirmPasswordInput.checkValidity()) {
+        if (comfirmPasswordInput.validity.valueMissing) {
+          comfirmPasswordErrorMsg.textContent = 'Please repeat your password.';
+        }
+      }
+    } else {
+      // If form is valid, proceed with AJAX call to the server
+      var formData = new FormData(registerForm);
+      $.ajax({
+        url: 'controllers/app.php?action=register',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        error: function(err) {
+          console.log(err);
+        },
+        success: function(resp) {
+          var response = JSON.parse(resp);
+          if (response.status === 'success') {
+            location.href = response.redirect_url;
+          } else {
+            // Show the error message received from the server
+            if (response.status === 'username') {
+              $('#register-form').prepend('<div class="alert alert-danger">' + response.message + '</div>');
+              $('#register-form button[type="button"]').removeAttr('disabled').html('register');
+              usernameInput.classList.add('is-invalid');
+            } else {
+              $('#register-form').prepend('<div class="alert alert-danger">' + response.message + '</div>');
+              $('#register-form button[type="button"]').removeAttr('disabled').html('register');
+              passwordInput.classList.add('is-invalid');
+            }
+          }
+        }
+      });
+    }
+
+    registerForm.classList.add('was-validated');
+  }, false);
+</script>
+
+  
 
     <?php
   include 'includes/scripts.php';
