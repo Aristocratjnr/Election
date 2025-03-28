@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Email Content
                 $mail->isHTML(true);
-                $mail->Subject = '🎉 Registration Successful';
+                $mail->Subject = 'Welcome to SmartVote EMS';
                 $mail->Body    = "
                     <h2 style='color:#2d6a4f;'>Hello, $name 👋</h2>
                     <p>Thank you for registering with the <code>SmartVote EMS</code>.</p>
