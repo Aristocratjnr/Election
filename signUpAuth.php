@@ -44,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = $_ENV['SMTP_EMAIL']; // Gmail
-                $mail->Password = $_ENV['SMTP_PASSWORD'];     // App password
+                $mail->Username = $_ENV['SMTP_EMAIL']; 
+                $mail->Password = $_ENV['SMTP_PASSWORD'];     
                 $mail->SMTPSecure = 'ssl';
                 $mail->Port = 465;
 
@@ -55,20 +55,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->isHTML(true);
                 $mail->Subject = 'Welcome to SmartVote EMS';
                 $mail->Body = "
-                    <h2 style='color:#2d6a4f;'>Hello, $name 👋</h2>
-                    <p>Thank you for registering with the <code>SmartVote EMS</code>.</p>
-                    <p><code>Your Details:</code></p>
-                    <ul>
-                        <li><strong>Student ID:</strong> $studentID</li>
-                        <li><strong>Email:</strong> $email</li>
-                        <li><strong>Department:</strong> $department</li>
-                        <li><strong>Phone:</strong> $phone</li>
-                    </ul>
-                    <p>You can now <a href='http://localhost/election/login.php'>log in</a> and participate in voting.</p>
-                    <br>
-                    <p style='color:#6c757d;'>If you have any issues, please contact support.</p>
-                    <p><strong>Best regards,</strong><br>Student Voting System</p>
-                ";
+              <div style='font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; border-radius: 10px; color: #212529; max-width: 600px; margin: auto;'>
+            < h2 style='color: #2d6a4f;'>Hello, $name 👋</h2>
+            <p>Thank you for registering with <strong>SmartVote EMS</strong>.</p>
+
+           <div style='background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 15px;'>
+            <h3 style='margin-top: 0; color: #1b4332;'>Your Registration Details:</h3>
+            <ul style='list-style-type: none; padding: 0;'>
+                <li><strong>Student ID:</strong> $studentID</li>
+                <li><strong>Email:</strong> $email</li>
+                <li><strong>Department:</strong> $department</li>
+                <li><strong>Phone:</strong> $phone</li>
+            </ul>
+           </div>
+
+          <p style='margin-top: 20px;'>You can now <a href='http://localhost/election/login.php' style='color: #40916c; text-decoration: none; font-weight: bold;'>log in</a> and participate in voting.</p>
+        
+          <p style='color: #6c757d; font-size: 14px;'>If you have any issues, please contact support.</p>
+        
+           <p style='margin-top: 30px;'>
+            <strong>Best regards,</strong><br>
+            The Student Voting System Team
+              </p>
+               </div>
+           <p style='font-size: 12px; color: #6c757d;'>This is an automated message, please do not reply.</p>";
+
                 $mail->AltBody = "Hello $name,\n\nYour registration was successful.\nStudent ID: $studentID\nEmail: $email\nLogin here: http://yourdomain.com/login.php\n\n- Student Voting System";
 
                 $mail->send();
