@@ -77,15 +77,15 @@ echo '<!doctype html>';
               <h4 class="mb-1">Adventure starts here 🚀</h4>
               <p class="mb-6">Make your Voting System Secure and User Friendly</p>
 
-              <form id="register-form" class="mb-6">
+              <form id="formAuthentication" class="mb-6" action="signUpAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
-                  <label for="student-id" class="form-label">Student ID:</label>
+                  <label for="student_id" class="form-label">Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="student_id"
+                    id="studentID"
                     name="student"
-                    placeholder="Enter Student ID"
+                    placeholder="Enter your student id"
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
@@ -120,6 +120,26 @@ echo '<!doctype html>';
                   </div>
                 </div>
                 </div>
+                <div class="mb-6 form-control-validation">
+                  <label for="department" class="form-label">Deparment:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="department"
+                    name="department"
+                    placeholder="Enter your department"
+                    autofocus />
+                </div>
+                <div class="mb-6 form-control-validation">
+                  <label for="contact" class="form-label">Contact:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="contact"
+                    name="contact"
+                    placeholder="Enter your contact"
+                    autofocus />
+                </div>
                 
                 <button class="btn btn-primary d-grid w-100">Sign up</button>
               </form>
@@ -150,6 +170,8 @@ echo '<!doctype html>';
     <script src="assets/vendor/libs/i18n/i18n.js"></script>
 
     <script src="assets/vendor/js/menu.js"></script>
+    <script src="assets/js/pages-auth.js"></script>
+  
 
     <!-- endbuild -->
 
@@ -159,89 +181,6 @@ echo '<!doctype html>';
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
 
     <!-- Main JS -->
-    <script src="assets/js/main.js"></script>
-    <script>
-  var registerForm = document.getElementById('register-form');
-  var studentInput = document.getElementById('student_id');
-  var emailInput = document.getElementById('email');
-  var passwordInput = document.getElementById('password');
-  var comfirmPasswordInput = document.getElementById('comfirmPassword');
-  var studentErrorMsg = document.getElementById('name-error-msg');
-  var emailErrorMsg = document.getElementById('email-error-msg');
-  var passwordErrorMsg = document.getElementById('password-error-msg');
-  var comfirmPasswordErrorMsg = document.getElementById('comfirmPassword-error-msg');
-
-  registerForm.addEventListener('submit', function(event) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    // Reset error messages
-    studentErrorMsg.textContent = '';
-    emailInput.textContent = '';
-    passwordErrorMsg.textContent = '';
-    comfirmPasswordErrorMsg.textContent = '';
-
-    if (!registerForm.checkValidity()) {
-      // Show custom error messages for unvalidated fields
-      if (!emailInput.checkValidity()) {
-        if (emailInput.validity.valueMissing) {
-          emailErrorMsg.textContent = 'Please enter a Student Email.';
-        }
-      }
-
-      if (!studentInput.checkValidity()) {
-        if (studentInput.validity.valueMissing) {
-          studentErrorMsg.textContent = 'Please enter a Student ID.';
-        }
-      }
-
-      if (!passwordInput.checkValidity()) {
-        if (passwordInput.validity.valueMissing) {
-          passwordErrorMsg.textContent = 'Please provide a password.';
-        }
-      }
-
-      if (!comfirmPasswordInput.checkValidity()) {
-        if (comfirmPasswordInput.validity.valueMissing) {
-          comfirmPasswordErrorMsg.textContent = 'Please repeat your password.';
-        }
-      }
-    } else {
-      // If form is valid, proceed with AJAX call to the server
-      var formData = new FormData(registerForm);
-      $.ajax({
-        url: 'controllers/app.php?action=register',
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        error: function(err) {
-          console.log(err);
-        },
-        success: function(resp) {
-          var response = JSON.parse(resp);
-          if (response.status === 'success') {
-            location.href = response.redirect_url;
-          } else {
-            // Show the error message received from the server
-            if (response.status === 'username') {
-              $('#register-form').prepend('<div class="alert alert-danger">' + response.message + '</div>');
-              $('#register-form button[type="button"]').removeAttr('disabled').html('register');
-              usernameInput.classList.add('is-invalid');
-            } else {
-              $('#register-form').prepend('<div class="alert alert-danger">' + response.message + '</div>');
-              $('#register-form button[type="button"]').removeAttr('disabled').html('register');
-              passwordInput.classList.add('is-invalid');
-            }
-          }
-        }
-      });
-    }
-
-    registerForm.classList.add('was-validated');
-  }, false);
-</script>
-
   
 
     <?php
