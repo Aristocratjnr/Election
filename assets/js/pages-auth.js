@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (formAuthentication && typeof FormValidation !== 'undefined') {
     const validation = FormValidation.formValidation(formAuthentication, {
       fields: {
-        student: {
+        studentID: {
           validators: {
             notEmpty: {
               message: 'Please enter student ID'

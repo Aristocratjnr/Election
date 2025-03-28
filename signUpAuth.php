@@ -14,13 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $department = $_POST['department'] ?? ''; 
     $phone = $_POST['contact'] ?? '';
 
+    // Hash the password for security
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $stmt = $conn->prepare("INSERT INTO students (studentID, name, email, password, department, contactNumber) VALUES (?, ?, ?, ?, ?)");
+    // Prepare SQL insert statement
+    $stmt = $conn->prepare("INSERT INTO students (studentID, name, email, password, department, contactNumber) VALUES (?, ?, ?, ?, ?, ?)");
 
     if ($stmt) {
-        $stmt->bind_param("sssss", $studentID, $name, $email, $hashedPassword, $department, $phone);
+        // Bind all 6 parameters
+        $stmt->bind_param("ssssss", $studentID, $name, $email, $hashedPassword, $department, $phone);
 
+        // Try executing the query
         if ($stmt->execute()) {
             $message = "🎉 Registration successful!";
             $alertType = "success";

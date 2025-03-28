@@ -84,7 +84,7 @@ echo '<!doctype html>';
                     type="text"
                     class="form-control"
                     id="studentID"
-                    name="student"
+                    name="studentID"
                     placeholder="Enter your student id"
                     autofocus />
                 </div>
