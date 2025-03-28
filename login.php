@@ -133,33 +133,7 @@ echo '<!doctype html>';
     <script src="assets/js/pages-auth.js"></script>
 
     <script>
-  document.querySelector("#formAuthentication").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const studentID = document.getElementById("studentID").value;
-    const password = document.getElementById("password").value;
-
-    fetch("signInAuth.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `studentID=${encodeURIComponent(studentID)}&password=${encodeURIComponent(password)}`
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        if (data.type == 0) {
-          window.location.href = "index.php?page=dashboard";
-        } else {
-          window.location.href = "index.php?page=vote";
-        }
-      } else {
-        alert(data.message); // or display a styled error
-      }
-    })
-    .catch(err => console.error("Login error:", err));
-  });
+ 
 </script>
 
     <?php

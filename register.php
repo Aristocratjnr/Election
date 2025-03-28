@@ -79,7 +79,7 @@ echo '<!doctype html>';
 
               <form id="formAuthentication" class="mb-6" action="signUpAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
-                  <label for="student_id" class="form-label">Student ID:</label>
+                  <label for="studentID" class="form-label">Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
@@ -117,13 +117,13 @@ echo '<!doctype html>';
                 </div><br>
                 <div class="mb-6 form-control-validation">
                 <div class="form-password-toggle form-control-validation">
-                  <label class="form-label" for="password">Confirm Password:</label>
+                  <label class="form-label" for="confirmPassword">Confirm Password:</label>
                   <div class="input-group input-group-merge">
                     <input
                       type="password"
                       id="comfirmPassword"
                       class="form-control"
-                      name="password"
+                      name="confirmPassword"
                       placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
                       aria-describedby="confrimPassword" />
                     <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>

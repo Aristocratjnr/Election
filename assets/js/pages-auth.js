@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (formAuthentication && typeof FormValidation !== 'undefined') {
     const validation = FormValidation.formValidation(formAuthentication, {
       fields: {
-        studentID: {
+        student: {
           validators: {
             notEmpty: {
               message: 'Please enter student ID'
@@ -14,6 +14,17 @@ document.addEventListener('DOMContentLoaded', function () {
             stringLength: {
               min: 6,
               message: 'Student ID must be more than 6 characters'
+            }
+          }
+        },
+        name: {
+          validators: {
+            notEmpty: {
+              message: 'Please enter your name'
+            },
+            stringLength: {
+              min: 3,
+              message: 'Name must be more than 3 characters'
             }
           }
         },
@@ -27,14 +38,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
           }
         },
-        'email-username': {
+        department: {
           validators: {
             notEmpty: {
-              message: 'Please enter email'
+              message: 'Please enter your department'
             },
             stringLength: {
-              min: 6,
-              message: 'Username must be more than 6 characters'
+              min: 3,
+              message: 'Department must be more than 3 characters'
+            }
+          }
+        },
+        contact: {
+          validators: {
+            notEmpty: {
+              message: 'Please enter your contact number'
+            },
+            stringLength: {
+              min: 10,
+              message: 'Contact number must be more than 10 digits'
             }
           }
         },
@@ -57,13 +79,9 @@ document.addEventListener('DOMContentLoaded', function () {
             identical: {
               compare: () => formAuthentication.querySelector('[name="password"]').value,
               message: 'The password and its confirmation do not match'
-            },
-            stringLength: {
-              min: 6,
-              message: 'Password must be more than 6 characters'
             }
           }
-        },
+        }
       },
       plugins: {
         trigger: new FormValidation.plugins.Trigger(),
@@ -83,10 +101,9 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // Custom form submission
+    // Handle Form Submit After Validation
     formAuthentication.addEventListener('submit', function (e) {
       e.preventDefault();
-
       validation.validate().then(function (status) {
         if (status === 'Valid') {
           const formData = new FormData(formAuthentication);
@@ -97,28 +114,32 @@ document.addEventListener('DOMContentLoaded', function () {
             data: formData,
             processData: false,
             contentType: false,
-            error: function (err) {
-              console.log(err);
-            },
             success: function (resp) {
-              const response = JSON.parse(resp);
+              try {
+                const response = JSON.parse(resp);
 
-              if (response.status === 'success') {
-                location.href = response.redirect_url;
-              } else {
                 $('#formAuthentication .alert').remove(); // Clear previous alerts
 
-                const alert = `<div class="alert alert-danger">${response.message}</div>`;
-                $('#formAuthentication').prepend(alert);
-
-                if (response.status === 'student_id') {
-                  formAuthentication.querySelector('[name="student_id"]').classList.add('is-invalid');
+                if (response.status === 'success') {
+                  location.href = response.redirect_url;
                 } else {
-                  formAuthentication.querySelector('[name="password"]').classList.add('is-invalid');
-                }
+                  const alert = `<div class="alert alert-danger">${response.message}</div>`;
+                  $('#formAuthentication').prepend(alert);
 
-                formAuthentication.querySelector('button[type="submit"]').disabled = false;
+                  if (response.status === 'student_id') {
+                    formAuthentication.querySelector('[name="student"]').classList.add('is-invalid');
+                  } else {
+                    formAuthentication.querySelector('[name="password"]').classList.add('is-invalid');
+                  }
+                }
+              } catch (err) {
+                console.error("Response parsing error", err);
               }
+            },
+            error: function (err) {
+              console.error("AJAX Error", err);
+              const alert = `<div class="alert alert-danger">An error occurred. Please try again later.</div>`;
+              $('#formAuthentication').prepend(alert);
             }
           });
         }
@@ -126,14 +147,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Two Steps Verification: Format numeral inputs
+  // Format numeric inputs (e.g., verification code fields)
   const numeralMaskElements = document.querySelectorAll('.numeral-mask');
   const formatNumeral = value => value.replace(/\D/g, '');
 
   if (numeralMaskElements.length > 0) {
-    numeralMaskElements.forEach(numeralMaskEl => {
-      numeralMaskEl.addEventListener('input', event => {
-        numeralMaskEl.value = formatNumeral(event.target.value);
+    numeralMaskElements.forEach(el => {
+      el.addEventListener('input', event => {
+        el.value = formatNumeral(event.target.value);
       });
     });
   }
