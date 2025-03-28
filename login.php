@@ -1,16 +1,5 @@
-<?php
-session_start();
-if (isset($_SESSION['login_id'])) {
-  if ($_SESSION['login_type'] == 0) {
-    header("location:index.php?page=dashboard");
-  } else {
-    header("location:index.php?page=vote");
-  }
-  exit();
-}
+<!doctype html>;
 
-echo '<!doctype html>';
-?>
 
 <html
   lang="en"
@@ -67,7 +56,7 @@ echo '<!doctype html>';
               <h4 class="mb-1">Welcome to SmartVote👋</h4>
               <p class="mb-6">Please sign-in to your account</p>
 
-              <form id="formAuthentication" class="mb-6" action="signInAuth.php" method="POST">
+              <form id="loginForm" class="mb-6" action="signInAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="studentID" class="form-label">Student ID:</label>
                   <input
@@ -133,7 +122,34 @@ echo '<!doctype html>';
     <script src="assets/js/pages-auth.js"></script>
 
     <script>
- 
+  document.getElementById("loginForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const response = await fetch("SignInAuth.php", {
+        method: "POST",
+        body: formData
+    });
+
+    const result = await response.json();
+    const alertBox = document.getElementById("alertBox");
+
+    if (result.success) {
+        alertBox.className = "alert alert-success mt-3";
+        alertBox.textContent = `Welcome, ${result.name}! Redirecting...`;
+        alertBox.classList.remove("d-none");
+
+        setTimeout(() => {
+            window.location.href = "dashboard.php";
+        }, 2000);
+    } else {
+        alertBox.className = "alert alert-danger mt-3";
+        alertBox.textContent = result.message || "Login failed.";
+        alertBox.classList.remove("d-none");
+    }
+});
 </script>
 
     <?php
