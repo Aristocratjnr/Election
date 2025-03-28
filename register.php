@@ -147,7 +147,7 @@ echo '<!doctype html>';
                     class="form-control"
                     id="contact"
                     name="contact"
-                    placeholder="Enter your contact"
+                    placeholder="start with +233"
                     autofocus />
                 </div>
                 
