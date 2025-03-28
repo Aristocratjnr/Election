@@ -155,7 +155,7 @@ echo '<!doctype html>';
           window.location.href = "index.php?page=vote";
         }
       } else {
-        alert(data.message); 
+        alert(data.message); // or display a styled error
       }
     })
     .catch(err => console.error("Login error:", err));
