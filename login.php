@@ -56,15 +56,16 @@
               <h4 class="mb-1">Welcome to SmartVote👋</h4>
               <p class="mb-6">Please sign-in to your account</p>
 
-              <form id="loginForm" class="mb-6" action="signInAuth.php" method="POST">
+              <form id="formAuthentication" class="mb-6" action="signInAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="studentID" class="form-label">Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
                     id="studentID"
-                    name="studentID"
+                    name="student"
                     placeholder="Enter Student ID"
+                    required
                     autofocus />
                 </div>
                 <div class="mb-6 form-password-toggle form-control-validation">
@@ -118,11 +119,11 @@
     <script src="assets/vendor/libs/@form-validation/popular.js"></script>
     <script src="assets/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
-    <script src="assets/js/main.js"></script>
+
     <script src="assets/js/pages-auth.js"></script>
 
     <script>
-  document.getElementById("loginForm").addEventListener("submit", async function(e) {
+  document.getElementById("formAuthentication").addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const form = e.target;

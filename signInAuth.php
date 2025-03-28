@@ -1,35 +1,33 @@
 <?php
 session_start();
-header('Content-Type: application/json');
-
 include 'configs/dbconnection.php';
 
-$studentID = $_POST['studentID'] ?? '';
-$password = $_POST['password'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $studentID = trim($_POST['student']);
+    $password = trim($_POST['password']);
 
-if ($studentID && $password) {
-    $stmt = $conn->prepare("SELECT studentID, name, password FROM students WHERE studentID = ?");
+    if (empty($studentID) || empty($password)) {
+        header("Location: login.php?error=empty");
+        exit;
+    }
+
+    $stmt = $conn->prepare("SELECT * FROM students WHERE studentID = ?");
     $stmt->bind_param("s", $studentID);
     $stmt->execute();
     $result = $stmt->get_result();
+    $student = $result->fetch_assoc();
 
-    if ($result->num_rows === 1) {
-        $student = $result->fetch_assoc();
+    if ($student && password_verify($password, $student['password'])) {
+        $_SESSION['login_id'] = $student['studentID'];
+        $_SESSION['student_name'] = $student['name'];
 
-        if (password_verify($password, $student['password'])) {
-            $_SESSION['login_id'] = $student['studentID'];
-            $_SESSION['student_name'] = $student['name'];
-
-            echo json_encode([
-                'success' => true,
-                'name' => $student['name']
-            ]);
-            exit;
-        }
+        header("Location: dashboard.php");
+        exit;
+    } else {
+        header("Location: login.php?error=invalid");
+        exit;
     }
+} else {
+    header("Location: login.php");
+    exit;
 }
-
-echo json_encode([
-    'success' => false,
-    'message' => 'Invalid Student ID or Password'
-]);
