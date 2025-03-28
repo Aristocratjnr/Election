@@ -89,6 +89,16 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
+                  <label for="name" class="form-label">Name:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your name"
+                    autofocus />
+                </div>
+                <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">Student Mail:</label>
                   <input type="text" class="form-control" id="email" name="email" placeholder="Enter your student mail" />
                 </div>

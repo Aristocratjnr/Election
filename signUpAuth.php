@@ -8,17 +8,18 @@ $redirect = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $studentID = $_POST['student'] ?? '';
+    $name = $_POST['name'] ?? '';
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
-    $department = $_POST['department'] ?? ''; // typo fixed
+    $department = $_POST['department'] ?? ''; 
     $phone = $_POST['contact'] ?? '';
 
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $stmt = $conn->prepare("INSERT INTO students (studentID, email, password, department, contactNumber) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO students (studentID, name, email, password, department, contactNumber) VALUES (?, ?, ?, ?, ?)");
 
     if ($stmt) {
-        $stmt->bind_param("sssss", $studentID, $email, $hashedPassword, $department, $phone);
+        $stmt->bind_param("sssss", $studentID, $name, $email, $hashedPassword, $department, $phone);
 
         if ($stmt->execute()) {
             $message = "🎉 Registration successful!";

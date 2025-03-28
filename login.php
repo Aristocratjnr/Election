@@ -67,14 +67,14 @@ echo '<!doctype html>';
               <h4 class="mb-1">Welcome to SmartVote👋</h4>
               <p class="mb-6">Please sign-in to your account</p>
 
-              <form id="formAuthentication" class="mb-6">
+              <form id="formAuthentication" class="mb-6" action="signInAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
-                  <label for="email" class="form-label">Student ID:</label>
+                  <label for="studentID" class="form-label">Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
-                    id="student_id"
-                    name="student id"
+                    id="studentID"
+                    name="studentID"
                     placeholder="Enter Student ID"
                     autofocus />
                 </div>
@@ -131,6 +131,36 @@ echo '<!doctype html>';
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/pages-auth.js"></script>
+
+    <script>
+  document.querySelector("#formAuthentication").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const studentID = document.getElementById("studentID").value;
+    const password = document.getElementById("password").value;
+
+    fetch("signInAuth.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `studentID=${encodeURIComponent(studentID)}&password=${encodeURIComponent(password)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        if (data.type == 0) {
+          window.location.href = "index.php?page=dashboard";
+        } else {
+          window.location.href = "index.php?page=vote";
+        }
+      } else {
+        alert(data.message); 
+      }
+    })
+    .catch(err => console.error("Login error:", err));
+  });
+</script>
 
     <?php
   include 'includes/scripts.php';

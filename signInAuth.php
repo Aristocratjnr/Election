@@ -1,33 +1,35 @@
 <?php
 session_start();
-include 'configs/dbconnection.php'; 
+header('Content-Type: application/json');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $student_id = $_POST['student_id'];
-    $password = $_POST['password'];
+include 'configs/dbconnection.php';
 
-    // Check if student exists
-    $stmt = $conn->prepare("SELECT studentID, password FROM Students WHERE studentID = ?");
-    $stmt->bind_param("s", $student_id);
+$studentID = $_POST['studentID'] ?? '';
+$password = $_POST['password'] ?? '';
+
+if ($studentID && $password) {
+    $stmt = $conn->prepare("SELECT studentID, name, password FROM students WHERE studentID = ?");
+    $stmt->bind_param("s", $studentID);
     $stmt->execute();
-    $stmt->store_result();
+    $result = $stmt->get_result();
 
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($id, $hashed_password);
-        $stmt->fetch();
+    if ($result->num_rows === 1) {
+        $student = $result->fetch_assoc();
 
-        // Verify password
-        if (password_verify($password, $hashed_password)) {
-            $_SESSION['student_id'] = $id;
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $error = "Invalid student ID or password.";
+        if (password_verify($password, $student['password'])) {
+            $_SESSION['login_id'] = $student['studentID'];
+            $_SESSION['student_name'] = $student['name'];
+
+            echo json_encode([
+                'success' => true,
+                'name' => $student['name']
+            ]);
+            exit;
         }
-    } else {
-        $error = "No account found with this student ID.";
     }
-
-    $stmt->close();
-    $conn->close();
 }
+
+echo json_encode([
+    'success' => false,
+    'message' => 'Invalid Student ID or Password'
+]);
