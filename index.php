@@ -190,10 +190,16 @@
 
             <!-- navbar button: Start -->
             <li>
-              <a href="login.php" class="btn btn-primary" target="_blank"
-                ><span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span
-                ><span class="d-none d-md-block">Login/Register</span></a
-              >
+            <a href="login.php" class="btn btn-primary" target="_blank">
+    <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span>
+    <span class="d-none d-md-block">Login</span>
+</a>
+
+<a href="register.php" class="btn btn-success ms-2" target="_blank">
+    <span class="tf-icons icon-base bx bx-user-plus scaleX-n1-rtl me-md-1"></span>
+    <span class="d-none d-md-block">Register</span>
+</a>
+
             </li>
             <!-- navbar button: End -->
           </ul>
