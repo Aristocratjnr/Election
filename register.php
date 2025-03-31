@@ -141,12 +141,24 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
+                  <label for="dob" class="form-label">Date Of Birth:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="dob"
+                    name="dob"
+                    placeholder="year-month-day"
+                    autofocus />
+                </div>
+                <div class="mb-6 form-control-validation">
                   <label for="contact" class="form-label">Contact:</label>
                   <input
                     type="text"
                     class="form-control"
                     id="contact"
                     name="contact"
+                    maxlength="10"
+                    autocomplete="off"
                     placeholder="start with +233"
                     autofocus />
                 </div>
