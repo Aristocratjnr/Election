@@ -242,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log("❌ Email error: " . $mail->ErrorInfo);
             }
 
-            $message = "🎉 Registration successful! A confirmation email and SMS have been sent.";
+            $message = "🎉Registration successful! A confirmation email and SMS have been sent.";
             $alertType = "success";
             $redirect = true;
         } else {
@@ -264,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Processing Registration</title>
+    <title>Processing...</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
