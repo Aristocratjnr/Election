@@ -58,19 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
               format: 'YYYY-MM-DD',
               message: 'The date of birth is not valid'
             }, 
-            callback: {
-              message: 'You must be at least 18 years old',
-              callback: function (value) {
-                const dob = new Date(value);
-                const today = new Date();
-                const age = today.getFullYear() - dob.getFullYear();
-                const monthDiff = today.getMonth() - dob.getMonth();
-                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                  return age > 18;
-                }
-                return age >= 18;
-              }
-            }
+           
           }
         },
         contact: {
@@ -80,8 +68,10 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             stringLength: {
               min: 10,
-              message: 'Contact number must be more than 10 digits'
-            }
+              max: 15,
+              message: 'Contact number must be 10 excluding the country code'
+            },
+          
           }
         },
         password: {

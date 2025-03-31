@@ -28,14 +28,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     $department = $_POST['department'] ?? '';
+    $dob = $_POST['dob'] ?? '';
     $phone = $_POST['contact'] ?? '';
 
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $stmt = $conn->prepare("INSERT INTO students (studentID, name, email, password, department, contactNumber) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO students (studentID, name, email, password, department, dateOfBirth, contactNumber) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
     if ($stmt) {
-        $stmt->bind_param("ssssss", $studentID, $name, $email, $hashedPassword, $department, $phone);
+        $stmt->bind_param("sssssss", $studentID, $name, $email, $hashedPassword,  $department,$dob, $phone);
 
         if ($stmt->execute()) {
             // PHPMailer - Send Email

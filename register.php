@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 if (isset($_SESSION['login_id'])) {
   if ($_SESSION['login_type'] == 0) {
     header("location:index.php?page=dashboard");
@@ -157,7 +157,6 @@ echo '<!doctype html>';
                     class="form-control"
                     id="contact"
                     name="contact"
-                    maxlength="10"
                     autocomplete="off"
                     placeholder="start with +233"
                     autofocus />
