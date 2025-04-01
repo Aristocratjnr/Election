@@ -2,10 +2,25 @@
 
 document.addEventListener('DOMContentLoaded', function () {
   const registerForm = document.querySelector('#registerForm');
-  const submitButton = registerForm.querySelector('button[type="submit"]');
+  if (!registerForm) return;
 
-  // Initialize form validation
-  if (registerForm && typeof FormValidation !== 'undefined') {
+  const submitButton = registerForm.querySelector('button[type="submit"]');
+  const dobField = document.getElementById('dob');
+  const contactField = document.getElementById('contact');
+  const originalTitle = document.title;
+  const originalFavicon = document.querySelector("link[rel*='icon']").href;
+
+  // Function to change favicon dynamically
+  function setFavicon(url) {
+    let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+    link.type = 'image/x-icon';
+    link.rel = 'shortcut icon';
+    link.href = url;
+    document.head.appendChild(link);
+  }
+
+  // Initialize Form Validation
+  if (typeof FormValidation !== 'undefined') {
     const validation = FormValidation.formValidation(registerForm, {
       fields: {
         student: {
@@ -68,79 +83,71 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // Validate and format DOB input (YYYY-MM-DD)
-    const dobField = document.getElementById('dob');
+    // Debounce function for input fields
+    function debounce(func, delay = 300) {
+      let timer;
+      return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    // Format DOB input (YYYY-MM-DD)
     if (dobField) {
-      dobField.addEventListener('input', function (e) {
+      dobField.addEventListener('input', debounce(function (e) {
         let value = e.target.value.replace(/\D/g, '');
-        let formattedValue = '';
-
-        if (value.length > 0) {
-          formattedValue += value.substring(0, 4);
-          if (value.length > 4) {
-            formattedValue += '-' + value.substring(4, 6);
-          }
-          if (value.length > 6) {
-            formattedValue += '-' + value.substring(6, 8);
-          }
-        }
-
-        e.target.value = formattedValue;
-      });
+        e.target.value = value.length > 4 ? 
+          value.slice(0, 4) + '-' + value.slice(4, 6) + (value.length > 6 ? '-' + value.slice(6, 8) : '') 
+          : value;
+      }));
     }
 
     // Format contact number with +233 for Ghana
-    const contactField = document.querySelector('#contact');
     if (contactField) {
-      contactField.addEventListener('input', function (e) {
+      contactField.addEventListener('input', debounce(function (e) {
         let value = e.target.value.replace(/\D/g, '');
-        if (value.startsWith('233')) {
-          value = value.slice(3);
-        }
-        e.target.value = '+233 ' + value;
-      });
+        e.target.value = '+233 ' + (value.startsWith('233') ? value.slice(3) : value);
+      }));
     }
 
     // Handle Registration Form Submit
     registerForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      
+
+      // Show processing state
+      document.title = "Processing...";
+      setFavicon("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/231b.png"); // ⌛ (Hourglass Emoji)
+
       validation.validate().then(function (status) {
         if (status === 'Valid') {
           const formData = new FormData(registerForm);
 
-          $.ajax({
-            url: 'signUpAuth.php',
+          fetch('signUpAuth.php', {
             method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (resp) {
-              try {
-                const response = typeof resp === 'object' ? resp : JSON.parse(resp);
-                
-                if (response.status === 'success') {
-                  // Redirect to success page with message in URL
-                  window.location.href = 'register-success.php?message=' + encodeURIComponent(response.message);
-                } else {
-                  // Show error message on current page
-                  alert(response.message);
-                  submitButton.disabled = false;
-                }
-              } catch (err) {
-                console.error('Response parsing error:', err, 'Raw response:', resp);
-                alert('Invalid response. Please try again.');
+            body: formData
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 'success') {
+                window.location.href = 'register-success.php?message=' + encodeURIComponent(data.message);
+              } else {
+                alert(data.message);
                 submitButton.disabled = false;
+                document.title = originalTitle;
+                setFavicon(originalFavicon);
               }
-            },
-            error: function (xhr) {
-              console.error('AJAX Error:', xhr.responseText);
+            })
+            .catch(error => {
+              console.error('Error:', error);
               alert('An error occurred. Please try again later.');
               submitButton.disabled = false;
-            }
-          });
+              document.title = originalTitle;
+              setFavicon(originalFavicon);
+            });
         } else {
           submitButton.disabled = false;
+          document.title = originalTitle;
+          setFavicon(originalFavicon);
         }
       });
     });

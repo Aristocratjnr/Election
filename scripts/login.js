@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const formData = new FormData(formAuthentication);
 
           $.ajax({
-            url: 'controllers/app.php?action=login',
+            url: 'signInAuth.php',
             method: 'POST',
             data: formData,
             processData: false,
