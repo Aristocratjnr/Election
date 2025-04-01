@@ -12,6 +12,20 @@ if (isset($_SESSION['login_id'])) {
 echo '<!doctype html>';
 ?>
 
+<style>
+     
+      .modal-backdrop {
+        filter: none !important;
+      }
+
+    
+      .modal-content {
+        filter: none !important;  
+        opacity: 1 !important;   
+        transform: none !important; 
+      }
+    </style>
+
 <html
   lang="en"
   class="layout-wide customizer-hide"
@@ -161,25 +175,7 @@ echo '<!doctype html>';
                     placeholder="Enter your contact number"
                     autofocus />
                 </div>
-                <!-- Modal -->
-<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="statusModalLabel">Registration Status</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="modalMessage">
-        <!-- Dynamic message will be inserted here -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeModalBtn">Close</button>
-        <button type="button" class="btn btn-primary" id="modalRedirectBtn" style="display:none;">Proceed</button>
-      </div>
-    </div>
-  </div>
-</div>
-
+            
 
                 <button class="btn btn-primary d-grid w-100">Sign up</button>
               </form>

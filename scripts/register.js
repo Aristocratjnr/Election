@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    
     // Validate and format DOB input (YYYY-MM-DD)
     const dobField = document.getElementById('dob');
     if (dobField) {
@@ -94,11 +93,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const contactField = document.querySelector('#contact');
     if (contactField) {
       contactField.addEventListener('input', function (e) {
-        let value = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
+        let value = e.target.value.replace(/\D/g, '');
         if (value.startsWith('233')) {
-          value = value.slice(3); // If the user starts with 233, keep it
+          value = value.slice(3);
         }
-        e.target.value = '+233 ' + value; // Prepend +233 to the value
+        e.target.value = '+233 ' + value;
       });
     }
 
@@ -110,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (status === 'Valid') {
           const formData = new FormData(registerForm);
 
-          // Send form data to backend via AJAX
           $.ajax({
             url: 'signUpAuth.php',
             method: 'POST',
@@ -120,46 +118,25 @@ document.addEventListener('DOMContentLoaded', function () {
             success: function (resp) {
               try {
                 const response = typeof resp === 'object' ? resp : JSON.parse(resp);
-                const modalMessage = document.getElementById('modalMessage');
-                const modalRedirectBtn = document.getElementById('modalRedirectBtn');
-                const closeModalBtn = document.getElementById('closeModalBtn');
-
-                // Display response message in modal
-                modalMessage.innerHTML = response.message;
-
-                const modal = new bootstrap.Modal(document.getElementById('statusModal'));
-                modal.show();
-
+                
                 if (response.status === 'success') {
-                  // Show the redirect button and set a timeout to navigate
-                  modalRedirectBtn.style.display = 'inline-block';
-                  modalRedirectBtn.addEventListener('click', function () {
-                    window.location.href = 'login.php';
-                  });
-
-                  // Auto-close modal after 3 seconds and redirect
-                  setTimeout(() => {
-                    modal.hide();
-                    window.location.href = 'login.php';
-                  }, 3000);
+                  // Redirect to success page with message in URL
+                  window.location.href = 'register-success.php?message=' + encodeURIComponent(response.message);
                 } else {
-                  // If there's an error, show a "close" button
-                  modalRedirectBtn.style.display = 'none';
-                  closeModalBtn.style.display = 'inline-block';
+                  // Show error message on current page
+                  alert(response.message);
+                  submitButton.disabled = false;
                 }
               } catch (err) {
                 console.error('Response parsing error:', err, 'Raw response:', resp);
-                document.getElementById('modalMessage').innerHTML = 'Invalid response. Please try again.';
-                new bootstrap.Modal(document.getElementById('statusModal')).show();
+                alert('Invalid response. Please try again.');
+                submitButton.disabled = false;
               }
             },
             error: function (xhr) {
               console.error('AJAX Error:', xhr.responseText);
-              document.getElementById('modalMessage').innerHTML = 'An error occurred. Please try again later.';
-              new bootstrap.Modal(document.getElementById('statusModal')).show();
-            },
-            complete: function () {
-              submitButton.disabled = false; // Re-enable button after response
+              alert('An error occurred. Please try again later.');
+              submitButton.disabled = false;
             }
           });
         } else {
