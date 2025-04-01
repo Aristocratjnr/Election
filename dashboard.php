@@ -158,10 +158,14 @@ try {
 </head>
 <body>
     <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar would go here -->
+          <div class="row">
+            <?php include 'includes/sidebar.php'; ?>
+       <di class="main-content">
+        <?php include 'includes/header.php'; ?>
+        <br><br>
             
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+          
                 <!-- Page Header -->
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Dashboard</h1>

@@ -30,7 +30,7 @@ $message = isset($_GET['message']) ? htmlspecialchars($_GET['message']) : 'Regis
         <div class="success-icon">✓</div>
         <h1 class="mb-3">Registration Successful!</h1>
         <p class="lead mb-4"><?php echo $message; ?></p>
-        <a href="login.php" class="btn btn-primary btn-lg">Continue to Login</a>
+        <a href="login.php" class="btn btn-primary d-grid btn-lg">Continue to Login</a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
