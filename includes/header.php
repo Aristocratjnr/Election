@@ -12,11 +12,11 @@ if (session_status() === PHP_SESSION_NONE) {
 require 'configs/dbconnection.php';
 
 $userData = [];
-$defaultProfilePicture = 'assets/img/default-user.png'; // Changed to a different default image
+$defaultProfilePicture = 'assets/img/aristo.png'; 
 
 if (isset($_SESSION['login_id'])) {
     try {
-        $stmt = $conn->prepare("SELECT name, profile_picture, department FROM students WHERE StudentID = ?");
+        $stmt = $conn->prepare("SELECT name, department FROM students WHERE StudentID = ?");
         $stmt->bind_param('i', $_SESSION['login_id']);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -101,13 +101,13 @@ if (!empty($userData['profile_picture'])) {
                                  height="36">
                         <?php endif; ?>
                         <span class="d-none d-md-block dropdown-toggle ps-2 fw-medium">
-                            <?php echo isset($userData['name']) ? htmlspecialchars($userData['name']) : 'User'; ?>
+                            <?php echo isset($userData['name']) ? htmlspecialchars($userData['name']) : 'Student'; ?>
                         </span>
                     </a>
 
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow shadow-sm" style="min-width: 220px;">
                         <li class="dropdown-header">
-                            <h6 class="mb-1"><?php echo isset($userData['name']) ? htmlspecialchars($userData['name']) : 'User'; ?></h6>
+                            <h6 class="mb-1"><?php echo isset($userData['name']) ? htmlspecialchars($userData['name']) : 'Student'; ?></h6>
                             <small class="text-muted"><?php echo isset($userData['department']) ? htmlspecialchars($userData['department']) : 'Member'; ?></small>
                         </li>
                         <li><hr class="dropdown-divider my-2"></li>
