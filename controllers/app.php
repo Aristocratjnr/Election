@@ -1,138 +1,98 @@
 <?php
 ob_start();
-$action = $_GET['action'];
+session_start(); // Ensure session is started when needed
 
-include 'classes.php';
+header('Content-Type: application/json'); // Ensure JSON response
+header('Access-Control-Allow-Origin: *'); // Allow cross-origin requests if needed
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS'); // Define allowed request types
+header('Access-Control-Allow-Headers: Content-Type'); // Specify allowed headers
+
+require_once '../controllers/classes.php';
+require_once '../configs/dbconnection.php';
+
 $auth = new Auth();
 $admin = new Admin();
 
-// ***** AUTHENTICATIONS OF USERS ******* //
-if ($action == 'register') {
-	$register = $auth->register();
-	if ($register)
-		echo $register;
+// Ensure action is provided and valid
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+$response = ["status" => "error", "message" => "Invalid action."];
+
+if (!empty($action)) {
+    switch ($action) {
+        // **AUTHENTICATION METHODS**
+        case 'register':
+            $response = $auth->register();
+            break;
+        case 'login':
+            $response = $auth->login();
+            break;
+        case 'logout':
+            session_destroy();
+            $response = ["status" => "success", "message" => "Logged out successfully."];
+            break;
+        case 'change_password':
+            $response = $auth->change_password();
+            break;
+        case 'reset_password':
+            $response = $auth->reset_password();
+            break;
+
+        // **ADMIN ACTIONS**
+        case 'add_election':
+            $response = $admin->add_election();
+            break;
+        case 'update_election':
+            $response = $admin->update_election();
+            break;
+        case 'delete_election':
+            $response = $admin->delete_election();
+            break;
+        case 'election_status':
+            $response = $admin->election_status();
+            break;
+        case 'vote_status':
+            $response = $admin->vote_status();
+            break;
+        case 'add_category':
+            $response = $admin->add_category();
+            break;
+        case 'update_category':
+            $response = $admin->update_category();
+            break;
+        case 'delete_category':
+            $response = $admin->delete_category();
+            break;
+        case 'add_candidate':
+            $response = $admin->add_candidate();
+            break;
+        case 'update_candidate':
+            $response = $admin->update_candidate();
+            break;
+        case 'delete_candidate':
+            $response = $admin->delete_candidate();
+            break;
+        case 'user_type':
+            $response = $admin->user_type();
+            break;
+
+        // **ELECTION REPORTS**
+        case 'download_report':
+            $response = $admin->download_report();
+            break;
+        case 'delete_report':
+            $response = $admin->delete_report();
+            break;
+
+        // **VOTING ACTIONS**
+        case 'vote':
+            $response = $admin->vote();
+            break;
+        case 'update_profile':
+            $response = $admin->update_profile();
+            break;
+    }
 }
 
-if ($action == 'login') {
-	$login = $auth->login();
-	if ($login)
-		echo $login;
-}
-
-if ($action == 'logout') {
-	$logout = $auth->logout();
-	if ($logout)
-		echo $logout;
-}
-
-if ($action == 'change_password') {
-	$changePwd = $auth->change_password();
-	if ($changePwd)
-		echo $changePwd;
-}
-
-if ($action == 'reset_password') {
-	$changePwd = $auth->reset_password();
-	if ($changePwd)
-		echo $changePwd;
-}
-
-// ******* ADMIN ACTIONS ********* //
-if ($action == 'add_election') {
-	$save = $admin->add_election();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'update_election') {
-	$save = $admin->update_election();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'delete_election') {
-	$save = $admin->delete_election();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'election_status') {
-	$save = $admin->election_status();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'vote_status') {
-	$save = $admin->vote_status();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'add_category') {
-	$save = $admin->add_category();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'update_category') {
-	$save = $admin->update_category();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'delete_category') {
-	$save = $admin->delete_category();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'add_candidate') {
-	$save = $admin->add_candidate();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'update_candidate') {
-	$save = $admin->update_candidate();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'delete_candidate') {
-	$save = $admin->delete_candidate();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'user_type') {
-	$save = $admin->user_type();
-	if ($save)
-		echo $save;
-}
-
-// ****** ELECTION REPORT ****** //
-
-if ($action == 'download_report') {
-	$save = $admin->download_report();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'delete_report') {
-	$save = $admin->delete_report();
-	if ($save)
-		echo $save;
-}
-
-// ******* VOTERS ************* //
-if ($action == 'vote') {
-	$save = $admin->vote();
-	if ($save)
-		echo $save;
-}
-
-if ($action == 'update_profile') {
-	$save = $admin->update_profile();
-	if ($save)
-		echo $save;
-}
+// Return JSON response
+echo json_encode($response);
+ob_end_flush();

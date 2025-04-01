@@ -69,15 +69,15 @@ echo '<!doctype html>';
               <!-- Logo -->
               <div class="app-brand justify-content-center mb-6">
                 <a href="index.php" class="app-brand-link gap-2">
-                <img src="assets/img/favicon/favicon.ico" alt="logo" width="50%" class="logo-img" />
-                <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
+                  <img src="assets/img/favicon/favicon.ico" alt="logo" width="50%" class="logo-img" />
+                  <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
                 </a>
               </div>
               <!-- /Logo -->
               <h4 class="mb-1">Adventure starts here 🚀</h4>
               <p class="mb-6">Make your Voting System Secure and User Friendly</p>
 
-              <form id="formAuthentication" class="mb-6" action="signUpAuth.php" method="POST">
+              <form id="registerForm" class="mb-6" action="signUpAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="studentID" class="form-label">Student ID:</label>
                   <input
@@ -116,22 +116,22 @@ echo '<!doctype html>';
                   </div>
                 </div><br>
                 <div class="mb-6 form-control-validation">
-                <div class="form-password-toggle form-control-validation">
-                  <label class="form-label" for="confirmPassword">Confirm Password:</label>
-                  <div class="input-group input-group-merge">
-                    <input
-                      type="password"
-                      id="comfirmPassword"
-                      class="form-control"
-                      name="confirmPassword"
-                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                      aria-describedby="confrimPassword" />
-                    <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
+                  <div class="form-password-toggle form-control-validation">
+                    <label class="form-label" for="confirmPassword">Confirm Password:</label>
+                    <div class="input-group input-group-merge">
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        class="form-control"
+                        name="confirmPassword"
+                        placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                        aria-describedby="confrimPassword" />
+                      <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
+                    </div>
                   </div>
                 </div>
-                </div>
                 <div class="mb-6 form-control-validation">
-                  <label for="department" class="form-label">Deparment:</label>
+                  <label for="department" class="form-label">Department:</label>
                   <input
                     type="text"
                     class="form-control"
@@ -147,7 +147,7 @@ echo '<!doctype html>';
                     class="form-control"
                     id="dob"
                     name="dob"
-                    placeholder="year-month-day"
+                    placeholder="YYYY-MM-DD"
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
@@ -158,10 +158,29 @@ echo '<!doctype html>';
                     id="contact"
                     name="contact"
                     autocomplete="off"
-                    placeholder="start with +233"
+                    placeholder="Enter your contact number"
                     autofocus />
                 </div>
-                
+                <!-- Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="statusModalLabel">Registration Status</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalMessage">
+        <!-- Dynamic message will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="closeModalBtn">Close</button>
+        <button type="button" class="btn btn-primary" id="modalRedirectBtn" style="display:none;">Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
                 <button class="btn btn-primary d-grid w-100">Sign up</button>
               </form>
 
@@ -172,29 +191,22 @@ echo '<!doctype html>';
                 </a>
               </p>
 
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <script src="assets/vendor/libs/jquery/jquery.js"></script>
-
     <script src="assets/vendor/libs/popper/popper.js"></script>
     <script src="assets/vendor/js/bootstrap.js"></script>
     <script src="assets/vendor/libs/@algolia/autocomplete-js.js"></script>
-
     <script src="assets/vendor/libs/pickr/pickr.js"></script>
-
     <script src="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-
     <script src="assets/vendor/libs/hammer/hammer.js"></script>
-
     <script src="assets/vendor/libs/i18n/i18n.js"></script>
-
     <script src="assets/vendor/js/menu.js"></script>
-    <script src="assets/js/pages-auth.js"></script>
-  
-
-    <!-- endbuild -->
+    <script src="scripts/register.js"></script>
 
     <!-- Vendors JS -->
     <script src="assets/vendor/libs/@form-validation/popular.js"></script>
@@ -202,10 +214,6 @@ echo '<!doctype html>';
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
 
     <!-- Main JS -->
-  
-
     <?php
-  include 'includes/scripts.php';
-  ?>
-  </body>
-</html>
+    include 'includes/scripts.php';
+    ?>

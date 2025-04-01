@@ -119,39 +119,11 @@
     <script src="assets/vendor/libs/@form-validation/popular.js"></script>
     <script src="assets/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
+    <script src="scripts/login.js"></script>
 
-    <script src="assets/js/pages-auth.js"></script>
+    
 
-    <script>
-  document.getElementById("formAuthentication").addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const form = e.target;
-    const formData = new FormData(form);
-
-    const response = await fetch("SignInAuth.php", {
-        method: "POST",
-        body: formData
-    });
-
-    const result = await response.json();
-    const alertBox = document.getElementById("alertBox");
-
-    if (result.success) {
-        alertBox.className = "alert alert-success mt-3";
-        alertBox.textContent = `Welcome, ${result.name}! Redirecting...`;
-        alertBox.classList.remove("d-none");
-
-        setTimeout(() => {
-            window.location.href = "dashboard.php";
-        }, 2000);
-    } else {
-        alertBox.className = "alert alert-danger mt-3";
-        alertBox.textContent = result.message || "Login failed.";
-        alertBox.classList.remove("d-none");
-    }
-});
-</script>
+ 
 
     <?php
   include 'includes/scripts.php';
