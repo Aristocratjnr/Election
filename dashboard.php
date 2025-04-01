@@ -1,471 +1,520 @@
 <?php
- 
+// Enable error reporting for development
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start session and check authentication
+session_start();
+if (!isset($_SESSION['login_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Database connection
 require 'configs/dbconnection.php';
 
-include 'configs/isadmin.php';
+// Initialize variables
+$dashboard_stats = [
+    'total_elections' => 0,
+    'total_active_categories' => 0,
+    'total_voters' => 0,
+    'total_voted' => 0,
+    'participation_percentage' => 0,
+    'election_title' => 'No Active Election',
+    'election_id' => null
+];
 
-
-
-$query = "
-    SELECT
-        (SELECT COUNT(*) FROM election) AS total_elections,
-        IFNULL((SELECT COUNT(*) FROM categories c WHERE c.election_id = e.id AND e.status = 1), 0) AS total_active_categories,
-        (SELECT COUNT(*) FROM users WHERE type = 1) AS total_voters,
-        COUNT(DISTINCT v.voter_id) AS total_voted,
-        e.title AS election_title,
-        e.id AS election_id
-    FROM
-        election e
-    LEFT JOIN
-        users u ON u.type = 1
-    LEFT JOIN
-        votes v ON e.id = v.election_id
-    WHERE
-        e.status = 1;
-";
-
-$result = $conn->query($query);
-?>
-
-<div class="pagetitle">
-    <h1>Dashboard</h1>
-    <nav>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#"><i class="bi bi-house-door"></i> Home</a></li>
-            <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-    </nav>
-</div><!-- End Page Title -->
-
-<section class="section dashboard">
-    <?php if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc(); 
-        // Calculate participation percentage
-        $participationPercentage = ($row["total_voters"] > 0) ? round(($row["total_voted"] / $row["total_voters"]) * 100) : 0;
-    ?>
+// Fetch dashboard data with error handling
+try {
+    // Check if tables exist
+    $tables_exist = $conn->query("SHOW TABLES LIKE 'elections'")->num_rows > 0 
+                 && $conn->query("SHOW TABLES LIKE 'users'")->num_rows > 0;
     
-    <div class="row">
-        <!-- Elections Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card info-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Elections</h5>
+    if ($tables_exist) {
+        $query = "
+            SELECT
+                (SELECT COUNT(*) FROM elections) AS total_elections,
+                IFNULL((SELECT COUNT(*) FROM categories c WHERE c.election_id = e.id AND e.status = 1), 0) AS total_active_categories,
+                (SELECT COUNT(*) FROM users WHERE type = 1) AS total_voters,
+                COUNT(DISTINCT v.voter_id) AS total_voted,
+                e.title AS election_title,
+                e.id AS election_id
+            FROM
+                elections e
+            LEFT JOIN
+                users u ON u.type = 1
+            LEFT JOIN
+                votes v ON e.id = v.election_id
+            WHERE
+                e.status = 1
+            LIMIT 1";
 
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-primary-light">
-                            <i class="bi bi-box-seam-fill text-primary"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6 class="fs-2 fw-bold"><?php echo $row["total_elections"]; ?></h6>
-                            <span class="text-muted small">Total Elections</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Categories Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card info-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Categories</h5>
-
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success-light">
-                            <i class="bi bi-bookmark text-success"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6 class="fs-2 fw-bold"><?php echo $row["total_active_categories"]; ?></h6>
-                            <span class="text-muted small">Active Categories</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Voters Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card info-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Voters</h5>
-
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-info-light">
-                            <i class="bi bi-people-fill text-info"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6 class="fs-2 fw-bold"><?php echo $row["total_voters"]; ?></h6>
-                            <span class="text-muted small">Registered Voters</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Participation Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card info-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Participation</h5>
-
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-warning-light">
-                            <i class="bi bi-check2-circle text-warning"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6 class="fs-2 fw-bold"><?php echo $row["total_voted"]; ?> <small class="fs-6 text-<?php echo ($participationPercentage > 50) ? 'success' : 'danger'; ?>">(<?php echo $participationPercentage; ?>%)</small></h6>
-                            <span class="text-muted small">Votes Cast</span>
-                            <div class="progress mt-2" style="height: 5px;">
-                                <div class="progress-bar bg-<?php echo ($participationPercentage > 50) ? 'success' : 'warning'; ?>" role="progressbar" style="width: <?php echo $participationPercentage; ?>%" aria-valuenow="<?php echo $participationPercentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php } ?>
-
-    <!-- Current Election Summary Card (New) -->
-    <?php if (isset($row) && isset($row["election_title"])) { ?>
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title m-0">Active Election: <?php echo $row["election_title"]; ?></h5>
-                        <a href="election_details.php?id=<?php echo $row["election_id"]; ?>" class="btn btn-sm btn-primary view-details">
-                            <i class="bi bi-eye"></i> View Details
-                        </a>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <i class="bi bi-calendar-check fs-1 text-primary"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">Status</h6>
-                                    <span class="badge bg-success">Active</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <i class="bi bi-people fs-1 text-primary"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">Participation Rate</h6>
-                                    <div class="progress" style="height: 10px; width: 200px;">
-                                        <div class="progress-bar bg-<?php echo ($participationPercentage > 50) ? 'success' : 'warning'; ?>" role="progressbar" style="width: <?php echo $participationPercentage; ?>%" aria-valuenow="<?php echo $participationPercentage; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <small class="text-muted"><?php echo $row["total_voted"]; ?> of <?php echo $row["total_voters"]; ?> voters (<?php echo $participationPercentage; ?>%)</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php } ?>
-
-    <!-- Users Table -->
-    <div class="row">
-        <?php
-        $users = $conn->prepare("SELECT * FROM users");
-        $users->execute();
-        $row = $users->get_result();
-        ?>
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0">System Users</h5>
-                    <div class="d-flex">
-                        <div class="search-box me-2">
-                            <input type="text" id="searchUsers" class="form-control" placeholder="Search users...">
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-funnel"></i> Filter
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
-                                <li><a class="dropdown-item filter-option" href="#" data-filter="all">All Users</a></li>
-                                <li><a class="dropdown-item filter-option" href="#" data-filter="admin">Admins Only</a></li>
-                                <li><a class="dropdown-item filter-option" href="#" data-filter="user">Regular Users Only</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body table-responsive">
-                    <table id="users-table" class="table text-nowrap table-hover align-middle" style="width:100%">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="text-center" width="80">Profile</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Role</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($row as $key => $user) { ?>
-                                <tr class="user-row" data-user-type="<?php echo ($user['type'] === 0) ? 'admin' : 'user'; ?>">
-                                    <td class="text-center">
-                                        <div class="position-relative d-inline-block">
-                                            <?php if ($user['profile_picture']) { ?>
-                                                <img src="assets/img/profile/users/<?php echo $user['profile_picture']; ?>" class="rounded-circle shadow-sm" width="50" height="50" alt="<?php echo $user['name']; ?>">
-                                            <?php } else { ?>
-                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
-                                                    <span class="fw-bold text-secondary"><?php echo strtoupper(substr($user['name'], 0, 1)); ?></span>
-                                                </div>
-                                            <?php } ?>
-                                            <span class="position-absolute bottom-0 end-0 badge rounded-pill <?php echo ($user['type'] === 0) ? 'bg-primary' : 'bg-secondary'; ?>" style="width: 12px; height: 12px;"></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-column">
-                                            <span class="fw-semibold"><?php echo $user['name']; ?></span>
-                                            <small class="text-muted">@<?php echo $user['username']; ?></small>
-                                        </div>
-                                    </td>
-                                    <td><?php echo $user['email']; ?></td>
-                                    <td>
-                                        <?php if ($user['type'] === 0) { ?>
-                                            <span class="badge bg-primary-light text-primary">Admin</span>
-                                        <?php } else { ?>
-                                            <span class="badge bg-secondary-light text-secondary">User</span>
-                                        <?php } ?>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <?php if ($user['type'] === 0) { ?>
-                                                <button type="button" class="btn btn-sm btn-outline-primary user-type" data-id="<?php echo $user['id']; ?>" data-type="1" data-name="Normal user">
-                                                    <i class="bi bi-arrow-down-circle"></i> Change to User
-                                                </button>
-                                            <?php } else { ?>
-                                                <button type="button" class="btn btn-sm btn-outline-primary user-type" data-id="<?php echo $user['id']; ?>" data-type="0" data-name="Admin">
-                                                    <i class="bi bi-arrow-up-circle"></i> Make Admin
-                                                </button>
-                                            <?php } ?>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary reset" data-id="<?php echo $user['id']; ?>" data-name="Reset">
-                                                <i class="bi bi-key"></i> Reset Password
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                    
-                   
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Add this JavaScript for enhanced functionality -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Search functionality
-    const searchInput = document.getElementById('searchUsers');
-    const table = document.getElementById('users-table');
-    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-    
-    searchInput.addEventListener('keyup', function() {
-        const searchText = searchInput.value.toLowerCase();
-        filterTable(searchText, currentFilter);
-    });
-    
-    // View Details button functionality
-    const viewDetailsBtn = document.querySelector('.view-details');
-    if (viewDetailsBtn) {
-        viewDetailsBtn.addEventListener('click', function(e) {
-            const electionId = this.getAttribute('href').split('=')[1];
-            
-            if (!electionId) {
-                e.preventDefault();
-                alert('No active election found or election ID is missing.');
-            }
-        });
+        $result = $conn->query($query);
+        
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $dashboard_stats = [
+                'total_elections' => $row["total_elections"] ?? 0,
+                'total_active_categories' => $row["total_active_categories"] ?? 0,
+                'total_voters' => $row["total_voters"] ?? 0,
+                'total_voted' => $row["total_voted"] ?? 0,
+                'participation_percentage' => ($row["total_voters"] > 0) ? round(($row["total_voted"] / $row["total_voters"]) * 100) : 0,
+                'election_title' => $row["election_title"] ?? 'No Active Election',
+                'election_id' => $row["election_id"] ?? null
+            ];
+        }
     }
+} catch (Exception $e) {
+    error_log("Dashboard error: " . $e->getMessage());
+    $error_message = "Error loading dashboard data. Please try again later.";
+}
+
+// Fetch users data
+$users = [];
+try {
+    $users_query = $conn->prepare("SELECT * FROM users");
+    $users_query->execute();
+    $users_result = $users_query->get_result();
+    $users = $users_result->fetch_all(MYSQLI_ASSOC);
+} catch (Exception $e) {
+    error_log("Users query error: " . $e->getMessage());
+}
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard - SmartVote</title>
     
-    // Filter functionality
-    let currentFilter = 'all'; // Default filter
-    const filterOptions = document.querySelectorAll('.filter-option');
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    filterOptions.forEach(option => {
-        option.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Update the filter button text
-            const filterType = this.getAttribute('data-filter');
-            const filterDropdown = document.getElementById('filterDropdown');
-            
-            // Set the current filter
-            currentFilter = filterType;
-            
-            // Update button text
-            filterDropdown.innerHTML = `<i class="bi bi-funnel"></i> ${this.textContent}`;
-            
-            // Apply the filter
-            filterTable(searchInput.value.toLowerCase(), filterType);
-            
-            // Add active class to the selected filter
-            filterOptions.forEach(opt => {
-                opt.classList.remove('active');
-            });
-            this.classList.add('active');
-        });
-    });
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
-    // Function to filter the table based on search text and filter type
-    function filterTable(searchText, filterType) {
-        for (let i = 0; i < rows.length; i++) {
-            const nameCol = rows[i].getElementsByTagName('td')[1];
-            const emailCol = rows[i].getElementsByTagName('td')[2];
-            const userType = rows[i].getAttribute('data-user-type');
+    <style>
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .bg-primary-light {
+            background-color: rgba(13, 110, 253, 0.15);
+            color: #0d6efd;
+        }
+        .bg-success-light {
+            background-color: rgba(25, 135, 84, 0.15);
+            color: #198754;
+        }
+        .bg-info-light {
+            background-color: rgba(13, 202, 240, 0.15);
+            color: #0dcaf0;
+        }
+        .bg-warning-light {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+        }
+        .progress-thin {
+            height: 5px;
+        }
+        .search-box {
+            position: relative;
+        }
+        .search-box:before {
+            content: "\F52A";
+            font-family: bootstrap-icons;
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            z-index: 10;
+        }
+        .search-box input {
+            padding-left: 30px;
+        }
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .initials-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar would go here -->
             
-            let showRow = true;
-            
-            // First check the filter type
-            if (filterType === 'admin' && userType !== 'admin') {
-                showRow = false;
-            } else if (filterType === 'user' && userType !== 'user') {
-                showRow = false;
-            }
-            
-            // Then check the search text if row passes the filter
-            if (showRow && searchText) {
-                showRow = false;
-                if (nameCol && emailCol) {
-                    const nameText = nameCol.textContent.toLowerCase();
-                    const emailText = emailCol.textContent.toLowerCase();
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="bi bi-calendar"></i> This week
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Error Alert -->
+                <?php if (isset($error_message)): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?php echo $error_message; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <!-- Elections Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Elections</h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon bg-primary-light me-3">
+                                        <i class="bi bi-box-seam-fill fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-0"><?php echo $dashboard_stats['total_elections']; ?></h2>
+                                        <p class="text-muted mb-0">Total Elections</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
-                    if (nameText.indexOf(searchText) > -1 || emailText.indexOf(searchText) > -1) {
-                        showRow = true;
+                    <!-- Categories Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Categories</h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon bg-success-light me-3">
+                                        <i class="bi bi-bookmark-fill fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-0"><?php echo $dashboard_stats['total_active_categories']; ?></h2>
+                                        <p class="text-muted mb-0">Active Categories</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Voters Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Voters</h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon bg-info-light me-3">
+                                        <i class="bi bi-people-fill fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-0"><?php echo $dashboard_stats['total_voters']; ?></h2>
+                                        <p class="text-muted mb-0">Registered Voters</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Participation Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted">Participation</h5>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon bg-warning-light me-3">
+                                        <i class="bi bi-check2-circle fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-0">
+                                            <?php echo $dashboard_stats['total_voted']; ?>
+                                            <small class="fs-6 text-<?php echo ($dashboard_stats['participation_percentage'] > 50) ? 'success' : 'danger'; ?>">
+                                                (<?php echo $dashboard_stats['participation_percentage']; ?>%)
+                                            </small>
+                                        </h2>
+                                        <p class="text-muted mb-1">Votes Cast</p>
+                                        <div class="progress progress-thin">
+                                            <div class="progress-bar bg-<?php echo ($dashboard_stats['participation_percentage'] > 50) ? 'success' : 'warning'; ?>" 
+                                                 role="progressbar" 
+                                                 style="width: <?php echo $dashboard_stats['participation_percentage']; ?>%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Current Election Card -->
+                <?php if ($dashboard_stats['election_id']): ?>
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">Active Election: <?php echo $dashboard_stats['election_title']; ?></h5>
+                                    <a href="election_details.php?id=<?php echo $dashboard_stats['election_id']; ?>" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> View Details
+                                    </a>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <i class="bi bi-calendar-check fs-1 text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Status</h6>
+                                                <span class="badge bg-success">Active</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <i class="bi bi-people fs-1 text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Participation Rate</h6>
+                                                <div class="progress progress-thin mb-1">
+                                                    <div class="progress-bar bg-<?php echo ($dashboard_stats['participation_percentage'] > 50) ? 'success' : 'warning'; ?>" 
+                                                         role="progressbar" 
+                                                         style="width: <?php echo $dashboard_stats['participation_percentage']; ?>%">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    <?php echo $dashboard_stats['total_voted']; ?> of <?php echo $dashboard_stats['total_voters']; ?> voters
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Users Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3 d-flex flex-column flex-md-row align-items-center justify-content-between">
+                                <h5 class="card-title mb-3 mb-md-0">System Users</h5>
+                                <div class="d-flex flex-column flex-md-row gap-2">
+                                    <div class="search-box">
+                                        <input type="text" id="searchUsers" class="form-control form-control-sm" placeholder="Search users...">
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown">
+                                            <i class="bi bi-funnel"></i> Filter
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                                            <li><a class="dropdown-item filter-option active" href="#" data-filter="all">All Users</a></li>
+                                            <li><a class="dropdown-item filter-option" href="#" data-filter="admin">Admins Only</a></li>
+                                            <li><a class="dropdown-item filter-option" href="#" data-filter="user">Regular Users Only</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle" id="usersTable">
+                                        <thead>
+                                            <tr>
+                                                <th width="80">Profile</th>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($users as $user): ?>
+                                            <tr class="user-row" data-user-type="<?php echo ($user['type'] == 0) ? 'admin' : 'user'; ?>">
+                                                <td>
+                                                    <?php if (!empty($user['profile_picture'])): ?>
+                                                        <img src="assets/img/profile/users/<?php echo $user['profile_picture']; ?>" class="user-avatar" alt="Profile">
+                                                    <?php else: ?>
+                                                        <div class="initials-avatar">
+                                                            <?php echo strtoupper(substr($user['name'], 0, 1)); ?>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <span class="fw-semibold"><?php echo htmlspecialchars($user['name']); ?></span>
+                                                        <small class="text-muted">@<?php echo htmlspecialchars($user['username']); ?></small>
+                                                    </div>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($user['email']); ?></td>
+                                                <td>
+                                                    <?php if ($user['type'] == 0): ?>
+                                                        <span class="badge bg-primary">Admin</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary">User</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <?php if ($user['type'] == 0): ?>
+                                                            <button class="btn btn-outline-primary user-action" data-action="demote" data-id="<?php echo $user['id']; ?>">
+                                                                <i class="bi bi-arrow-down-circle"></i> Demote
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <button class="btn btn-outline-primary user-action" data-action="promote" data-id="<?php echo $user['id']; ?>">
+                                                                <i class="bi bi-arrow-up-circle"></i> Promote
+                                                            </button>
+                                                        <?php endif; ?>
+                                                        <button class="btn btn-outline-secondary user-action" data-action="reset" data-id="<?php echo $user['id']; ?>">
+                                                            <i class="bi bi-key"></i> Reset
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('searchUsers');
+        const userRows = document.querySelectorAll('#usersTable tbody tr');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            userRows.forEach(row => {
+                const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const isVisible = name.includes(searchTerm) || email.includes(searchTerm);
+                row.style.display = isVisible ? '' : 'none';
+            });
+        });
+        
+        // Filter functionality
+        const filterOptions = document.querySelectorAll('.filter-option');
+        
+        filterOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const filter = this.getAttribute('data-filter');
+                
+                // Update active state
+                filterOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update dropdown button text
+                document.getElementById('filterDropdown').innerHTML = 
+                    `<i class="bi bi-funnel"></i> ${this.textContent}`;
+                
+                // Apply filter
+                userRows.forEach(row => {
+                    const userType = row.getAttribute('data-user-type');
+                    const isVisible = filter === 'all' || userType === filter;
+                    row.style.display = isVisible ? '' : 'none';
+                });
+            });
+        });
+        
+        // User actions
+        document.querySelectorAll('.user-action').forEach(button => {
+            button.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const userId = this.getAttribute('data-id');
+                
+                if (action === 'promote' || action === 'demote') {
+                    if (confirm(`Are you sure you want to ${action} this user?`)) {
+                        // AJAX call to update user role
+                        fetch('update_user_role.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                action: action
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error: ' + (data.message || 'Operation failed'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred');
+                        });
+                    }
+                } else if (action === 'reset') {
+                    if (confirm('Reset password for this user?')) {
+                        // AJAX call to reset password
+                        fetch('reset_user_password.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                user_id: userId
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Password reset successful');
+                            } else {
+                                alert('Error: ' + (data.message || 'Operation failed'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred');
+                        });
                     }
                 }
-            }
-            
-            // Show or hide the row based on the combined criteria
-            rows[i].style.display = showRow ? '' : 'none';
-        }
-        
-        // Update "no results" message
-        updateNoResultsMessage();
-    }
-    
-    // Function to show a message when no results are found
-    function updateNoResultsMessage() {
-        let visibleRows = 0;
-        for (let i = 0; i < rows.length; i++) {
-            if (rows[i].style.display !== 'none') {
-                visibleRows++;
-            }
-        }
-        
-        // Check if there's already a no-results message
-        let noResultsMsg = document.getElementById('no-results-message');
-        
-        if (visibleRows === 0) {
-            if (!noResultsMsg) {
-                // Create and insert message
-                noResultsMsg = document.createElement('div');
-                noResultsMsg.id = 'no-results-message';
-                noResultsMsg.className = 'alert alert-info text-center my-3';
-                noResultsMsg.textContent = 'No users found matching your criteria.';
-                
-                const tableParent = table.parentNode;
-                tableParent.insertBefore(noResultsMsg, table.nextSibling);
-            }
-        } else if (noResultsMsg) {
-            // Remove the message if we have visible rows
-            noResultsMsg.remove();
-        }
-    }
-    
-    // User type change button functionality
-    const userTypeButtons = document.querySelectorAll('.user-type');
-    userTypeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const userId = this.getAttribute('data-id');
-            const newType = this.getAttribute('data-type');
-            const userName = this.getAttribute('data-name');
-            
-            if (confirm(`Are you sure you want to change this user's role to ${userName}?`)) {
-               
-                alert(`User role updated successfully to ${userName}!`);
-                
-            
-            }
+            });
         });
     });
-    
-    // Reset password button functionality
-    const resetButtons = document.querySelectorAll('.reset');
-    resetButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const userId = this.getAttribute('data-id');
-            
-            if (confirm('Are you sure you want to reset this user\'s password?')) {
-                // In a real application, this would be an AJAX call to reset the password
-                // For demonstration purposes, we'll just show a success message
-                alert('Password has been reset successfully!');
-            }
-        });
-    });
-});
-</script>
-
-<!-- Add this CSS to your stylesheet -->
-<style>
-.bg-primary-light {
-    background-color: rgba(13, 110, 253, 0.15);
-}
-.bg-success-light {
-    background-color: rgba(25, 135, 84, 0.15);
-}
-.bg-info-light {
-    background-color: rgba(13, 202, 240, 0.15);
-}
-.bg-warning-light {
-    background-color: rgba(255, 193, 7, 0.15);
-}
-.bg-secondary-light {
-    background-color: rgba(108, 117, 125, 0.15);
-}
-.card {
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.card-icon {
-    width: 50px;
-    height: 50px;
-}
-.search-box {
-    position: relative;
-}
-.search-box input {
-    padding-left: 30px;
-}
-.search-box:before {
-    content: "\F52A";
-    font-family: bootstrap-icons;
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #6c757d;
-    z-index: 10;
-}
-.dropdown-item.active {
-    background-color: #0d6efd;
-    color: white;
-}
-.filter-option:hover {
-    background-color: #f8f9fa;
-}
-</style>
+    </script>
+</body>
+</html>

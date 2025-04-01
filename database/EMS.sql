@@ -10,6 +10,7 @@ CREATE TABLE Students (
     contactNumber VARCHAR(15),  
     registrationDate DATE NOT NULL DEFAULT current_timestamp,  
     status ENUM('Active', 'Inactive') DEFAULT 'Active',  
+    type TINYINT DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
