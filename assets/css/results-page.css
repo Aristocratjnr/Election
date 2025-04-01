@@ -1,0 +1,256 @@
+/* Results Page Styling */
+:root {
+    --primary: #4361ee;
+    --primary-light: rgba(67, 97, 238, 0.1);
+    --secondary: #6c757d;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --dark: #1f2937;
+    --light: #f9fafb;
+    --border: #e5e7eb;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --transition: all 0.3s ease;
+  }
+  
+  /* Page Title */
+  .pagetitle {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .pagetitle h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Results Cards */
+  .candidates-card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 1.5rem;
+    border: none;
+    transition: var(--transition);
+  }
+  
+  
+  .candidates-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    background-color: var(--primary-light);
+    color: var(--primary);
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .candidates-card .card-body {
+    padding: 0;
+  }
+  
+  /* Candidate List */
+  .list-group {
+    border-radius: 0;
+  }
+  
+  .list-group-item {
+    padding: 1rem 1.5rem;
+    border-left: none;
+    border-right: none;
+    transition: var(--transition);
+  }
+  
+  .list-group-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  .list-group-item:first-child {
+    border-top: none;
+  }
+  
+  .list-group-item:last-child {
+    border-bottom: none;
+  }
+  
+  .list-group-item .fw-bold,
+  .list-group-item .fw-semibold {
+    font-size: 1.1rem;
+    color: var(--dark);
+  }
+  
+  .list-group-item .fw-light {
+    color: var(--secondary);
+    font-size: 0.9rem;
+  }
+  
+  /* Winner Styling */
+  .test-x {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-left: 4px solid var(--success) !important;
+  }
+  
+  .test-x .fw-bold,
+  .test-x .fw-semibold {
+    color: var(--success);
+  }
+  
+  /* Badge Styling */
+  .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+  }
+  
+  .badge.bg-primary {
+    background-color: var(--primary) !important;
+  }
+  
+  /* Progress Bar for Votes */
+  .vote-progress {
+    height: 8px;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+    background-color: var(--border);
+  }
+  
+  .vote-progress .progress-bar {
+    background-color: var(--primary);
+    border-radius: 4px;
+  }
+  
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .action-buttons .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .action-buttons .btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+  
+  .action-buttons .btn-primary:hover {
+    background-color: #3a56d4;
+    border-color: #3a56d4;
+  }
+  
+  /* Timer Styling */
+  .countdown-container {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .countdown-container i {
+    font-size: 1.25rem;
+    color: var(--info);
+  }
+  
+  #countdown {
+    font-weight: 600;
+    color: var(--info);
+  }
+  
+  /* Charts Container */
+  .chart-container {
+    height: 300px;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Empty State */
+  .error-404 {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  
+  .error-404 h2 {
+    font-size: 1.5rem;
+    color: var(--secondary);
+    margin: 1.5rem 0;
+  }
+  
+  .error-404 .btn {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: var(--transition);
+  }
+  
+  .error-404 .btn:hover {
+    background-color: #3a56d4;
+    transform: translateY(-2px);
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .pagetitle h1 {
+      font-size: 1.5rem;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    .candidates-card .card-title {
+      font-size: 1.1rem;
+      padding: 0.75rem 1rem;
+    }
+    
+    .list-group-item {
+      padding: 0.75rem 1rem;
+    }
+  }
+  
+  /* Print Styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    .candidates-card {
+      box-shadow: none;
+      border: 1px solid #ddd;
+      margin-bottom: 1rem;
+      page-break-inside: avoid;
+    }
+    
+    .pagetitle {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      margin-bottom: 2rem;
+    }
+  }
+  
+  /* Animation for loading */
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+  
+  .loading {
+    animation: pulse 1.5s infinite;
+  }
