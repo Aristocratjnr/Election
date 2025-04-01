@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   const formAuthentication = document.querySelector('#formAuthentication');
 
-  if (formAuthentication && typeof FormValidation !== 'undefined') {
+  if (formAuthentication) {
     const validation = FormValidation.formValidation(formAuthentication, {
       fields: {
         student: {
@@ -40,12 +40,20 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // Handle Authentication Form Submit
     formAuthentication.addEventListener('submit', function (e) {
       e.preventDefault();
       validation.validate().then(function (status) {
         if (status === 'Valid') {
           const formData = new FormData(formAuthentication);
+          const submitButton = formAuthentication.querySelector('button[type="submit"]');
+          const originalButtonHTML = submitButton.innerHTML;
+
+          // Set loading state
+          submitButton.disabled = true;
+          submitButton.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Signing in...
+          `;
 
           $.ajax({
             url: 'signInAuth.php',
@@ -53,29 +61,55 @@ document.addEventListener('DOMContentLoaded', function () {
             data: formData,
             processData: false,
             contentType: false,
-            success: function (resp) {
-              try {
-                const response = JSON.parse(resp);
-                $('#formAuthentication .alert').remove(); // Clear previous alerts
-
-                if (response.status === 'success') {
-                  location.href = response.redirect_url;
-                } else {
-                  const alert = `<div class="alert alert-danger">${response.message}</div>`;
-                  $('#formAuthentication').prepend(alert);
-                }
-              } catch (err) {
-                console.error("Response parsing error", err);
-              }
-            },
-            error: function (err) {
-              console.error("AJAX Error", err);
-              const alert = `<div class="alert alert-danger">An error occurred. Please try again later.</div>`;
-              $('#formAuthentication').prepend(alert);
+            dataType: 'json' // Let jQuery parse the JSON automatically
+          })
+          .done(function(response) {
+            // response is already parsed as JSON by jQuery
+            $('#formAuthentication .alert').remove();
+            
+            if (response && response.status === 'success') {
+              window.location.href = response.redirect_url || 'dashboard.php';
+            } else {
+              const message = response?.message || 'Login failed. Please try again.';
+              showAlert('danger', message);
             }
+          })
+          .fail(function(xhr) {
+            let message = 'An error occurred during login';
+            
+            // Try to get error message from response
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+              message = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+              message = xhr.responseText;
+            }
+            
+            showAlert('danger', message);
+          })
+          .always(function() {
+            // Reset button state
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonHTML;
           });
         }
       });
     });
+
+    function showAlert(type, message) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+      alertDiv.role = 'alert';
+      alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      formAuthentication.prepend(alertDiv);
+      
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        const bsAlert = new bootstrap.Alert(alertDiv);
+        bsAlert.close();
+      }, 5000);
+    }
   }
 });

@@ -1,6 +1,4 @@
-<!doctype html>;
-
-
+<!doctype html>
 <html
   lang="en"
   class="layout-wide customizer-hide"
@@ -15,9 +13,9 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>Login</title>
+    <title>Login - SmartVote</title>
 
-    <meta name="description" content="" />
+    <meta name="description" content="Student voting system login page" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
@@ -42,21 +40,24 @@
     <div class="container-xxl">
       <div class="authentication-wrapper authentication-basic container-p-y">
         <div class="authentication-inner">
-          <!-- Login -->
+          <!-- Login Card -->
           <div class="card px-sm-6 px-0">
             <div class="card-body">
               <!-- Logo -->
               <div class="app-brand justify-content-center">
                 <a href="index.php" class="app-brand-link gap-2">
-                    <img src="assets/img/favicon/favicon.ico" alt="logo" width="24%" class="logo-img" />
-                    <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
+                  <img src="assets/img/favicon/favicon.ico" alt="logo" width="24%" class="logo-img" />
+                  <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
                 </a>
               </div>
               <!-- /Logo -->
               <h4 class="mb-1">Welcome to SmartVote👋</h4>
               <p class="mb-6">Please sign-in to your account</p>
 
-              <form id="formAuthentication" class="mb-6" action="signInAuth.php" method="POST">
+              <!-- Error Alert (will be shown dynamically) -->
+              <div id="authAlert" class="alert alert-danger d-none"></div>
+
+              <form id="formAuthentication" class="mb-6" method="POST">
                 <div class="mb-6 form-control-validation">
                   <label for="studentID" class="form-label">Student ID:</label>
                   <input
@@ -77,7 +78,8 @@
                       class="form-control"
                       name="password"
                       placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                      aria-describedby="password" />
+                      aria-describedby="password"
+                      required />
                     <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                   </div>
                 </div>
@@ -93,7 +95,9 @@
                   </div>
                 </div>
                 <div class="mb-6">
-                  <button class="btn btn-primary d-grid w-100" type="submit"><i class="ri-lock-2-fill"></i>Login</button>
+                  <button class="btn btn-primary d-grid w-100" type="submit" id="loginBtn">
+                    <i class="ri-lock-2-fill"></i> Sign In
+                  </button>
                 </div>
               </form>
 
@@ -103,31 +107,96 @@
                   <span>Create an account</span>
                 </a>
               </p>
-
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Scripts -->
     <script src="assets/vendor/libs/jquery/jquery.js"></script>
     <script src="assets/vendor/libs/popper/popper.js"></script>
     <script src="assets/vendor/js/bootstrap.js"></script>
-    <script src="assets/vendor/libs/@algolia/autocomplete-js.js"></script>
-    <script src="assets/vendor/libs/pickr/pickr.js"></script>
     <script src="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="assets/vendor/libs/hammer/hammer.js"></script>
-    <script src="assets/vendor/libs/i18n/i18n.js"></script>
-    <script src="assets/vendor/js/menu.js"></script>  
     <script src="assets/vendor/libs/@form-validation/popular.js"></script>
     <script src="assets/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
-    <script src="scripts/login.js"></script>
-
     
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('formAuthentication');
+      const authAlert = document.getElementById('authAlert');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      // Toggle password visibility
+      document.querySelector('.form-password-toggle .input-group-text').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          icon.classList.replace('bx-hide', 'bx-show');
+        } else {
+          passwordInput.type = 'password';
+          icon.classList.replace('bx-show', 'bx-hide');
+        }
+      });
+      
+      // Form submission
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing in...';
+        
+        // Hide previous alerts
+        authAlert.classList.add('d-none');
+        
+        // Get form data
+        const formData = new FormData(form);
+        
+        // AJAX request
+        fetch('signInAuth.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            window.location.href = data.redirect_url || 'dashboard.php';
+          } else {
+            showError(data.message || 'Login failed. Please try again.');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showError('An error occurred. Please try again later.');
+        })
+        .finally(() => {
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = '<i class="ri-lock-2-fill"></i> Sign In';
+        });
+      });
+      
+      function showError(message) {
+        authAlert.textContent = message;
+        authAlert.classList.remove('d-none');
+      }
+      
+      // Show any PHP error passed in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const error = urlParams.get('error');
+      if (error) {
+        showError(
+          error === 'empty' ? 'Please fill all fields' :
+          error === 'invalid' ? 'Invalid credentials' :
+          'Login failed'
+        );
+      }
+    });
+    </script>
 
- 
-
-    <?php
-  include 'includes/scripts.php';
-  ?>
-
+    <?php include 'includes/scripts.php'; ?>
   </body>
 </html>
