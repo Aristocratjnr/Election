@@ -1,9 +1,9 @@
 <?php
-include 'config/dbconnection.php';
-include 'config/session.php';
+include 'configs/dbconnection.php';
+include 'configs/session.php';
 
 $userId = $_SESSION['login_id'];
-$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT * FROM students WHERE id = ?");
 $stmt->bind_param('i', $userId);
 $stmt->execute();
 $row = $stmt->get_result()->fetch_assoc();
