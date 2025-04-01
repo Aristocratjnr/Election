@@ -162,7 +162,7 @@ try {
             <?php include 'includes/sidebar.php'; ?>
        <di class="main-content">
         <?php include 'includes/header.php'; ?>
-        <br><br>
+        <br>
             
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
           
