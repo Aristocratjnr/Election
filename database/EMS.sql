@@ -1,172 +1,292 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Apr 02, 2025 at 10:53 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
--- Students Table: Stores student voter information
-CREATE TABLE Students (
-    studentID INT PRIMARY KEY AUTO_INCREMENT,  
-    name VARCHAR(100) NOT NULL,  
-    email VARCHAR(100) UNIQUE,  
-    password CHAR(60) NOT NULL,  
-    dateOfBirth DATE NOT NULL,  
-    department VARCHAR(100) NOT NULL,  
-    contactNumber VARCHAR(15),  
-    registrationDate DATE NOT NULL DEFAULT current_timestamp,  
-    status ENUM('Active', 'Inactive') DEFAULT 'Active',  
-    type TINYINT DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
--- Candidates Table: Stores election candidates
-CREATE TABLE Candidates (
-    candidateID INT PRIMARY KEY AUTO_INCREMENT,
-    studentID INT,  
-    position VARCHAR(100) NOT NULL,  
-    manifesto TEXT, 
-    photo VARCHAR(255),
-    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending', 
-    FOREIGN KEY (studentID) REFERENCES Students(studentID) ON DELETE CASCADE
-);
 
--- Elections Table: Stores details of elections
-CREATE TABLE Elections (
-    electionID INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,  
-    startDate DATE NOT NULL,  
-    description varchar(255) DEFAULT NULL,
-    endDate DATE NOT NULL,  
-    createdDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('Scheduled', 'Ongoing', 'Completed') DEFAULT 'Scheduled'
-);
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
--- Votes Table: Stores votes cast by students
-CREATE TABLE Votes (
-    voteID INT PRIMARY KEY AUTO_INCREMENT,
-    electionID INT,  
-    candidateID INT,  
-    studentID INT,  
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, 
-    FOREIGN KEY (electionID) REFERENCES Elections(electionID) ON DELETE CASCADE,
-    FOREIGN KEY (candidateID) REFERENCES Candidates(candidateID) ON DELETE CASCADE,
-    FOREIGN KEY (studentID) REFERENCES Students(studentID) ON DELETE CASCADE,
-    UNIQUE (electionID, studentID)  
-);
+--
+-- Database: `ems`
+--
 
--- Results Table: Stores election results
-CREATE TABLE Results (
-    resultID INT PRIMARY KEY AUTO_INCREMENT,
-    electionID INT,  
-    candidateID INT, 
-    voteCount INT DEFAULT 0,  
-    percentage DECIMAL(5,2) NOT NULL DEFAULT 0.00,
-    status VARCHAR(20) DEFAULT 'Preliminary',
-    lastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (electionID) REFERENCES Elections(electionID) ON DELETE CASCADE,
-    FOREIGN KEY (candidateID) REFERENCES Candidates(candidateID) ON DELETE CASCADE
-);
+-- --------------------------------------------------------
 
--- Categories Table: Stores election categories
-CREATE TABLE Categories (
-    categoryID INT PRIMARY KEY AUTO_INCREMENT,
-    electionID INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    addedBy INT DEFAULT NULL,
-    updatedBy INT DEFAULT NULL,
-    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (electionID) REFERENCES Elections(electionID) ON DELETE CASCADE,
-    FOREIGN KEY (addedBy) REFERENCES Students(studentID) ON DELETE SET NULL,
-    FOREIGN KEY (updatedBy) REFERENCES Students(studentID) ON DELETE SET NULL
-);
+--
+-- Table structure for table `candidates`
+--
+
+CREATE TABLE `candidates` (
+  `candidateID` int(11) NOT NULL,
+  `studentID` int(11) DEFAULT NULL,
+  `position` varchar(100) NOT NULL,
+  `manifesto` text DEFAULT NULL,
+  `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `categories`
+--
+
+CREATE TABLE `categories` (
+  `categoryID` int(11) NOT NULL,
+  `electionID` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `addedBy` int(11) DEFAULT NULL,
+  `updatedBy` int(11) DEFAULT NULL,
+  `createdAt` datetime NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` datetime DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `elections`
+--
+
+CREATE TABLE `elections` (
+  `electionID` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `startDate` date NOT NULL,
+  `endDate` date NOT NULL,
+  `status` enum('Scheduled','Ongoing','Completed') DEFAULT 'Scheduled'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
 
 CREATE TABLE `notifications` (
-  `notification_id` INT PRIMARY KEY AUTO_INCREMENT,
-  `user_id` INT NOT NULL COMMENT 'Can be studentID or admin ID',
-  `user_type` ENUM('student','admin') NOT NULL DEFAULT 'student',
-  `title` VARCHAR(100) NOT NULL,
-  `message` TEXT NOT NULL,
-  `type` ENUM('election','vote','result','system','reminder','candidate') NOT NULL DEFAULT 'system',
-  `related_election` INT DEFAULT NULL,
-  `related_candidate` INT DEFAULT NULL,
-  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`related_election`) REFERENCES `Elections`(`electionID`) ON DELETE SET NULL,
-  FOREIGN KEY (`related_candidate`) REFERENCES `Candidates`(`candidateID`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `notification_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL COMMENT 'Can be studentID or admin ID',
+  `user_type` enum('student','admin') NOT NULL DEFAULT 'student',
+  `title` varchar(100) NOT NULL,
+  `message` text NOT NULL,
+  `type` enum('election','vote','result','system','reminder','candidate') NOT NULL DEFAULT 'system',
+  `related_election` int(11) DEFAULT NULL,
+  `related_candidate` int(11) DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
 
---- Students
-INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10958252', '4593956', 'Aristocrat Junior', '2002-04-18', 'Computer Science', '0551784926', 'ayimobuobi@gmail.com', '2025-03-18', 'Active');
-INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10948232', '4572556', 'Archimedes Great', '2003-02-02', 'Information Technology', '0501888952', 'archimedes@aol.com', '2025-03-18', 'Active');
-INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10928212', '4572356', 'Aristotle Columbus', '2001-09-23', 'Economics', '0251584723', 'aristotle@yahoo.com', '2025-03-18', 'Active');
+--
+-- Table structure for table `results`
+--
 
---- Candidates
-INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `status`) VALUES (NULL, '10928212', 'SRC-PRESIDENT', 'I want to be a president', 'Pending');
-INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `status`) VALUES (NULL, '10948220', 'TRESURER', 'I want to be a tresurer', 'Pending');
-INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `status`) VALUES (NULL, '10928212', 'SECRETARY', 'I want to be a secretary', 'Pending');
+CREATE TABLE `results` (
+  `resultID` int(11) NOT NULL,
+  `electionID` int(11) DEFAULT NULL,
+  `candidateID` int(11) DEFAULT NULL,
+  `voteCount` int(11) DEFAULT 0,
+  `percentage` decimal(5,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---- Election
-INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES ('2832234', 'David Ayim Obuobi', '2025-03-18', '2025-03-20', 'Scheduled');
-INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES ('2832235', 'Nana Addo Dankwa', '2025-03-19', '2025-03-22', 'Scheduled');
-INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES ('2832234', 'John Dramani Mahama ', '2025-03-20', '2025-03-23', 'Scheduled');
+-- --------------------------------------------------------
 
---- Votes
-INSERT INTO `votes` (`voteID`, `electionID`, `candidateID`, `studentID`, `timestamp`) VALUES ('739321', '2832234', '2372714', '10928212', '2025-03-18 21:11:03');
-INSERT INTO `votes` (`voteID`, `electionID`, `candidateID`, `studentID`, `timestamp`) VALUES ('731421', '2789234', '2393814', '10639212', '2025-03-18 21:10:08');
-INSERT INTO `votes` (`voteID`, `electionID`, `candidateID`, `studentID`, `timestamp`) VALUES ('739221', '2802234', '2362314', '10720212', '2025-03-18 21:03:09');
+--
+-- Table structure for table `students`
+--
 
+CREATE TABLE `students` (
+  `studentID` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `password` char(60) NOT NULL,
+  `dateOfBirth` date NOT NULL,
+  `department` varchar(100) NOT NULL,
+  `contactNumber` varchar(15) DEFAULT NULL,
+  `registrationDate` date NOT NULL DEFAULT current_timestamp(),
+  `status` enum('Active','Inactive') DEFAULT 'Active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `role` enum('student','admin') DEFAULT 'student'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---- Results
-INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES ('44557', '2832234', '237713', '52', '42.7');
-INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES ('47857', '2809234', '237013', '80', '92.7');
-INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES ('40857', '2879834', '2309813', '32', '20.7');
+--
+-- Dumping data for table `students`
+--
 
+INSERT INTO `students` (`studentID`, `name`, `email`, `password`, `dateOfBirth`, `department`, `contactNumber`, `registrationDate`, `status`, `created_at`, `role`) VALUES
+(2312312, 'TrebuchetAcademy', 'bmfhpwww@sharklasers.com', '$2y$10$S2T5UKxqHBwnXn/0aiBRm.mW3Gsr5OGxE91VhSmlQuOgzGzC7oZRC', '2000-01-02', 'Computer Science', '23355178426', '2025-04-01', 'Active', '2025-04-01 16:29:18', 'student'),
+(10945821, 'Aristocratjnr', 'david.obuobi@inkris.ca', '$2y$10$PaQkW9.LAKdG5atPFSosZuPBivPtBZKwl9.ZLJz1p1WAxyqGIzPGq', '0000-00-00', 'Administrator', '0551784926', '2025-04-02', 'Active', '2025-04-02 14:03:42', 'admin'),
+(13131231, 'David Ayim Obuobi', 'davidayim01@gmail.com', '$2y$10$vRLylj3K3z1WQrejHryDTeipq.pRx.0r4ZKSPdU0JcNLqmM.f4G.G', '2000-01-02', 'Computer Science', '233209945369', '2025-04-02', 'Active', '2025-04-02 00:29:14', 'student'),
+(2147483647, 'Aristocratjnr', 'ayimobuob44i@gmail.com', '$2y$10$7nLhNFVZx9EB0EM7ocZci.f7ADskEDODuDYnsWyUmpNnN/OF5MDTm', '2000-01-02', 'Chemistry', '233551784926', '2025-04-01', 'Active', '2025-04-01 15:50:04', 'student');
 
---- List all registered students
-SELECT * FROM Students;
+-- --------------------------------------------------------
 
---- List candidates for a specific election
-SELECT c.candidateID, s.name AS CandidateName, c.position, c.manifesto 
-FROM Candidates c
-JOIN Students s ON c.studentID = s.studentID
-WHERE c.status = 'Approved';
+--
+-- Table structure for table `votes`
+--
 
---- Show election results for completed elections
-SELECT e.name AS ElectionName, s.name AS CandidateName, r.voteCount, r.percentage 
-FROM Results r
-JOIN Candidates c ON r.candidateID = c.candidateID
-JOIN Students s ON c.studentID = s.studentID
-JOIN Elections e ON r.electionID = e.electionID
-WHERE e.status = 'Completed'
-ORDER BY r.voteCount DESC;
+CREATE TABLE `votes` (
+  `voteID` int(11) NOT NULL,
+  `electionID` int(11) DEFAULT NULL,
+  `candidateID` int(11) DEFAULT NULL,
+  `studentID` int(11) DEFAULT NULL,
+  `timestamp` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---- Show upcoming elections
-SELECT * FROM Elections WHERE status = 'Scheduled';
+--
+-- Indexes for dumped tables
+--
 
---- Show all votes cast in an election (latest votes first)
-SELECT v.voteID, e.name AS ElectionName, s.name AS VoterName, c.position, c.manifesto, v.timestamp
-FROM Votes v
-JOIN Elections e ON v.electionID = e.electionID
-JOIN Students s ON v.studentID = s.studentID
-JOIN Candidates c ON v.candidateID = c.candidateID
-ORDER BY v.timestamp DESC;
+--
+-- Indexes for table `candidates`
+--
+ALTER TABLE `candidates`
+  ADD PRIMARY KEY (`candidateID`),
+  ADD KEY `studentID` (`studentID`);
 
---- Count total votes for each candidate in an election
-SELECT e.name AS ElectionName, c.position, s.name AS CandidateName, COUNT(v.voteID) AS TotalVotes
-FROM Votes v
-JOIN Candidates c ON v.candidateID = c.candidateID
-JOIN Students s ON c.studentID = s.studentID
-JOIN Elections e ON v.electionID = e.electionID
-GROUP BY e.name, c.position, s.name
-ORDER BY TotalVotes DESC;
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`categoryID`),
+  ADD KEY `electionID` (`electionID`),
+  ADD KEY `addedBy` (`addedBy`),
+  ADD KEY `updatedBy` (`updatedBy`);
 
----Count notification for a specific user 
-SELECT n.*, 
-       e.name AS election_name,
-       c.position AS candidate_position,
-       CONCAT(s.name, ' for ', c.position) AS candidate_info
-FROM `notifications` n
-LEFT JOIN `Elections` e ON n.related_election = e.electionID
-LEFT JOIN `Candidates` c ON n.related_candidate = c.candidateID
-LEFT JOIN `Students` s ON c.studentID = s.studentID
-WHERE n.user_id = 10958252 AND n.user_type = 'student'
-ORDER BY n.is_read ASC, n.created_at DESC;
+--
+-- Indexes for table `elections`
+--
+ALTER TABLE `elections`
+  ADD PRIMARY KEY (`electionID`);
 
+--
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`notification_id`),
+  ADD KEY `related_election` (`related_election`),
+  ADD KEY `related_candidate` (`related_candidate`);
 
+--
+-- Indexes for table `results`
+--
+ALTER TABLE `results`
+  ADD PRIMARY KEY (`resultID`),
+  ADD KEY `electionID` (`electionID`),
+  ADD KEY `candidateID` (`candidateID`);
+
+--
+-- Indexes for table `students`
+--
+ALTER TABLE `students`
+  ADD PRIMARY KEY (`studentID`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `votes`
+--
+ALTER TABLE `votes`
+  ADD PRIMARY KEY (`voteID`),
+  ADD UNIQUE KEY `electionID` (`electionID`,`studentID`),
+  ADD KEY `candidateID` (`candidateID`),
+  ADD KEY `studentID` (`studentID`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `candidates`
+--
+ALTER TABLE `candidates`
+  MODIFY `candidateID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2372714;
+
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `categoryID` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `elections`
+--
+ALTER TABLE `elections`
+  MODIFY `electionID` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `results`
+--
+ALTER TABLE `results`
+  MODIFY `resultID` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `students`
+--
+ALTER TABLE `students`
+  MODIFY `studentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2147483648;
+
+--
+-- AUTO_INCREMENT for table `votes`
+--
+ALTER TABLE `votes`
+  MODIFY `voteID` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `candidates`
+--
+ALTER TABLE `candidates`
+  ADD CONSTRAINT `candidates_ibfk_1` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `categories`
+--
+ALTER TABLE `categories`
+  ADD CONSTRAINT `categories_ibfk_1` FOREIGN KEY (`electionID`) REFERENCES `elections` (`electionID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `categories_ibfk_2` FOREIGN KEY (`addedBy`) REFERENCES `students` (`studentID`) ON DELETE SET NULL,
+  ADD CONSTRAINT `categories_ibfk_3` FOREIGN KEY (`updatedBy`) REFERENCES `students` (`studentID`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`related_election`) REFERENCES `elections` (`electionID`) ON DELETE SET NULL,
+  ADD CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`related_candidate`) REFERENCES `candidates` (`candidateID`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `results`
+--
+ALTER TABLE `results`
+  ADD CONSTRAINT `results_ibfk_1` FOREIGN KEY (`electionID`) REFERENCES `elections` (`electionID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `results_ibfk_2` FOREIGN KEY (`candidateID`) REFERENCES `candidates` (`candidateID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `votes`
+--
+ALTER TABLE `votes`
+  ADD CONSTRAINT `votes_ibfk_1` FOREIGN KEY (`electionID`) REFERENCES `elections` (`electionID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `votes_ibfk_2` FOREIGN KEY (`candidateID`) REFERENCES `candidates` (`candidateID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `votes_ibfk_3` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`) ON DELETE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
