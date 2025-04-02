@@ -88,7 +88,7 @@
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link" href="../vertical-menu-template/index.html" target="_blank">Admin</a>
+          <a class="nav-link" href="login.php" target="_blank">Admin</a>
         </li>
       </ul>
 
