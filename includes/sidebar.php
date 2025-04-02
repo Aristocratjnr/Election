@@ -1,8 +1,8 @@
-<!-- ======= Premium Sidebar UI ======= -->
+<!-- ======= Admin Premium Sidebar UI ======= -->
 <aside id="sidebar" class="sidebar">
   <!-- Mobile Header -->
   <div class="mobile-header">
-    <div class="logo">SmartVote</div>
+    <div class="logo">ElectionAdmin</div>
     <button class="mobile-toggle">
       <i class="bi bi-list"></i>
     </button>
@@ -19,11 +19,11 @@
     ]);
   }
 
-  // Initialize student data with defaults
-  $studentData = [
-    'name' => 'Guest',
+  // Initialize admin data with defaults
+  $adminData = [
+    'name' => 'Administrator',
     'profile_picture' => null,
-    'role' => 'guest',
+    'role' => 'admin',
     'unread_notifications' => 0,
     'last_login' => null
   ];
@@ -31,151 +31,162 @@
   // Current page detection
   $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
   
-  // Student role detection
-  $is_admin = isset($_SESSION['login_type']) && $_SESSION['login_type'] == 0;
-  $student_role = $is_admin ? 'Administrator' : 'Voter';
-  
-  // Student data
-  $student_name = isset($_SESSION['login_name']) ? $_SESSION['login_name'] : 'Student';
+  // Admin data
+  $admin_name = isset($_SESSION['login_name']) ? $_SESSION['login_name'] : 'David A.';
   $profile_pic = isset($_SESSION['profile_pic']) ? $_SESSION['profile_pic'] : null;
   $unread_notifications = isset($_SESSION['unread_notifications']) ? $_SESSION['unread_notifications'] : 0;
   
-  // Menu configuration
+  // Menu configuration - Focused on administrative features
   $menu_items = [
     'dashboard' => [
-      'title' => 'Dashboard',
+      'title' => 'Admin Dashboard',
       'icon' => 'bi-speedometer2',
-      'url' => 'index.php?' . ($is_admin ? 'page=dashboard' : 'page=vote'),
-      'active' => in_array($current_page, ['dashboard', 'vote']) || $_SERVER['SCRIPT_NAME'] === 'index.php',
-      'badge' => !$is_admin ? ['type' => 'secondary', 'text' => 'New'] : null,
-      'tooltip' => 'Dashboard'
+      'url' => 'index.php?page=dashboard',
+      'active' => in_array($current_page, ['dashboard']) || $_SERVER['SCRIPT_NAME'] === 'index.php',
+      'tooltip' => 'Administrative Dashboard'
     ],
     'elections' => [
-      'title' => 'Elections',
+      'title' => 'Election Control',
       'icon' => 'bi-calendar-event',
       'url' => 'index.php?page=election_config',
-      'admin_only' => true,
-      'active' => in_array($current_page, ['election_config', 'candidates']),
-      'indicator' => $is_admin ? 'bi-chevron-right' : null,
-      'tooltip' => 'Election Management'
+      'active' => in_array($current_page, ['election_config', 'candidates', 'positions']),
+      'indicator' => 'bi-chevron-right',
+      'tooltip' => 'Manage Elections',
+      'subitems' => [
+        'config' => [
+          'title' => 'Configuration',
+          'icon' => 'bi-gear',
+          'url' => 'index.php?page=election_config'
+        ],
+        'positions' => [
+          'title' => 'Positions',
+          'icon' => 'bi-award',
+          'url' => 'index.php?page=positions'
+        ],
+        'candidates' => [
+          'title' => 'Candidates',
+          'icon' => 'bi-person-badge',
+          'url' => 'index.php?page=candidates'
+        ],
+        'ballots' => [
+          'title' => 'Ballot Design',
+          'icon' => 'bi-file-earmark-text',
+          'url' => 'index.php?page=ballots'
+        ]
+      ]
     ],
-    'categories' => [
-      'title' => 'Categories',
-      'icon' => 'bi-tags',
-      'url' => 'index.php?page=categories',
-      'admin_only' => true,
-      'active' => $current_page == 'categories',
-      'tooltip' => 'Categories'
-    ],
-    'vote' => [
-      'title' => 'Cast Vote',
-      'icon' => 'bi-check-circle',
-      'url' => 'index.php?page=vote',
-      'voter_only' => true,
-      'active' => $current_page == 'vote',
-      'highlight' => true,
-      'tooltip' => 'Voting Panel'
+    'voters' => [
+      'title' => 'Voter Management',
+      'icon' => 'bi-people-fill',
+      'url' => 'index.php?page=voters',
+      'active' => in_array($current_page, ['voters', 'voter_groups']),
+      'tooltip' => 'Manage Voters and Groups',
+      'subitems' => [
+        'voters' => [
+          'title' => 'Voter List',
+          'icon' => 'bi-person-lines-fill',
+          'url' => 'index.php?page=voters'
+        ],
+        'groups' => [
+          'title' => 'Voter Groups',
+          'icon' => 'bi-collection',
+          'url' => 'index.php?page=voter_groups'
+        ],
+        'import' => [
+          'title' => 'Bulk Import',
+          'icon' => 'bi-upload',
+          'url' => 'index.php?page=voter_import'
+        ]
+      ]
     ],
     'results' => [
-      'title' => 'Live Results',
+      'title' => 'Results & Analytics',
       'icon' => 'bi-bar-chart-line',
       'url' => 'index.php?page=results',
       'active' => $current_page == 'results',
       'badge' => ['type' => 'success', 'text' => 'Live'],
-      'tooltip' => 'Election Results'
+      'tooltip' => 'Election Results',
+      'subitems' => [
+        'live' => [
+          'title' => 'Live Results',
+          'icon' => 'bi-graph-up-arrow',
+          'url' => 'index.php?page=results'
+        ],
+        'reports' => [
+          'title' => 'Detailed Reports',
+          'icon' => 'bi-file-earmark-bar-graph',
+          'url' => 'index.php?page=reports'
+        ],
+        'audit' => [
+          'title' => 'Audit Logs',
+          'icon' => 'bi-shield-check',
+          'url' => 'index.php?page=audit_logs'
+        ]
+      ]
     ],
-    'students' => [  // Changed from 'voters' to 'students'
-      'title' => 'Student Management',
-      'icon' => 'bi-people',
-      'url' => 'index.php?page=students',
-      'admin_only' => true,
-      'active' => $current_page == 'students',
-      'tooltip' => 'Student Management'
-    ],
-    'reports' => [
-      'title' => 'Analytics',
-      'icon' => 'bi-graph-up',
-      'url' => 'index.php?page=reports',
-      'admin_only' => true,
-      'active' => $current_page == 'reports',
-      'tooltip' => 'Reports & Analytics'
-    ],
+  
     'settings' => [
-      'title' => 'Settings',
-      'icon' => 'bi-gear',
+      'title' => 'Admin Preferences',
+      'icon' => 'bi-person-gear',
       'active' => $current_page == 'profile',
-      'tooltip' => 'System Settings',
+      'tooltip' => 'Administrator Settings',
       'subitems' => [
         'profile' => [
-          'title' => 'My Profile',
+          'title' => 'Admin Profile',
           'icon' => 'bi-person',
           'url' => 'index.php?page=profile'
         ],
         'security' => [
-          'title' => 'Security',
+          'title' => 'Account Security',
           'icon' => 'bi-shield-lock',
           'url' => 'index.php?page=security'
         ],
         'notifications' => [
-          'title' => 'Notifications',
+          'title' => 'Notification Settings',
           'icon' => 'bi-bell',
           'url' => 'index.php?page=notifications'
-        ],
-        'preferences' => [
-          'title' => 'Preferences',
-          'icon' => 'bi-sliders',
-          'url' => 'index.php?page=preferences'
         ]
       ]
     ]
   ];
   ?>
 
-  <!-- Student Profile Card -->
-  <div class="profile-card">
-    <div class="profile-avatar">
-      <?php if ($profile_pic): ?>
-        <img src="assets/img/profile/students/<?php echo htmlspecialchars($profile_pic); ?>" 
-             alt="<?php echo htmlspecialchars($student_name); ?>" 
-             onerror="this.src='assets/img/default-avatar.jpg'">
-      <?php else: ?>
-        <div class="avatar-fallback">
-          <?php echo strtoupper(substr($student_name, 0, 1)); ?>
-        </div>
-      <?php endif; ?>
-    </div>
-    <div class="profile-info">
-      <h4 class="profile-name"><?php echo htmlspecialchars($student_name); ?></h4>
-      <div class="profile-meta">
-        <span class="profile-role"><?php echo $student_role; ?></span>
-        <span class="profile-status <?php echo $is_admin ? 'admin' : 'voter'; ?>">
-          <i class="bi bi-circle-fill"></i>
-          <?php echo $is_admin ? 'Admin' : 'Active'; ?>
-        </span>
+  <!-- Admin Profile Card -->
+<div class="profile-card">
+  <div class="profile-avatar">
+    <?php if ($profile_pic): ?>
+      <img src="assets/img/profile/admins/<?php echo htmlspecialchars($profile_pic); ?>" 
+           alt="<?php echo htmlspecialchars($admin_name); ?>" 
+           onerror="this.src='assets/img/aristo.png'">
+    <?php else: ?>
+      <div class="avatar-fallback">
+        <?php echo strtoupper(substr($admin_name, 0, 1)); ?>
       </div>
-    </div>
-    <a href="notifications.php" class="notification-icon">
-      <i class="bi bi-bell"></i>
-      <?php if ($unread_notifications > 0): ?>
-        <span class="notification-bubble"><?php echo $unread_notifications; ?></span>
-      <?php endif; ?>
-    </a>
+    <?php endif; ?>
   </div>
+  <div class="profile-info">
+    <h4 class="profile-name"><?php echo htmlspecialchars($admin_name); ?></h4>
+    <div class="profile-meta">
+      <span class="profile-role">Admin</span>
+      <span class="profile-status admin">
+        <i class="bi bi-circle-fill"></i>
+        Active
+      </span>
+    </div>
+  </div>
+ 
+</div>
 
   <!-- Main Navigation -->
   <nav class="sidebar-navigation">
     <ul class="nav-menu">
       <?php foreach ($menu_items as $key => $item): ?>
         <?php 
-        // Skip unauthorized items
-        if (($item['admin_only'] ?? false) && !$is_admin) continue;
-        if (($item['voter_only'] ?? false) && $is_admin) continue;
-        
         $hasChildren = isset($item['subitems']);
         $isActive = $item['active'] ?? false;
         ?>
         
-        <li class="nav-item <?php echo $isActive ? 'active' : ''; ?> <?php echo $item['highlight'] ?? false ? 'highlight' : ''; ?>">
+        <li class="nav-item <?php echo $isActive ? 'active' : ''; ?>">
           <?php if ($hasChildren): ?>
             <div class="nav-parent">
               <div class="nav-link settings-toggle" data-tooltip="<?php echo $item['tooltip'] ?? $item['title']; ?>">
@@ -219,14 +230,14 @@
       <div class="info-item">
         <i class="bi bi-clock-history"></i>
         <span>
-          Last login: <?php echo $studentData['last_login'] 
-            ? date('M j, g:i A', strtotime($studentData['last_login'])) 
+          Last login: <?php echo $adminData['last_login'] 
+            ? date('M j, g:i A', strtotime($adminData['last_login'])) 
             : 'First login'; ?>
         </span>
       </div>
       <div class="info-item">
         <i class="bi bi-shield-check"></i>
-        <span>Secure connection</span>
+        <span>Secure Admin Session</span>
       </div>
     </div>
     <a href="logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?');">
@@ -234,7 +245,7 @@
       <span>Logout</span>
     </a>
     <div class="version-info">
-      v2.1.0 · <?php echo date('Y'); ?> © SmartVote
+      Admin Console v2.1.0 · <?php echo date('Y'); ?>
     </div>
   </div>
 </aside>
@@ -243,23 +254,23 @@
 <div class="sidebar-overlay"></div>
 
 <style>
+
 /* ===== Premium Sidebar Styles ===== */
 :root {
   --sidebar-width: 280px;
-  --sidebar-bg: #fdfdfd; /* Soft White */
-  --sidebar-accent: #1e3a8a; /* Deep Blue */
-  --sidebar-text: #1a1a2e; /* Dark Navy */
-  --sidebar-text-light: #64748b; /* Muted Slate */
-  --sidebar-border: #e5e7eb; /* Light Gray */
-  --sidebar-hover: #f3f4f6; /* Subtle Hover */
-  --admin-color: #b91c1c; /* Rich Crimson */
-  --voter-color: #059669; /* Deep Teal */
-  --highlight-color: #3b82f6; /* Bright Royal Blue */
-  --success-badge: #16a34a; /* Elegant Green */
-  --primary-badge: #1e40af; /* Bold Blue */
-  --notification-badge: #be123c; /* Luxurious Red */
+  --sidebar-bg: #fdfdfd;
+  --sidebar-accent: #1e3a8a;
+  --sidebar-text: #1a1a2e;
+  --sidebar-text-light: #64748b;
+  --sidebar-border: #e5e7eb;
+  --sidebar-hover: #f3f4f6;
+  --admin-color: #b91c1c;
+  --voter-color: #059669;
+  --highlight-color: #3b82f6;
+  --success-badge: #16a34a;
+  --primary-badge: #1e40af;
+  --notification-badge: #be123c;
 }
-
 
 .sidebar {
   width: var(--sidebar-width);
@@ -273,6 +284,35 @@
   flex-direction: column;
   z-index: 1000;
   border-right: 1px solid var(--sidebar-border);
+  padding-top: 60px; /* Space for the header */
+}
+
+/* Mobile Header */
+.mobile-header {
+  display: none;
+  padding: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--sidebar-border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--sidebar-bg);
+}
+
+.mobile-header .logo {
+  font-weight: 600;
+  color: var(--sidebar-accent);
+}
+
+.mobile-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--sidebar-text);
+  cursor: pointer;
 }
 
 /* Profile Card */
@@ -283,6 +323,9 @@
   gap: 1rem;
   border-bottom: 1px solid var(--sidebar-border);
   position: relative;
+  margin: 20px 15px 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
 }
 
 .profile-avatar {
@@ -347,7 +390,7 @@
 }
 
 .profile-status.admin {
-  color: var(--admin-color);
+  color: var(--voter-color);
 }
 
 .profile-status.voter {
@@ -440,15 +483,6 @@
   border-radius: 0 3px 3px 0;
 }
 
-.nav-item.highlight .nav-link {
-  color: var(--highlight-color);
-  background: rgba(76, 201, 240, 0.05);
-}
-
-.nav-item.highlight .nav-link::before {
-  background: var(--highlight-color);
-}
-
 .nav-badge {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
@@ -467,7 +501,6 @@
   transform: rotate(180deg);
 }
 
-/* Submenu */
 .submenu {
   list-style: none;
   padding: 0;
@@ -510,167 +543,96 @@
   color: var(--sidebar-accent);
   font-weight: 500;
 }
+
 /* Sidebar Footer */
 .sidebar-footer {
-    padding: 1rem;
-    border-top: 1px solid var(--sidebar-border);
-    font-size: 0.8rem;
-    background: #f8f9fa;
+  padding: 1rem;
+  border-top: 1px solid var(--sidebar-border);
+  font-size: 0.8rem;
+  background: #f8f9fa;
 }
 
 .system-info {
-    margin-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
 .info-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    color: #6c757d;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  color: #6c757d;
 }
 
 .info-item i {
-    margin-right: 0.5rem;
-    font-size: 1rem;
-    color: #adb5bd;
+  margin-right: 0.5rem;
+  font-size: 1rem;
+  color: #adb5bd;
 }
 
 .logout-btn {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background: white;
-    color: var(--admin-color);
-    border: 1px solid #e9ecef;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: var(--sidebar-transition);
-    margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: white;
+  color: var(--admin-color);
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
 }
 
 .logout-btn:hover {
-    background: #f8f9fa;
-    color: var(--admin-color);
-    border-color: #dee2e6;
+  background: #f8f9fa;
+  color: var(--admin-color);
+  border-color: #dee2e6;
 }
 
 .logout-btn i {
-    margin-right: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .version-info {
-    text-align: center;
-    color: #adb5bd;
-    font-size: 0.7rem;
-}
-
-.system-status {
-  margin: 1rem 0;
-  padding: 0.75rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--sidebar-text-light);
-  margin-bottom: 0.5rem;
-}
-
-.status-item:last-child {
-  margin-bottom: 0;
-}
-
-.status-icon {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.status-icon.online {
-  background: var(--success-badge);
-  box-shadow: 0 0 0 2px rgba(56, 176, 0, 0.2);
-}
-
-.app-version {
-  display: flex;
-  justify-content: space-between;
+  text-align: center;
+  color: #adb5bd;
   font-size: 0.7rem;
-  color: var(--sidebar-text-light);
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--sidebar-border);
 }
 
-/* Collapsed State */
-.sidebar.collapsed {
-    width: var(--sidebar-collapsed-width);
+/* Sidebar Overlay for Mobile */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
 }
 
-.sidebar.collapsed .brand-name,
-.sidebar.collapsed .brand-badge,
-.sidebar.collapsed .profile-info,
-.sidebar.collapsed .profile-actions,
-.sidebar.collapsed .nav-text,
-.sidebar.collapsed .nav-badge,
-.sidebar.collapsed .nav-arrow,
-.sidebar.collapsed .info-item span,
-.sidebar.collapsed .logout-btn span,
-.sidebar.collapsed .version-info {
-    display: none;
+.sidebar-overlay.active {
+  display: block;
 }
 
-.sidebar.collapsed .sidebar-brand {
-    justify-content: center;
-}
-
-.sidebar.collapsed .sidebar-toggle {
-    margin: 0 auto;
-}
-
-.sidebar.collapsed .user-profile {
-    justify-content: center;
-    padding: 1rem 0.5rem;
-}
-
-.sidebar.collapsed .profile-avatar {
-    width: 36px;
-    height: 36px;
-}
-
-.sidebar.collapsed .nav-link, 
-.sidebar.collapsed .nav-parent {
-    justify-content: center;
-    padding: 0.75rem 0.5rem;
-}
-
-.sidebar.collapsed .nav-icon {
-    margin-right: 0;
-}
-
-.sidebar.collapsed .submenu {
-    display: none;
-}
-
-.sidebar.collapsed .logout-btn {
-    justify-content: center;
-    padding: 0.5rem;
-}
-
-
-
-/* Responsive */
+/* Responsive Adjustments */
 @media (max-width: 992px) {
   .sidebar {
     transform: translateX(-100%);
     box-shadow: none;
+    padding-top: 0;
   }
   
   .sidebar.show {
     transform: translateX(0);
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-header {
+    display: flex;
+  }
+  
+  .profile-card {
+    margin-top: 70px; /* Extra space for mobile header */
   }
 }
 </style>
@@ -693,16 +655,6 @@ document.addEventListener('DOMContentLoaded', function() {
   overlay.addEventListener('click', function() {
     sidebar.classList.remove('show');
     overlay.classList.remove('active');
-  });
-  
-  // Close sidebar when clicking outside on mobile
-  document.addEventListener('click', function(e) {
-    if (window.innerWidth <= 992 && 
-        !sidebar.contains(e.target) && 
-        !e.target.classList.contains('mobile-toggle')) {
-      sidebar.classList.remove('show');
-      overlay.classList.remove('active');
-    }
   });
   
   // Auto-expand active submenus
