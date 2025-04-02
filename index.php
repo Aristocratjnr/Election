@@ -50,164 +50,177 @@
   <body>
     <script src="assets/vendor/js/dropdown-hover.js"></script>
     <script src="assets/vendor/js/mega-dropdown.js"></script>
-    <!-- Navbar: Start -->
-    <nav class="layout-navbar shadow-none py-0">
-      <div class="container">
-        <div class="navbar navbar-expand-lg landing-navbar px-3 px-md-8">
-          <!-- Menu logo wrapper: Start -->
-          <div class="navbar-brand app-brand demo d-flex py-0 me-4 me-xl-8">
-            <!-- Mobile menu toggle: Start-->
-            <button
-              class="navbar-toggler border-0 px-0 me-4"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent"
-              aria-controls="navbarSupportedContent"
-              aria-expanded="false"
-              aria-label="Toggle navigation">
-              <i class="icon-base bx bx-menu icon-lg align-middle text-heading fw-medium"></i>
-            </button>
-            <!-- Mobile menu toggle: End-->
-            <a href="landing-page.html" class="app-brand-link">
-              <span class="app-brand-logo demo">
-                <span class="text-primary">
-                <img src="assets/img/favicon/favicon.ico" alt="logo" width="60%" class="logo-img" />
-                </span>
-              </span>
-              <span class="app-brand-text demo menu-text fw-bold ms-2 ps-1">SmartVote</span>
+  <!-- Navbar: Start -->
+<nav class="layout-navbar shadow-none py-0">
+  <div class="container">
+    <div class="navbar navbar-expand-lg landing-navbar px-3 px-md-8">
+      <!-- Menu logo wrapper: Start -->
+      <div class="navbar-brand app-brand demo d-flex py-0 me-4 me-xl-8">
+        <!-- Mobile menu toggle: Start-->
+        <button
+          class="navbar-toggler border-0 px-0 me-2"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <i class="icon-base bx bx-menu icon-lg align-middle text-heading fw-medium"></i>
+        </button>
+        <!-- Mobile menu toggle: End-->
+        <a href="landing-page.html" class="app-brand-link d-flex align-items-center">
+          <span class="app-brand-logo demo">
+            <span class="text-primary">
+              <img src="assets/img/favicon/favicon.ico" alt="logo" width="30" height="30" class="logo-img" />
+            </span>
+          </span>
+          <span class="app-brand-text demo menu-text fw-bold ms-2 ps-1 d-none d-sm-inline">SmartVote</span>
+        </a>
+      </div>
+      <!-- Menu logo wrapper: End -->
+      
+      <!-- Menu wrapper: Start -->
+      <div class="collapse navbar-collapse landing-nav-menu" id="navbarSupportedContent">
+        <button
+          class="navbar-toggler border-0 text-heading position-absolute end-0 top-0 scaleX-n1-rtl p-2"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <i class="icon-base bx bx-x icon-lg"></i>
+        </button>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link fw-medium justify-between" href="../vertical-menu-template/index.html" target="_blank">Admin</a>
+          </li>
+        </ul>
+        
+        <!-- Mobile menu items -->
+        <ul class="navbar-nav d-lg-none">
+          <!-- Style Switcher for mobile -->
+          <li class="nav-item dropdown-style-switcher dropdown">
+            <a
+              class="nav-link dropdown-toggle"
+              id="nav-theme-mobile"
+              href="javascript:void(0);"
+              data-bs-toggle="dropdown">
+              <i class="icon-base bx bx-sun icon-lg theme-icon-active me-2"></i>
+              <span>Theme</span>
             </a>
-          </div>
-          <!-- Menu logo wrapper: End -->
-          <!-- Menu wrapper: Start -->
-          <div class="collapse navbar-collapse landing-nav-menu" id="navbarSupportedContent">
-            <button
-              class="navbar-toggler border-0 text-heading position-absolute end-0 top-0 scaleX-n1-rtl p-2"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent"
-              aria-controls="navbarSupportedContent"
-              aria-expanded="false"
-              aria-label="Toggle navigation">
-              <i class="icon-base bx bx-x icon-lg"></i>
-            </button>
-            <ul class="navbar-nav me-auto">
-                <div class="dropdown-menu p-4 p-xl-8">
-                  <div class="row gy-4">
-                    <div class="col-12 col-lg">
-                      <div class="h6 d-flex align-items-center mb-3 mb-lg-4">
-                        <div class="avatar flex-shrink-0 me-3">
-                          <span class="avatar-initial rounded bg-label-primary"
-                            ><i class="icon-base bx bx-grid-alt"></i
-                          ></span>
-                        </div>
-                       
-                      </div>
-                    </div>
-                    <div class="col-12 col-lg">
-                      <div class="h6 d-flex align-items-center mb-3 mb-lg-4">
-                        <div class="avatar flex-shrink-0 me-3">
-                          <span class="avatar-initial rounded bg-label-primary"
-                            ><i class="icon-base bx bx-lock-open icon-lg"></i
-                          ></span>
-                        </div>
-                        
-                      </div>
-                      <ul class="nav flex-column">
-                      </ul>
-                    </div>
-                    <div class="col-12 col-lg">
-                      <div class="h6 d-flex align-items-center mb-3 mb-lg-4">
-                        <div class="avatar flex-shrink-0 me-3">
-                          <span class="avatar-initial rounded bg-label-primary"
-                            ><i class="icon-base bx bx-image-alt icon-lg"></i
-                          ></span>
-                        </div>
-                        
-                      </div>
-                 
-                    </div>
-                    <div class="col-lg-4 d-none d-lg-block">
-                      <div class="bg-body nav-img-col p-2">
-                        <img
-                          src="assets/img/front-pages/misc/nav-item-col-img.png"
-                          alt="nav item col image"
-                          class="w-100" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <ul class="dropdown-menu" aria-labelledby="nav-theme-mobile">
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item align-items-center active"
+                  data-bs-theme-value="light"
+                  aria-pressed="false">
+                  <span><i class="icon-base bx bx-sun icon-md me-3" data-icon="sun"></i>Light</span>
+                </button>
               </li>
-              <li class="nav-item">
-                <a class="nav-link fw-medium justify-between" href="../vertical-menu-template/index.html" target="_blank">Admin</a>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item align-items-center"
+                  data-bs-theme-value="dark"
+                  aria-pressed="true">
+                  <span><i class="icon-base bx bx-moon icon-md me-3" data-icon="moon"></i>Dark</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item align-items-center"
+                  data-bs-theme-value="system"
+                  aria-pressed="false">
+                  <span><i class="icon-base bx bx-desktop icon-md me-3" data-icon="desktop"></i>System</span>
+                </button>
               </li>
             </ul>
-          </div>
-          <div class="landing-menu-overlay d-lg-none"></div>
-          <!-- Menu wrapper: End -->
-          <!-- Toolbar: Start -->
-          <ul class="navbar-nav flex-row align-items-center ms-auto">
-            <!-- Style Switcher -->
-            <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-              <a
-                class="nav-link dropdown-toggle hide-arrow"
-                id="nav-theme"
-                href="javascript:void(0);"
-                data-bs-toggle="dropdown">
-                <i class="icon-base bx bx-sun icon-lg theme-icon-active"></i>
-                <span class="d-none ms-2" id="nav-theme-text">Toggle theme</span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-theme-text">
-                <li>
-                  <button
-                    type="button"
-                    class="dropdown-item align-items-center active"
-                    data-bs-theme-value="light"
-                    aria-pressed="false">
-                    <span><i class="icon-base bx bx-sun icon-md me-3" data-icon="sun"></i>Light</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    class="dropdown-item align-items-center"
-                    data-bs-theme-value="dark"
-                    aria-pressed="true">
-                    <span><i class="icon-base bx bx-moon icon-md me-3" data-icon="moon"></i>Dark</span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    class="dropdown-item align-items-center"
-                    data-bs-theme-value="system"
-                    aria-pressed="false">
-                    <span><i class="icon-base bx bx-desktop icon-md me-3" data-icon="desktop"></i>System</span>
-                  </button>
-                </li>
-              </ul>
-            </li>
-            <!-- / Style Switcher-->
-
-            <!-- navbar button: Start -->
-            <li>
-            <a href="login.php" class="btn btn-primary" target="_blank">
-    <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span>
-    <span class="d-none d-md-block">Login</span>
-</a>
-
-<a href="register.php" class="btn btn-success ms-2" target="_blank">
-    <span class="tf-icons icon-base bx bx-user-plus scaleX-n1-rtl me-md-1"></span>
-    <span class="d-none d-md-block">Register</span>
-</a>
-
-            </li>
-            <!-- navbar button: End -->
-          </ul>
-          <!-- Toolbar: End -->
-        </div>
+          </li>
+          
+          <li class="nav-item">
+            <a href="login.php" class="nav-link" target="_blank">
+              <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-2"></span>
+              <span>Login</span>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="register.php" class="nav-link" target="_blank">
+              <span class="tf-icons icon-base bx bx-user-plus scaleX-n1-rtl me-2"></span>
+              <span>Register</span>
+            </a>
+          </li>
+        </ul>
       </div>
-    </nav>
-    <!-- Navbar: End -->
+      <div class="landing-menu-overlay d-lg-none"></div>
+      <!-- Menu wrapper: End -->
+      
+      <!-- Toolbar: Start -->
+      <ul class="navbar-nav flex-row align-items-center ms-auto d-none d-lg-flex">
+        <!-- Style Switcher -->
+        <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
+          <a
+            class="nav-link dropdown-toggle hide-arrow"
+            id="nav-theme"
+            href="javascript:void(0);"
+            data-bs-toggle="dropdown">
+            <i class="icon-base bx bx-sun icon-lg theme-icon-active"></i>
+            <span class="d-none ms-2" id="nav-theme-text">Toggle theme</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-theme-text">
+            <li>
+              <button
+                type="button"
+                class="dropdown-item align-items-center active"
+                data-bs-theme-value="light"
+                aria-pressed="false">
+                <span><i class="icon-base bx bx-sun icon-md me-3" data-icon="sun"></i>Light</span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="dropdown-item align-items-center"
+                data-bs-theme-value="dark"
+                aria-pressed="true">
+                <span><i class="icon-base bx bx-moon icon-md me-3" data-icon="moon"></i>Dark</span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="dropdown-item align-items-center"
+                data-bs-theme-value="system"
+                aria-pressed="false">
+                <span><i class="icon-base bx bx-desktop icon-md me-3" data-icon="desktop"></i>System</span>
+              </button>
+            </li>
+          </ul>
+        </li>
+        <!-- / Style Switcher-->
+
+        <!-- navbar button: Start -->
+        <li class="d-flex">
+          <a href="login.php" class="btn btn-primary" target="_blank">
+            <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span>
+            <span class="d-none d-md-block">Login</span>
+          </a>
+
+          <a href="register.php" class="btn btn-success ms-2" target="_blank">
+            <span class="tf-icons icon-base bx bx-user-plus scaleX-n1-rtl me-md-1"></span>
+            <span class="d-none d-md-block">Register</span>
+          </a>
+        </li>
+        <!-- navbar button: End -->
+      </ul>
+      <!-- Toolbar: End -->
+    </div>
+  </div>
+</nav>
+<!-- Navbar: End -->
 
     <!-- Sections:Start -->
 
