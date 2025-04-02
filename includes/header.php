@@ -50,7 +50,7 @@ $unreadNotifications = 3; // You would query this from your database
             <div class="d-flex align-items-center">
                 <a href="index.php" class="logo d-flex align-items-center text-decoration-none">
                     <img src="assets/img/logo.png" alt="SmartVote Logo" class="d-md-none" width="40" height="40">
-                    <span class="d-none d-lg-block ps-2 fw-bold fs-4 text-secondary">SmartVote</span>
+                    <span class="d-none d-lg-block ps-2 fw-bold fs-4 text-secondary position-relative">SmartVote</span>
                 </a>
                 <button class="toggle-sidebar-btn btn btn-link text-dark ms-2 d-lg-none" id="sidebarToggle">
                     <i class="bi bi-list fs-4"></i>

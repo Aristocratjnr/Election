@@ -157,7 +157,7 @@ function sendEmailConfirmation($email, $name, $studentID, $department, $phone) {
         </div>
         
         <div class="footer">
-            <p>&copy; 2023 SmartVote EMS. All rights reserved.</p>
+            <p>&copy; 2025 SmartVote EMS. All rights reserved.</p>
             <p>This is an automated message, please do not reply.</p>
         </div>
     </div>

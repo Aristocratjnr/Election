@@ -8,7 +8,7 @@
       </div>
       <div class="footer-meta">
         <span class="copyright">© Copyright SmartVote <?php echo date('Y'); ?>. All Rights Reserved</span>
-        <span class="credits">Designed with <i class="bi bi-heart-fill"></i> by Election Team</span>
+        <span class="credits">Designed with by Aristocratjnr</span>
         <span class="version">v2.1.0 <?php echo date('H:i'); ?> UTC</span>
       </div>
     </div>
