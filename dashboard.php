@@ -5,9 +5,9 @@ ini_set('display_errors', 1);
 
 // Start session and check authentication
 session_start();
-if (!isset($_SESSION['login_id'])) {
-    header("Location: login.php");
-    exit;
+if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
+    header('Location: login.html'); // Redirect to login page if not logged in
+    exit();
 }
 
 // Database connection - ensure this file exists and has correct credentials

@@ -21,7 +21,8 @@ try {
         throw new Exception('Password is required');
     }
 
-    $stmt = $conn->prepare("SELECT studentID, name, password FROM students WHERE studentID = ?");
+    // Query to fetch user details including role
+    $stmt = $conn->prepare("SELECT studentID, name, password, role FROM students WHERE LOWER(studentID) = LOWER(?)");
     if (!$stmt) {
         throw new Exception('Database error');
     }
@@ -31,26 +32,46 @@ try {
     $result = $stmt->get_result();
 
     if ($result->num_rows === 0) {
+        error_log('No user found with studentID: ' . $studentID);  // Debugging
         throw new Exception('Invalid student ID or password');
     }
 
-    $student = $result->fetch_assoc();
+    $user = $result->fetch_assoc();
 
-    if (!password_verify($password, $student['password'])) {
+    // Debugging: Log user data fetched from DB
+    error_log('Fetched user: ' . print_r($user, true));
+
+    // Check if the password is correct
+    if (!password_verify($password, $user['password'])) {
+        error_log('Password doesn’t match for studentID: ' . $studentID);  // Debugging
         throw new Exception('Invalid student ID or password');
     }
 
     session_regenerate_id(true);
+    
+    // Store session variables
     $_SESSION = [
-        'login_id' => $student['studentID'],
-        'student_name' => $student['name'],
+        'login_id' => $user['studentID'],
+        'student_name' => $user['name'],
+        'role' => $user['role'],
         'last_activity' => time()
     ];
 
-    $response = [
-        'status' => 'success',
-        'redirect_url' => 'dashboard.php'
-    ];
+    // Debugging: Log session data
+    error_log('Session data: ' . print_r($_SESSION, true));
+
+    // Check the user role and redirect accordingly
+    if (strtolower(trim($user['role'])) === 'admin') {
+        $response = [
+            'status' => 'success',
+            'redirect_url' => 'dashboard.php'  // Admin dashboard URL
+        ];
+    } else {
+        $response = [
+            'status' => 'success',
+            'redirect_url' => 'student.php'  // Student dashboard URL
+        ];
+    }
 
 } catch (Exception $e) {
     $response['message'] = $e->getMessage();
@@ -61,3 +82,4 @@ $stmt->close();
 $conn->close();
 echo json_encode($response);
 exit;
+?>

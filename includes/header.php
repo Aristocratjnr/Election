@@ -162,7 +162,7 @@ $unreadNotifications = 3; // You would query this from your database
                             <li><hr class="dropdown-divider mx-3 my-2"></li>
                             
                             <li>
-                                <a class="dropdown-item d-flex align-items-center px-3 py-2" href="profile.php">
+                                <a class="dropdown-item d-flex align-items-center px-3 py-2" href="settings.php">
                                     <i class="bi bi-person me-3 fs-5"></i>
                                     <div>
                                         <span>My Profile</span>

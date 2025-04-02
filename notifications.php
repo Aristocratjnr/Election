@@ -1,15 +1,17 @@
 <?php
+session_start();
+
 include 'configs/dbconnection.php';
 include 'configs/session.php';
 
-// Check if student is logged in
+// Check if user is logged in
 if (!isset($_SESSION['login_id'])) {
     header('Location: login.php');
     exit();
 }
 
 $studentID = (int)$_SESSION['login_id'];
-$studentType = $_SESSION['user_type'] ?? 'student'; // Default to student if not set
+$studentType = $_SESSION['user_type'] ?? 'student'; 
 
 // Get unread notifications count
 $unreadCount = 0;
@@ -38,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 }
 
-// Get all notifications for the student
+// Get all notifications for the user with related election/candidate info
 $notifications = [];
 try {
     $query = "SELECT n.*, e.name AS election_name, e.status AS election_status,
@@ -131,7 +133,7 @@ try {
     </style>
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include 'includes/header.php'; ?><br>
     
     <main class="container my-4">
         <div class="row justify-content-center">
@@ -235,7 +237,7 @@ try {
             $btn.html('<span class="spinner-border spinner-border-sm" role="status"></span> Loading...');
             
             $.ajax({
-                url: 'actions/load_more_notifications.php',
+                url: '',
                 type: 'GET',
                 data: {
                     student_id: <?= $studentID ?>,
@@ -243,13 +245,30 @@ try {
                     offset: currentCount
                 },
                 success: function(response) {
-                    if (response.notifications && response.notifications.length > 0) {
-                        response.notifications.forEach(function(notification) {
-                            // Append new notifications to the list
-                            // You'll need to implement this based on your notification structure
+                    const data = JSON.parse(response);
+                    if (data.notifications && data.notifications.length > 0) {
+                        data.notifications.forEach(function(notification) {
+                            // Insert the new notification into the DOM here
+                            let notificationHtml = `
+                                <a href="${notification.action_url || '#'}" class="list-group-item list-group-item-action notification-item ${notification.is_read ? '' : 'unread'}">
+                                    <div class="d-flex align-items-start">
+                                        <div class="rounded-circle p-2 me-3 ${notification.bg_class}">
+                                            <i class="bi ${notification.icon}"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-1">${notification.title}</h6>
+                                                <small class="notification-time">${notification.created_at}</small>
+                                            </div>
+                                            <p class="mb-1">${notification.message}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            `;
+                            $('.list-group').append(notificationHtml);
                         });
                         
-                        if (!response.has_more) {
+                        if (!data.has_more) {
                             $btn.hide();
                         }
                     } else {
@@ -265,7 +284,7 @@ try {
         // Real-time notification check
         function checkNewNotifications() {
             $.ajax({
-                url: 'actions/check_new_notifications.php',
+                url: '',
                 type: 'GET',
                 data: {
                     student_id: <?= $studentID ?>,
@@ -273,9 +292,9 @@ try {
                     last_check: new Date().toISOString()
                 },
                 success: function(response) {
-                    if (response.count > 0) {
-                        // Update UI to show new notifications
-                        // Could show a toast or refresh the page
+                    const data = JSON.parse(response);
+                    if (data.count > 0) {
+                        alert('You have new notifications!');
                     }
                 }
             });
