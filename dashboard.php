@@ -42,29 +42,28 @@ try {
 
     // Modified query to work with students table
     $query = "
-      SELECT
-        (SELECT COUNT(*) FROM elections) AS total_elections,
-        IFNULL((SELECT COUNT(*) FROM categories c WHERE c.electionID = e.electionID AND e.status = 1), 0) AS total_active_categories,
-        (SELECT COUNT(*) FROM students WHERE type = 1) AS total_voters,
-        COUNT(DISTINCT v.student_id) AS total_voted,
-        e.title AS election_title,
-        e.electionID AS election_id
+    SELECT
+      (SELECT COUNT(*) FROM elections) AS total_elections,
+      IFNULL((SELECT COUNT(*) FROM categories c WHERE c.electionID = e.electionID AND e.status = 'Ongoing'), 0) AS total_active_categories,
+      (SELECT COUNT(*) FROM students WHERE status = 'Active') AS total_voters,
+      COUNT(DISTINCT v.studentID) AS total_voted,
+      e.name AS election_title,
+      e.electionID AS election_id
     FROM
         elections e
     LEFT JOIN
-        students s ON s.type = 1
+        students s ON s.status = 'Active'
     LEFT JOIN
-        votes v ON e.electionID = v.election_id
+        votes v ON e.electionID = v.electionID
     WHERE
-        e.status = 1
+        e.status = 'Ongoing'
     LIMIT 1";
 
-    $result = $conn->query($query);
+  $result = $conn->query($query);
     
     if (!$result) {
         throw new Exception("Query failed: " . $conn->error);
     }
-    
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         $dashboard_stats = [

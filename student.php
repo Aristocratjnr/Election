@@ -776,7 +776,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 </div>
             </div>
         </div>
-    </main>
+    </main><br><br><br>
+
 
     <?php include 'includes/footer.php'; ?>
 
