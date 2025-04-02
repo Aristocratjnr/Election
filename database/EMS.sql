@@ -76,6 +76,21 @@ CREATE TABLE Categories (
     FOREIGN KEY (updatedBy) REFERENCES Students(studentID) ON DELETE SET NULL
 );
 
+CREATE TABLE `notifications` (
+  `notification_id` INT PRIMARY KEY AUTO_INCREMENT,
+  `user_id` INT NOT NULL COMMENT 'Can be studentID or admin ID',
+  `user_type` ENUM('student','admin') NOT NULL DEFAULT 'student',
+  `title` VARCHAR(100) NOT NULL,
+  `message` TEXT NOT NULL,
+  `type` ENUM('election','vote','result','system','reminder','candidate') NOT NULL DEFAULT 'system',
+  `related_election` INT DEFAULT NULL,
+  `related_candidate` INT DEFAULT NULL,
+  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`related_election`) REFERENCES `Elections`(`electionID`) ON DELETE SET NULL,
+  FOREIGN KEY (`related_candidate`) REFERENCES `Candidates`(`candidateID`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 --- Students
 INSERT INTO `students` (`studentID`, `studentNumber`, `name`, `dateOfBirth`, `department`, `contactNumber`, `email`, `registrationDate`, `status`) VALUES ('10958252', '4593956', 'Aristocrat Junior', '2002-04-18', 'Computer Science', '0551784926', 'ayimobuobi@gmail.com', '2025-03-18', 'Active');
@@ -141,5 +156,17 @@ JOIN Students s ON c.studentID = s.studentID
 JOIN Elections e ON v.electionID = e.electionID
 GROUP BY e.name, c.position, s.name
 ORDER BY TotalVotes DESC;
+
+---Count notification for a specific user 
+SELECT n.*, 
+       e.name AS election_name,
+       c.position AS candidate_position,
+       CONCAT(s.name, ' for ', c.position) AS candidate_info
+FROM `notifications` n
+LEFT JOIN `Elections` e ON n.related_election = e.electionID
+LEFT JOIN `Candidates` c ON n.related_candidate = c.candidateID
+LEFT JOIN `Students` s ON c.studentID = s.studentID
+WHERE n.user_id = 10958252 AND n.user_type = 'student'
+ORDER BY n.is_read ASC, n.created_at DESC;
 
 
