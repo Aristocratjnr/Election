@@ -1,5 +1,4 @@
 <?php
-// Secure session start and authorization check
 include 'configs/dbconnection.php';
 include 'configs/session.php';
 
@@ -9,9 +8,9 @@ if (!isset($_SESSION['login_id'])) {
     exit();
 }
 
-$userId = (int)$_SESSION['login_id']; // Force integer type for security
+$userId = (int)$_SESSION['login_id']; 
 
-// Get unread notification count for the badge
+
 $unreadCount = 0;
 try {
     $stmt = $conn->prepare("SELECT COUNT(*) AS unread FROM notifications 
