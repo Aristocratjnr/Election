@@ -9,7 +9,6 @@
   </div>
 
   <?php
-  // Your existing PHP code remains exactly the same
   // Enhanced secure session initialization
   if (session_status() === PHP_SESSION_NONE) {
     session_start([
@@ -20,8 +19,8 @@
     ]);
   }
 
-  // Initialize user data with defaults
-  $userData = [
+  // Initialize student data with defaults
+  $studentData = [
     'name' => 'Guest',
     'profile_picture' => null,
     'role' => 'guest',
@@ -32,12 +31,12 @@
   // Current page detection
   $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
   
-  // User role detection
+  // Student role detection
   $is_admin = isset($_SESSION['login_type']) && $_SESSION['login_type'] == 0;
-  $user_role = $is_admin ? 'Administrator' : 'Voter';
+  $student_role = $is_admin ? 'Administrator' : 'Voter';
   
-  // User data
-  $user_name = isset($_SESSION['login_name']) ? $_SESSION['login_name'] : 'User';
+  // Student data
+  $student_name = isset($_SESSION['login_name']) ? $_SESSION['login_name'] : 'Student';
   $profile_pic = isset($_SESSION['profile_pic']) ? $_SESSION['profile_pic'] : null;
   $unread_notifications = isset($_SESSION['unread_notifications']) ? $_SESSION['unread_notifications'] : 0;
   
@@ -85,13 +84,13 @@
       'badge' => ['type' => 'success', 'text' => 'Live'],
       'tooltip' => 'Election Results'
     ],
-    'voters' => [
-      'title' => 'Voter Management',
+    'students' => [  // Changed from 'voters' to 'students'
+      'title' => 'Student Management',
       'icon' => 'bi-people',
-      'url' => 'index.php?page=voters',
+      'url' => 'index.php?page=students',
       'admin_only' => true,
-      'active' => $current_page == 'voters',
-      'tooltip' => 'Voter Management'
+      'active' => $current_page == 'students',
+      'tooltip' => 'Student Management'
     ],
     'reports' => [
       'title' => 'Analytics',
@@ -117,7 +116,6 @@
           'icon' => 'bi-shield-lock',
           'url' => 'index.php?page=security'
         ],
-        // Added more settings options
         'notifications' => [
           'title' => 'Notifications',
           'icon' => 'bi-bell',
@@ -133,23 +131,23 @@
   ];
   ?>
 
-  <!-- User Profile Card -->
+  <!-- Student Profile Card -->
   <div class="profile-card">
     <div class="profile-avatar">
       <?php if ($profile_pic): ?>
-        <img src="assets/img/profile/<?php echo htmlspecialchars($profile_pic); ?>" 
-             alt="<?php echo htmlspecialchars($user_name); ?>" 
+        <img src="assets/img/profile/students/<?php echo htmlspecialchars($profile_pic); ?>" 
+             alt="<?php echo htmlspecialchars($student_name); ?>" 
              onerror="this.src='assets/img/default-avatar.jpg'">
       <?php else: ?>
         <div class="avatar-fallback">
-          <?php echo strtoupper(substr($user_name, 0, 1)); ?>
+          <?php echo strtoupper(substr($student_name, 0, 1)); ?>
         </div>
       <?php endif; ?>
     </div>
     <div class="profile-info">
-      <h4 class="profile-name"><?php echo htmlspecialchars($user_name); ?></h4>
+      <h4 class="profile-name"><?php echo htmlspecialchars($student_name); ?></h4>
       <div class="profile-meta">
-        <span class="profile-role"><?php echo $user_role; ?></span>
+        <span class="profile-role"><?php echo $student_role; ?></span>
         <span class="profile-status <?php echo $is_admin ? 'admin' : 'voter'; ?>">
           <i class="bi bi-circle-fill"></i>
           <?php echo $is_admin ? 'Admin' : 'Active'; ?>
@@ -194,8 +192,6 @@
                     </a>
                   </li>
                 <?php endforeach; ?>
-                
-               
               </ul>
             </div>
           <?php else: ?>
@@ -223,8 +219,8 @@
       <div class="info-item">
         <i class="bi bi-clock-history"></i>
         <span>
-          Last login: <?php echo $userData['last_login'] 
-            ? date('M j, g:i A', strtotime($userData['last_login'])) 
+          Last login: <?php echo $studentData['last_login'] 
+            ? date('M j, g:i A', strtotime($studentData['last_login'])) 
             : 'First login'; ?>
         </span>
       </div>

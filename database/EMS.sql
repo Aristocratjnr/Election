@@ -141,3 +141,5 @@ JOIN Students s ON c.studentID = s.studentID
 JOIN Elections e ON v.electionID = e.electionID
 GROUP BY e.name, c.position, s.name
 ORDER BY TotalVotes DESC;
+
+
