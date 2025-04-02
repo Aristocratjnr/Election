@@ -48,175 +48,92 @@
   </head>
 
   <body>
+  <style>
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    padding: 1rem;
+    background-color: var(--bs-body-bg);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin-top: 0.5rem;
+  }
+  
+  .dropdown-menu {
+    border: none;
+    box-shadow: none;
+    padding-left: 1rem;
+  }
+  
+  .theme-icon {
+    margin-right: 0.5rem;
+  }
+}
+</style>
     <script src="assets/vendor/js/dropdown-hover.js"></script>
     <script src="assets/vendor/js/mega-dropdown.js"></script>
-  <!-- Navbar: Start -->
-<nav class="layout-navbar shadow-none py-0">
+<!-- Navbar: Start -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary py-0">
   <div class="container">
-    <div class="navbar navbar-expand-lg landing-navbar px-3 px-md-8">
-      <!-- Menu logo wrapper: Start -->
-      <div class="navbar-brand app-brand demo d-flex py-0 me-4 me-xl-8">
-        <!-- Mobile menu toggle: Start-->
-        <button
-          class="navbar-toggler border-0 px-0 me-2"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation">
-          <i class="icon-base bx bx-menu icon-lg align-middle text-heading fw-medium"></i>
-        </button>
-        <!-- Mobile menu toggle: End-->
-        <a href="landing-page.html" class="app-brand-link d-flex align-items-center">
-          <span class="app-brand-logo demo">
-            <span class="text-primary">
-              <img src="assets/img/favicon/favicon.ico" alt="logo" width="30" height="30" class="logo-img" />
-            </span>
-          </span>
-          <span class="app-brand-text demo menu-text fw-bold ms-2 ps-1 d-none d-sm-inline">SmartVote</span>
-        </a>
-      </div>
-      <!-- Menu logo wrapper: End -->
-      
-      <!-- Menu wrapper: Start -->
-      <div class="collapse navbar-collapse landing-nav-menu" id="navbarSupportedContent">
-        <button
-          class="navbar-toggler border-0 text-heading position-absolute end-0 top-0 scaleX-n1-rtl p-2"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation">
-          <i class="icon-base bx bx-x icon-lg"></i>
-        </button>
-        <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <a class="nav-link fw-medium justify-between" href="../vertical-menu-template/index.html" target="_blank">Admin</a>
-          </li>
-        </ul>
-        
-        <!-- Mobile menu items -->
-        <ul class="navbar-nav d-lg-none">
-          <!-- Style Switcher for mobile -->
-          <li class="nav-item dropdown-style-switcher dropdown">
-            <a
-              class="nav-link dropdown-toggle"
-              id="nav-theme-mobile"
-              href="javascript:void(0);"
-              data-bs-toggle="dropdown">
-              <i class="icon-base bx bx-sun icon-lg theme-icon-active me-2"></i>
-              <span>Theme</span>
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="nav-theme-mobile">
-              <li>
-                <button
-                  type="button"
-                  class="dropdown-item align-items-center active"
-                  data-bs-theme-value="light"
-                  aria-pressed="false">
-                  <span><i class="icon-base bx bx-sun icon-md me-3" data-icon="sun"></i>Light</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  class="dropdown-item align-items-center"
-                  data-bs-theme-value="dark"
-                  aria-pressed="true">
-                  <span><i class="icon-base bx bx-moon icon-md me-3" data-icon="moon"></i>Dark</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  class="dropdown-item align-items-center"
-                  data-bs-theme-value="system"
-                  aria-pressed="false">
-                  <span><i class="icon-base bx bx-desktop icon-md me-3" data-icon="desktop"></i>System</span>
-                </button>
-              </li>
-            </ul>
-          </li>
-          
-          <li class="nav-item">
-            <a href="login.php" class="nav-link" target="_blank">
-              <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-2"></span>
-              <span>Login</span>
-            </a>
-          </li>
-          
-          <li class="nav-item">
-            <a href="register.php" class="nav-link" target="_blank">
-              <span class="tf-icons icon-base bx bx-user-plus scaleX-n1-rtl me-2"></span>
-              <span>Register</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      <div class="landing-menu-overlay d-lg-none"></div>
-      <!-- Menu wrapper: End -->
-      
-      <!-- Toolbar: Start -->
-      <ul class="navbar-nav flex-row align-items-center ms-auto d-none d-lg-flex">
-        <!-- Style Switcher -->
-        <li class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-          <a
-            class="nav-link dropdown-toggle hide-arrow"
-            id="nav-theme"
-            href="javascript:void(0);"
-            data-bs-toggle="dropdown">
-            <i class="icon-base bx bx-sun icon-lg theme-icon-active"></i>
-            <span class="d-none ms-2" id="nav-theme-text">Toggle theme</span>
+    <!-- Brand & Mobile Toggle -->
+    <a class="navbar-brand d-flex align-items-center" href="landing-page.html">
+      <img src="assets/img/favicon/favicon.ico" alt="logo" width="30" height="30" class="me-2">
+      <span class="d-none d-sm-inline fw-bold">SmartVote</span>
+    </a>
+    
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <i class="bx bx-menu fs-3"></i>
+    </button>
+
+    <!-- Collapsible Content -->
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="../vertical-menu-template/index.html" target="_blank">Admin</a>
+        </li>
+      </ul>
+
+      <!-- Right Side Items -->
+      <ul class="navbar-nav ms-auto align-items-center">
+        <!-- Theme Switcher -->
+        <li class="nav-item dropdown me-3">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bx fs-5 me-2 theme-icon"></i>
+            <span class="d-none d-lg-inline">Theme</span>
           </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-theme-text">
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
             <li>
-              <button
-                type="button"
-                class="dropdown-item align-items-center active"
-                data-bs-theme-value="light"
-                aria-pressed="false">
-                <span><i class="icon-base bx bx-sun icon-md me-3" data-icon="sun"></i>Light</span>
+              <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="light">
+                <i class="bx bx-sun me-2"></i>
+                <span>Light</span>
               </button>
             </li>
             <li>
-              <button
-                type="button"
-                class="dropdown-item align-items-center"
-                data-bs-theme-value="dark"
-                aria-pressed="true">
-                <span><i class="icon-base bx bx-moon icon-md me-3" data-icon="moon"></i>Dark</span>
+              <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="dark">
+                <i class="bx bx-moon me-2"></i>
+                <span>Dark</span>
               </button>
             </li>
             <li>
-              <button
-                type="button"
-                class="dropdown-item align-items-center"
-                data-bs-theme-value="system"
-                aria-pressed="false">
-                <span><i class="icon-base bx bx-desktop icon-md me-3" data-icon="desktop"></i>System</span>
+              <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="auto">
+                <i class="bx bx-desktop me-2"></i>
+                <span>System</span>
               </button>
             </li>
           </ul>
         </li>
-        <!-- / Style Switcher-->
 
-        <!-- navbar button: Start -->
-        <li class="d-flex">
+        <!-- Auth Buttons -->
+        <li class="nav-item d-flex flex-wrap gap-2">
           <a href="login.php" class="btn btn-primary" target="_blank">
-            <span class="tf-icons icon-base bx bx-log-in-circle scaleX-n1-rtl me-md-1"></span>
-            <span class="d-none d-md-block">Login</span>
+            <i class="bx bx-log-in-circle d-none d-lg-inline me-1"></i>
+            <span>Login</span>
           </a>
-
-          <a href="register.php" class="btn btn-success ms-2" target="_blank">
-            <span class="tf-icons icon-base bx bx-user-plus scaleX-n1-rtl me-md-1"></span>
-            <span class="d-none d-md-block">Register</span>
+          <a href="register.php" class="btn btn-success" target="_blank">
+            <i class="bx bx-user-plus d-none d-lg-inline me-1"></i>
+            <span>Register</span>
           </a>
         </li>
-        <!-- navbar button: End -->
       </ul>
-      <!-- Toolbar: End -->
     </div>
   </div>
 </nav>
@@ -1403,5 +1320,60 @@ SmartVote is a secure, developer-friendly, and highly customizable educational v
 
     <!-- Page JS -->
     <script src="assets/js/front-page-landing.js"></script>
+    
+<!-- Theme Switcher JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get current theme from localStorage or detect system preference
+  const getPreferredTheme = () => {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme) {
+      return storedTheme;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+
+  // Set the theme
+  const setTheme = (theme) => {
+    if (theme === 'auto') {
+      document.documentElement.setAttribute('data-bs-theme', 
+        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      );
+    } else {
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    }
+    
+    // Update icon
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+      themeIcon.className = theme === 'dark' ? 'bx bx-moon fs-5 me-2 theme-icon' : 'bx bx-sun fs-5 me-2 theme-icon';
+    }
+    
+    // Update active state in dropdown
+    document.querySelectorAll('.theme-item').forEach(item => {
+      item.classList.toggle('active', item.getAttribute('data-bs-theme-value') === theme);
+    });
+  };
+
+  // Initialize theme
+  setTheme(getPreferredTheme());
+
+  // Watch for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (localStorage.getItem('theme') === 'auto') {
+      setTheme('auto');
+    }
+  });
+
+  // Handle theme selection
+  document.querySelectorAll('[data-bs-theme-value]').forEach(item => {
+    item.addEventListener('click', () => {
+      const theme = item.getAttribute('data-bs-theme-value');
+      localStorage.setItem('theme', theme);
+      setTheme(theme);
+    });
+  });
+});
+</script>
   </body>
 </html>
