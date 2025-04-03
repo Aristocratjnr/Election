@@ -239,14 +239,14 @@ try {
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title text-muted">Categories</h5>
+                                    <h5 class="card-title text-muted">  <i class="bi bi-list-task action-icon icon"></i>&nbsp;Categories</h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon bg-success-light me-3">
                                             <i class="bi bi-bookmark-fill fs-4"></i>
                                         </div>
                                         <div>
                                             <h2 class="mb-0"><?php echo $dashboard_stats['total_active_categories']; ?></h2>
-                                            <p class="text-muted mb-0">Active Categories</p>
+                                            <p class="text-muted mb-0"> <i class="bi bi-grid-3x3-gap action-icon icon"></i>&nbsp;Active Categories</p>
                                         </div>
                                     </div>
                                 </div>
