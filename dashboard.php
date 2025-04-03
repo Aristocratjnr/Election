@@ -275,7 +275,7 @@ try {
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title text-muted">Participation</h5>
+                                    <h5 class="card-title text-muted"><i class="bi bi-hand-thumbs-up role-icon icon"></i>&nbsp;Participation</h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon bg-warning-light me-3">
                                             <i class="bi bi-check2-circle fs-4"></i>
@@ -287,7 +287,7 @@ try {
                                                     (<?php echo $dashboard_stats['participation_percentage']; ?>%)
                                                 </small>
                                             </h2>
-                                            <p class="text-muted mb-1">Votes Cast</p>
+                                            <p class="text-muted mb-1"> <i class="bi bi-person-plus role-icon icon"></i>&nbsp;Votes Cast</p>
                                             <div class="progress progress-thin">
                                                 <div class="progress-bar bg-<?php echo ($dashboard_stats['participation_percentage'] > 50) ? 'success' : 'warning'; ?>" 
                                                      role="progressbar" 
