@@ -48,7 +48,7 @@ try {
     error_log("Student fetch error: " . $e->getMessage());
 }
 
-// Get categories and candidates if election is active and student hasn't voted
+
 $categories = [];
 if ($currentElection && !$hasVoted) {
     try {
@@ -578,7 +578,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     
     <main class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-lg-7 col-md-10 col-sm-12">
                 <div class="voting-card mb-4">
                     <div class="card-header bg-white py-4 px-4 border-0">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
