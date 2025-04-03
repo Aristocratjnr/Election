@@ -131,6 +131,7 @@ try {
             color: #6c757d;
         }
     </style>
+     <meta http-equiv="Content-Language" content="en">
 </head>
 <body>
     <?php include 'includes/header.php'; ?><br>

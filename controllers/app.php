@@ -1,11 +1,6 @@
 <?php
 ob_start();
-session_start(); // Ensure session is started when needed
-
-header('Content-Type: application/json'); // Ensure JSON response
-header('Access-Control-Allow-Origin: *'); // Allow cross-origin requests if needed
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS'); // Define allowed request types
-header('Access-Control-Allow-Headers: Content-Type'); // Specify allowed headers
+session_start();
 
 require_once '../controllers/classes.php';
 require_once '../configs/dbconnection.php';
@@ -28,8 +23,8 @@ if (!empty($action)) {
             break;
         case 'logout':
             session_destroy();
-            $response = ["status" => "success", "message" => "Logged out successfully."];
-            break;
+            header("Location: ../login.php"); // Redirect to login page
+            exit(); // Ensure no further code is executed
         case 'change_password':
             $response = $auth->change_password();
             break;
@@ -93,6 +88,11 @@ if (!empty($action)) {
     }
 }
 
-// Return JSON response
-echo json_encode($response);
+// Return JSON response for all actions except logout
+if ($action !== 'logout') {
+    header('Content-Type: application/json');
+    echo json_encode($response);
+}
+
 ob_end_flush();
+?>
