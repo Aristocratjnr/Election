@@ -356,7 +356,7 @@ try {
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3 d-flex flex-column flex-md-row align-items-center justify-content-between">
-                <h5 class="card-title mb-3 mb-md-0">Students</h5>
+                <h5 class="card-title mb-3 mb-md-0"><i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;Students</h5>
                 <div class="d-flex flex-column flex-md-row gap-2">
                     <div class="search-box">
                         <input type="text" id="searchStudents" class="form-control form-control-sm" placeholder="Search students...">
