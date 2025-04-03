@@ -257,14 +257,14 @@ try {
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title text-muted">Voters</h5>
+                                    <h5 class="card-title text-muted"> <i class="bi bi-people department-icon icon"></i>&nbsp;Voters</h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon bg-info-light me-3">
                                             <i class="bi bi-people-fill fs-4"></i>
                                         </div>
                                         <div>
                                             <h2 class="mb-0"><?php echo $dashboard_stats['total_voters']; ?></h2>
-                                            <p class="text-muted mb-0">Registered Voters</p>
+                                            <p class="text-muted mb-0"> <i class="bi bi-person-check department-icon icon"></i>&nbsp;Registered Voters</p>
                                         </div>
                                     </div>
                                 </div>
