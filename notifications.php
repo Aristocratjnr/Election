@@ -134,7 +134,7 @@ try {
      <meta http-equiv="Content-Language" content="en">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?><br>
+    <?php include 'includes/header.php'; ?><br><br><br>
     
     <main class="container my-4">
         <div class="row justify-content-center">
@@ -216,7 +216,7 @@ try {
                 </div>
             </div>
         </div>
-    </main>
+    </main><br><br><br<br><br><br><br><br><br><br>
 
     <?php include 'includes/footer.php'; ?>
 
