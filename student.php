@@ -620,8 +620,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         ID: <?= $studentID ?>
                                     </span>
                                     <span class="text-muted small">
-                                    <i class="bi bi-building-check icon"></i>Deparment:
-                                        <?= htmlspecialchars($student['department'] ?? 'Department') ?>
+                                    <i class="bi bi-building-check icon"></i>
+                                    Deparment: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                     </span>
                                 </div>
                             </div>
