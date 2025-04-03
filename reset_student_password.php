@@ -1,56 +1,69 @@
 <?php
-// Enable error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Start session and check authentication
 session_start();
-if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
-    header('HTTP/1.1 403 Forbidden');
-    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
-    exit();
-}
-
-// Database connection
 require 'configs/dbconnection.php';
 
-// Get the input data
-$data = json_decode(file_get_contents('php://input'), true);
-$studentID = isset($data['student_id']) ? intval($data['student_id']) : 0;
+// Check admin authentication
+if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
+    header('HTTP/1.1 403 Forbidden');
+    exit(json_encode(['success' => false, 'message' => 'Unauthorized access']));
+}
 
-// Validate input
-if ($studentID <= 0) {
-    header('HTTP/1.1 400 Bad Request');
-    echo json_encode(['success' => false, 'message' => 'Invalid student ID']);
-    exit();
+// Get and validate input data
+$input = json_decode(file_get_contents('php://input'), true);
+if (json_last_error() !== JSON_ERROR_NONE) {
+    exit(json_encode(['success' => false, 'message' => 'Invalid JSON data']));
+}
+
+$student_id = $input['student_id'] ?? null;
+
+// Additional validation
+if (!$student_id || !is_numeric($student_id)) {
+    exit(json_encode(['success' => false, 'message' => 'Invalid student ID']));
 }
 
 try {
-    // Generate a random temporary password
-    $tempPassword = bin2hex(random_bytes(4)); // 8-character temporary password
-    $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
-
-    // Update the student's password in the database
-    $stmt = $conn->prepare("UPDATE students SET password = ? WHERE studentID = ?");
-    $stmt->bind_param("si", $hashedPassword, $studentID);
+    // First verify the student exists and get their email
+    $check_stmt = $conn->prepare("SELECT studentID, email FROM students WHERE studentID = ?");
+    $check_stmt->bind_param('i', $student_id);
+    $check_stmt->execute();
+    $check_result = $check_stmt->get_result();
     
-    if (!$stmt->execute()) {
-        throw new Exception("Failed to update password: " . $stmt->error);
+    if ($check_result->num_rows === 0) {
+        exit(json_encode(['success' => false, 'message' => 'Student not found']));
     }
+    
+    $student = $check_result->fetch_assoc();
 
-    // Return success with the temporary password (in a real app, you might email this instead)
-    echo json_encode([
-        'success' => true,
-        'message' => 'Password reset successfully',
-        'temp_password' => $tempPassword // Only for demo purposes - remove in production
-    ]);
-
+    // Generate a temporary password
+    $temp_password = bin2hex(random_bytes(4)); // 8-character temporary password
+    $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
+    
+    // Update the student's password
+    $stmt = $conn->prepare("UPDATE students SET password = ? WHERE studentID = ?");
+    $stmt->bind_param('si', $hashed_password, $student_id);
+    
+    if ($stmt->execute()) {
+        // For development only - show the temp password
+        // In production, you would email this to the student
+        echo json_encode([
+            'success' => true,
+            'message' => 'Password reset successful',
+            'temp_password' => $temp_password,
+            'student_id' => $student_id // Echo back for debugging
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Database update failed',
+            'error' => $conn->error
+        ]);
+    }
 } catch (Exception $e) {
     error_log("Password reset error: " . $e->getMessage());
-    header('HTTP/1.1 500 Internal Server Error');
     echo json_encode([
-        'success' => false,
-        'message' => 'Error resetting password: ' . $e->getMessage()
+        'success' => false, 
+        'message' => 'Server error',
+        'error' => $e->getMessage()
     ]);
 }
 ?>

@@ -88,7 +88,7 @@ try {
         throw new Exception("No database connection");
     }
     
-    $students_query = $conn->prepare("SELECT * FROM students"); // Changed from users to students
+    $students_query = $conn->prepare("SELECT studentID, name, email, password, dateOfBirth, department, contactNumber, registrationDate, status, created_at, role as type, profilePicture FROM students");
     if (!$students_query) {
         throw new Exception("Prepare failed: " . $conn->error);
     }
@@ -380,56 +380,59 @@ try {
                             <tr>
                                 <th width="80">Profile</th>
                                 <th>Name</th>
-                                <th>Email</th>
+                                <th>Department</th>
                                 <th>Role</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($students as $student): ?>
-                            <tr class="student-row" data-student-type="<?php echo isset($student['type']) ? ($student['type'] == 0 ? 'admin' : 'student') : 'student'; ?>">
-                                <td>
-                                    <?php if (!empty($student['profile_picture'])): ?>
-                                        <img src="assets/img/profile/students/<?php echo htmlspecialchars($student['profile_picture']); ?>" class="user-avatar" alt="Profile">
-                                    <?php else: ?>
-                                        <div class="initials-avatar">
-                                            <?php echo isset($student['name']) ? strtoupper(substr($student['name'], 0, 1)) : ''; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <span class="fw-semibold"><?php echo isset($student['name']) ? htmlspecialchars($student['name']) : ''; ?></span>
-                                        <small class="text-muted">@<?php echo isset($student['username']) ? htmlspecialchars($student['username']) : ''; ?></small>
-                                    </div>
-                                </td>
-                                <td><?php echo isset($student['email']) ? htmlspecialchars($student['email']) : ''; ?></td>
-                                <td>
-                                    <?php if (isset($student['type']) && $student['type'] == 0): ?>
-                                        <span class="badge bg-primary">Admin</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary">Student</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <?php if (isset($student['type']) && $student['type'] == 0): ?>
-                                            <button class="btn btn-outline-primary student-action" data-action="demote" data-id="<?php echo isset($student['id']) ? $student['id'] : ''; ?>">
-                                                <i class="bi bi-arrow-down-circle"></i> Demote
-                                            </button>
-                                        <?php else: ?>
-                                            <button class="btn btn-outline-primary student-action" data-action="promote" data-id="<?php echo isset($student['id']) ? $student['id'] : ''; ?>">
-                                                <i class="bi bi-arrow-up-circle"></i> Promote
-                                            </button>
-                                        <?php endif; ?>
-                                        <button class="btn btn-outline-secondary student-action" data-action="reset" data-id="<?php echo isset($student['id']) ? $student['id'] : ''; ?>">
-                                            <i class="bi bi-key"></i> Reset
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
+    <?php foreach ($students as $student): ?>
+    <tr class="student-row" data-student-type="<?php echo isset($student['type']) ? $student['type'] : 'student'; ?>">
+        <td>
+            <?php if (!empty($student['profilePicture'])): ?>
+                <img src="assets/img/profile/students/<?php echo htmlspecialchars($student['profilePicture']); ?>" 
+                     class="user-avatar" 
+                     alt="Profile"
+                     onerror="this.onerror=null;this.parentNode.innerHTML='<div class=\'initials-avatar\'><?php echo isset($student['name']) ? strtoupper(substr($student['name'], 0, 1)) : ""; ?></div>'">
+            <?php else: ?>
+                <div class="initials-avatar">
+                    <?php echo isset($student['name']) ? strtoupper(substr($student['name'], 0, 1)) : ''; ?>
+                </div>
+            <?php endif; ?>
+        </td>
+        <td>
+            <div class="d-flex flex-column">
+                <span class="fw-semibold"><?php echo isset($student['name']) ? htmlspecialchars($student['name']) : ''; ?></span>
+                <small class="text-muted"> <i class="bi bi-envelope-check mail-icon"></i>&nbsp;<?php echo isset($student['email']) ? htmlspecialchars($student['email']) : ''; ?></small>
+            </div>
+        </td>
+        <td><?php echo isset($student['department']) ? htmlspecialchars($student['department']) : ''; ?></td>
+        <td>
+            <?php if (isset($student['type']) && $student['type'] == 'admin'): ?>
+                <span class="badge bg-primary">Admin</span>
+            <?php else: ?>
+                <span class="badge bg-secondary">Student</span>
+            <?php endif; ?>
+        </td>
+        <td>
+            <div class="btn-group btn-group-sm">
+                <?php if (isset($student['type']) && $student['type'] == 'admin'): ?>
+                    <button class="btn btn-outline-primary student-action" data-action="demote" data-id="<?php echo isset($student['studentID']) ? $student['studentID'] : ''; ?>">
+                        <i class="bi bi-arrow-down-circle"></i> Demote
+                    </button>
+                <?php else: ?>
+                    <button class="btn btn-outline-primary student-action" data-action="promote" data-id="<?php echo isset($student['studentID']) ? $student['studentID'] : ''; ?>">
+                        <i class="bi bi-arrow-up-circle"></i> Promote
+                    </button>
+                <?php endif; ?>
+                <button class="btn btn-outline-secondary student-action" data-action="reset" data-id="<?php echo isset($student['studentID']) ? $student['studentID'] : ''; ?>">
+                    <i class="bi bi-key"></i> Reset
+                </button>
+            </div>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</tbody>
                     </table>
                 </div>
             </div>
@@ -482,66 +485,95 @@ try {
             });
         });
         
-        // User actions - updated class name
-        document.querySelectorAll('.student-action').forEach(button => {  // Updated class name
-            button.addEventListener('click', function() {
-                const action = this.getAttribute('data-action');
-                const studentId = this.getAttribute('data-id');  // Updated variable name
+        document.querySelectorAll('.student-action').forEach(button => {
+    button.addEventListener('click', function() {
+        const action = this.getAttribute('data-action');
+        const studentId = this.getAttribute('data-id');
+        
+        if (action === 'promote' || action === 'demote') {
+            if (confirm(`Are you sure you want to ${action} this student?`)) {
+                // Show loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                this.disabled = true;
                 
-                if (action === 'promote' || action === 'demote') {
-                    if (confirm(`Are you sure you want to ${action} this student?`)) {  // Updated message
-                        // AJAX call to update student role
-                        fetch('update_student_role.php', {  // Updated endpoint
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                student_id: studentId,  // Updated parameter name
-                                action: action
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            } else {
-                                alert('Error: ' + (data.message || 'Operation failed'));
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred');
-                        });
+                fetch('update_student_role.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        action: action
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
-                } else if (action === 'reset') {
-                    if (confirm('Reset password for this student?')) {  // Updated message
-                        // AJAX call to reset password
-                        fetch('reset_student_password.php', {  // Updated endpoint
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                student_id: studentId  // Updated parameter name
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert('Password reset successful');
-                            } else {
-                                alert('Error: ' + (data.message || 'Operation failed'));
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred');
-                        });
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Refresh the page to show changes
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'Operation failed'));
                     }
-                }
-            });
-        });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request');
+                })
+                .finally(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                });
+            }
+        } else if (action === 'reset') {
+            if (confirm('Reset password for this student? A temporary password will be generated.')) {
+                // Show loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                this.disabled = true;
+                
+                fetch('reset_student_password.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // In development, show the temp password (remove in production)
+                        alert(`Password reset successful. Temporary password: ${data.temp_password}`);
+                    } else {
+                        alert('Error: ' + (data.message || 'Operation failed'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request');
+                })
+                .finally(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                });
+            }
+        }
+    });
+});
     });
     </script>
      <?php include 'includes/footer.php'; ?>
