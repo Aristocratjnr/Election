@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         .settings-container {
-            max-width: 800px;
+            max-width: 552px;
             margin: 0 auto;
         }
         .settings-card {
@@ -280,8 +280,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
             <!-- Profile Information Card -->
-            <div class="settings-card card mb-4">
-                <div class="settings-card-header card-header d-flex justify-content-between align-items-center">
+            <div class="settings-card card mb-2">
+                <div class="settings-card-header card-header d-flex justify-content-between align-items-center ">
                     <span><i class="bi bi-person me-2"></i> Profile Information</span>
                 </div>
                 <div class="card-body">
