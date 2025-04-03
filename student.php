@@ -596,17 +596,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     <div class="card-body p-4">
                         <!-- Student Info -->
                         <div class="student-info d-flex align-items-center mb-4">
-                            <div class="me-3">
-                                <?php if (!empty($student['profile_Picture'])): ?>
-                                    <img src="assets/img/profile/students/<?= htmlspecialchars($student['profile_Picture']) ?>" 
-                                         class="student-avatar" 
-                                         alt="Profile">
-                                <?php else: ?>
-                                    <div class="student-avatar d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary">
-                                        <i class="bi bi-person-fill fs-3"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                        <div class="me-3">
+                            <?php 
+                            $profilePicPath = 'assets/img/profile/students/' . htmlspecialchars($student['profile_Picture'] ?? '');
+                            $defaultAvatarClass = 'student-avatar d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary';
+                            
+                            if (!empty($student['profile_Picture']) && file_exists($profilePicPath)): ?>
+                                <img src="<?= $profilePicPath ?>" 
+                                    class="student-avatar" 
+                                    alt="Student Profile"
+                                    onerror="this.onerror=null;this.className='<?= $defaultAvatarClass ?>';this.innerHTML='<i class=\'bi bi-person-fill fs-3\'></i>';">
+                            <?php else: ?>
+                                <div class="<?= $defaultAvatarClass ?>">
+                                    <i class="bi bi-person-fill fs-3"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                             <div class="student-details">
                                 <h5><?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
                                 <div class="d-flex flex-wrap">
