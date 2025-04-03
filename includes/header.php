@@ -8,40 +8,59 @@ if (session_status() === PHP_SESSION_NONE) {
     ]);
 }
 
-// Database connection and user data fetch
+// Database connection
 require 'configs/dbconnection.php';
 
 $userData = [];
 $defaultProfilePicture = 'assets/img/aristo.png';
+$profilePicturePath = $defaultProfilePicture;
 
 if (isset($_SESSION['login_id'])) {
     try {
-        // Get more complete user data
-        $stmt = $conn->prepare("SELECT name, department, email, contactNumber FROM Students WHERE studentID = ?");
+        // Get fresh data including profile picture
+        $stmt = $conn->prepare("SELECT name, department, email, contactNumber, profilePicture FROM students WHERE studentID = ?");
         $stmt->bind_param('i', $_SESSION['login_id']);
         $stmt->execute();
         $result = $stmt->get_result();
         
         if ($result->num_rows > 0) {
             $userData = $result->fetch_assoc();
+            
+            // Check if profile picture exists
+            if (!empty($userData['profilePicture'])) {
+                $userImagePath = 'assets/img/profile/students/' . $userData['profilePicture'];
+                if (file_exists($userImagePath)) {
+                    // Add cache buster to force refresh when updated
+                    $profilePicturePath = $userImagePath . '?t=' . (isset($_GET['cache']) ? $_GET['cache'] : time());
+                }
+            }
+            
+            // Store in session for quick access
+            $_SESSION['user_data'] = $userData;
         }
     } catch (Exception $e) {
         error_log("Header error: " . $e->getMessage());
     }
 }
 
-// Determine profile picture path
-$profilePicturePath = $defaultProfilePicture;
-if (!empty($userData['profile_picture'])) {
-    $userImagePath = 'assets/img/profile/users/' . basename($userData['profile_picture']);
-    if (file_exists($userImagePath) && is_file($userImagePath)) {
-        $profilePicturePath = $userImagePath;
-    }
+// Fallback to session data if available
+if (empty($userData)){
+    $userData = $_SESSION['user_data'] ?? [];
 }
 
-// Get unread notifications count (example)
-$unreadNotifications = 3; // You would query this from your database
+// Get unread notifications count
+$unreadNotifications = 0;
+try {
+    $stmt = $conn->prepare("SELECT COUNT(*) AS unread FROM notifications WHERE studentID = ? AND isRead = 0");
+    $stmt->bind_param('i', $_SESSION['login_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $unreadNotifications = $result->fetch_assoc()['unread'] ?? 0;
+} catch (Exception $e) {
+    error_log("Notification count error: " . $e->getMessage());
+}
 ?>
+
 <!-- ======= Enhanced Header ======= -->
 <header id="header" class="header fixed-top d-flex align-items-center shadow-sm bg-white">
     <div class="container-fluid">
@@ -57,8 +76,6 @@ $unreadNotifications = 3; // You would query this from your database
                 </button>
             </div>
 
-           
-
             <!-- Navigation Icons -->
             <nav class="header-nav ms-auto">
                 <ul class="d-flex align-items-center list-unstyled mb-0">
@@ -69,7 +86,7 @@ $unreadNotifications = 3; // You would query this from your database
                         </button>
                     </li>
                     
-                    <!-- Notification Bell with Real Count -->
+                    <!-- Notification Bell -->
                     <li class="nav-item dropdown mx-2">
                         <a class="nav-link notification-bell position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell fs-5"></i>
@@ -80,54 +97,10 @@ $unreadNotifications = 3; // You would query this from your database
                             </span>
                             <?php endif; ?>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg p-0 border-0 shadow-sm" style="width: 360px;">
-                            <li class="dropdown-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">Notifications</h6>
-                                <a href="#" class="small">Mark all as read</a>
-                            </li>
-                            <li><hr class="dropdown-divider my-0"></li>
-                            <!-- Sample Notification Items -->
-                            <li>
-                                <a href="#" class="dropdown-item py-3 px-3 d-flex">
-                                    <div class="flex-shrink-0 me-3">
-                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 text-primary">
-                                            <i class="bi bi-calendar-check fs-5"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="fw-semibold">New Election</span>
-                                            <small class="text-muted">10 mins ago</small>
-                                        </div>
-                                        <p class="mb-0 small text-muted">SRC elections have been scheduled for March 25th</p>
-                                    </div>
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-0"></li>
-                            <li>
-                                <a href="#" class="dropdown-item py-3 px-3 d-flex">
-                                    <div class="flex-shrink-0 me-3">
-                                        <div class="bg-success bg-opacity-10 rounded-circle p-2 text-success">
-                                            <i class="bi bi-check-circle fs-5"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="fw-semibold">Vote Submitted</span>
-                                            <small class="text-muted">1 hour ago</small>
-                                        </div>
-                                        <p class="mb-0 small text-muted">Your vote for SRC President has been recorded</p>
-                                    </div>
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-0"></li>
-                            <li class="text-center py-2">
-                                <a href="notifications.php" class="small">View all notifications</a>
-                            </li>
-                        </ul>
+                        <!-- Notification dropdown menu... -->
                     </li>
 
-                    <!-- User Profile Dropdown with Enhanced Details -->
+                    <!-- User Profile Dropdown -->
                     <li class="nav-item dropdown ms-2">
                         <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="position-relative">
@@ -137,10 +110,10 @@ $unreadNotifications = 3; // You would query this from your database
                                      width="40" 
                                      height="40"
                                      onerror="this.src='<?php echo $defaultProfilePicture; ?>'">
-                                <span class="position-absolute bottom-0 end-0 bg-success rounded-circle  border-2 border-white" style="width: 10px; height: 10px;"></span>
+                                <span class="position-absolute bottom-0 end-0 bg-success rounded-circle border-2 border-white" style="width: 10px; height: 10px;"></span>
                             </div>
                             <span class="d-none d-md-block dropdown-toggle ps-2 fw-medium">
-                                <?php echo isset($userData['name']) ? htmlspecialchars($userData['name']) : 'Student'; ?>
+                                <?php echo htmlspecialchars($userData['name'] ?? 'Student'); ?>
                             </span>
                         </a>
 
@@ -154,8 +127,8 @@ $unreadNotifications = 3; // You would query this from your database
                                          height="48"
                                          onerror="this.src='<?php echo $defaultProfilePicture; ?>'">
                                     <div>
-                                        <h6 class="mb-0"><?php echo isset($userData['name']) ? htmlspecialchars($userData['name']) : 'Student'; ?></h6>
-                                        <small class="text-muted"><?php echo isset($userData['department']) ? htmlspecialchars($userData['department']) : 'Member'; ?></small>
+                                        <h6 class="mb-0"><?php echo htmlspecialchars($userData['name'] ?? 'Student'); ?></h6>
+                                        <small class="text-muted"><?php echo htmlspecialchars($userData['department'] ?? 'Member'); ?></small>
                                     </div>
                                 </div>
                             </li>
@@ -212,142 +185,27 @@ $unreadNotifications = 3; // You would query this from your database
             </nav>
         </div>
         
-        <!-- Mobile Search Bar (Hidden by default) -->
-        <div class="mobile-search-bar d-lg-none bg-light p-3 border-top">
-            <div class="input-group">
-                <input type="text" class="form-control border-end-0" placeholder="Search..." aria-label="Search">
-                <button class="btn btn-outline-secondary border-start-0" type="button">
-                    <i class="bi bi-search"></i>
-                </button>
-            </div>
-        </div>
-    </div>
+       
 </header>
 
-<style>
-/* Enhanced Header Styles */
-.header {
-    height: auto;
-    min-height: 60px;
-    z-index: 1030;
-    box-shadow: 0 1px 10px rgba(0,0,0,0.1);
-    background: #fff;
-}
-
-.logo img {
-    max-height: 40px;
-}
-
-.toggle-sidebar-btn {
-    transition: all 0.3s;
-    padding: 0.5rem;
-}
-.toggle-sidebar-btn:hover {
-    transform: scale(1.1);
-}
-
-.search-bar {
-    max-width: 500px;
-}
-.search-bar .form-control {
-    border-radius: 20px 0 0 20px;
-    padding-left: 1.25rem;
-}
-.search-bar .btn {
-    border-radius: 0 20px 20px 0;
-    padding-right: 1.25rem;
-}
-
-.notification-bell {
-    position: relative;
-    color: #495057;
-    transition: all 0.2s;
-    padding: 0.5rem;
-    border-radius: 50%;
-}
-.notification-bell:hover {
-    color: #0d6efd;
-    background-color: rgba(13, 110, 253, 0.1);
-}
-.notification-bell .badge {
-    font-size: 0.65rem;
-    padding: 0.35em 0.5em;
-    min-width: 1.25rem;
-}
-
-.nav-profile {
-    padding: 0.25rem;
-    transition: all 0.2s;
-    border-radius: 50px;
-}
-.nav-profile:hover {
-    background-color: rgba(0,0,0,0.05);
-}
-
-.dropdown-menu {
-    border: none;
-    margin-top: 0.5rem;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-.dropdown-item {
-    border-radius: 0.25rem;
-    margin: 0.1rem 0.5rem;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s;
-}
-.dropdown-item:hover {
-    background-color: #f8f9fa;
-}
-
-.mobile-search-bar {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 1020;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-/* Responsive adjustments */
-@media (max-width: 992px) {
-    .header {
-        position: sticky;
-        top: 0;
-    }
-}
-</style>
-
 <script>
+// Auto-update header after profile changes
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile search toggle
-    const searchToggle = document.querySelector('.search-toggle');
-    const mobileSearchBar = document.querySelector('.mobile-search-bar');
-    
-    if (searchToggle && mobileSearchBar) {
-        searchToggle.addEventListener('click', function() {
-            mobileSearchBar.style.display = mobileSearchBar.style.display === 'block' ? 'none' : 'block';
+    // Check if we have a cache parameter (set after profile update)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('cache')) {
+        // Force refresh profile images
+        document.querySelectorAll('img[src*="profile/students"]').forEach(img => {
+            const baseSrc = img.src.split('?')[0];
+            img.src = baseSrc + '?t=' + Date.now();
         });
-    }
-    
-    // Dropdown active state
-    const profileDropdown = document.querySelector('.nav-profile');
-    if (profileDropdown) {
-        profileDropdown.addEventListener('shown.bs.dropdown', function() {
-            this.classList.add('active');
-        });
-        profileDropdown.addEventListener('hidden.bs.dropdown', function() {
-            this.classList.remove('active');
-        });
-    }
-    
-    // Sidebar toggle functionality
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            document.body.classList.toggle('sidebar-collapsed');
+        
+        // Update profile name in header
+        const profileName = '<?php echo isset($_SESSION['user_data']['name']) ? 
+                            addslashes($_SESSION['user_data']['name']) : 
+                            'Student'; ?>';
+        document.querySelectorAll('.nav-profile span').forEach(el => {
+            el.textContent = profileName;
         });
     }
 });

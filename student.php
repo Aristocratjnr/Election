@@ -14,17 +14,18 @@ $studentID = (int)$_SESSION['login_id'];
 // Check if student has already voted in current election
 $hasVoted = false;
 $currentElection = null;
+$error = null; // Initialize $error to null
 
 try {
     // Get current active election
-    $stmt = $conn->prepare("SELECT * FROM elections WHERE status = 1 AND start_date <= NOW() AND end_date >= NOW() LIMIT 1");
+    $stmt = $conn->prepare("SELECT * FROM elections WHERE status = 'Ongoing' AND startDate <= NOW() AND endDate >= NOW() LIMIT 1");
     $stmt->execute();
     $currentElection = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
     if ($currentElection) {
         // Check if student has already voted
-        $stmt = $conn->prepare("SELECT 1 FROM votes WHERE student_id = ? AND election_id = ?");
+        $stmt = $conn->prepare("SELECT 1 FROM votes WHERE studentID = ? AND electionID = ?");
         $stmt->bind_param('ii', $studentID, $currentElection['electionID']);
         $stmt->execute();
         $hasVoted = $stmt->get_result()->num_rows > 0;
@@ -32,7 +33,7 @@ try {
     }
 } catch (Exception $e) {
     error_log("Election check error: " . $e->getMessage());
-    $error = "Error checking election status";
+    $error = "Error checking election status.";
 }
 
 // Get student details
@@ -73,66 +74,66 @@ if ($currentElection && !$hasVoted) {
         }
     } catch (Exception $e) {
         error_log("Categories fetch error: " . $e->getMessage());
-        $error = "Error loading voting categories";
+        $error = "Error loading voting categories.";
     }
 }
 
 // Handle vote submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     if (!$currentElection || $hasVoted) {
-        $error = "You cannot vote at this time";
+        $error = "You cannot vote at this time.";
     } else {
         try {
             $conn->begin_transaction();
-            
+
             // Validate all categories have selections
             $votes = [];
             foreach ($categories as $category) {
-                if (!isset($_POST['category_'.$category['categoryID']])) {
-                    throw new Exception("Please select a candidate for all positions");
+                if (!isset($_POST['category_' . $category['categoryID']])) {
+                    throw new Exception("Please select a candidate for all positions.");
                 }
-                
-                $candidateID = (int)$_POST['category_'.$category['categoryID']];
+
+                $candidateID = (int)$_POST['category_' . $category['categoryID']];
                 $votes[] = [
-                    'election_id' => $currentElection['electionID'],
-                    'category_id' => $category['categoryID'],
-                    'candidate_id' => $candidateID,
-                    'student_id' => $studentID
+                    'electionID' => $currentElection['electionID'],
+                    'categoryID' => $category['categoryID'],
+                    'candidateID' => $candidateID,
+                    'studentID' => $studentID
                 ];
             }
-            
+
             // Record votes
             $stmt = $conn->prepare("
                 INSERT INTO votes 
-                (election_id, category_id, candidate_id, student_id, voted_at) 
+                (electionID, categoryID, candidateID, studentID, `timestamp`) 
                 VALUES (?, ?, ?, ?, NOW())
             ");
-            
+
             foreach ($votes as $vote) {
-                $stmt->bind_param('iiii', 
-                    $vote['election_id'],
-                    $vote['category_id'],
-                    $vote['candidate_id'],
-                    $vote['student_id']
+                $stmt->bind_param('iiii',
+                    $vote['electionID'],
+                    $vote['categoryID'],
+                    $vote['candidateID'],
+                    $vote['studentID']
                 );
                 $stmt->execute();
             }
-            
+
             $conn->commit();
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
-            
+
             // Send notification
-            $notification = "Thank you for voting in the ".htmlspecialchars($currentElection['title'])." election";
+            $notification = "Thank you for voting in the " . htmlspecialchars($currentElection['name']) . " election";
             $stmt = $conn->prepare("
                 INSERT INTO notifications 
-                (studentID, title, message, type, is_read, created_at)
-                VALUES (?, 'Vote Submitted', ?, 'vote', 0, NOW())
+                (user_id, user_type, title, message, type, related_election, related_candidate, is_read, created_at)
+                VALUES (?, 'student', 'Vote Submitted', ?, 'vote', ?, NULL, 0, NOW())
             ");
-            $stmt->bind_param('is', $studentID, $notification);
+            $stmt->bind_param('isi', $studentID, $notification, $currentElection['electionID']);
             $stmt->execute();
             $stmt->close();
-            
+
         } catch (Exception $e) {
             $conn->rollback();
             $error = "Error submitting vote: " . $e->getMessage();
@@ -471,6 +472,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             font-size: 0.875rem;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }

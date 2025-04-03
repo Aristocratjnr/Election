@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param('sssssi', $name, $email, $department, $contactNumber, $profilePicture, $_SESSION['login_id']);
                 
                 if ($stmt->execute()) {
-                    $successMessage = "Profile updated successfully!";
+                    $successMessage = "✅Profile updated successfully!";
                     // Refresh student data
                     $studentData['name'] = $name;
                     $studentData['email'] = $email;
