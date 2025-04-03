@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         .settings-container {
-            max-width: 552px;
+            max-width: 558px;
             margin: 0 auto;
         }
         .settings-card {
@@ -354,7 +354,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                         </div>
                         <div class="text-end">
-                            <button type="submit" name="change_password" class="btn btn-primary">Change Password</button>
+                            <button type="submit" name="change_password" class="btn btn-primary"><i class="bi bi-shield-lock me-2"></i>Change Password</button>
                         </div>
                     </form>
                 </div>
@@ -372,7 +372,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <p class="mb-0 text-muted">Temporarily disable your account (you can reactivate later)</p>
                         </div>
                         <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#deactivateModal">
-                            Deactivate
+                        <i class="bi bi-power deactivate-icon"></i>Deactivate
                         </button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
@@ -381,7 +381,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <p class="mb-0 text-muted">Permanently remove your account and all data</p>
                         </div>
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            Delete
+                        <i class="bi bi-trash delete-icon"></i>Delete
                         </button>
                     </div>
                 </div>
@@ -408,7 +408,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning text-white">Deactivate Account</button>
+                        <button type="submit" class="btn btn-warning text-white"><i class="bi bi-power deactivate-icon"></i>Deactivate Account</button>
                     </div>
                 </form>
             </div>
@@ -443,7 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Delete Account</button>
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-trash delete-icon"></i>Delete Account</button>
                     </div>
                 </form>
             </div>
