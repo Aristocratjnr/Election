@@ -137,7 +137,7 @@ $unreadNotifications = 3; // You would query this from your database
                                      width="40" 
                                      height="40"
                                      onerror="this.src='<?php echo $defaultProfilePicture; ?>'">
-                                <span class="position-absolute bottom-0 end-0 bg-success rounded-circle border border-2 border-white" style="width: 10px; height: 10px;"></span>
+                                <span class="position-absolute bottom-0 end-0 bg-success rounded-circle  border-2 border-white" style="width: 10px; height: 10px;"></span>
                             </div>
                             <span class="d-none d-md-block dropdown-toggle ps-2 fw-medium">
                                 <?php echo isset($userData['name']) ? htmlspecialchars($userData['name']) : 'Student'; ?>
@@ -162,7 +162,7 @@ $unreadNotifications = 3; // You would query this from your database
                             <li><hr class="dropdown-divider mx-3 my-2"></li>
                             
                             <li>
-                                <a class="dropdown-item d-flex align-items-center px-3 py-2" href="settings.php">
+                                <a class="dropdown-item d-flex align-items-center px-3 py-2" href="profile.php">
                                     <i class="bi bi-person me-3 fs-5"></i>
                                     <div>
                                         <span>My Profile</span>

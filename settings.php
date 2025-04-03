@@ -24,7 +24,7 @@ $studentData = [];
 
 // Fetch current student data
 try {
-    $stmt = $conn->prepare("SELECT * FROM Students WHERE studentID = ?");
+    $stmt = $conn->prepare("SELECT * FROM students WHERE studentID = ?");
     $stmt->bind_param('i', $_SESSION['login_id']);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -45,24 +45,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email']);
         $department = trim($_POST['department']);
         $contactNumber = trim($_POST['contactNumber']);
-        
-        try {
-            $stmt = $conn->prepare("UPDATE Students SET name = ?, email = ?, department = ?, contactNumber = ? WHERE studentID = ?");
-            $stmt->bind_param('ssssi', $name, $email, $department, $contactNumber, $_SESSION['login_id']);
+        $profilePicture = $studentData['profilePicture'] ?? null;
+
+        // Handle file upload
+        if (isset($_FILES['profileImage']) && $_FILES['profileImage']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = 'assets/img/profile/students/';
             
-            if ($stmt->execute()) {
-                $successMessage = "Profile updated successfully!";
-                // Refresh student data
-                $studentData['name'] = $name;
-                $studentData['email'] = $email;
-                $studentData['department'] = $department;
-                $studentData['contactNumber'] = $contactNumber;
-            } else {
-                $errorMessage = "Failed to update profile. Please try again.";
+            // Create directory if it doesn't exist
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
             }
-        } catch (Exception $e) {
-            error_log("Profile update error: " . $e->getMessage());
-            $errorMessage = "An error occurred while updating your profile.";
+
+            // Validate file
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            $fileType = mime_content_type($_FILES['profileImage']['tmp_name']);
+            
+            if (!in_array($fileType, $allowedTypes)) {
+                $errorMessage = "Only JPG, PNG, or GIF files are allowed.";
+            } elseif ($_FILES['profileImage']['size'] > 2 * 1024 * 1024) {
+                $errorMessage = "File size must be less than 2MB.";
+            } else {
+                // Generate unique filename
+                $extension = pathinfo($_FILES['profileImage']['name'], PATHINFO_EXTENSION);
+                $profilePicture = $_SESSION['login_id'] . '_' . time() . '.' . $extension;
+                $uploadPath = $uploadDir . $profilePicture;
+                
+                // Delete old picture if it exists
+                if (!empty($studentData['profilePicture']) && file_exists($uploadDir . $studentData['profilePicture'])) {
+                    unlink($uploadDir . $studentData['profilePicture']);
+                }
+                
+                // Move uploaded file
+                if (!move_uploaded_file($_FILES['profileImage']['tmp_name'], $uploadPath)) {
+                    $errorMessage = "Failed to upload profile picture.";
+                }
+            }
+        }
+
+        if (empty($errorMessage)) {
+            try {
+                $stmt = $conn->prepare("UPDATE students SET name = ?, email = ?, department = ?, contactNumber = ?, profilePicture = ? WHERE studentID = ?");
+                $stmt->bind_param('sssssi', $name, $email, $department, $contactNumber, $profilePicture, $_SESSION['login_id']);
+                
+                if ($stmt->execute()) {
+                    $successMessage = "Profile updated successfully!";
+                    // Refresh student data
+                    $studentData['name'] = $name;
+                    $studentData['email'] = $email;
+                    $studentData['department'] = $department;
+                    $studentData['contactNumber'] = $contactNumber;
+                    $studentData['profilePicture'] = $profilePicture;
+                } else {
+                    $errorMessage = "Failed to update profile. Please try again.";
+                }
+            } catch (Exception $e) {
+                error_log("Profile update error: " . $e->getMessage());
+                $errorMessage = "An error occurred while updating your profile.";
+            }
         }
     }
     
@@ -74,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Verify current password
         try {
-            $stmt = $conn->prepare("SELECT password FROM Students WHERE studentID = ?");
+            $stmt = $conn->prepare("SELECT password FROM students WHERE studentID = ?");
             $stmt->bind_param('i', $_SESSION['login_id']);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -86,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($newPassword === $confirmPassword) {
                         // Update password
                         $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-                        $stmt = $conn->prepare("UPDATE Students SET password = ? WHERE studentID = ?");
+                        $stmt = $conn->prepare("UPDATE students SET password = ? WHERE studentID = ?");
                         $stmt->bind_param('si', $hashedPassword, $_SESSION['login_id']);
                         
                         if ($stmt->execute()) {
@@ -104,6 +143,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             error_log("Password change error: " . $e->getMessage());
             $errorMessage = "An error occurred while changing your password.";
+        }
+    }
+    
+    // Handle account actions
+    if (isset($_POST['account_action'])) {
+        $action = $_POST['account_action'];
+        $password = $_POST['action_password'] ?? '';
+        
+        try {
+            // Verify password first
+            $stmt = $conn->prepare("SELECT password FROM students WHERE studentID = ?");
+            $stmt->bind_param('i', $_SESSION['login_id']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                $student = $result->fetch_assoc();
+                
+                if (password_verify($password, $student['password'])) {
+                    if ($action === 'deactivate') {
+                        $stmt = $conn->prepare("UPDATE students SET status = 'Inactive' WHERE studentID = ?");
+                        $stmt->bind_param('i', $_SESSION['login_id']);
+                        if ($stmt->execute()) {
+                            session_destroy();
+                            header("Location: login.php?deactivated=1");
+                            exit;
+                        }
+                    } elseif ($action === 'delete') {
+                        // Delete profile picture if exists
+                        if (!empty($studentData['profilePicture'])) {
+                            $filePath = 'assets/img/profile/students/' . $studentData['profilePicture'];
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
+                        
+                        // Delete account
+                        $stmt = $conn->prepare("DELETE FROM students WHERE studentID = ?");
+                        $stmt->bind_param('i', $_SESSION['login_id']);
+                        if ($stmt->execute()) {
+                            session_destroy();
+                            header("Location: register.php?deleted=1");
+                            exit;
+                        }
+                    }
+                } else {
+                    $errorMessage = "Incorrect password.";
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Account action error: " . $e->getMessage());
+            $errorMessage = "An error occurred while processing your request.";
         }
     }
 }
@@ -142,9 +233,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 50%;
             border: 3px solid #fff;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .profile-picture:hover {
+            opacity: 0.8;
+            transform: scale(1.02);
         }
         .form-label {
             font-weight: 500;
+        }
+        .file-input {
+            display: none;
+        }
+        .action-modal .modal-header {
+            color: white;
+        }
+        .deactivate-modal .modal-header {
+            background-color: #ffc107;
+        }
+        .delete-modal .modal-header {
+            background-color: #dc3545;
         }
     </style>
 </head>
@@ -158,10 +267,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <!-- Success/Error Messages -->
             <?php if ($successMessage): ?>
-                <div class="alert alert-success"><?php echo $successMessage; ?></div>
+                <div class="alert alert-success alert-dismissible fade show">
+                    <?php echo $successMessage; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             <?php endif; ?>
             <?php if ($errorMessage): ?>
-                <div class="alert alert-danger"><?php echo $errorMessage; ?></div>
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <?php echo $errorMessage; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             <?php endif; ?>
 
             <!-- Profile Information Card -->
@@ -170,11 +285,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span><i class="bi bi-person me-2"></i> Profile Information</span>
                 </div>
                 <div class="card-body">
-                    <form action="settings.php" method="POST">
+                    <form action="settings.php" method="POST" enctype="multipart/form-data">
                         <div class="row mb-4">
                             <div class="col-md-4 text-center">
-                                <img src="assets/img/aristo.png" class="profile-picture mb-3" alt="Profile Picture">
-                                <button class="btn btn-outline-primary btn-sm">Change Picture</button>
+                                <label for="profileImage" style="cursor: pointer;">
+                                    <img id="profilePreview" 
+                                         src="<?php echo !empty($studentData['profilePicture']) ? 
+                                             'assets/img/profile/students/'.htmlspecialchars($studentData['profilePicture']) : 
+                                             'assets/img/student.png'; ?>" 
+                                         class="profile-picture mb-3">
+                                    <input type="file" id="profileImage" name="profileImage" class="file-input" accept="image/*">
+                                </label>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('profileImage').click()">
+                                    <i class="bi bi-upload me-1"></i> Change Picture
+                                </button>
+                                <small class="text-muted d-block mt-2">Max 2MB (JPG, PNG, GIF)</small>
                             </div>
                             <div class="col-md-8">
                                 <div class="mb-3">
@@ -200,7 +325,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         <div class="text-end">
-                            <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
+                            <button type="submit" name="update_profile" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -242,38 +369,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h6 class="mb-1">Deactivate Account</h6>
-                            <p class="mb-0 text-muted">Temporarily disable your account</p>
+                            <p class="mb-0 text-muted">Temporarily disable your account (you can reactivate later)</p>
                         </div>
-                        <button class="btn btn-outline-danger">Deactivate</button>
+                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                            Deactivate
+                        </button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="mb-1">Delete Account</h6>
                             <p class="mb-0 text-muted">Permanently remove your account and all data</p>
                         </div>
-                        <button class="btn btn-outline-danger">Delete</button>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            Delete
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Deactivate Account Modal -->
+    <div class="modal fade deactivate-modal" id="deactivateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i> Confirm Deactivation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="settings.php" method="POST">
+                    <div class="modal-body">
+                        <p>Your account will be deactivated. You can reactivate by logging in again.</p>
+                        <div class="mb-3">
+                            <label for="deactivatePassword" class="form-label">Enter your password to confirm:</label>
+                            <input type="password" class="form-control" id="deactivatePassword" name="action_password" required>
+                        </div>
+                        <input type="hidden" name="account_action" value="deactivate">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning text-white">Deactivate Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade delete-modal" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="settings.php" method="POST">
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i> This action cannot be undone!
+                        </div>
+                        <p>All your data will be permanently deleted from our systems.</p>
+                        <div class="mb-3">
+                            <label for="deletePassword" class="form-label">Enter your password to confirm:</label>
+                            <input type="password" class="form-control" id="deletePassword" name="action_password" required>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                I understand this action is permanent
+                            </label>
+                        </div>
+                        <input type="hidden" name="account_action" value="delete">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
+    // Profile picture preview
+    document.getElementById('profileImage').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            
+            // Validate file size
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size must be less than 2MB');
+                this.value = '';
+                return;
+            }
+            
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                alert('Only JPG, PNG or GIF images are allowed');
+                this.value = '';
+                return;
+            }
+            
+            // Preview image
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('profilePreview').src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
     // Password validation
-    document.querySelector('form').addEventListener('submit', function(e) {
+    document.querySelector('form[name="change_password"]').addEventListener('submit', function(e) {
         const newPassword = document.getElementById('new_password').value;
         const confirmPassword = document.getElementById('confirm_password').value;
         
         if (newPassword !== confirmPassword) {
             e.preventDefault();
             alert('New passwords do not match!');
-            return false;
         }
-        
-        // Add more password validation if needed
-        return true;
+    });
+
+    // Delete account confirmation
+    document.querySelector('#deleteModal form').addEventListener('submit', function(e) {
+        if (!confirm('Are you absolutely sure you want to permanently delete your account?')) {
+            e.preventDefault();
+        }
     });
     </script>
 </body>
