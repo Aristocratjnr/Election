@@ -88,7 +88,7 @@ try {
                     
                     <!-- Notification Bell -->
                     <li class="nav-item dropdown mx-2">
-                        <a class="nav-link notification-bell position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link notification-bell position-relative" href="notifications.php" role="button"  aria-expanded="false">
                             <i class="bi bi-bell fs-5"></i>
                             <?php if ($unreadNotifications > 0): ?>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
