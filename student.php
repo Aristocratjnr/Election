@@ -5,7 +5,7 @@ require 'configs/session.php';
 
 // Check if user is logged in and has the student role
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'student') {
-    header('Location: login.html'); // Redirect to login page if not logged in
+    header('Location: login.php'); 
     exit();
 }
 
@@ -620,7 +620,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         ID: <?= $studentID ?>
                                     </span>
                                     <span class="text-muted small">
-                                        <i class="bi bi-briefcase me-1"></i>Deparment:
+                                    <i class="bi bi-building-check icon"></i>Deparment:
                                         <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                     </span>
                                 </div>
