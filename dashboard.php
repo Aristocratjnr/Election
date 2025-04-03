@@ -198,8 +198,8 @@ try {
                         <h1 class="h2"></h1>
                         <div class="btn-toolbar mb-2 mb-md-0">
                             <div class="btn-group me-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"> <i class="bi bi-share action-icon icon"></i>&nbsp;Share</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"> <i class="bi bi-file-earmark-arrow-up profile-icon icon"></i>&nbsp;Export</button>
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
                                 <i class="bi bi-calendar"></i> This week
@@ -221,14 +221,14 @@ try {
                         <div class="col-xl-3 col-md-6 mb-4">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title text-muted">Elections</h5>
+                                    <h5 class="card-title text-muted"> <i class="bi bi-check2-circle profile-icon icon"></i>&nbsp;Elections</h5>
                                     <div class="d-flex align-items-center">
                                         <div class="card-icon bg-primary-light me-3">
                                             <i class="bi bi-box-seam-fill fs-4"></i>
                                         </div>
                                         <div>
                                             <h2 class="mb-0"><?php echo $dashboard_stats['total_elections']; ?></h2>
-                                            <p class="text-muted mb-0">Total Elections</p>
+                                            <p class="text-muted mb-0"> <i class="bi bi-box-seam profile-icon icon"></i>&nbsp;Total Elections</p>
                                         </div>
                                     </div>
                                 </div>
