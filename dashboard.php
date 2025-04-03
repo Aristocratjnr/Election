@@ -378,11 +378,11 @@ try {
                     <table class="table table-hover align-middle" id="studentsTable">
                         <thead>
                             <tr>
-                                <th width="80">Profile</th>
-                                <th>Name</th>
-                                <th>Department</th>
-                                <th>Role</th>
-                                <th>Actions</th>
+                                <th width="100"><i class="bi bi-person-badge role-icon icon"></i>&nbsp;Profile</th>
+                                <th><i class="bi bi-people-fill icon"></i>&nbsp;Name</th>
+                                <th> <i class="bi bi-buildings department-icon icon"></i>&nbsp;Department</th>
+                                <th> <i class="bi bi-person-bounding-box profile-icon icon"></i>&nbsp;Role</th>
+                                <th><i class="bi bi-power action-icon icon"></i>&nbsp;Actions</th>
                             </tr>
                         </thead>
                         <tbody>
