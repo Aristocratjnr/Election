@@ -149,6 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <title>Voting Portal - SmartVote</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
             --primary: #4361ee;
@@ -596,8 +597,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <!-- Student Info -->
                         <div class="student-info d-flex align-items-center mb-4">
                             <div class="me-3">
-                                <?php if (!empty($student['profile_picture'])): ?>
-                                    <img src="assets/img/profile/students/<?= htmlspecialchars($student['profile_picture']) ?>" 
+                                <?php if (!empty($student['profile_Picture'])): ?>
+                                    <img src="assets/img/profile/students/<?= htmlspecialchars($student['profile_Picture']) ?>" 
                                          class="student-avatar" 
                                          alt="Profile">
                                 <?php else: ?>
@@ -614,7 +615,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         ID: <?= $studentID ?>
                                     </span>
                                     <span class="text-muted small">
-                                        <i class="bi bi-building me-1"></i>
+                                        <i class="bi bi-briefcase me-1"></i>
                                         <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                     </span>
                                 </div>
