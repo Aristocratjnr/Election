@@ -89,7 +89,7 @@
                       <input class="form-check-input" type="checkbox" id="remember-me" />
                       <label class="form-check-label" for="remember-me"> Remember Me </label>
                     </div>
-                    <a href="auth-forgot-password-basic.html">
+                    <a href="forgot_password.php">
                       <span>Forgot Password?</span>
                     </a>
                   </div>
