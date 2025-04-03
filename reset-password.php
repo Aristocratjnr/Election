@@ -1,10 +1,11 @@
 <?php
-// Start secure session
+// Start secure session with stricter settings
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_secure' => true,
         'cookie_httponly' => true,
-        'use_strict_mode' => true
+        'use_strict_mode' => true,
+        'cookie_samesite' => 'Strict'
     ]);
 }
 
@@ -21,69 +22,130 @@ $user_email = '';
 // Check if token is valid
 if (!empty($token)) {
     try {
-        // Check token in database
-        $stmt = $conn->prepare("SELECT pr.*, s.email 
-                               FROM password_resets pr
-                               JOIN Students s ON pr.user_id = s.studentID
-                               WHERE pr.token = ? AND pr.used = 0 AND pr.expires_at > NOW()");
-        $stmt->bind_param('s', $token);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $reset_request = $result->fetch_assoc();
-            $is_valid = true;
-            $user_email = $reset_request['email'];
-            $_SESSION['reset_user_id'] = $reset_request['user_id'];
+        // Verify token format first (64 hex chars)
+        if (!preg_match('/^[a-f0-9]{64}$/i', $token)) {
+            $error = 'Invalid token format';
         } else {
-            $error = 'Invalid or expired reset link. Please request a new one.';
+            // Check token in database with prepared statement
+            $stmt = $conn->prepare("SELECT pr.*, s.email 
+                                   FROM password_resets pr
+                                   JOIN Students s ON pr.user_id = s.studentID
+                                   WHERE pr.token = ? AND pr.used = 0 AND pr.expires_at > NOW()");
+            $stmt->bind_param('s', $token);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                $reset_request = $result->fetch_assoc();
+                $is_valid = true;
+                $user_email = $reset_request['email'];
+                
+                // Store minimal data in session
+                $_SESSION['reset_token'] = $token;
+                $_SESSION['reset_user_id'] = $reset_request['user_id'];
+                $_SESSION['reset_expires'] = time() + 900; // 15-minute window
+            } else {
+                $error = 'Invalid or expired reset link. Please request a new one.';
+            }
         }
     } catch (Exception $e) {
         error_log("Password reset error: " . $e->getMessage());
         $error = 'An error occurred. Please try again later.';
+        // Consider rate limiting here
     }
 } else {
     $error = 'No reset token provided.';
 }
 
 // Process password reset form
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_valid) {
-    $new_password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Verify session matches token
+    $session_token = $_SESSION['reset_token'] ?? '';
+    $session_user_id = $_SESSION['reset_user_id'] ?? 0;
+    $session_expires = $_SESSION['reset_expires'] ?? 0;
     
-    // Validate passwords
-    if (empty($new_password) || empty($confirm_password)) {
-        $error = 'Please enter and confirm your new password';
-    } elseif (strlen($new_password) < 8) {
-        $error = 'Password must be at least 8 characters long';
-    } elseif ($new_password !== $confirm_password) {
-        $error = 'Passwords do not match';
+    if (empty($session_token) || $session_token !== $token || $session_user_id <= 0 || time() > $session_expires) {
+        $error = 'Session expired. Please restart the reset process.';
+        $is_valid = false;
     } else {
-        try {
-            // Hash the new password
-            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            
-            // Update user password
-            $stmt = $conn->prepare("UPDATE Students SET password = ? WHERE studentID = ?");
-            $stmt->bind_param('si', $hashed_password, $_SESSION['reset_user_id']);
-            $stmt->execute();
-            
-            // Mark token as used
-            $stmt = $conn->prepare("UPDATE password_resets SET used = 1 WHERE token = ?");
-            $stmt->bind_param('s', $token);
-            $stmt->execute();
-            
-            // Clear session variables
-            unset($_SESSION['reset_user_id']);
-            
-            $success = 'Your password has been reset successfully!';
-            $is_valid = false; // Prevent further changes with this token
-        } catch (Exception $e) {
-            error_log("Password update error: " . $e->getMessage());
-            $error = 'An error occurred while resetting your password. Please try again.';
+        $new_password = $_POST['password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        
+        // Validate passwords
+        if (empty($new_password) || empty($confirm_password)) {
+            $error = 'Please enter and confirm your new password';
+        } elseif (strlen($new_password) < 12) {  // Increased minimum length
+            $error = 'Password must be at least 12 characters long';
+        } elseif ($new_password !== $confirm_password) {
+            $error = 'Passwords do not match';
+        } elseif (!preg_match('/[A-Z]/', $new_password) || 
+                 !preg_match('/[a-z]/', $new_password) || 
+                 !preg_match('/[0-9]/', $new_password) || 
+                 !preg_match('/[^A-Za-z0-9]/', $new_password)) {
+            $error = 'Password must include uppercase, lowercase, number, and special character';
+        } else {
+            try {
+                // Check if password was previously used (optional but recommended)
+                $stmt = $conn->prepare("SELECT password FROM Students WHERE studentID = ?");
+                $stmt->bind_param('i', $session_user_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $user = $result->fetch_assoc();
+                
+                if (password_verify($new_password, $user['password'])) {
+                    $error = 'You cannot reuse an old password';
+                } else {
+                    // Hash the new password with current best practices
+                    $hashed_password = password_hash($new_password, PASSWORD_ARGON2ID);
+                    
+                    // Begin transaction for atomic updates
+                    $conn->begin_transaction();
+                    
+                    try {
+                        // Update user password
+                        $stmt = $conn->prepare("UPDATE Students SET password = ?, last_password_change = NOW() WHERE studentID = ?");
+                        $stmt->bind_param('si', $hashed_password, $session_user_id);
+                        $stmt->execute();
+                        
+                        // Mark token as used
+                        $stmt = $conn->prepare("UPDATE password_resets SET used = 1 WHERE token = ?");
+                        $stmt->bind_param('s', $token);
+                        $stmt->execute();
+                        
+                        // Invalidate all other active sessions for this user (security measure)
+                        $stmt = $conn->prepare("DELETE FROM user_sessions WHERE user_id = ?");
+                        $stmt->bind_param('i', $session_user_id);
+                        $stmt->execute();
+                        
+                        $conn->commit();
+                        
+                        // Clear session variables
+                        unset($_SESSION['reset_token']);
+                        unset($_SESSION['reset_user_id']);
+                        unset($_SESSION['reset_expires']);
+                        
+                        // Regenerate session ID after privilege change
+                        session_regenerate_id(true);
+                        
+                        $success = 'Your password has been reset successfully! Please login with your new password.';
+                        $is_valid = false;
+                    } catch (Exception $e) {
+                        $conn->rollback();
+                        throw $e;
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Password update error: " . $e->getMessage());
+                $error = 'An error occurred while resetting your password. Please try again.';
+            }
         }
     }
 }
+
+// Security headers
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 ?>
 
 <!DOCTYPE html>
@@ -239,6 +301,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_valid) {
             <div class="auth-body">
                 <?php if ($error): ?>
                     <div class="alert alert-danger alert-dismissible fade show">
+                   
                         <?php echo $error; ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -248,10 +311,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_valid) {
                     <div class="text-center py-4">
                         <i class="bi bi-check-circle-fill success-icon"></i>
                         <h3>Password Reset!</h3>
+                        <p class="text-muted"><?php echo htmlspecialchars($success, ENT_QUOTES, 'UTF-8'); ?></p>
                         <p class="text-muted"><?php echo $success; ?></p>
                         <a href="login.php" class="btn btn-primary mt-3 px-4">Login Now</a>
                     </div>
-                <?php elseif ($is_valid): ?>
+                    <?php elseif ($is_valid): ?>
+                    <form method="POST" action="reset-password.php" id="resetPasswordForm">
+                        <input type="hidden" name="token" value="<?php echo htmlspecialchars($token, ENT_QUOTES, 'UTF-8'); ?>">
+                    
                     <form method="POST" action="reset-password.php?token=<?php echo htmlspecialchars($token); ?>" id="resetPasswordForm">
                         <div class="mb-3">
                             <label for="password" class="form-label">New Password</label>
