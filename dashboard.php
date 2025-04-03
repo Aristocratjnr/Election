@@ -406,7 +406,7 @@ try {
                 <small class="text-muted"> <i class="bi bi-envelope-check mail-icon"></i>&nbsp;<?php echo isset($student['email']) ? htmlspecialchars($student['email']) : ''; ?></small>
             </div>
         </td>
-        <td><?php echo isset($student['department']) ? htmlspecialchars($student['department']) : ''; ?></td>
+        <td><i class="bi bi-building-check icon"></i>&nbsp;<?php echo isset($student['department']) ? htmlspecialchars($student['department']) : ''; ?></td>
         <td>
             <?php if (isset($student['type']) && $student['type'] == 'admin'): ?>
                 <span class="badge bg-primary">Admin</span>
