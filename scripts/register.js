@@ -5,18 +5,20 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!registerForm) return;
 
   const submitButton = registerForm.querySelector('button[type="submit"]');
+  const signupText = document.getElementById('signupText');
+  const signupSpinner = document.getElementById('signupSpinner');
   const dobField = document.getElementById('dob');
   const contactField = document.getElementById('contact');
-  const originalTitle = document.title;
-  const originalFavicon = document.querySelector("link[rel*='icon']").href;
 
-  // Function to change favicon dynamically
-  function setFavicon(url) {
-    let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
-    link.type = 'image/x-icon';
-    link.rel = 'shortcut icon';
-    link.href = url;
-    document.head.appendChild(link);
+  // Function to set loading state
+  function setLoadingState(isLoading) {
+    if (isLoading) {
+      signupText.textContent = 'Signing up...';
+      signupSpinner.classList.remove('d-none');
+    } else {
+      signupText.textContent = 'Sign up';
+      signupSpinner.classList.add('d-none');
+    }
   }
 
   // Initialize Form Validation
@@ -113,10 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handle Registration Form Submit
     registerForm.addEventListener('submit', function (e) {
       e.preventDefault();
-
-      // Show processing state
-      document.title = "Processing...";
-      setFavicon("https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/231b.png"); // ⌛ (Hourglass Emoji)
+      setLoadingState(true);
 
       validation.validate().then(function (status) {
         if (status === 'Valid') {
@@ -132,24 +131,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.location.href = 'register-success.php?message=' + encodeURIComponent(data.message);
               } else {
                 alert(data.message);
-                submitButton.disabled = false;
-                document.title = originalTitle;
-                setFavicon(originalFavicon);
+                setLoadingState(false);
               }
             })
             .catch(error => {
               console.error('Error:', error);
               alert('An error occurred. Please try again later.');
-              submitButton.disabled = false;
-              document.title = originalTitle;
-              setFavicon(originalFavicon);
+              setLoadingState(false);
             });
         } else {
-          submitButton.disabled = false;
-          document.title = originalTitle;
-          setFavicon(originalFavicon);
+          setLoadingState(false);
         }
       });
     });
+
+    // Reset button state if form validation fails
+    registerForm.addEventListener('invalid', function(e) {
+      setLoadingState(false);
+    }, true);
   }
 });

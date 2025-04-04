@@ -24,6 +24,14 @@ echo '<!doctype html>';
         opacity: 1 !important;   
         transform: none !important; 
       }
+      #signupButton {
+      position: relative;
+    }
+
+    #signupSpinner {
+      position: absolute;
+      right: 1rem;
+    }
     </style>
 
 <html
@@ -177,7 +185,10 @@ echo '<!doctype html>';
                 </div>
             
 
-                <button class="btn btn-primary d-grid w-100">Sign up</button>
+                <button class="btn btn-primary d-grid w-100" id="signupButton">
+  <span id="signupText">Sign up</span>
+  <span id="signupSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+</button>
               </form>
 
               <p class="text-center">
