@@ -164,7 +164,8 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
-                  <label for="dob" class="form-label">Date Of Birth:</label>
+                  <label for="dob" class="form-label"><i class="bi bi-calendar-date profile-icon icon"></i>&nbsp;
+                  Date Of Birth:</label>
                   <input
                     type="text"
                     class="form-control"
@@ -174,7 +175,7 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
-                  <label for="contact" class="form-label">Contact:</label>
+                  <label for="contact" class="form-label"><i class="bi bi-envelope profile-icon icon"></i>&nbsp;Contact:</label>
                   <input
                     type="text"
                     class="form-control"
