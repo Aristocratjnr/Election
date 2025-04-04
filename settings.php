@@ -487,7 +487,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="settings-card card mb-4">
                 <div class="settings-card-header card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-person-circle me-2 text-primary"></i> Profile Information</span>
-                    <span class="badge bg-primary">Student</span>
                 </div>
                 <div class="card-body">
                     <form action="settings.php" method="POST" enctype="multipart/form-data">
