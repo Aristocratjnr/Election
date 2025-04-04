@@ -730,7 +730,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="student-details">
-                                <h5><?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
+                                <h5> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
                                 <div class="d-flex flex-wrap">
                                     <span class="me-3 text-muted small">
                                         <i class="bi bi-person-badge me-1"></i> 
@@ -806,7 +806,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         <i class="bi bi-calendar-x"></i>
                                     </div>
                                     <div>
-                                        <h5 class="mb-1">No Active Election</h5>
+                                        <h5 class="mb-1">    <i class="bi bi-people department-icon icon"></i>
+                                        No Active Election</h5>
                                         <p class="mb-0 text-muted">There is currently no active election. Please check back later.</p>
                                     </div>
                                 </div>
