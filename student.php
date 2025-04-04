@@ -14,7 +14,7 @@ $studentID = (int)$_SESSION['login_id'];
 // Check if student has already voted in current election
 $hasVoted = false;
 $currentElection = null;
-$error = null; // Initialize $error to null
+$error = null; 
 
 try {
     // Get current active election
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <title>Voting Portal - SmartVote</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #4361ee;
@@ -173,6 +173,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             color: var(--text);
             line-height: 1.5;
         }
+        
+      
         
         .voting-card {
             background: var(--surface);
@@ -569,15 +571,128 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 width: 100%;
             }
         }
+
+        /* Welcome Tips Modal Styles */
+        .welcome-modal {
+            border-radius: 16px;
+            overflow: hidden;
+            border: none;
+        }
+
+        .welcome-header {
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .welcome-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            clip-path: polygon(0% 0%, 100% 0%, 50% 50%);
+        }
+
+        .welcome-body {
+            padding: 2rem;
+        }
+
+        .tip-card {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        .tip-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.1);
+            border-color: rgba(67, 97, 238, 0.3);
+        }
+
+        .tip-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .tip-icon.blue {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .tip-icon.green {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .tip-icon.purple {
+            background-color: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .tip-icon.orange {
+            background-color: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+        }
+
+        .welcome-illustration {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .gradient-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+            color: white;
+        }
+
+        /* Animation for the welcome modal */
+        @keyframes slideIn {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .welcome-modal .modal-content {
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
     </style>
-    <!-- Add Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
    
     <?php include 'includes/header.php'; ?><br>
    
-    
     <main class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-10 col-sm-12">
@@ -598,22 +713,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     <div class="card-body p-4">
                         <!-- Student Info -->
                         <div class="student-info d-flex align-items-center mb-4">
-                        <div class="me-3">
-                            <?php 
-                            $profilePicPath = 'assets/img/profile/students/' . htmlspecialchars($student['profilePicture'] ?? '');
-                            $defaultAvatarClass = 'student-avatar d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary';
-                            
-                            if (!empty($student['profilePicture']) && file_exists($profilePicPath)): ?>
-                                <img src="<?= $profilePicPath ?>" 
-                                    class="student-avatar" 
-                                    alt="Student Profile"
-                                    onerror="this.onerror=null;this.className='<?= $defaultAvatarClass ?>';this.innerHTML='<i class=\'bi bi-person-fill fs-3\'></i>';">
-                            <?php else: ?>
-                                <div class="<?= $defaultAvatarClass ?>">
-                                    <i class="bi bi-person-fill fs-3"></i>
-                                </div>
-                            <?php endif; ?>
-                        </div>
+                            <div class="me-3">
+                                <?php 
+                                $profilePicPath = 'assets/img/profile/students/' . htmlspecialchars($student['profilePicture'] ?? '');
+                                $defaultAvatarClass = 'student-avatar d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary';
+                                
+                                if (!empty($student['profilePicture']) && file_exists($profilePicPath)): ?>
+                                    <img src="<?= $profilePicPath ?>" 
+                                        class="student-avatar" 
+                                        alt="Student Profile"
+                                        onerror="this.onerror=null;this.className='<?= $defaultAvatarClass ?>';this.innerHTML='<i class=\'bi bi-person-fill fs-3\'></i>';">
+                                <?php else: ?>
+                                    <div class="<?= $defaultAvatarClass ?>">
+                                        <i class="bi bi-person-fill fs-3"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                             <div class="student-details">
                                 <h5><?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
                                 <div class="d-flex flex-wrap">
@@ -622,8 +737,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         ID: <?= $studentID ?>
                                     </span>
                                     <span class="text-muted small">
-                                    <i class="bi bi-building-check icon"></i>
-                                    Deparment: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
+                                        <i class="bi bi-building-check icon"></i>
+                                        Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                     </span>
                                 </div>
                             </div>
@@ -788,6 +903,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         </div>
     </main><br><br><br>
 
+    <!-- Welcome Tips Modal -->
+    <div class="modal fade" id="welcomeTipsModal" tabindex="-1" aria-labelledby="welcomeTipsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content welcome-modal">
+                <div class="welcome-header">
+                    <h3 class="modal-title mb-2" id="welcomeTipsModalLabel">Welcome to the Voting Portal!</h3>
+                    <p class="mb-0">Here are some tips to help you vote successfully</p>
+                </div>
+                <div class="welcome-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="tip-card">
+                                <div class="tip-icon blue">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </div>
+                                <h5>Select Carefully</h5>
+                                <p class="text-muted">Review all candidates before making your selection. You can only vote once per position.</p>
+                            </div>
+                            
+                            <div class="tip-card">
+                                <div class="tip-icon green">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                </div>
+                                <h5>Secure & Anonymous</h5>
+                                <p class="text-muted">Your vote is completely anonymous and securely encrypted. No one can see how you voted.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="tip-card">
+                                <div class="tip-icon purple">
+                                    <i class="bi bi-clock-fill"></i>
+                                </div>
+                                <h5>Time Limit</h5>
+                                <p class="text-muted">The election ends soon! Make sure to submit your vote before the countdown timer reaches zero.</p>
+                            </div>
+                            
+                            <div class="tip-card">
+                                <div class="tip-icon orange">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </div>
+                                <h5>No Going Back</h5>
+                                <p class="text-muted">Once you submit your vote, you cannot change it. Double-check your selections before submitting.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3132/3132736.png" alt="Voting Illustration" class="welcome-illustration" style="max-height: 150px;">
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn gradient-btn" data-bs-dismiss="modal">
+                            <i class="bi bi-check-circle me-2"></i> Got it, let's vote!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <?php include 'includes/footer.php'; ?>
 
@@ -819,125 +994,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             // Update progress status
             updateVotingProgress();
         }; 
+        
         // Update voting progress and validation status
-function updateVotingProgress() {
-    const categoryCount = document.querySelectorAll('.category-section').length;
-    let completedCategories = 0;
-    
-    // Check how many categories have selections
-    document.querySelectorAll('.category-section').forEach(category => {
-        const inputs = category.querySelectorAll('input[type="radio"]');
-        const hasSelection = Array.from(inputs).some(input => input.checked);
-        if (hasSelection) {
-            completedCategories++;
-        }
-    });
-    
-    // Update submit button state
-    const submitBtn = document.querySelector('.vote-submit-btn');
-    if (completedCategories === categoryCount) {
-        submitBtn.removeAttribute('disabled');
-        submitBtn.classList.add('pulse-badge');
-    } else {
-        submitBtn.setAttribute('disabled', 'disabled');
-        submitBtn.classList.remove('pulse-badge');
-    }
-    
-    // Optional: Update progress indicator if you have one
-    const progressPercentage = (completedCategories / categoryCount) * 100;
-    // You could update a progress bar here
-}
-
-// Initialize form validation
-const votingForm = document.getElementById('votingForm');
-if (votingForm) {
-    votingForm.addEventListener('submit', function(e) {
-        const categoryCount = document.querySelectorAll('.category-section').length;
-        let completedCategories = 0;
-        
-        // Validate all categories have selections
-        document.querySelectorAll('.category-section').forEach(category => {
-            const inputs = category.querySelectorAll('input[type="radio"]');
-            const hasSelection = Array.from(inputs).some(input => input.checked);
-            if (hasSelection) {
-                completedCategories++;
-            }
-        });
-        
-        // Prevent submission if not all categories selected
-        if (completedCategories < categoryCount) {
-            e.preventDefault();
-            alert('Please make a selection for each position before submitting your vote.');
-            return false;
-        }
-        
-        // Optional: Add confirmation dialog
-        if (!confirm('Are you sure you want to submit your vote? This action cannot be undone.')) {
-            e.preventDefault();
-            return false;
-        }
-    });
-}
-
-// Countdown timer functionality
-const countdownElement = document.getElementById('countdown-timer');
-if (countdownElement) {
-    // Get end date from PHP data or from the element's content
-    const endDateText = countdownElement.textContent.trim();
-    const endDate = new Date(endDateText);
-    
-    // Update countdown every second
-    const countdownInterval = setInterval(function() {
-        const now = new Date();
-        const distance = endDate - now;
-        
-        // Time calculations
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        
-        // Display the result
-        if (distance > 0) {
-            countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-        } else {
-            clearInterval(countdownInterval);
-            countdownElement.innerHTML = "Election Ended";
+        function updateVotingProgress() {
+            const categoryCount = document.querySelectorAll('.category-section').length;
+            let completedCategories = 0;
             
-            // Optionally reload the page or show a message
-            document.location.reload();
+            // Check how many categories have selections
+            document.querySelectorAll('.category-section').forEach(category => {
+                const inputs = category.querySelectorAll('input[type="radio"]');
+                const hasSelection = Array.from(inputs).some(input => input.checked);
+                if (hasSelection) {
+                    completedCategories++;
+                }
+            });
+            
+            // Update submit button state
+            const submitBtn = document.querySelector('.vote-submit-btn');
+            if (completedCategories === categoryCount) {
+                submitBtn.removeAttribute('disabled');
+                submitBtn.classList.add('pulse-badge');
+            } else {
+                submitBtn.setAttribute('disabled', 'disabled');
+                submitBtn.classList.remove('pulse-badge');
+            }
         }
-    }, 1000);
-}
 
-// Add hover effects for candidate cards
-document.querySelectorAll('.candidate-card').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        const avatar = this.querySelector('.avatar');
-        if (avatar) {
-            avatar.style.transform = 'scale(1.05)';
-        }
+        // Show welcome tips modal on first visit
+        <?php if ($currentElection && !$hasVoted): ?>
+            if (!sessionStorage.getItem('welcomeShown')) {
+                var welcomeModal = new bootstrap.Modal(document.getElementById('welcomeTipsModal'));
+                welcomeModal.show();
+                sessionStorage.setItem('welcomeShown', 'true');
+            }
+        <?php endif; ?>
     });
-    
-    card.addEventListener('mouseleave', function() {
-        const avatar = this.querySelector('.avatar');
-        if (avatar) {
-            avatar.style.transform = 'scale(1)';
-        }
-    });
-});
-
-// Initialize any tooltips
-const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-if (typeof bootstrap !== 'undefined') {
-    tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-}
-
-// Call this function on page load to set initial state
-updateVotingProgress();
-});
     </script>
 </body>
 </html>
