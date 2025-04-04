@@ -122,12 +122,55 @@
     <script src="assets/vendor/libs/@form-validation/popular.js"></script>
     <script src="assets/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
+   
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const form = document.getElementById('formAuthentication');
+      const formAuthentication = document.getElementById('formAuthentication');
       const authAlert = document.getElementById('authAlert');
       const loginBtn = document.getElementById('loginBtn');
+      
+      // Form Validation
+      if (formAuthentication) {
+        const validation = FormValidation.formValidation(formAuthentication, {
+          fields: {
+            student: {
+              validators: {
+                notEmpty: {
+                  message: 'Please enter student ID'
+                },
+                stringLength: {
+                  min: 6,
+                  message: 'Student ID must be more than 6 characters'
+                }
+              }
+            },
+            password: {
+              validators: {
+                notEmpty: {
+                  message: 'Please enter your password'
+                },
+                stringLength: {
+                  min: 6,
+                  message: 'Password must be more than 6 characters'
+                }
+              }
+            }
+          },
+          plugins: {
+            trigger: new FormValidation.plugins.Trigger(),
+            bootstrap5: new FormValidation.plugins.Bootstrap5({
+              eleValidClass: '',
+              rowSelector: '.form-control-validation'
+            }),
+            submitButton: new FormValidation.plugins.SubmitButton(),
+            autoFocus: new FormValidation.plugins.AutoFocus()
+          }
+        }).on('core.form.valid', function() {
+          // Form is valid, proceed with submission
+          handleFormSubmit();
+        });
+      }
       
       // Toggle password visibility
       document.querySelector('.form-password-toggle .input-group-text').addEventListener('click', function() {
@@ -143,10 +186,8 @@
         }
       });
       
-      // Form submission
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
+      // Form submission handler
+      function handleFormSubmit() {
         // Show loading state
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing in...';
@@ -155,7 +196,7 @@
         authAlert.classList.add('d-none');
         
         // Get form data
-        const formData = new FormData(form);
+        const formData = new FormData(formAuthentication);
         
         // AJAX request
         fetch('signInAuth.php', {
@@ -176,9 +217,9 @@
         })
         .finally(() => {
           loginBtn.disabled = false;
-          loginBtn.innerHTML = '<i class="ri-lock-2-fill"></i> Sign In';
+          loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right action-icon icon"></i> Sign In';
         });
-      });
+      }
       
       function showError(message) {
         authAlert.textContent = message;
