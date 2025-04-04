@@ -9,7 +9,7 @@
       </div>
       <div class="footer-meta">
         <span class="copyright">© Copyright SmartVote <?php echo date('Y'); ?>. All Rights Reserved</span>
-        <span class="credits">Designed with by Aristocratjnr</span>
+        <span class="credits">Built by <a href="https://github.com/Aristocratjnr" target="_blank">Aristocratjnr</a></span>
         <span class="version">v1.0 <?php echo date('H:i'); ?> GMT</span>
       </div>
     </div>
