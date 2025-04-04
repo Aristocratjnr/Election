@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="auth-footer">
-                Remember your password? <a href="login.php">Sign in here</a>
+                Remember your password? <a href="login.php">Sign in</a>
             </div>
         </div>
     </div>
