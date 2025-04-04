@@ -154,7 +154,7 @@ echo '<!doctype html>';
                   </div>
                 </div>
                 <div class="mb-6 form-control-validation">
-                  <label for="department" class="form-label">Department:</label>
+                  <label for="department" class="form-label"><i class="bi bi-buildings department-icon icon"></i>&nbsp;Department:</label>
                   <input
                     type="text"
                     class="form-control"
