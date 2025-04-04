@@ -71,7 +71,7 @@
                     autofocus />
                 </div>
                 <div class="mb-6 form-password-toggle form-control-validation">
-                  <label class="form-label" for="password">Password</label>
+                  <label class="form-label" for="password"><i class="bi bi-key action-icon icon"></i>&nbsp;Password:</label>
                   <div class="input-group input-group-merge">
                     <input
                       type="password"
