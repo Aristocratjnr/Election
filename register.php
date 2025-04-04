@@ -188,7 +188,7 @@ echo '<!doctype html>';
             
 
                 <button class="btn btn-primary d-grid w-100" id="signupButton">
-  <span id="signupText">Sign up</span>
+  <span id="signupText">Sign up <i class="bi bi-person-plus action-icon icon"></i></span>
   <span id="signupSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
 </button>
               </form>
