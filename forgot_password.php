@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="auth-container">
             <div class="auth-header">
                 <h2>Forgot Password</h2>
-                <p>Enter your email to receive a reset link</p>
+                <p>Enter your email to receive a reset link<i class="bi bi-lock action-icon icon"></i></p>
             </div>
             
             <div class="auth-body">
