@@ -71,6 +71,7 @@ echo '<!doctype html>';
 
     <link rel="stylesheet" href="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="assets/vendor/libs/@form-validation/form-validation.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/vendor/css/pages/page-auth.css" />
 
     <!-- Helpers -->
@@ -101,7 +102,7 @@ echo '<!doctype html>';
 
               <form id="registerForm" class="mb-6" action="signUpAuth.php" method="POST">
                 <div class="mb-6 form-control-validation">
-                  <label for="studentID" class="form-label">Student ID:</label>
+                  <label for="studentID" class="form-label"><i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
@@ -111,7 +112,7 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
-                  <label for="name" class="form-label">Name:</label>
+                  <label for="name" class="form-label"><i class="bi bi-person profile-icon icon"></i>&nbsp;Name:</label>
                   <input
                     type="text"
                     class="form-control"
@@ -121,7 +122,7 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
-                  <label for="email" class="form-label">Student Mail:</label>
+                  <label for="email" class="form-label">  <i class="bi bi-envelope-check action-icon icon"></i>&nbsp;Student Mail:</label>
                   <input type="text" class="form-control" id="email" name="email" placeholder="Enter your student mail" />
                 </div>
                 <div class="form-password-toggle form-control-validation">
