@@ -127,7 +127,7 @@ try {
                                          height="48"
                                          onerror="this.src='<?php echo $defaultProfilePicture; ?>'">
                                     <div>
-                                        <h6 class="mb-0"><?php echo htmlspecialchars($userData['name'] ?? 'Student'); ?></h6>
+                                        <h6 class="mb-0"> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?php echo htmlspecialchars($userData['name'] ?? 'Student'); ?></h6>
                                         <small class="text-muted"><?php echo htmlspecialchars($userData['department'] ?? 'Member'); ?></small>
                                     </div>
                                 </div>
