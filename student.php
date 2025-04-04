@@ -700,7 +700,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     <div class="card-header bg-white py-4 px-4 border-0">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                             <div class="mb-3 mb-md-0">
-                                <h2 class="mb-1 fw-bold">Voting Portal</h2>
+                                <h2 class="mb-1 fw-bold"><i class="bi bi-card-checklist role-icon icon"></i>&nbsp;Voting Portal</h2>
                                 <p class="text-muted mb-0">Cast your vote for the student leadership election</p>
                             </div>
                             <div class="voting-status <?= $currentElection ? 'voting-active pulse-badge' : 'voting-inactive' ?>">

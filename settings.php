@@ -455,7 +455,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <!-- Include Header -->
-    <?php include 'includes/header.php'; ?>
+    <?php include 'includes/header.php'; ?><br>
 
     <div class="container py-5">
         <div class="settings-container">
