@@ -227,12 +227,10 @@
   <!-- Sidebar Footer -->
   <div class="sidebar-footer">
     <div class="system-info">
-      <div class="info-item">
+      <div class="info-item last-login">
         <i class="bi bi-clock-history"></i>
-        <span>
-          Last login: <?php echo $adminData['last_login'] 
-            ? date('M j, g:i A', strtotime($adminData['last_login'])) 
-            : 'First login'; ?>
+        <span id="lastLoginTime">
+          Last login: 
         </span>
       </div>
       <div class="info-item">
@@ -689,5 +687,29 @@ document.addEventListener('DOMContentLoaded', function() {
       overlay.classList.remove('active');
     }
   });
+
+  // Function to update the last login time
+function updateLastLoginTime() {
+  const now = new Date();
+  const options = { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  };
+  
+  document.getElementById('lastLoginTime').textContent = 
+    now.toLocaleDateString('en-US', options);
+}
+
+// Update immediately
+updateLastLoginTime();
+
+// Update every second to keep it current
+setInterval(updateLastLoginTime, 1000);
+
 });
 </script>
