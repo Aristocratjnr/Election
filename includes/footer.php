@@ -1,4 +1,5 @@
 <!-- ======= Minimal Horizontal Footer ======= -->
+<?php date_default_timezone_set('GMT'); ?>
 <footer id="footer" class="footer">
   <div class="footer-container">
     <div class="footer-content">
@@ -9,7 +10,7 @@
       <div class="footer-meta">
         <span class="copyright">© Copyright SmartVote <?php echo date('Y'); ?>. All Rights Reserved</span>
         <span class="credits">Designed with by Aristocratjnr</span>
-        <span class="version">v2.1.0 <?php echo date('H:i'); ?> UTC</span>
+        <span class="version">v1.0 <?php echo date('H:i'); ?> GMT</span>
       </div>
     </div>
   </div>
