@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="assets/css/demo.css" />
     <link rel="stylesheet" href="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="assets/vendor/libs/@form-validation/form-validation.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/vendor/css/pages/page-auth.css" />
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="/assets/vendor/js/template-customizer.js"></script>
@@ -59,7 +60,7 @@
 
               <form id="formAuthentication" class="mb-6" method="POST">
                 <div class="mb-6 form-control-validation">
-                  <label for="studentID" class="form-label">Student ID:</label>
+                  <label for="studentID" class="form-label"><i class="bi bi-person-badge profile-icon icon"></i>&nbsp;Student ID:</label>
                   <input
                     type="text"
                     class="form-control"
