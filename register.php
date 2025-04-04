@@ -126,7 +126,7 @@ echo '<!doctype html>';
                   <input type="text" class="form-control" id="email" name="email" placeholder="Enter your student mail" />
                 </div>
                 <div class="form-password-toggle form-control-validation">
-                  <label class="form-label" for="password">Password:</label>
+                  <label class="form-label" for="password"> <i class="bi bi-lock action-icon icon"></i>&nbsp;Password:</label>
                   <div class="input-group input-group-merge">
                     <input
                       type="password"
@@ -140,7 +140,7 @@ echo '<!doctype html>';
                 </div><br>
                 <div class="mb-6 form-control-validation">
                   <div class="form-password-toggle form-control-validation">
-                    <label class="form-label" for="confirmPassword">Confirm Password:</label>
+                    <label class="form-label" for="confirmPassword"><i class="bi bi-lock action-icon icon"></i>&nbsp;Confirm Password:</label>
                     <div class="input-group input-group-merge">
                       <input
                         type="password"
