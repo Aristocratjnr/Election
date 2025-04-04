@@ -97,7 +97,7 @@
                 </div>
                 <div class="mb-6">
                   <button class="btn btn-primary d-grid w-100" type="submit" id="loginBtn">
-                    <i class="ri-lock-2-fill"></i> Sign In
+                  <i class="bi bi-box-arrow-in-right action-icon icon"></i>Sign In 
                   </button>
                 </div>
               </form>
