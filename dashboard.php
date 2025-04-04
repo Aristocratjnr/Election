@@ -510,7 +510,9 @@ try {
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        return response.json().then(err => {
+                            throw new Error(err.message || 'Network response was not ok');
+                        });
                     }
                     return response.json();
                 })
@@ -520,11 +522,12 @@ try {
                         location.reload();
                     } else {
                         alert('Error: ' + (data.message || 'Operation failed'));
+                        if (data.error) console.error('Server error:', data.error);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while processing your request');
+                    alert('An error occurred: ' + error.message);
                 })
                 .finally(() => {
                     this.innerHTML = originalText;
