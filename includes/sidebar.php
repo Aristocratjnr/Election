@@ -238,7 +238,7 @@
         <span>Secure Admin Session</span>
       </div>
     </div>
-    <a href="logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?');">
+    <a href="login.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?');">
       <i class="bi bi-box-arrow-left"></i>
       <span>Logout</span>
     </a>
