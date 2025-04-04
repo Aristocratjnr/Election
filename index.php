@@ -655,7 +655,7 @@
                     </li>
                   </ul>
                   <div class="d-grid mt-8">
-                    <a href="payment-page.html" class="btn btn-label-primary">Get Started</a>
+                    <a href="register.php" class="btn btn-label-primary">Get Started</a>
                   </div>
                 </div>
               </div>

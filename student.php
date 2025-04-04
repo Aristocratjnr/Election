@@ -574,7 +574,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
+   
     <?php include 'includes/header.php'; ?><br>
+   
     
     <main class="container py-5">
         <div class="row justify-content-center">
@@ -598,10 +600,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <div class="student-info d-flex align-items-center mb-4">
                         <div class="me-3">
                             <?php 
-                            $profilePicPath = 'assets/img/profile/students/' . htmlspecialchars($student['profile_Picture'] ?? '');
+                            $profilePicPath = 'assets/img/profile/students/' . htmlspecialchars($student['profilePicture'] ?? '');
                             $defaultAvatarClass = 'student-avatar d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary';
                             
-                            if (!empty($student['profile_Picture']) && file_exists($profilePicPath)): ?>
+                            if (!empty($student['profilePicture']) && file_exists($profilePicPath)): ?>
                                 <img src="<?= $profilePicPath ?>" 
                                     class="student-avatar" 
                                     alt="Student Profile"
