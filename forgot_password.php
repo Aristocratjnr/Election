@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <form method="POST" action="reset-password.php">
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
+                        <label for="email" class="form-label"><i class="bi bi-inbox action-icon icon"></i>&nbsp;Email Address</label>
                         <input type="email" class="form-control" id="email" name="email" 
                                placeholder="Enter your registered email" required>
                     </div>
