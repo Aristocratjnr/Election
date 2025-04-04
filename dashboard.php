@@ -122,16 +122,6 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <style>
-          .pagetitle {
-    margin-bottom: 10px;
-  }
-  
-        .pagetitle h1 {
-            font-size: 24px;
-            margin-bottom: 0;
-            font-weight: 600;
-            color: #012970;
-        }
         .card-icon {
             width: 50px;
             height: 50px;
@@ -193,31 +183,6 @@ try {
             color: #6c757d;
         }
         
-        .breadcrumb {
-            font-size: 14px;
-            font-family: "Nunito", sans-serif;
-            color: #899bbd;
-            font-weight: 600;
-        }
-        
-        .breadcrumb a {
-            color: #899bbd;
-            transition: 0.3s;
-        }
-        
-        .breadcrumb a:hover {
-            color: #51678f;
-        }
-        
-        .breadcrumb .breadcrumb-item::before {
-            color: #899bbd;
-        }
-        
-        .breadcrumb .active {
-            color: #51678f;
-            font-weight: 600;
-        }
-        
     </style>
 </head>
 <body>
@@ -231,14 +196,6 @@ try {
                 <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4"><br>
                     <!-- Page Header -->
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <div class="pagetitle">
-                    <nav>
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#"><i class="bi bi-house-door"></i> Home</a></li>
-                            <li class="breadcrumb-item active"> Admin Dashboard</li>
-                        </ol>
-                    </nav>
-                </div>
                         <div class="btn-toolbar mb-2 mb-md-0">
                             <div class="btn-group me-2">
                                 <button type="button" class="btn btn-sm btn-outline-secondary"> <i class="bi bi-share action-icon icon"></i>&nbsp;Share</button>
