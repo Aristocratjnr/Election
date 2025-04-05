@@ -14,7 +14,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-    <title>Demo: Forgot Password Basic - Pages | Sneat - Bootstrap Dashboard PRO</title>
+    <title>Forgot Password </title>
 
     <meta name="description" content="" />
 
@@ -41,10 +41,6 @@
     <!-- Vendors CSS -->
 
     <link rel="stylesheet" href="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-
-    <!-- endbuild -->
-
-    <!-- Vendor -->
     <link rel="stylesheet" href="assets/vendor/libs/@form-validation/form-validation.css" />
 
     <!-- Page CSS -->
@@ -54,10 +50,8 @@
     <!-- Helpers -->
     <script src="assets/vendor/js/helpers.js"></script>
    
-    <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
     <script src="assets/vendor/js/template-customizer.js"></script>
 
-    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="assets/js/config.js"></script>
   </head>
