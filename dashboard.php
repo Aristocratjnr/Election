@@ -1,5 +1,4 @@
 <?php
-// Enable error reporting for development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -10,7 +9,6 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// Database connection - ensure this file exists and has correct credentials
 require 'configs/dbconnection.php';
 
 // Initialize variables
@@ -26,12 +24,10 @@ $dashboard_stats = [
 
 // Fetch dashboard data with better error handling
 try {
-    // First verify the connection is working
     if (!$conn) {
         throw new Exception("Database connection failed");
     }
 
-    // Check if tables exist with more detailed error reporting
     $tables = ['elections', 'categories', 'students', 'votes']; // Updated to include students
     foreach ($tables as $table) {
         $check = $conn->query("SHOW TABLES LIKE '$table'");
