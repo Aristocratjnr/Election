@@ -54,6 +54,20 @@
 
 
     <script src="assets/js/config.js"></script>
+
+    <style>
+      .invalid-feedback {
+    display: block;
+    color: #ff3e1d;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+        }
+
+    .is-invalid {
+        border-color: #ff3e1d !important;
+    }
+      
+    </style>
   </head>
 
   <body>
@@ -129,7 +143,48 @@
 
     <!-- Main JS -->
 
-    <script src="assets/js/main.js"></script>
+    <script>
+document.getElementById('formAuthentication').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    // Reset error states
+    document.getElementById('email').classList.remove('is-invalid');
+    
+    // Validate email
+    if (!email) {
+        showError('email', 'Email is required');
+        return;
+    }
+    
+    if (!emailRegex.test(email)) {
+        showError('email', 'Please enter a valid email address');
+        return;
+    }
+    
+    // If validation passes, submit the form
+    this.submit();
+});
+
+function showError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    field.classList.add('is-invalid');
+    
+    // Remove any existing error message
+    const existingError = field.nextElementSibling;
+    if (existingError && existingError.classList.contains('invalid-feedback')) {
+        existingError.remove();
+    }
+    
+    // Add new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'invalid-feedback';
+    errorDiv.textContent = message;
+    field.parentNode.insertBefore(errorDiv, field.nextSibling);
+}
+</script>
 
     <!-- Page JS -->
     <script src="assets/js/pages-auth.js"></script>

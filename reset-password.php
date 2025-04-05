@@ -1,3 +1,6 @@
+<?php 
+$email = isset($_GET['email']) ? $_GET['email'] : '';
+?>
 <!doctype html>
 
 <html
