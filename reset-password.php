@@ -158,11 +158,66 @@ $email = isset($_GET['email']) ? $_GET['email'] : '';
     <script src="assets/vendor/libs/@form-validation/bootstrap5.js"></script>
     <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
 
-    <!-- Main JS -->
+    <script>
+document.getElementById('formAuthentication').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const password = document.getElementById('password').value.trim();
+    const confirmPassword = document.getElementById('confirm-password').value.trim();
+    
+    // Reset error states
+    document.getElementById('password').classList.remove('is-invalid');
+    document.getElementById('confirm-password').classList.remove('is-invalid');
+    
+    // Validate password
+    if (!password) {
+        showError('password', 'Password is required');
+        return;
+    }
+    
+    if (password.length < 8) {
+        showError('password', 'Password must be at least 8 characters');
+        return;
+    }
+    
+    // Validate confirm password
+    if (!confirmPassword) {
+        showError('confirm-password', 'Please confirm your password');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showError('confirm-password', 'Passwords do not match');
+        return;
+    }
+    
+    // If validation passes, submit the form
+    this.submit();
+});
 
-    <script src="assets/js/main.js"></script>
-
-    <!-- Page JS -->
-    <script src="assets/js/pages-auth.js"></script>
+function showError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    field.classList.add('is-invalid');
+    
+    // Remove any existing error message
+    let errorContainer;
+    if (field.parentNode.classList.contains('input-group')) {
+        errorContainer = field.parentNode.parentNode;
+    } else {
+        errorContainer = field.parentNode;
+    }
+    
+    const existingError = errorContainer.querySelector('.invalid-feedback');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Add new error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'invalid-feedback';
+    errorDiv.textContent = message;
+    errorContainer.appendChild(errorDiv);
+}
+</script>
   </body>
 </html>

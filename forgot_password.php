@@ -92,16 +92,17 @@
               <h4 class="mb-1">Forgot Password? 🔒</h4>
               <p class="mb-6">Enter your email and we'll send you instructions to reset your password</p>
               <form id="formAuthentication" class="mb-6" action="reset-password.php" method="GET">
-                <div class="mb-6 form-control-validation">
-                  <label for="email" class="form-label">Email</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    autofocus />
-                </div>
+              <div class="mb-6 form-control-validation">
+            <label for="email" class="form-label">Email</label>
+            <input
+                type="text"
+                class="form-control"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                autofocus />
+            <!-- Error messages will be inserted here by JavaScript -->
+        </div>
                 <button class="btn btn-primary d-grid w-100">Send Reset Link</button>
               </form>
               <div class="text-center">
@@ -186,7 +187,5 @@ function showError(fieldId, message) {
 }
 </script>
 
-    <!-- Page JS -->
-    <script src="assets/js/pages-auth.js"></script>
   </body>
 </html>
