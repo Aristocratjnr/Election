@@ -1,5 +1,28 @@
-<?php 
-$email = isset($_GET['email']) ? $_GET['email'] : '';
+<?php
+// Check if token is valid
+if (isset($_GET['token'])) {
+    $token = $_GET['token'];
+    $reset = $db->query("SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()", [$token])->fetch();
+    
+    if (!$reset) {
+        die("Invalid or expired token");
+    }
+}
+
+// Process password update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    
+    // 1. Update user's password
+    $db->query("UPDATE users SET password = ? WHERE email = ?", [$password, $reset['email']]);
+    
+    // 2. Mark token as used
+    $db->query("UPDATE password_resets SET used = 1 WHERE token = ?", [$token]);
+    
+    // 3. Redirect to login with success message
+    header("Location: login.php?reset=success");
+    exit;
+}
 ?>
 <!doctype html>
 

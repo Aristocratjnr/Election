@@ -1,3 +1,46 @@
+<?php
+session_start();
+require 'configs/dbconnection.php'; 
+
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = $_POST['email'];
+    
+    // Check if email exists
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+    
+    if ($user) {
+        // Generate token
+        $token = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour expiration
+        
+        // Store token in database
+        $stmt = $pdo->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$email, $token, $expires]);
+        
+        // Create reset link
+        $resetLink = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]/reset-password.php?token=$token";
+        
+        // Send email (in production, use a proper mailer like PHPMailer)
+        $to = $email;
+        $subject = 'Password Reset Request';
+        $message = "Click this link to reset your password: $resetLink\n\n";
+        $message .= "If you didn't request this, please ignore this email.";
+        $headers = 'From: no-reply@yourdomain.com';
+        
+        mail($to, $subject, $message, $headers);
+        
+        $success = 'Password reset link has been sent to your email.';
+    } else {
+        $error = 'Email not found in our system.';
+    }
+}
+?>
+
 <!doctype html>
 
 <html
@@ -74,48 +117,51 @@
     <!-- Content -->
 
     <div class="container-xxl">
-      <div class="authentication-wrapper authentication-basic container-p-y">
-        <div class="authentication-inner">
-          <!-- Forgot Password -->
-          <div class="card px-sm-6 px-0">
-            <div class="card-body">
-              <!-- Logo -->
-              <div class="app-brand justify-content-center">
-                <a href="index.html" class="app-brand-link gap-2">
-                  <span class="app-brand-logo demo">
-                    <span class="text-primary">
-                     
-                  <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
-                </a>
-              </div>
-              <!-- /Logo -->
-              <h4 class="mb-1">Forgot Password? 🔒</h4>
-              <p class="mb-6">Enter your email and we'll send you instructions to reset your password</p>
-              <form id="formAuthentication" class="mb-6" action="reset-password.php" method="GET">
-              <div class="mb-6 form-control-validation">
-            <label for="email" class="form-label">Email</label>
-            <input
-                type="text"
-                class="form-control"
-                id="email"
-                name="email"
-                placeholder="Enter your email"
-                autofocus />
-            <!-- Error messages will be inserted here by JavaScript -->
-        </div>
-                <button class="btn btn-primary d-grid w-100">Send Reset Link</button>
-              </form>
-              <div class="text-center">
-                <a href="login.php" class="d-flex justify-content-center">
-                  <i class="icon-base bx bx-chevron-left scaleX-n1-rtl me-1"></i>
-                  Back to login
-                </a>
-              </div>
+        <div class="authentication-wrapper authentication-basic container-p-y">
+            <div class="authentication-inner">
+                <div class="card px-sm-6 px-0">
+                    <div class="card-body">
+                        <!-- Logo -->
+                        <div class="app-brand justify-content-center">
+                            <a href="index.php" class="app-brand-link gap-2">
+                                <span class="app-brand-text demo text-heading fw-bold">SmartVote</span>
+                            </a>
+                        </div>
+                        <!-- /Logo -->
+                        <h4 class="mb-1">Forgot Password? 🔒</h4>
+                        <p class="mb-6">Enter your email and we'll send you instructions to reset your password</p>
+                        
+                        <?php if ($error): ?>
+                            <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+                        <?php endif; ?>
+                        
+                        <?php if ($success): ?>
+                            <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+                        <?php endif; ?>
+                        
+                        <form id="formAuthentication" class="mb-6" method="POST">
+                            <div class="mb-6 form-control-validation">
+                                <label for="email" class="form-label">Email</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="email"
+                                    name="email"
+                                    placeholder="Enter your email"
+                                    autofocus />
+                            </div>
+                            <button type="submit" class="btn btn-primary d-grid w-100">Send Reset Link</button>
+                        </form>
+                        <div class="text-center">
+                            <a href="login.php" class="d-flex justify-content-center">
+                                <i class="icon-base bx bx-chevron-left scaleX-n1-rtl me-1"></i>
+                                Back to login
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-          <!-- /Forgot Password -->
         </div>
-      </div>
     </div>
 
 
