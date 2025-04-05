@@ -1,4 +1,5 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
 // Start session securely
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
@@ -196,6 +197,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("Account action error: " . $e->getMessage());
             $errorMessage = "An error occurred while processing your request.";
         }
+    }
+}
+
+// Handle 2FA setup
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_2fa'])) {
+    $g = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
+    $secret = $g->generateSecret();
+    
+    try {
+        $stmt = $conn->prepare("UPDATE students SET two_factor_secret = ? WHERE studentID = ?");
+        $stmt->bind_param('si', $secret, $_SESSION['login_id']);
+        
+        if ($stmt->execute()) {
+            $_SESSION['2fa_secret'] = $secret; // Store temporarily for verification
+            $successMessage = "2FA setup initiated. Scan the QR code below.";
+        } else {
+            $errorMessage = "Failed to setup 2FA. Please try again.";
+        }
+    } catch (Exception $e) {
+        error_log("2FA setup error: " . $e->getMessage());
+        $errorMessage = "An error occurred while setting up 2FA.";
+    }
+}
+
+// Verify 2FA code
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_2fa'])) {
+    $code = trim($_POST['verification_code']);
+    
+    if (!empty($_SESSION['2fa_secret'])) {
+        $g = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
+        
+        if ($g->checkCode($_SESSION['2fa_secret'], $code)) {
+            try {
+                $stmt = $conn->prepare("UPDATE students SET two_factor_enabled = 1 WHERE studentID = ?");
+                $stmt->bind_param('i', $_SESSION['login_id']);
+                
+                if ($stmt->execute()) {
+                    $successMessage = "Two-Factor Authentication enabled successfully!";
+                    unset($_SESSION['2fa_secret']);
+                    // Refresh student data
+                    $studentData['two_factor_enabled'] = 1;
+                } else {
+                    $errorMessage = "Failed to enable 2FA. Please try again.";
+                }
+            } catch (Exception $e) {
+                error_log("2FA verification error: " . $e->getMessage());
+                $errorMessage = "An error occurred while verifying 2FA.";
+            }
+        } else {
+            $errorMessage = "Invalid verification code. Please try again.";
+        }
+    }
+}
+
+// Disable 2FA (keep this the same as before)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
+    $password = trim($_POST['disable_password']);
+    
+    // Verify password first
+    try {
+        $stmt = $conn->prepare("SELECT password FROM students WHERE studentID = ?");
+        $stmt->bind_param('i', $_SESSION['login_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $student = $result->fetch_assoc();
+            
+            if (password_verify($password, $student['password'])) {
+                $stmt = $conn->prepare("UPDATE students SET two_factor_enabled = 0, two_factor_secret = NULL WHERE studentID = ?");
+                $stmt->bind_param('i', $_SESSION['login_id']);
+                
+                if ($stmt->execute()) {
+                    $successMessage = "Two-Factor Authentication disabled successfully!";
+                    // Refresh student data
+                    $studentData['two_factor_enabled'] = 0;
+                } else {
+                    $errorMessage = "Failed to disable 2FA. Please try again.";
+                }
+            } else {
+                $errorMessage = "Incorrect password. Please try again.";
+            }
+        }
+    } catch (Exception $e) {
+        error_log("2FA disable error: " . $e->getMessage());
+        $errorMessage = "An error occurred while disabling 2FA.";
     }
 }
 ?>
@@ -598,7 +685,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </form>
                 </div>
             </div>
-
+                        <!-- Two-Factor Authentication Card -->
+<div class="settings-card card mb-4">
+    <div class="settings-card-header card-header">
+        <i class="bi bi-shield-check me-2 text-primary"></i> Two-Factor Authentication
+    </div>
+    <div class="card-body">
+        <?php if (isset($studentData['two_factor_enabled']) && $studentData['two_factor_enabled']): ?>
+            <!-- 2FA is enabled -->
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill me-2"></i> Two-Factor Authentication is currently <strong>enabled</strong> on your account.
+            </div>
+            
+            <form action="settings.php" method="POST">
+                <div class="mb-3">
+                    <label for="disable_password" class="form-label">Enter your password to disable 2FA:</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                        <input type="password" class="form-control" id="disable_password" name="disable_password" required>
+                        <button class="btn btn-outline-secondary password-toggle" type="button">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" name="disable_2fa" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-2"></i> Disable 2FA
+                    </button>
+                </div>
+            </form>
+            <?php elseif (isset($_SESSION['2fa_secret'])): ?>
+    <!-- 2FA setup in progress -->
+    <div class="text-center mb-4">
+        <?php
+        $g = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
+        $qrCodeUrl = \Sonata\GoogleAuthenticator\GoogleQrUrl::generate(
+            $studentData['email'],
+            $_SESSION['2fa_secret'],
+            'SmartVote'
+        );
+        ?>
+        <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+        <img src="<?php echo $qrCodeUrl; ?>" class="img-fluid mb-3" style="max-width: 200px;">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i> Can't scan? Enter this code manually: <strong><?php echo chunk_split($_SESSION['2fa_secret'], 4, ' '); ?></strong>
+        </div>
+    </div>
+            
+            <form action="settings.php" method="POST">
+                <div class="mb-3">
+                    <label for="verification_code" class="form-label">Enter 6-digit verification code:</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                        <input type="text" class="form-control" id="verification_code" name="verification_code" 
+                               pattern="\d{6}" maxlength="6" placeholder="123456" required>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" name="verify_2fa" class="btn btn-primary">
+                        <i class="bi bi-check2-circle me-2"></i> Verify & Enable
+                    </button>
+                </div>
+            </form>
+        <?php else: ?>
+            <!-- 2FA not set up -->
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i> Two-Factor Authentication is currently <strong>disabled</strong>.
+            </div>
+            <p>Two-factor authentication adds an extra layer of security to your account by requiring more than just a password to log in.</p>
+            
+            <form action="settings.php" method="POST">
+                <div class="text-end">
+                    <button type="submit" name="setup_2fa" class="btn btn-primary">
+                        <i class="bi bi-shield-plus me-2"></i> Set Up 2FA
+                    </button>
+                </div>
+            </form>
+        <?php endif; ?>
+    </div>
+</div>
             <!-- Account Actions Card -->
             <div class="settings-card card">
                 <div class="settings-card-header card-header">
@@ -822,6 +987,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             alert('Please confirm your understanding and enter your password');
         }
     });
+
+    // 2FA code input formatting
+document.getElementById('verification_code')?.addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// Auto-submit 2FA code when 6 digits are entered
+document.getElementById('verification_code')?.addEventListener('keyup', function(e) {
+    if (this.value.length === 6) {
+        document.querySelector('button[name="verify_2fa"]').click();
+    }
+});
     </script>
 </body>
 </html>

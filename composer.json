@@ -1,6 +1,7 @@
 {
     "require": {
         "phpmailer/phpmailer": "^6.9",
-        "vlucas/phpdotenv": "*"
+        "vlucas/phpdotenv": "*",
+        "google/auth": "^1.24"
     }
 }
