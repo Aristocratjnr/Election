@@ -91,7 +91,7 @@
                 <button class="btn btn-primary d-grid w-100">Send Reset Link</button>
               </form>
               <div class="text-center">
-                <a href="auth-login-basic.html" class="d-flex justify-content-center">
+                <a href="login.php" class="d-flex justify-content-center">
                   <i class="icon-base bx bx-chevron-left scaleX-n1-rtl me-1"></i>
                   Back to login
                 </a>
