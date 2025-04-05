@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 02, 2025 at 10:53 PM
+-- Generation Time: Apr 05, 2025 at 03:11 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -87,6 +87,20 @@ CREATE TABLE `notifications` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` int(11) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `results`
 --
 
@@ -115,18 +129,21 @@ CREATE TABLE `students` (
   `registrationDate` date NOT NULL DEFAULT current_timestamp(),
   `status` enum('Active','Inactive') DEFAULT 'Active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `role` enum('student','admin') DEFAULT 'student'
+  `role` enum('student','admin') DEFAULT 'student',
+  `profilePicture` varchar(255) DEFAULT NULL,
+  `two_factor_secret` varchar(16) DEFAULT NULL,
+  `two_factor_enabled` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `students`
 --
 
-INSERT INTO `students` (`studentID`, `name`, `email`, `password`, `dateOfBirth`, `department`, `contactNumber`, `registrationDate`, `status`, `created_at`, `role`) VALUES
-(2312312, 'TrebuchetAcademy', 'bmfhpwww@sharklasers.com', '$2y$10$S2T5UKxqHBwnXn/0aiBRm.mW3Gsr5OGxE91VhSmlQuOgzGzC7oZRC', '2000-01-02', 'Computer Science', '23355178426', '2025-04-01', 'Active', '2025-04-01 16:29:18', 'student'),
-(10945821, 'Aristocratjnr', 'david.obuobi@inkris.ca', '$2y$10$PaQkW9.LAKdG5atPFSosZuPBivPtBZKwl9.ZLJz1p1WAxyqGIzPGq', '0000-00-00', 'Administrator', '0551784926', '2025-04-02', 'Active', '2025-04-02 14:03:42', 'admin'),
-(13131231, 'David Ayim Obuobi', 'davidayim01@gmail.com', '$2y$10$vRLylj3K3z1WQrejHryDTeipq.pRx.0r4ZKSPdU0JcNLqmM.f4G.G', '2000-01-02', 'Computer Science', '233209945369', '2025-04-02', 'Active', '2025-04-02 00:29:14', 'student'),
-(2147483647, 'Aristocratjnr', 'ayimobuob44i@gmail.com', '$2y$10$7nLhNFVZx9EB0EM7ocZci.f7ADskEDODuDYnsWyUmpNnN/OF5MDTm', '2000-01-02', 'Chemistry', '233551784926', '2025-04-01', 'Active', '2025-04-01 15:50:04', 'student');
+INSERT INTO `students` (`studentID`, `name`, `email`, `password`, `dateOfBirth`, `department`, `contactNumber`, `registrationDate`, `status`, `created_at`, `role`, `profilePicture`, `two_factor_secret`, `two_factor_enabled`) VALUES
+(1231231, 'Mark Zuckerberg', 'bmfhpwww@sharklasers.com', '$2y$10$7FDUeiD7rMAHhCdqTSjuSO2C7.YK1Gd/CFb./1x7/ZyRCHK3Qp/4i', '2000-01-02', 'Computer Science', '233551784926', '2025-04-04', 'Active', '2025-04-04 12:42:19', 'student', '1231231_1743771186.jpg', NULL, 0),
+(10945821, 'Aristocratjnr', 'david.obuobi@inkris.ca', '$2y$10$PaQkW9.LAKdG5atPFSosZuPBivPtBZKwl9.ZLJz1p1WAxyqGIzPGq', '2002-09-23', 'Administrator', '0551784926', '2025-04-02', 'Active', '2025-04-02 14:03:42', 'admin', '10945821_1743812623.jpeg', '5XDSYJDRZEEUEQXQ', 0),
+(13131231, 'Aristocrat David Junior', 'davidayim01@gmail.com', '$2y$10$vRLylj3K3z1WQrejHryDTeipq.pRx.0r4ZKSPdU0JcNLqmM.f4G.G', '2000-01-02', 'Computer Science.', '233209945369', '2025-04-02', 'Active', '2025-04-02 00:29:14', 'student', '13131231_1743682891.png', NULL, 0),
+(2147483647, 'Aristocratjnr', 'ayimobuob44i@gmail.com', '$2y$10$7gIfjP28JzVySUIFT5xXy.OV39inN0W54wyhwyDufYbXfIyoqKwYe', '2000-01-02', 'Chemistry', '233551784926', '2025-04-01', 'Active', '2025-04-01 15:50:04', 'student', NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -175,6 +192,12 @@ ALTER TABLE `notifications`
   ADD PRIMARY KEY (`notification_id`),
   ADD KEY `related_election` (`related_election`),
   ADD KEY `related_candidate` (`related_candidate`);
+
+--
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `results`
@@ -227,6 +250,12 @@ ALTER TABLE `elections`
 --
 ALTER TABLE `notifications`
   MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `results`

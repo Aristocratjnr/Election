@@ -1,27 +1,56 @@
 <?php
-// Check if token is valid
-if (isset($_GET['token'])) {
-    $token = $_GET['token'];
-    $reset = $db->query("SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()", [$token])->fetch();
+session_start();
+require 'configs/dbconnection.php';
+
+$error = '';
+$token = $_GET['token'] ?? '';
+
+// Verify token
+if ($token) {
+    $stmt = $pdo->prepare("SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()");
+    $stmt->execute([$token]);
+    $resetRequest = $stmt->fetch();
     
-    if (!$reset) {
-        die("Invalid or expired token");
+    if (!$resetRequest) {
+        $error = 'Invalid or expired token. Please request a new password reset.';
     }
 }
 
 // Process password update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'], $_POST['confirm_password'], $_POST['token'])) {
+    $password = $_POST['password'];
+    $confirmPassword = $_POST['confirm_password'];
+    $token = $_POST['token'];
     
-    // 1. Update user's password
-    $db->query("UPDATE users SET password = ? WHERE email = ?", [$password, $reset['email']]);
-    
-    // 2. Mark token as used
-    $db->query("UPDATE password_resets SET used = 1 WHERE token = ?", [$token]);
-    
-    // 3. Redirect to login with success message
-    header("Location: login.php?reset=success");
-    exit;
+    // Validate passwords
+    if ($password !== $confirmPassword) {
+        $error = 'Passwords do not match.';
+    } elseif (strlen($password) < 8) {
+        $error = 'Password must be at least 8 characters.';
+    } else {
+        // Verify token again
+        $stmt = $pdo->prepare("SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()");
+        $stmt->execute([$token]);
+        $resetRequest = $stmt->fetch();
+        
+        if ($resetRequest) {
+            // Update password in students table
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE students SET password = ? WHERE email = ?");
+            $stmt->execute([$hashedPassword, $resetRequest['email']]);
+            
+            // Mark token as used
+            $stmt = $pdo->prepare("UPDATE password_resets SET used = 1 WHERE token = ?");
+            $stmt->execute([$token]);
+            
+            // Redirect to login with success
+            $_SESSION['reset_success'] = 'Password updated successfully. Please login with your new password.';
+            header('Location: login.php');
+            exit;
+        } else {
+            $error = 'Invalid or expired token. Please request a new password reset.';
+        }
+    }
 }
 ?>
 <!doctype html>

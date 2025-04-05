@@ -1,42 +1,57 @@
 <?php
 session_start();
-require 'configs/dbconnection.php'; 
+require 'configs/dbconnection.php';
 
 $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
+    $email = $conn->real_escape_string($_POST['email']);
     
-    // Check if email exists
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
-    
-    if ($user) {
-        // Generate token
-        $token = bin2hex(random_bytes(32));
-        $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour expiration
+  
+    try {
+        $stmt = $conn->prepare("SELECT studentID, email FROM students WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $student = $result->fetch_assoc();
         
-        // Store token in database
-        $stmt = $pdo->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
-        $stmt->execute([$email, $token, $expires]);
-        
-        // Create reset link
-        $resetLink = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]/reset-password.php?token=$token";
-        
-        // Send email (in production, use a proper mailer like PHPMailer)
-        $to = $email;
-        $subject = 'Password Reset Request';
-        $message = "Click this link to reset your password: $resetLink\n\n";
-        $message .= "If you didn't request this, please ignore this email.";
-        $headers = 'From: no-reply@yourdomain.com';
-        
-        mail($to, $subject, $message, $headers);
-        
-        $success = 'Password reset link has been sent to your email.';
-    } else {
-        $error = 'Email not found in our system.';
+        if ($student) {
+            // Generate token
+            $token = bin2hex(random_bytes(32));
+            $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour expiration
+            
+            // Store token in password_resets table
+            $stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $email, $token, $expires);
+            $stmt->execute();
+            
+            // Create reset link
+            $resetLink = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]/reset-password.php?token=$token";
+            
+            // Send email
+            $to = $email;
+            $subject = 'Password Reset Request - SmartVote System';
+            $message = "Hello,\n\n";
+            $message .= "You requested a password reset for your SmartVote account.\n\n";
+            $message .= "Click this link to reset your password: $resetLink\n\n";
+            $message .= "This link will expire in 1 hour.\n\n";
+            $message .= "If you didn't request this, please ignore this email.\n\n";
+            $message .= "Best regards,\nSmartVote Team";
+            $headers = 'From: no-reply@smartvote.com' . "\r\n" .
+                       'Reply-To: support@smartvote.com' . "\r\n" .
+                       'X-Mailer: PHP/' . phpversion();
+            
+            if (mail($to, $subject, $message, $headers)) {
+                $success = 'Password reset link has been sent to your email. Check your inbox (and spam folder).';
+            } else {
+                $error = 'Failed to send email. Please try again later.';
+            }
+        } else {
+            $error = 'Email not found in our system.';
+        }
+    } catch (mysqli_sql_exception $e) {
+        $error = 'Database error: ' . $e->getMessage();
     }
 }
 ?>
