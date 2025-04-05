@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Start session and check authentication
+
 session_start();
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php'); 
@@ -22,7 +22,6 @@ $dashboard_stats = [
     'election_id' => null
 ];
 
-// Fetch dashboard data with better error handling
 try {
     if (!$conn) {
         throw new Exception("Database connection failed");
