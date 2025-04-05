@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../configs/dbconnection.php';
-require_once __DIR__ . '/../configs/session.php';
+require_once __DIR__ . '../configs/dbconnection.php';
+require_once __DIR__ . '../configs/session.php';
 
 // Enable error reporting
 error_reporting(E_ALL);
