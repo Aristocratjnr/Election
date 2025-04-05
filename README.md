@@ -50,6 +50,7 @@ The **Election Management System (EMS)** is a web-based platform designed to str
 
 ### **Security:**
 - SSL Encryption
+- Google Authenticator for 2FA
 
 ### **Notifications:**
 - **Email:** PHPMailer
