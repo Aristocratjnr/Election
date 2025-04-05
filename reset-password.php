@@ -62,6 +62,15 @@ $email = isset($_GET['email']) ? $_GET['email'] : '';
    
 
     <script src="assets/js/config.js"></script>
+    <style>
+    .bx-show:before {
+    content: "\eab3";
+    }
+    .bx-hide:before {
+    content: "\eab2";
+   }
+
+    </style>
   </head>
 
   <body>
@@ -89,18 +98,19 @@ $email = isset($_GET['email']) ? $_GET['email'] : '';
                 <span class="fw-medium">Your new password must be different from previously used passwords</span>
               </p>
               <form id="formAuthentication" action="auth-login-basic.html" method="GET">
-                <div class="mb-6 form-password-toggle form-control-validation">
-                  <label class="form-label" for="password">New Password</label>
-                  <div class="input-group input-group-merge">
-                    <input
-                      type="password"
-                      id="password"
-                      class="form-control"
-                      name="password"
-                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                      aria-describedby="password" />
-                    <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
-                  </div>
+              <div class="mb-6 form-password-toggle form-control-validation">
+                    <label class="form-label" for="password">New Password</label>
+                    <div class="input-group input-group-merge">
+                        <input
+                            type="password"
+                            id="password"
+                            class="form-control"
+                            name="password"
+                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                            aria-describedby="password" />
+                        <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
+                    </div>
+                    <!-- Error messages will be inserted here by JavaScript -->
                 </div>
                 <div class="mb-6 form-password-toggle form-control-validation">
                   <label class="form-label" for="confirm-password">Confirm Password</label>
@@ -218,6 +228,16 @@ function showError(fieldId, message) {
     errorDiv.textContent = message;
     errorContainer.appendChild(errorDiv);
 }
+
+document.querySelectorAll('.input-group-text.cursor-pointer').forEach(icon => {
+    icon.addEventListener('click', function() {
+        const input = this.parentNode.querySelector('input');
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        this.querySelector('i').classList.toggle('bx-hide');
+        this.querySelector('i').classList.toggle('bx-show');
+    });
+});
 </script>
   </body>
 </html>
