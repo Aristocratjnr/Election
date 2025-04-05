@@ -514,8 +514,12 @@ try {
                 })
                 .then(data => {
                     if (data.success) {
-                        // Refresh the page to show changes
-                        location.reload();
+                        if (data.logout_required) {
+                            window.location.href = 'login.php';
+                        } else {
+                            // Refresh the page to show changes
+                            location.reload();
+                        }
                     } else {
                         alert('Error: ' + (data.message || 'Operation failed'));
                         if (data.error) console.error('Server error:', data.error);
@@ -530,6 +534,7 @@ try {
                     this.disabled = false;
                 });
             }
+        
         } else if (action === 'reset') {
             if (confirm('Reset password for this student? A temporary password will be generated.')) {
                 // Show loading state

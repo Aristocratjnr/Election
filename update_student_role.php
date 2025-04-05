@@ -51,18 +51,36 @@ try {
         exit(json_encode(['success' => false, 'message' => 'Student not found']));
     }
 
+    $student = $check_result->fetch_assoc();
+    
+    // Check if the current user is modifying their own role
+    $is_current_user = ($_SESSION['login_id'] == $student_id);
+    
     // Determine new role
     $new_role = ($action === 'promote') ? 'admin' : 'student';
+    
+    // Don't allow changing role if it would be the same
+    if ($student['role'] === $new_role) {
+        http_response_code(400);
+        exit(json_encode([
+            'success' => false, 
+            'message' => 'Student already has this role',
+            'current_role' => $student['role']
+        ]));
+    }
     
     // Update the student's role (using the correct column name 'role')
     $stmt = $conn->prepare("UPDATE students SET role = ? WHERE studentID = ?");
     $stmt->bind_param('si', $new_role, $student_id);
     
     if ($stmt->execute()) {
+        // Return additional flag if this affects the current user
         echo json_encode([
             'success' => true, 
             'message' => 'Role updated successfully',
-            'new_role' => $new_role
+            'new_role' => $new_role,
+            'logout_required' => $is_current_user,
+            'is_current_user' => $is_current_user
         ]);
     } else {
         http_response_code(500);
