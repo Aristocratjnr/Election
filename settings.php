@@ -558,7 +558,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
             
             <!-- Success/Error Messages -->
             <?php if ($successMessage): ?>
-                <div class="alert alert-success alert-dismissible fade show">
+                <div class="alert alert-success alert-dismissible fade show" id="successAlert">
                     <i class="bi bi-check-circle-fill me-2"></i> <?php echo $successMessage; ?>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
@@ -997,6 +997,17 @@ document.getElementById('verification_code')?.addEventListener('input', function
 document.getElementById('verification_code')?.addEventListener('keyup', function(e) {
     if (this.value.length === 6) {
         document.querySelector('button[name="verify_2fa"]').click();
+    }
+});
+
+// Auto-dismiss success alert after 2 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const successAlert = document.getElementById('successAlert');
+    if (successAlert) {
+        setTimeout(function() {
+            const alertInstance = new bootstrap.Alert(successAlert);
+            alertInstance.close();
+        }, 2000); // 2000 milliseconds = 2 seconds
     }
 });
     </script>

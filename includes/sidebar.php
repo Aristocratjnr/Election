@@ -44,37 +44,143 @@
       'url' => 'index.php?page=dashboard',
       'active' => in_array($current_page, ['dashboard']) || $_SERVER['SCRIPT_NAME'] === 'index.php',
       'tooltip' => 'Administrative Dashboard'
-    ],
-    'elections' => [
-      'title' => 'Election Control',
-      'icon' => 'bi-calendar-event',
-      'url' => 'index.php?page=election_config',
-      'active' => in_array($current_page, ['election_config', 'candidates', 'positions']),
-      'indicator' => 'bi-chevron-right',
-      'tooltip' => 'Manage Elections',
-      'subitems' => [
-        'config' => [
-          'title' => 'Configuration',
-          'icon' => 'bi-gear',
-          'url' => 'index.php?page=election_config'
+    ],'elections' => [
+    'title' => 'Election Control',
+    'icon' => 'bi-calendar-event',
+    'url' => 'index.php?page=elections&action=manage',
+    'active' => in_array($current_page, ['elections', 'election_config', 'candidates', 'positions', 'ballots', 'election_results']),
+    'indicator' => 'bi-chevron-right',
+    'tooltip' => 'Manage Elections, Candidates, Positions and Ballots',
+    'subitems' => [
+        'manage' => [
+            'title' => 'All Elections',
+            'icon' => 'bi-list-ul',
+            'url' => 'index.php?page=elections&action=manage',
+            'active' => ($current_page == 'elections' && (!isset($_GET['action']) || $_GET['action'] == 'manage'))
+        ],
+        'create' => [
+            'title' => 'Create New',
+            'icon' => 'bi-plus-circle',
+            'url' => 'index.php?page=elections&action=create',
+            'active' => ($current_page == 'elections' && isset($_GET['action']) && $_GET['action'] == 'create')
         ],
         'positions' => [
-          'title' => 'Positions',
-          'icon' => 'bi-award',
-          'url' => 'index.php?page=positions'
+            'title' => 'Positions',
+            'icon' => 'bi-award',
+            'url' => 'index.php?page=positions&action=manage',
+            'active' => $current_page == 'positions',
+            'subsubitems' => [
+                'manage_positions' => [
+                    'title' => 'Manage Positions',
+                    'icon' => 'bi-list-check',
+                    'url' => 'index.php?page=positions&action=manage'
+                ],
+                'create_position' => [
+                    'title' => 'Add Position',
+                    'icon' => 'bi-plus-lg',
+                    'url' => 'index.php?page=positions&action=create'
+                ]
+            ]
         ],
         'candidates' => [
-          'title' => 'Candidates',
-          'icon' => 'bi-person-badge',
-          'url' => 'index.php?page=candidates'
+            'title' => 'Candidates',
+            'icon' => 'bi-person-badge',
+            'url' => 'index.php?page=candidates&action=manage',
+            'active' => $current_page == 'candidates',
+            'subsubitems' => [
+                'manage_candidates' => [
+                    'title' => 'All Candidates',
+                    'icon' => 'bi-people',
+                    'url' => 'index.php?page=candidates&action=manage'
+                ],
+                'add_candidate' => [
+                    'title' => 'Add Candidate',
+                    'icon' => 'bi-person-plus',
+                    'url' => 'index.php?page=candidates&action=create'
+                ],
+                'import' => [
+                    'title' => 'Bulk Import',
+                    'icon' => 'bi-upload',
+                    'url' => 'index.php?page=candidates&action=import'
+                ]
+            ]
         ],
         'ballots' => [
-          'title' => 'Ballot Design',
-          'icon' => 'bi-file-earmark-text',
-          'url' => 'index.php?page=ballots'
+            'title' => 'Ballot Design',
+            'icon' => 'bi-file-earmark-text',
+            'url' => 'index.php?page=ballots&action=design',
+            'active' => $current_page == 'ballots',
+            'subsubitems' => [
+                'design' => [
+                    'title' => 'Ballot Designer',
+                    'icon' => 'bi-palette',
+                    'url' => 'index.php?page=ballots&action=design'
+                ],
+                'preview' => [
+                    'title' => 'Live Preview',
+                    'icon' => 'bi-eye',
+                    'url' => 'index.php?page=ballots&action=preview'
+                ],
+                'templates' => [
+                    'title' => 'Templates',
+                    'icon' => 'bi-collection',
+                    'url' => 'index.php?page=ballots&action=templates'
+                ]
+            ]
+        ],
+        'results' => [
+            'title' => 'Results',
+            'icon' => 'bi-graph-up',
+            'url' => 'index.php?page=election_results&action=view',
+            'active' => $current_page == 'election_results',
+            'subsubitems' => [
+                'live' => [
+                    'title' => 'Live Results',
+                    'icon' => 'bi-speedometer2',
+                    'url' => 'index.php?page=election_results&action=live'
+                ],
+                'reports' => [
+                    'title' => 'Generate Reports',
+                    'icon' => 'bi-file-earmark-bar-graph',
+                    'url' => 'index.php?page=election_results&action=reports'
+                ],
+                'analytics' => [
+                    'title' => 'Voter Analytics',
+                    'icon' => 'bi-pie-chart',
+                    'url' => 'index.php?page=election_results&action=analytics'
+                ]
+            ]
+        ],
+        'settings' => [
+            'title' => 'Configuration',
+            'icon' => 'bi-gear',
+            'url' => 'index.php?page=election_config&action=general',
+            'active' => $current_page == 'election_config',
+            'subsubitems' => [
+                'general' => [
+                    'title' => 'General Settings',
+                    'icon' => 'bi-sliders',
+                    'url' => 'index.php?page=election_config&action=general'
+                ],
+                'voting' => [
+                    'title' => 'Voting Rules',
+                    'icon' => 'bi-check2-square',
+                    'url' => 'index.php?page=election_config&action=voting'
+                ],
+                'eligibility' => [
+                    'title' => 'Voter Eligibility',
+                    'icon' => 'bi-person-check',
+                    'url' => 'index.php?page=election_config&action=eligibility'
+                ],
+                'security' => [
+                    'title' => 'Security',
+                    'icon' => 'bi-shield-lock',
+                    'url' => 'index.php?page=election_config&action=security'
+                ]
+            ]
         ]
-      ]
-    ],
+    ]
+],
     'voters' => [
       'title' => 'Voter Management',
       'icon' => 'bi-people-fill',
