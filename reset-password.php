@@ -1,531 +1,214 @@
-<?php
-// Start secure session with stricter settings
-if (session_status() === PHP_SESSION_NONE) {
-    session_start([
-        'cookie_secure' => true,
-        'cookie_httponly' => true,
-        'use_strict_mode' => true,
-        'cookie_samesite' => 'Strict'
-    ]);
-}
+<!doctype html>
 
-// Database connection
-require 'configs/dbconnection.php';
+<html
+  lang="en"
+  class="layout-wide customizer-hide"
+  dir="ltr"
+  data-skin="default"
+  data-assets-path="assets/"
+  data-template="vertical-menu-template"
+  data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-// Initialize variables
-$error = '';
-$success = '';
-$token = $_GET['token'] ?? '';
-$is_valid = false;
-$user_email = '';
+    <title>Demo: Reset Password Basic - Pages | Sneat - Bootstrap Dashboard PRO</title>
 
-// Check if token is valid
-if (!empty($token)) {
-    try {
-        // Verify token format first (64 hex chars)
-        if (!preg_match('/^[a-f0-9]{64}$/i', $token)) {
-            $error = 'Invalid token format';
-        } else {
-            // Check token in database with prepared statement
-            $stmt = $conn->prepare("SELECT pr.*, s.email 
-                                   FROM password_resets pr
-                                   JOIN Students s ON pr.user_id = s.studentID
-                                   WHERE pr.token = ? AND pr.used = 0 AND pr.expires_at > NOW()");
-            $stmt->bind_param('s', $token);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows > 0) {
-                $reset_request = $result->fetch_assoc();
-                $is_valid = true;
-                $user_email = $reset_request['email'];
-                
-                // Store minimal data in session
-                $_SESSION['reset_token'] = $token;
-                $_SESSION['reset_user_id'] = $reset_request['user_id'];
-                $_SESSION['reset_expires'] = time() + 900; // 15-minute window
-            } else {
-                $error = 'Invalid or expired reset link. Please request a new one.';
-            }
-        }
-    } catch (Exception $e) {
-        error_log("Password reset error: " . $e->getMessage());
-        $error = 'An error occurred. Please try again later.';
-        // Consider rate limiting here
-    }
-} else {
-    $error = 'No reset token provided.';
-}
+    <meta name="description" content="" />
 
-// Process password reset form
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Verify session matches token
-    $session_token = $_SESSION['reset_token'] ?? '';
-    $session_user_id = $_SESSION['reset_user_id'] ?? 0;
-    $session_expires = $_SESSION['reset_expires'] ?? 0;
-    
-    if (empty($session_token) || $session_token !== $token || $session_user_id <= 0 || time() > $session_expires) {
-        $error = 'Session expired. Please restart the reset process.';
-        $is_valid = false;
-    } else {
-        $new_password = $_POST['password'] ?? '';
-        $confirm_password = $_POST['confirm_password'] ?? '';
-        
-        // Validate passwords
-        if (empty($new_password) || empty($confirm_password)) {
-            $error = 'Please enter and confirm your new password';
-        } elseif (strlen($new_password) < 12) {  // Increased minimum length
-            $error = 'Password must be at least 12 characters long';
-        } elseif ($new_password !== $confirm_password) {
-            $error = 'Passwords do not match';
-        } elseif (!preg_match('/[A-Z]/', $new_password) || 
-                 !preg_match('/[a-z]/', $new_password) || 
-                 !preg_match('/[0-9]/', $new_password) || 
-                 !preg_match('/[^A-Za-z0-9]/', $new_password)) {
-            $error = 'Password must include uppercase, lowercase, number, and special character';
-        } else {
-            try {
-                // Check if password was previously used (optional but recommended)
-                $stmt = $conn->prepare("SELECT password FROM Students WHERE studentID = ?");
-                $stmt->bind_param('i', $session_user_id);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $user = $result->fetch_assoc();
-                
-                if (password_verify($new_password, $user['password'])) {
-                    $error = 'You cannot reuse an old password';
-                } else {
-                    // Hash the new password with current best practices
-                    $hashed_password = password_hash($new_password, PASSWORD_ARGON2ID);
-                    
-                    // Begin transaction for atomic updates
-                    $conn->begin_transaction();
-                    
-                    try {
-                        // Update user password
-                        $stmt = $conn->prepare("UPDATE Students SET password = ?, last_password_change = NOW() WHERE studentID = ?");
-                        $stmt->bind_param('si', $hashed_password, $session_user_id);
-                        $stmt->execute();
-                        
-                        // Mark token as used
-                        $stmt = $conn->prepare("UPDATE password_resets SET used = 1 WHERE token = ?");
-                        $stmt->bind_param('s', $token);
-                        $stmt->execute();
-                        
-                        // Invalidate all other active sessions for this user (security measure)
-                        $stmt = $conn->prepare("DELETE FROM user_sessions WHERE user_id = ?");
-                        $stmt->bind_param('i', $session_user_id);
-                        $stmt->execute();
-                        
-                        $conn->commit();
-                        
-                        // Clear session variables
-                        unset($_SESSION['reset_token']);
-                        unset($_SESSION['reset_user_id']);
-                        unset($_SESSION['reset_expires']);
-                        
-                        // Regenerate session ID after privilege change
-                        session_regenerate_id(true);
-                        
-                        $success = 'Your password has been reset successfully! Please login with your new password.';
-                        $is_valid = false;
-                    } catch (Exception $e) {
-                        $conn->rollback();
-                        throw $e;
-                    }
-                }
-            } catch (Exception $e) {
-                error_log("Password update error: " . $e->getMessage());
-                $error = 'An error occurred while resetting your password. Please try again.';
-            }
-        }
-    }
-}
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
 
-// Security headers
-header("X-Frame-Options: DENY");
-header("X-Content-Type-Options: nosniff");
-header("Referrer-Policy: strict-origin-when-cross-origin");
-?>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password - SmartVote</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --danger-color: #f72585;
-        }
-        
-        body {
-            background-color: #f5f7ff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 15px 0;
-        }
-        
-        .auth-container {
-            max-width: 500px;
-            width: 100%;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-        }
-        
-        .auth-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .auth-header img {
-            height: 50px;
-            margin-bottom: 1rem;
-        }
-        
-        .auth-header h2 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        
-        .auth-body {
-            padding: 2rem;
-        }
-        
-        .form-control {
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            transition: all 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-        
-        .auth-footer {
-            text-align: center;
-            padding: 1rem 2rem;
-            border-top: 1px solid #f0f0f0;
-            font-size: 0.9rem;
-        }
-        
-        .success-icon {
-            font-size: 4rem;
-            color: var(--success-color);
-            margin-bottom: 1.5rem;
-        }
-        
-        .password-strength {
-            height: 5px;
-            background-color: #e9ecef;
-            margin-top: 5px;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        
-        .password-strength-bar {
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s;
-        }
-        
-        .password-criteria {
-            margin-top: 10px;
-            font-size: 0.85rem;
-        }
-        
-        .criteria-item {
-            color: #6c757d;
-            transition: all 0.3s;
-        }
-        
-        .criteria-item.met {
-            color: var(--success-color);
-        }
-        
-        @media (max-width: 576px) {
-            .auth-container {
-                border-radius: 10px;
-                margin: 15px;
-                width: calc(100% - 30px);
-            }
-            
-            .auth-header,
-            .auth-body {
-                padding: 1.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="auth-container">
-            <div class="auth-header">
-                <img src="assets/img/logo.png" alt="SmartVote Logo">
-                <h2>Reset Password</h2>
-                <?php if ($is_valid): ?>
-                    <p>Set a new password for <?php echo htmlspecialchars($user_email); ?></p>
-                <?php endif; ?>
+    <link rel="stylesheet" href="assets/vendor/fonts/iconify-icons.css" />
+
+    <!-- Core CSS -->
+    <!-- build:css assets/vendor/css/theme.css  -->
+
+    <link rel="stylesheet" href="assets/vendor/libs/pickr/pickr-themes.css" />
+
+    <link rel="stylesheet" href="assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+
+    <link rel="stylesheet" href="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+
+    <!-- endbuild -->
+
+    <!-- Vendor -->
+    <link rel="stylesheet" href="assets/vendor/libs/@form-validation/form-validation.css" />
+
+    <!-- Page CSS -->
+    <!-- Page -->
+    <link rel="stylesheet" href="assets/vendor/css/pages/page-auth.css" />
+
+    <!-- Helpers -->
+    <script src="assets/vendor/js/helpers.js"></script>
+    <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
+
+    <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
+    <script src="assets/vendor/js/template-customizer.js"></script>
+
+    <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
+
+    <script src="assets/js/config.js"></script>
+  </head>
+
+  <body>
+    <!-- Content -->
+
+    <div class="container-xxl">
+      <div class="authentication-wrapper authentication-basic container-p-y">
+        <div class="authentication-inner">
+          <!-- Reset Password -->
+          <div class="card px-sm-6 px-0">
+            <div class="card-body">
+              <!-- Logo -->
+              <div class="app-brand justify-content-center">
+                <a href="index.html" class="app-brand-link gap-2">
+                  <span class="app-brand-logo demo">
+                    <span class="text-primary">
+                      <svg
+                        width="25"
+                        viewBox="0 0 25 42"
+                        version="1.1"
+                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <defs>
+                          <path
+                            d="M13.7918663,0.358365126 L3.39788168,7.44174259 C0.566865006,9.69408886 -0.379795268,12.4788597 0.557900856,15.7960551 C0.68998853,16.2305145 1.09562888,17.7872135 3.12357076,19.2293357 C3.8146334,19.7207684 5.32369333,20.3834223 7.65075054,21.2172976 L7.59773219,21.2525164 L2.63468769,24.5493413 C0.445452254,26.3002124 0.0884951797,28.5083815 1.56381646,31.1738486 C2.83770406,32.8170431 5.20850219,33.2640127 7.09180128,32.5391577 C8.347334,32.0559211 11.4559176,30.0011079 16.4175519,26.3747182 C18.0338572,24.4997857 18.6973423,22.4544883 18.4080071,20.2388261 C17.963753,17.5346866 16.1776345,15.5799961 13.0496516,14.3747546 L10.9194936,13.4715819 L18.6192054,7.984237 L13.7918663,0.358365126 Z"
+                            id="path-1"></path>
+                          <path
+                            d="M5.47320593,6.00457225 C4.05321814,8.216144 4.36334763,10.0722806 6.40359441,11.5729822 C8.61520715,12.571656 10.0999176,13.2171421 10.8577257,13.5094407 L15.5088241,14.433041 L18.6192054,7.984237 C15.5364148,3.11535317 13.9273018,0.573395879 13.7918663,0.358365126 C13.5790555,0.511491653 10.8061687,2.3935607 5.47320593,6.00457225 Z"
+                            id="path-3"></path>
+                          <path
+                            d="M7.50063644,21.2294429 L12.3234468,23.3159332 C14.1688022,24.7579751 14.397098,26.4880487 13.008334,28.506154 C11.6195701,30.5242593 10.3099883,31.790241 9.07958868,32.3040991 C5.78142938,33.4346997 4.13234973,34 4.13234973,34 C4.13234973,34 2.75489982,33.0538207 2.37032616e-14,31.1614621 C-0.55822714,27.8186216 -0.55822714,26.0572515 -4.05231404e-15,25.8773518 C0.83734071,25.6075023 2.77988457,22.8248993 3.3049379,22.52991 C3.65497346,22.3332504 5.05353963,21.8997614 7.50063644,21.2294429 Z"
+                            id="path-4"></path>
+                          <path
+                            d="M20.6,7.13333333 L25.6,13.8 C26.2627417,14.6836556 26.0836556,15.9372583 25.2,16.6 C24.8538077,16.8596443 24.4327404,17 24,17 L14,17 C12.8954305,17 12,16.1045695 12,15 C12,14.5672596 12.1403557,14.1461923 12.4,13.8 L17.4,7.13333333 C18.0627417,6.24967773 19.3163444,6.07059163 20.2,6.73333333 C20.3516113,6.84704183 20.4862915,6.981722 20.6,7.13333333 Z"
+                            id="path-5"></path>
+                        </defs>
+                        <g id="g-app-brand" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                          <g id="Brand-Logo" transform="translate(-27.000000, -15.000000)">
+                            <g id="Icon" transform="translate(27.000000, 15.000000)">
+                              <g id="Mask" transform="translate(0.000000, 8.000000)">
+                                <mask id="mask-2" fill="white">
+                                  <use xlink:href="#path-1"></use>
+                                </mask>
+                                <use fill="currentColor" xlink:href="#path-1"></use>
+                                <g id="Path-3" mask="url(#mask-2)">
+                                  <use fill="currentColor" xlink:href="#path-3"></use>
+                                  <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-3"></use>
+                                </g>
+                                <g id="Path-4" mask="url(#mask-2)">
+                                  <use fill="currentColor" xlink:href="#path-4"></use>
+                                  <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-4"></use>
+                                </g>
+                              </g>
+                              <g
+                                id="Triangle"
+                                transform="translate(19.000000, 11.000000) rotate(-300.000000) translate(-19.000000, -11.000000) ">
+                                <use fill="currentColor" xlink:href="#path-5"></use>
+                                <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-5"></use>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </svg>
+                    </span>
+                  </span>
+                  <span class="app-brand-text demo text-heading fw-bold">Sneat</span>
+                </a>
+              </div>
+              <!-- /Logo -->
+              <h4 class="mb-1">Reset Password 🔒</h4>
+              <p class="mb-6">
+                <span class="fw-medium">Your new password must be different from previously used passwords</span>
+              </p>
+              <form id="formAuthentication" action="auth-login-basic.html" method="GET">
+                <div class="mb-6 form-password-toggle form-control-validation">
+                  <label class="form-label" for="password">New Password</label>
+                  <div class="input-group input-group-merge">
+                    <input
+                      type="password"
+                      id="password"
+                      class="form-control"
+                      name="password"
+                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                      aria-describedby="password" />
+                    <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
+                  </div>
+                </div>
+                <div class="mb-6 form-password-toggle form-control-validation">
+                  <label class="form-label" for="confirm-password">Confirm Password</label>
+                  <div class="input-group input-group-merge">
+                    <input
+                      type="password"
+                      id="confirm-password"
+                      class="form-control"
+                      name="confirm-password"
+                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                      aria-describedby="password" />
+                    <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
+                  </div>
+                </div>
+                <button class="btn btn-primary d-grid w-100 mb-6">Set new password</button>
+                <div class="text-center">
+                  <a href="auth-login-basic.html">
+                    <i class="icon-base bx bx-chevron-left scaleX-n1-rtl me-1 align-top"></i>
+                    Back to login
+                  </a>
+                </div>
+              </form>
             </div>
-            
-            <div class="auth-body">
-                <?php if ($error): ?>
-                    <div class="alert alert-danger alert-dismissible fade show">
-                   
-                        <?php echo $error; ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if ($success): ?>
-                    <div class="text-center py-4">
-                        <i class="bi bi-check-circle-fill success-icon"></i>
-                        <h3>Password Reset!</h3>
-                        <p class="text-muted"><?php echo htmlspecialchars($success, ENT_QUOTES, 'UTF-8'); ?></p>
-                        <p class="text-muted"><?php echo $success; ?></p>
-                        <a href="login.php" class="btn btn-primary mt-3 px-4">Login Now</a>
-                    </div>
-                    <?php elseif ($is_valid): ?>
-                    <form method="POST" action="reset-password.php" id="resetPasswordForm">
-                        <input type="hidden" name="token" value="<?php echo htmlspecialchars($token, ENT_QUOTES, 'UTF-8'); ?>">
-                    
-                    <form method="POST" action="reset-password.php?token=<?php echo htmlspecialchars($token); ?>" id="resetPasswordForm">
-                        <div class="mb-3">
-                            <label for="password" class="form-label">New Password</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" required
-                                       placeholder="Enter new password">
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="bi bi-eye" id="toggleIcon"></i>
-                                </button>
-                            </div>
-                            <div class="password-strength">
-                                <div class="password-strength-bar" id="password-strength-bar"></div>
-                            </div>
-                            <div class="password-criteria mt-2">
-                                <div class="criteria-item" id="length-criteria">
-                                    <i class="bi bi-circle"></i> At least 8 characters
-                                </div>
-                                <div class="criteria-item" id="uppercase-criteria">
-                                    <i class="bi bi-circle"></i> At least 1 uppercase letter
-                                </div>
-                                <div class="criteria-item" id="lowercase-criteria">
-                                    <i class="bi bi-circle"></i> At least 1 lowercase letter
-                                </div>
-                                <div class="criteria-item" id="number-criteria">
-                                    <i class="bi bi-circle"></i> At least 1 number
-                                </div>
-                                <div class="criteria-item" id="special-criteria">
-                                    <i class="bi bi-circle"></i> At least 1 special character
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required
-                                       placeholder="Confirm your new password">
-                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-                                    <i class="bi bi-eye" id="toggleConfirmIcon"></i>
-                                </button>
-                            </div>
-                            <div id="password-match" class="form-text"></div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100" id="resetButton">
-                            <i class="bi bi-lock-fill me-2"></i> Reset Password
-                        </button>
-                    </form>
-                <?php else: ?>
-                    <div class="text-center py-4">
-                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 3rem;"></i>
-                        <h3>Unable to Reset Password</h3>
-                        <p class="text-muted">The password reset link is invalid or has expired.</p>
-                        <a href="forgot_password.php" class="btn btn-primary mt-3 px-4">Request New Link</a>
-                    </div>
-                <?php endif; ?>
-            </div>
-            
-            <div class="auth-footer">
-                Remember your password? <a href="login.php">Sign in here</a>
-            </div>
+          </div>
+          <!-- /Reset Password -->
         </div>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const passwordField = document.getElementById('password');
-            const confirmPasswordField = document.getElementById('confirm_password');
-            const togglePasswordBtn = document.getElementById('togglePassword');
-            const toggleConfirmPasswordBtn = document.getElementById('toggleConfirmPassword');
-            const strengthBar = document.getElementById('password-strength-bar');
-            const passwordMatch = document.getElementById('password-match');
-            const resetButton = document.getElementById('resetButton');
-            const resetForm = document.getElementById('resetPasswordForm');
-            
-            if (!passwordField) return; // Guard clause if we're not on the reset form
-            
-            // Criteria elements
-            const lengthCriteria = document.getElementById('length-criteria');
-            const uppercaseCriteria = document.getElementById('uppercase-criteria');
-            const lowercaseCriteria = document.getElementById('lowercase-criteria');
-            const numberCriteria = document.getElementById('number-criteria');
-            const specialCriteria = document.getElementById('special-criteria');
-            
-            // Toggle password visibility
-            togglePasswordBtn.addEventListener('click', function() {
-                togglePasswordVisibility(passwordField, 'toggleIcon');
-            });
-            
-            toggleConfirmPasswordBtn.addEventListener('click', function() {
-                togglePasswordVisibility(confirmPasswordField, 'toggleConfirmIcon');
-            });
-            
-            function togglePasswordVisibility(field, iconId) {
-                const type = field.getAttribute('type') === 'password' ? 'text' : 'password';
-                field.setAttribute('type', type);
-                
-                const icon = document.getElementById(iconId);
-                icon.classList.toggle('bi-eye');
-                icon.classList.toggle('bi-eye-slash');
-            }
-            
-            // Password strength checker
-            passwordField.addEventListener('input', function() {
-                const password = this.value;
-                checkPasswordStrength(password);
-                checkPasswordMatch();
-            });
-            
-            confirmPasswordField.addEventListener('input', checkPasswordMatch);
-            
-            // Check if passwords match
-            function checkPasswordMatch() {
-                const password = passwordField.value;
-                const confirmPassword = confirmPasswordField.value;
-                
-                if (confirmPassword.length === 0) {
-                    passwordMatch.textContent = '';
-                    passwordMatch.className = 'form-text';
-                    return;
-                }
-                
-                if (password === confirmPassword) {
-                    passwordMatch.textContent = 'Passwords match';
-                    passwordMatch.className = 'form-text text-success';
-                } else {
-                    passwordMatch.textContent = 'Passwords do not match';
-                    passwordMatch.className = 'form-text text-danger';
-                }
-            }
-            
-            // Check password strength and update UI
-            function checkPasswordStrength(password) {
-                let strength = 0;
-                let meetsAllCriteria = true;
-                
-                // Check length
-                const meetsLength = password.length >= 8;
-                updateCriteriaUI(lengthCriteria, meetsLength);
-                if (meetsLength) strength += 1;
-                else meetsAllCriteria = false;
-                
-                // Check lowercase
-                const meetsLowercase = /[a-z]/.test(password);
-                updateCriteriaUI(lowercaseCriteria, meetsLowercase);
-                if (meetsLowercase) strength += 1;
-                else meetsAllCriteria = false;
-                
-                // Check uppercase
-                const meetsUppercase = /[A-Z]/.test(password);
-                updateCriteriaUI(uppercaseCriteria, meetsUppercase);
-                if (meetsUppercase) strength += 1;
-                else meetsAllCriteria = false;
-                
-                // Check numbers
-                const meetsNumber = /[0-9]/.test(password);
-                updateCriteriaUI(numberCriteria, meetsNumber);
-                if (meetsNumber) strength += 1;
-                else meetsAllCriteria = false;
-                
-                // Check special characters
-                const meetsSpecial = /[^a-zA-Z0-9]/.test(password);
-                updateCriteriaUI(specialCriteria, meetsSpecial);
-                if (meetsSpecial) strength += 1;
-                else meetsAllCriteria = false;
-                
-                // Update strength bar
-                const width = (strength / 5) * 100;
-                strengthBar.style.width = width + '%';
-                
-                // Update color
-                if (strength <= 2) {
-                    strengthBar.style.backgroundColor = '#f72585'; // Weak
-                } else if (strength <= 4) {
-                    strengthBar.style.backgroundColor = '#4cc9f0'; // Medium
-                } else {
-                    strengthBar.style.backgroundColor = '#4ad66d'; // Strong
-                }
-                
-                // Enable/disable reset button based on criteria
-                resetButton.disabled = !meetsAllCriteria;
-            }
-            
-            function updateCriteriaUI(element, isMet) {
-                if (isMet) {
-                    element.classList.add('met');
-                    element.querySelector('i').className = 'bi bi-check-circle-fill';
-                } else {
-                    element.classList.remove('met');
-                    element.querySelector('i').className = 'bi bi-circle';
-                }
-            }
-            
-            // Disable form submission if passwords don't match
-            resetForm.addEventListener('submit', function(e) {
-                const password = passwordField.value;
-                const confirmPassword = confirmPasswordField.value;
-                
-                if (password !== confirmPassword) {
-                    e.preventDefault();
-                    passwordMatch.textContent = 'Passwords do not match';
-                    passwordMatch.className = 'form-text text-danger';
-                    confirmPasswordField.focus();
-                }
-            });
-        });
-    </script>
-</body>
+    <!-- / Content -->
+
+    <!-- Core JS -->
+    <!-- build:js assets/vendor/js/theme.js  -->
+
+    <script src="assets/vendor/libs/jquery/jquery.js"></script>
+
+    <script src="assets/vendor/libs/popper/popper.js"></script>
+    <script src="assets/vendor/js/bootstrap.js"></script>
+    <script src="assets/vendor/libs/@algolia/autocomplete-js.js"></script>
+
+    <script src="assets/vendor/libs/pickr/pickr.js"></script>
+
+    <script src="assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+
+    <script src="assets/vendor/libs/hammer/hammer.js"></script>
+
+    <script src="assets/vendor/libs/i18n/i18n.js"></script>
+
+    <script src="assets/vendor/js/menu.js"></script>
+
+    <!-- endbuild -->
+
+    <!-- Vendors JS -->
+    <script src="assets/vendor/libs/@form-validation/popular.js"></script>
+    <script src="assets/vendor/libs/@form-validation/bootstrap5.js"></script>
+    <script src="assets/vendor/libs/@form-validation/auto-focus.js"></script>
+
+    <!-- Main JS -->
+
+    <script src="assets/js/main.js"></script>
+
+    <!-- Page JS -->
+    <script src="assets/js/pages-auth.js"></script>
+  </body>
 </html>

@@ -77,7 +77,7 @@
               <!-- /Logo -->
               <h4 class="mb-1">Forgot Password? 🔒</h4>
               <p class="mb-6">Enter your email and we'll send you instructions to reset your password</p>
-              <form id="formAuthentication" class="mb-6" action="auth-reset-password-basic.html" method="GET">
+              <form id="formAuthentication" class="mb-6" action="reset-password.php" method="GET">
                 <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">Email</label>
                   <input
