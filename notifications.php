@@ -225,8 +225,8 @@ try {
             <div class="col-lg-8">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="bi bi-bell-fill me-2 text-primary"></i>Notifications
+                        <h5 class="mb-0 fw-semibold text-muted">
+                            <i class="bi bi-bell-fill me-2 text-secondary"></i>Notifications
                             <?php if ($unreadCount > 0): ?>
                                 <span class="badge bg-danger rounded-pill ms-2"><?= $unreadCount ?> new</span>
                             <?php endif; ?>
