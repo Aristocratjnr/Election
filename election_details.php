@@ -84,7 +84,7 @@ try {
         }
         
         .main-content {
-            margin-left: 250px;
+            margin-left: 1500px;
             width: calc(100% - 250px);
         }
         
@@ -99,11 +99,6 @@ try {
             border-radius: 0.35rem;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
             transition: all 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1.5rem 0 rgba(58, 59, 69, 0.2);
         }
         
         .card-header {
