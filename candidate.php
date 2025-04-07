@@ -81,13 +81,13 @@ $candidates = $conn->query("
         }
 
         .sidebar {
-            width: 280px;
+            width: 120px;
             background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
         }
 
         .main-content {
-            margin-left: 280px;
+            margin-left: 200px;
             width: calc(100% - 280px);
         }
 
@@ -125,7 +125,7 @@ $candidates = $conn->query("
 
         .table tr:first-child td {
             border-top-left-radius: 0.5rem;
-            border-bottom-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.7rem;
         }
 
         .table tr:last-child td {
@@ -232,7 +232,7 @@ $candidates = $conn->query("
             <?php include 'includes/sidebar.php'; ?>
             <?php include 'includes/header.php'; ?><br><br>
             <div class="main-content">
-                <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-5">
+                <main class="col-md-7 ms-sm-auto col-lg-10 px-md-4 py-5">
                     <!-- Page Header -->
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                         <div>
@@ -478,6 +478,6 @@ $candidates = $conn->query("
             })
         })()
     </script>
-    <?php include 'includes/footer.php'; ?>
+   
 </body>
 </html>
