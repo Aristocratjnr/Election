@@ -744,7 +744,7 @@ if ($electionID) {
                         <i class="bi bi-info-circle-fill fs-1 mb-3"></i>
                         <h4 class="mt-2">Select an Election</h4>
                         <p class="mb-3">Choose an election from the dropdown above to view detailed voting results and statistics.</p>
-                                        <button class="btn btn-outline-primary" onclick="document.querySelector('select[name=\"election\"]').focus()">
+                                        <button class="btn btn-outline-primary" onclick="document.querySelector('select[name=\\'election\\']').focus()">
                                             <i class="bi bi-arrow-up-circle me-2"></i> Select Election
                                         </button>
                                     </div>
