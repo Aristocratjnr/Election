@@ -1,3 +1,124 @@
+<?php
+session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Check authentication and role
+if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
+    header('Location: login.php');
+    exit();
+}
+
+require 'configs/dbconnection.php';
+
+// Initialize variables
+$election_id = $_GET['election_id'] ?? null;
+$election = [];
+$positions = [];
+$saved_design = null;
+
+// Add error display at the top of the page
+if (isset($_SESSION['error'])): ?>
+    <div class="alert alert-danger"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
+<?php endif; 
+if (isset($_SESSION['success'])): ?>
+    <div class="alert alert-success"><?= $_SESSION['success']; unset($_SESSION['success']); ?></div>
+<?php endif;
+// Fetch election details
+if ($election_id) {
+    try {
+        // Get election details
+        $stmt = $conn->prepare("SELECT * FROM elections WHERE electionID = ?");
+        $stmt->bind_param("i", $election_id);
+        $stmt->execute();
+        $election = $stmt->get_result()->fetch_assoc();
+        
+        if (!$election) {
+            $_SESSION['error'] = "Election not found";
+            header("Location: ballot_designer.php?election_id=$election_id");
+
+            exit();
+        }
+
+        // Get saved design if exists
+        $design_stmt = $conn->prepare("SELECT design_data FROM ballot_designs WHERE election_id = ?");
+        $design_stmt->bind_param("i", $election_id);
+        $design_stmt->execute();
+        $result = $design_stmt->get_result();
+        $saved_design = $result->fetch_assoc()['design_data'] ?? null;
+
+        // Get positions and candidates
+        $position_stmt = $conn->prepare("
+            SELECT p.* 
+            FROM positions p 
+            WHERE p.electionID = ?
+            ORDER BY p.order_num
+        ");
+        $position_stmt->bind_param("i", $election_id);
+        $position_stmt->execute();
+        $positions = $position_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    } catch (Exception $e) {
+        $_SESSION['error'] = "Database error: " . $e->getMessage();
+        header("Location: ballot_designer.php?election_id=$election_id");
+
+        exit();
+    }
+} else {
+    $_SESSION['error'] = "No election specified";
+    header("Location: ballot_designer.php?election_id=$election_id");
+
+    exit();
+}
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_design'])) {
+    try {
+        $design_data = json_decode($_POST['design_data'], true);
+        
+        // Validate and sanitize data
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception("Invalid design data format");
+        }
+        
+        // Prepare design data for storage
+        $clean_design = [
+            'template' => filter_var($design_data['template']),
+            'elements' => []
+        ];
+        
+        foreach ($design_data['elements'] as $element) {
+            $clean_design['elements'][] = [
+                'type' => filter_var($element['type']),
+                'content' => filter_var($element['content']),
+                'position' => [
+                    'x' => filter_var($element['position']['x']),
+                    'y' => filter_var($element['position']['y'])
+                ]
+            ];
+        }
+        
+        // Save to database
+        $json_data = json_encode($clean_design);
+        $save_stmt = $conn->prepare("
+            INSERT INTO ballot_designs (election_id, design_data) 
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE design_data = ?
+        ");
+        $save_stmt->bind_param("iss", $election_id, $json_data, $json_data);
+        $save_stmt->execute();
+        
+        $_SESSION['success'] = "Design saved successfully";
+        header("Location: ballot_designer.php?election_id=$election_id");
+        exit();
+        
+    } catch (Exception $e) {
+        $_SESSION['error'] = "Error saving design: " . $e->getMessage();
+        header("Location: ballot_designer.php?election_id=$election_id");
+        exit();
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -903,6 +1024,53 @@
                 default:
                     canvas.style.minHeight = '1000px';
             }
+        });
+
+        <?php if ($saved_design): ?>
+        const savedDesign = <?= json_decode($saved_design, true) ?>;
+        applyTemplate(savedDesign.template);
+        savedDesign.elements.forEach(element => {
+            const el = createElement(element.type);
+            el.style.left = element.position.x;
+            el.style.top = element.position.y;
+            el.querySelector('.element-content').innerHTML = element.content;
+            canvas.appendChild(el);
+            makeElementDraggable(el);
+            addElementControls(el);
+        });
+        <?php endif; ?>
+
+        // Save functionality
+        document.getElementById('saveDesign').addEventListener('click', function() {
+            const designData = {
+                template: currentTemplate,
+                elements: Array.from(canvas.querySelectorAll('.draggable-element')).map(element => ({
+                    type: element.getAttribute('data-type'),
+                    content: element.querySelector('.element-content').innerHTML,
+                    position: {
+                        x: element.style.left,
+                        y: element.style.top
+                    }
+                }))
+            };
+
+            // Create hidden form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            
+            const designInput = document.createElement('input');
+            designInput.type = 'hidden';
+            designInput.name = 'design_data';
+            designInput.value = JSON.stringify(designData);
+            
+            const submitInput = document.createElement('input');
+            submitInput.type = 'hidden';
+            submitInput.name = 'save_design';
+            
+            form.appendChild(designInput);
+            form.appendChild(submitInput);
+            document.body.appendChild(form);
+            form.submit();
         });
         
         document.getElementById('resetCanvas').addEventListener('click', function() {
