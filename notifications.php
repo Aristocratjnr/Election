@@ -105,16 +105,22 @@ try {
         }
         
         // Format time as "X minutes/hours/days ago"
-        $createdAt = new DateTime($row['created_at']);
-        $now = new DateTime();
+        $createdAt = new DateTime($row['created_at'], new DateTimeZone('Asia/Manila'));
+        $now = new DateTime('now', new DateTimeZone('Asia/Manila'));
         $interval = $now->diff($createdAt);
         
-        if ($interval->d > 0) {
+        if ($interval->y > 0) {
+            $row['time_ago'] = $interval->y . ' year' . ($interval->y > 1 ? 's' : '') . ' ago';
+        } elseif ($interval->m > 0) {
+            $row['time_ago'] = $interval->m . ' month' . ($interval->m > 1 ? 's' : '') . ' ago';
+        } elseif ($interval->d > 0) {
             $row['time_ago'] = $interval->d . ' day' . ($interval->d > 1 ? 's' : '') . ' ago';
         } elseif ($interval->h > 0) {
             $row['time_ago'] = $interval->h . ' hour' . ($interval->h > 1 ? 's' : '') . ' ago';
-        } else {
+        } elseif ($interval->i > 0) {
             $row['time_ago'] = $interval->i . ' minute' . ($interval->i > 1 ? 's' : '') . ' ago';
+        } else {
+            $row['time_ago'] = 'Just now';
         }
         
         $notifications[] = $row;
@@ -143,16 +149,19 @@ try {
             --notification-secondary: #82868b;
         }
         
+        /* Container styles */
         .notification-container {
-            max-height: 70vh;
+            max-height: calc(100vh - 250px);
             overflow-y: auto;
             scrollbar-width: thin;
         }
         
+        /* Notification item styles */
         .notification-item {
             transition: all 0.3s ease;
             border-left: 4px solid transparent;
             position: relative;
+            padding: 1rem;
         }
         
         .notification-item.unread {
@@ -165,6 +174,7 @@ try {
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         
+        /* Icon styles */
         .notification-icon {
             width: 40px;
             height: 40px;
@@ -176,12 +186,14 @@ try {
             flex-shrink: 0;
         }
         
+        /* Background colors */
         .bg-primary-light { background-color: rgba(115, 103, 240, 0.1); }
         .bg-success-light { background-color: rgba(40, 199, 111, 0.1); }
         .bg-info-light { background-color: rgba(0, 207, 232, 0.1); }
         .bg-warning-light { background-color: rgba(255, 159, 67, 0.1); }
         .bg-secondary-light { background-color: rgba(130, 134, 139, 0.1); }
         
+        /* Text and badge styles */
         .notification-time {
             font-size: 0.75rem;
             color: #6c757d;
@@ -196,14 +208,85 @@ try {
             border-radius: 50%;
         }
         
+        .notification-content {
+            flex-grow: 1;
+            min-width: 0; /* Prevents text overflow */
+        }
+        
+        /* Empty state styles */
         .empty-state {
             text-align: center;
-            padding: 3rem;
+            padding: 2rem;
             color: #6c757d;
         }
         
-        .notification-content {
-            flex-grow: 1;
+        /* Card styles */
+        .card {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .notification-container {
+                max-height: calc(100vh - 200px);
+            }
+            
+            .notification-item {
+                padding: 0.75rem;
+            }
+            
+            .notification-icon {
+                width: 32px;
+                height: 32px;
+                margin-right: 10px;
+            }
+            
+            .notification-content h6 {
+                font-size: 0.9rem;
+            }
+            
+            .notification-content p {
+                font-size: 0.85rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+            }
+            
+            .card-header {
+                padding: 0.75rem;
+            }
+            
+            .card-header h5 {
+                font-size: 1rem;
+            }
+            
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            /* Improve touch targets on mobile */
+            .notification-item {
+                padding: 1rem 0.75rem;
+            }
+            
+            .btn-close {
+                padding: 0.75rem;
+            }
+        }
+        
+        /* Larger screens */
+        @media (min-width: 769px) {
+            .container {
+                max-width: 960px;
+            }
+            
+            .notification-item {
+                padding: 1rem 1.5rem;
+            }
         }
         
         /* Custom scrollbar */
@@ -215,14 +298,42 @@ try {
             background-color: rgba(0,0,0,0.1);
             border-radius: 3px;
         }
+        
+        /* Toast notification styles */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            min-width: 250px;
+            max-width: 90vw;
+            z-index: 9999;
+        }
+        
+        /* Badge styles */
+        .badge {
+            white-space: normal;
+            text-align: left;
+        }
+        
+        /* Truncate long text */
+        .notification-content h6,
+        .notification-content p {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Improve spacing for stacked badges */
+        .badge + .badge {
+            margin-top: 0.25rem;
+        }
     </style>
 </head>
 <body>
     <?php include 'includes/header.php'; ?><br><br><br>
     
-    <main class="container my-4">
+    <main class="container-fluid container-lg my-4">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-12 col-lg-8">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
                         <h5 class="mb-0 fw-semibold text-muted">

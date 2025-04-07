@@ -2,7 +2,6 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-
 session_start();
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php'); 
@@ -27,7 +26,7 @@ try {
         throw new Exception("Database connection failed");
     }
 
-    $tables = ['elections', 'categories', 'students', 'votes']; // Updated to include students
+    $tables = ['elections', 'categories', 'students', 'votes'];
     foreach ($tables as $table) {
         $check = $conn->query("SHOW TABLES LIKE '$table'");
         if (!$check || $check->num_rows == 0) {
@@ -35,26 +34,21 @@ try {
         }
     }
 
-    // Modified query to work with students table
+    // Corrected query for participation rate
     $query = "
-    SELECT
-      (SELECT COUNT(*) FROM elections) AS total_elections,
-      IFNULL((SELECT COUNT(*) FROM categories c WHERE c.electionID = e.electionID AND e.status = 'Ongoing'), 0) AS total_active_categories,
-      (SELECT COUNT(*) FROM students WHERE status = 'Active') AS total_voters,
-      COUNT(DISTINCT v.studentID) AS total_voted,
-      e.name AS election_title,
-      e.electionID AS election_id
-    FROM
-        elections e
-    LEFT JOIN
-        students s ON s.status = 'Active'
-    LEFT JOIN
-        votes v ON e.electionID = v.electionID
-    WHERE
-        e.status = 'Ongoing'
+    SELECT 
+        (SELECT COUNT(*) FROM elections) AS total_elections,
+        (SELECT COUNT(*) FROM categories WHERE electionID = e.electionID) AS total_active_categories,
+        (SELECT COUNT(*) FROM students WHERE status = 'Active') AS total_voters,
+        (SELECT COUNT(DISTINCT studentID) FROM votes v WHERE v.electionID = e.electionID) AS total_voted,
+        e.name AS election_title,
+        e.electionID AS election_id,
+        e.status
+    FROM elections e
+    WHERE e.status = 'Ongoing'
     LIMIT 1";
 
-  $result = $conn->query($query);
+    $result = $conn->query($query);
     
     if (!$result) {
         throw new Exception("Query failed: " . $conn->error);
@@ -73,30 +67,15 @@ try {
     }
 } catch (Exception $e) {
     error_log("Dashboard error: " . $e->getMessage());
-    $error_message = "Error loading dashboard data: " . $e->getMessage(); // More detailed error
+    $error_message = "Error loading dashboard data: " . $e->getMessage();
 }
 
-// Fetch students data with error handling
+// Fetch students data
 $students = [];
 try {
-    if (!$conn) {
-        throw new Exception("No database connection");
-    }
-    
-    $students_query = $conn->prepare("SELECT studentID, name, email, password, dateOfBirth, department, contactNumber, registrationDate, status, created_at, role as type, profilePicture FROM students");
-    if (!$students_query) {
-        throw new Exception("Prepare failed: " . $conn->error);
-    }
-    
-    if (!$students_query->execute()) {
-        throw new Exception("Execute failed: " . $students_query->error);
-    }
-    
+    $students_query = $conn->prepare("SELECT studentID, name, email, department, status, role as type, profilePicture FROM students");
+    $students_query->execute();
     $students_result = $students_query->get_result();
-    if (!$students_result) {
-        throw new Exception("Get result failed: " . $students_query->error);
-    }
-    
     $students = $students_result->fetch_all(MYSQLI_ASSOC);
 } catch (Exception $e) {
     error_log("Students query error: " . $e->getMessage());

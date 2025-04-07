@@ -3,29 +3,43 @@ session_start();
 require 'configs/dbconnection.php';
 require 'configs/session.php';
 
-// Check if user is logged in and has the student role
+// Set proper error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Check student authentication
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'student') {
     header('Location: login.php'); 
     exit();
 }
 
-$studentID = (int)$_SESSION['login_id'];
+// Set correct timezone for Ghana
+date_default_timezone_set('Africa/Accra');
 
-// Check if student has already voted in current election
+$studentID = (int)$_SESSION['login_id'];
 $hasVoted = false;
 $currentElection = null;
-$error = null; 
+$error = null;
 
 try {
-    // Get current active election
-    $stmt = $conn->prepare("SELECT * FROM elections WHERE status = 'Ongoing' AND startDate <= NOW() AND endDate >= NOW() LIMIT 1");
+    // Fetch current or upcoming election (within 7 days)
+    $stmt = $conn->prepare("
+        SELECT * FROM elections 
+        WHERE status = 'Ongoing' 
+        OR (status = 'Scheduled' AND startDate <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))
+        ORDER BY startDate ASC
+        LIMIT 1
+    ");
     $stmt->execute();
     $currentElection = $stmt->get_result()->fetch_assoc();
     $stmt->close();
 
     if ($currentElection) {
         // Check if student has already voted
-        $stmt = $conn->prepare("SELECT 1 FROM votes WHERE studentID = ? AND electionID = ?");
+        $stmt = $conn->prepare("
+            SELECT 1 FROM votes 
+            WHERE studentID = ? AND electionID = ?
+        ");
         $stmt->bind_param('ii', $studentID, $currentElection['electionID']);
         $stmt->execute();
         $hasVoted = $stmt->get_result()->num_rows > 0;
@@ -33,7 +47,7 @@ try {
     }
 } catch (Exception $e) {
     error_log("Election check error: " . $e->getMessage());
-    $error = "Error checking election status.";
+    $error = "System temporarily unavailable. Please try again later.";
 }
 
 // Get student details
@@ -48,33 +62,32 @@ try {
     error_log("Student fetch error: " . $e->getMessage());
 }
 
-
-$categories = [];
+$positions = [];
 if ($currentElection && !$hasVoted) {
     try {
-        // Get categories for current election
-        $stmt = $conn->prepare("SELECT * FROM categories WHERE electionID = ?");
+        // Get positions for current election
+        $stmt = $conn->prepare("SELECT * FROM positions WHERE electionID = ?");
         $stmt->bind_param('i', $currentElection['electionID']);
         $stmt->execute();
-        $categories = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Get candidates for each category
-        foreach ($categories as &$category) {
+        // Get candidates for each position
+        foreach ($positions as &$position) {
             $stmt = $conn->prepare("
-                SELECT c.*, s.name, s.department 
+                SELECT c.*, s.name, s.department, s.profilePicture 
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
-                WHERE c.categoryID = ?
+                WHERE c.position = ? AND c.status = 'Approved'
             ");
-            $stmt->bind_param('i', $category['categoryID']);
+            $stmt->bind_param('s', $position['title']);
             $stmt->execute();
-            $category['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
         }
     } catch (Exception $e) {
-        error_log("Categories fetch error: " . $e->getMessage());
-        $error = "Error loading voting categories.";
+        error_log("Positions fetch error: " . $e->getMessage());
+        $error = "Error loading voting positions.";
     }
 }
 
@@ -86,33 +99,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         try {
             $conn->begin_transaction();
 
-            // Validate all categories have selections
+            // Validate all positions have selections
             $votes = [];
-            foreach ($categories as $category) {
-                if (!isset($_POST['category_' . $category['categoryID']])) {
+            foreach ($positions as $position) {
+                $positionTitle = $position['title'];
+                if (!isset($_POST['position_' . $positionTitle])) {
                     throw new Exception("Please select a candidate for all positions.");
                 }
 
-                $candidateID = (int)$_POST['category_' . $category['categoryID']];
+                $candidateID = (int)$_POST['position_' . $positionTitle];
                 $votes[] = [
                     'electionID' => $currentElection['electionID'],
-                    'categoryID' => $category['categoryID'],
                     'candidateID' => $candidateID,
                     'studentID' => $studentID
                 ];
             }
 
-            // Record votes
+            // Record votes - using only fields that exist in your votes table
             $stmt = $conn->prepare("
                 INSERT INTO votes 
-                (electionID, categoryID, candidateID, studentID, `timestamp`) 
-                VALUES (?, ?, ?, ?, NOW())
+                (electionID, candidateID, studentID, `timestamp`) 
+                VALUES (?, ?, ?, NOW())
             ");
 
             foreach ($votes as $vote) {
-                $stmt->bind_param('iiii',
+                $stmt->bind_param('iii',
                     $vote['electionID'],
-                    $vote['categoryID'],
                     $vote['candidateID'],
                     $vote['studentID']
                 );
@@ -173,8 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             color: var(--text);
             line-height: 1.5;
         }
-        
-      
         
         .voting-card {
             background: var(--surface);
@@ -269,13 +279,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             text-transform: uppercase;
         }
         
-        .category-section {
+        .position-section {
             margin-bottom: 3rem;
             padding-bottom: 2rem;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
         
-        .category-badge {
+        .position-badge {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             font-size: 0.75rem;
             padding: 6px 14px;
@@ -436,13 +446,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             animation: wave 2s linear infinite;
         }
         
-        .category-header {
+        .position-header {
             position: relative;
             padding-bottom: 1rem;
             margin-bottom: 1.5rem;
         }
         
-        .category-header::after {
+        .position-header::after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -783,18 +793,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                             <div class="counter-circle me-3">
                                                 <i class="bi bi-calendar-event"></i>
                                             </div>
-                                            <h4 class="text-white mb-0"><?= htmlspecialchars($currentElection['title']) ?></h4>
+                                            <h4 class="text-white mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
                                         </div>
-                                        <p class="text-white-50 mb-2"><?= htmlspecialchars($currentElection['description']) ?></p>
+                                        <p class="text-white-50 mb-2">
+                                            <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
+                                        </p>
                                         <div class="progress-wave mt-3"></div>
                                     </div>
                                     <div class="col-md-5 text-md-end">
                                         <div class="timer-countdown text-white mb-1" id="countdown-timer">
-                                            <?= date('M j, Y', strtotime($currentElection['end_date'])) ?>
+                                            <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
                                         </div>
                                         <p class="text-white-50 mb-0">
                                             <i class="bi bi-clock me-1"></i>
-                                            Ends at <?= date('h:i A', strtotime($currentElection['end_time'])) ?>
+                                            Status: <?= $currentElection['status'] ?>
                                         </p>
                                     </div>
                                 </div>
@@ -817,56 +829,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <!-- Voting Form -->
                         <?php if ($currentElection && !$hasVoted): ?>
                             <form id="votingForm" method="POST">
-                                <?php foreach ($categories as $categoryIndex => $category): ?>
-                                    <div class="category-section">
-                                        <div class="category-header">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="category-badge text-white me-3"><?= $category['name'] ?></span>
-                                                <h4 class="mb-0 fw-bold"><?= $category['description'] ?></h4>
+                                <?php foreach ($positions as $position): ?>
+                                    <?php if (!empty($position['candidates'])): ?>
+                                        <div class="position-section">
+                                            <div class="position-header">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="position-badge text-white me-3">Position</span>
+                                                    <h4 class="mb-0 fw-bold"><?= htmlspecialchars($position['title']) ?></h4>
+                                                </div>
+                                                <p class="text-muted small mb-0"><?= htmlspecialchars($position['description'] ?? 'Select your candidate') ?></p>
                                             </div>
-                                            <p class="text-muted small mb-0">Select one candidate for this position</p>
-                                        </div>
-                                        
-                                        <div class="row g-4">
-                                            <?php foreach ($category['candidates'] as $candidate): ?>
-                                                <div class="col-md-6 col-lg-4">
-                                                    <div class="candidate-card"
-                                                         onclick="selectCandidate(this, <?= $category['categoryID'] ?>, <?= $candidate['candidateID'] ?>)">
-                                                        <div class="text-center p-4 pt-4 pb-2">
-                                                            <div class="avatar-container">
-                                                                <?php if (!empty($candidate['photo'])): ?>
-                                                                    <img src="assets/img/candidates/<?= htmlspecialchars($candidate['photo']) ?>" 
-                                                                         class="avatar" 
-                                                                         alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                <?php else: ?>
-                                                                    <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                                        <i class="bi bi-person fs-2"></i>
-                                                                    </div>
-                                                                <?php endif; ?>
-                                                                <span class="department-badge"><?= htmlspecialchars($candidate['department']) ?></span>
+                                            
+                                            <div class="row g-4">
+                                                <?php foreach ($position['candidates'] as $candidate): ?>
+                                                    <div class="col-md-6 col-lg-4">
+                                                        <div class="candidate-card"
+                                                             onclick="selectCandidate(this, '<?= htmlspecialchars($position['title']) ?>', <?= $candidate['candidateID'] ?>)">
+                                                            <div class="text-center p-4 pt-4 pb-2">
+                                                                <div class="avatar-container">
+                                                                    <?php 
+                                                                    $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                                    if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): ?>
+                                                                        <img src="<?= $candidatePicPath ?>" 
+                                                                             class="avatar" 
+                                                                             alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                                    <?php else: ?>
+                                                                        <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
+                                                                            <i class="bi bi-person fs-2"></i>
+                                                                        </div>
+                                                                    <?php endif; ?>
+                                                                    <span class="department-badge"><?= htmlspecialchars($candidate['department']) ?></span>
+                                                                </div>
+                                                                
+                                                                <div class="selection-check">
+                                                                    <i class="bi bi-check2"></i>
+                                                                </div>
+                                                            </div>
+                                                        
+                                                            <div class="candidate-info text-center">
+                                                                <h5 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h5>
+                                                                <p class="candidate-position"><?= htmlspecialchars($position['title']) ?></p>
+                                                                <p class="candidate-tagline"><?= htmlspecialchars($candidate['manifesto'] ?? 'No manifesto provided') ?></p>
                                                             </div>
                                                             
-                                                            <div class="selection-check">
-                                                                <i class="bi bi-check2"></i>
-                                                            </div>
+                                                            <input type="radio" 
+                                                                   name="position_<?= htmlspecialchars($position['title']) ?>" 
+                                                                   value="<?= $candidate['candidateID'] ?>" 
+                                                                   class="d-none" 
+                                                                   required>
                                                         </div>
-                                                        
-                                                        <div class="candidate-info text-center">
-                                                            <h5 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h5>
-                                                            <p class="candidate-position"><?= htmlspecialchars($candidate['position']) ?></p>
-                                                            <p class="candidate-tagline"><?= htmlspecialchars($candidate['tagline'] ?? '') ?></p>
-                                                        </div>
-                                                        
-                                                        <input type="radio" 
-                                                               name="category_<?= $category['categoryID'] ?>" 
-                                                               value="<?= $candidate['candidateID'] ?>" 
-                                                               class="d-none" 
-                                                               required>
                                                     </div>
-                                                </div>
-                                            <?php endforeach; ?>
+                                                <?php endforeach; ?>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <?php endif; ?>
                                 <?php endforeach; ?>
                                 
                                 <div class="text-center mt-5 pt-3">
@@ -886,7 +902,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                     </div>
                                 </div>
                                 <h3 class="mb-3 fw-bold">Vote Submitted Successfully!</h3>
-                                <p class="lead text-muted mb-4">Thank you for participating in the <?= htmlspecialchars($currentElection['title']) ?> election.</p>
+                                <p class="lead text-muted mb-4">Thank you for participating in the <?= htmlspecialchars($currentElection['name']) ?> election.</p>
                                 
                                 <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
                                     <a href="results.php?election=<?= $currentElection['electionID'] ?>" class="btn btn-outline-primary btn-lg px-4">
@@ -973,9 +989,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Enhanced candidate selection with animation
-        window.selectCandidate = function(element, categoryId, candidateId) {
-            // Deselect other candidates
-            document.querySelectorAll(`input[name="category_${categoryId}"]`).forEach(radio => {
+        window.selectCandidate = function(element, positionTitle, candidateId) {
+            // Deselect other candidates for this position
+            document.querySelectorAll(`input[name="position_${positionTitle}"]`).forEach(radio => {
                 const card = radio.closest('.candidate-card');
                 if (card !== element) {
                     card.classList.remove('selected');
@@ -998,21 +1014,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         
         // Update voting progress and validation status
         function updateVotingProgress() {
-            const categoryCount = document.querySelectorAll('.category-section').length;
-            let completedCategories = 0;
+            const positionCount = document.querySelectorAll('.position-section').length;
+            let completedPositions = 0;
             
-            // Check how many categories have selections
-            document.querySelectorAll('.category-section').forEach(category => {
-                const inputs = category.querySelectorAll('input[type="radio"]');
+            // Check how many positions have selections
+            document.querySelectorAll('.position-section').forEach(position => {
+                const inputs = position.querySelectorAll('input[type="radio"]');
                 const hasSelection = Array.from(inputs).some(input => input.checked);
                 if (hasSelection) {
-                    completedCategories++;
+                    completedPositions++;
                 }
             });
             
             // Update submit button state
             const submitBtn = document.querySelector('.vote-submit-btn');
-            if (completedCategories === categoryCount) {
+            if (completedPositions === positionCount) {
                 submitBtn.removeAttribute('disabled');
                 submitBtn.classList.add('pulse-badge');
             } else {

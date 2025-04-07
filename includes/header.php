@@ -44,20 +44,8 @@ if (isset($_SESSION['login_id'])) {
 }
 
 // Fallback to session data if available
-if (empty($userData)){
+if (empty($userData)) {
     $userData = $_SESSION['user_data'] ?? [];
-}
-
-// Get unread notifications count
-$unreadNotifications = 0;
-try {
-    $stmt = $conn->prepare("SELECT COUNT(*) AS unread FROM notifications WHERE studentID = ? AND isRead = 0");
-    $stmt->bind_param('i', $_SESSION['login_id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $unreadNotifications = $result->fetch_assoc()['unread'] ?? 0;
-} catch (Exception $e) {
-    error_log("Notification count error: " . $e->getMessage());
 }
 ?>
 
@@ -86,18 +74,15 @@ try {
                         </button>
                     </li>
                     
-                    <!-- Notification Bell -->
+                    <!-- Notification Bell with Real-Time Updates -->
                     <li class="nav-item dropdown mx-2">
-                        <a class="nav-link notification-bell position-relative" href="notifications.php" role="button"  aria-expanded="false">
+                        <a class="nav-link notification-bell position-relative" href="notifications.php" role="button" aria-expanded="false">
                             <i class="bi bi-bell fs-5"></i>
-                            <?php if ($unreadNotifications > 0): ?>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                <?php echo $unreadNotifications; ?>
+                            <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                                <span class="notification-count">0</span>
                                 <span class="visually-hidden">unread notifications</span>
                             </span>
-                            <?php endif; ?>
                         </a>
-                        <!-- Notification dropdown menu... -->
                     </li>
 
                     <!-- User Profile Dropdown -->
@@ -184,8 +169,7 @@ try {
                 </ul>
             </nav>
         </div>
-        
-       
+    </div>
 </header>
 
 <script>
@@ -208,5 +192,107 @@ document.addEventListener('DOMContentLoaded', function() {
             el.textContent = profileName;
         });
     }
+
+    // Notification system with refresh handling
+let lastNotificationCheck = 0;
+const NOTIFICATION_CACHE_TIME = 30000; // 30 seconds
+
+async function loadNotifications(refresh = false) {
+    try {
+        // Only refresh if cache expired or forced
+        const now = Date.now();
+        if (!refresh && (now - lastNotificationCheck) < NOTIFICATION_CACHE_TIME) {
+            return;
+        }
+        
+        lastNotificationCheck = now;
+        
+        const response = await fetch('notification_handler.php?offset=0');
+        if (!response.ok) throw new Error('Network error');
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            updateNotificationBadge(data.total);
+            renderNotifications(data.notifications);
+            setupAutoRefresh();
+        }
+    } catch (error) {
+        console.error('Notification error:', error);
+        // Retry after delay
+        setTimeout(() => loadNotifications(), 10000);
+    }
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notificationBadge');
+    if (!badge) return;
+    
+    const countElement = badge.querySelector('.notification-count');
+    if (count > 0) {
+        countElement.textContent = count;
+        badge.style.display = 'block';
+        
+        // Add visual effect for new notifications
+        if (count > parseInt(countElement.dataset.prevCount || 0)) {
+            badge.classList.add('animate__animated', 'animate__tada');
+            setTimeout(() => {
+                badge.classList.remove('animate__animated', 'animate__tada');
+            }, 1000);
+        }
+    } else {
+        badge.style.display = 'none';
+    }
+    countElement.dataset.prevCount = count;
+}
+
+function renderNotifications(notifications) {
+    const container = document.getElementById('notificationsContainer');
+    if (!container) return;
+    
+    container.innerHTML = notifications.map(notif => `
+        <div class="notification-item ${notif.bg_class} p-3 mb-2 rounded">
+            <div class="d-flex align-items-center">
+                <i class="bi ${notif.icon} ${notif.badge_class} p-2 rounded-circle me-3"></i>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${notif.title || 'New Notification'}</h6>
+                    <p class="mb-0 small">${notif.message}</p>
+                </div>
+                <span class="text-muted small">${notif.time_ago}</span>
+            </div>
+            ${notif.related_election ? `<div class="mt-2 small">
+                <i class="bi bi-calendar-event"></i> ${notif.election_name}
+            </div>` : ''}
+        </div>
+    `).join('');
+}
+
+function setupAutoRefresh() {
+    // Refresh when page becomes visible
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            loadNotifications(true);
+        }
+    });
+    
+    // Periodic refresh (every 2 minutes)
+    setInterval(() => {
+        if (!document.hidden) {
+            loadNotifications(true);
+        }
+    }, 120000);
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', () => {
+    loadNotifications();
+    
+    // Also load when navigating back to page
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            loadNotifications(true);
+        }
+    });
+});
 });
 </script>
