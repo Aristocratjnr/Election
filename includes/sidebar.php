@@ -452,7 +452,7 @@ $last_login = $_SESSION['last_login'] ?? null;
       </li>
 
       <!-- Election Control -->
-      <li class="nav-item <?= in_array($current_script, ['elections.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php']) ? 'active' : '' ?>">
+      <li class="nav-item <?= in_array($current_script, ['/election/pages/elections/election.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
           <div class="nav-link settings-toggle" data-tooltip="Manage Elections, Candidates, Positions and Ballots">
             <i class="bi bi-calendar-event"></i>
@@ -461,14 +461,14 @@ $last_login = $_SESSION['last_login'] ?? null;
           </div>
           <ul class="submenu settings-dropdown">
             <!-- Elections Submenu -->
-            <li class="submenu-item <?= ($current_script === 'elections.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
-              <a href="elections.php">
+            <li class="submenu-item <?= ($current_script === '/election/pages/elections/election.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
+              <a href="/election/pages/elections/election.php">
                 <i class="bi bi-list-ul"></i>
                 <span>All Elections</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'elections.php' && $current_action === 'create') ? 'active' : '' ?>">
-              <a href="elections.php?action=create">
+              <a href="/election/pages/elections/position.php">
                 <i class="bi bi-plus-circle"></i>
                 <span>Create New</span>
               </a>
@@ -506,13 +506,6 @@ $last_login = $_SESSION['last_login'] ?? null;
               </a>
             </li>
 
-            <!-- Configuration Submenu -->
-            <li class="submenu-item <?= ($current_script === 'election_config.php') ? 'active' : '' ?>">
-              <a href="election_config.php">
-                <i class="bi bi-gear"></i>
-                <span>Configuration</span>
-              </a>
-            </li>
           </ul>
         </div>
       </li>
