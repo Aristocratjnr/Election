@@ -17,9 +17,24 @@ $current_action = $_GET['action'] ?? null;
 
 // Admin data from session
 $admin_name = $_SESSION['login_name'] ?? 'Administrator';
-$profile_pic = $_SESSION['profilePicture'] ?? null;
 $role = $_SESSION['role'] ?? 'admin';
 $last_login = $_SESSION['last_login'] ?? null;
+
+$default_profile_pic = 'assets/img/aristo.png';
+
+// Check if profile picture exists in database and is accessible
+$profile_pic_path = '';
+if (!empty($profile_pic)) {
+    // Construct the full path
+    $profile_pic_path = 'assets/img/profile/admins/' . $profile_pic;
+    
+    // Verify the file actually exists
+    if (!file_exists($profile_pic_path)) {
+        $profile_pic_path = $default_profile_pic;
+    }
+} else {
+    $profile_pic_path = $default_profile_pic;
+}
 ?>
 
 <style>
@@ -417,17 +432,11 @@ $last_login = $_SESSION['last_login'] ?? null;
 
   <!-- Admin Profile Card -->
   <div class="profile-card">
-    <div class="profile-avatar">
-      <?php if ($profile_pic): ?>
-        <img src="assets/img/profile/admins/<?= htmlspecialchars($profile_pic) ?>" 
-             alt="<?= htmlspecialchars($admin_name) ?>"
-             onerror="this.src='assets/img/aristo.png'">
-      <?php else: ?>
-        <div class="avatar-fallback">
-          <?= strtoupper(substr($admin_name, 0, 1)) ?>
-        </div>
-      <?php endif; ?>
-    </div>
+  <div class="profile-avatar">
+    <img src="<?= htmlspecialchars($profile_pic_path) ?>" 
+         alt="<?= htmlspecialchars($admin_name) ?>"
+         onerror="this.onerror=null;this.src='<?= htmlspecialchars($default_profile_pic) ?>'">
+</div>
     <div class="profile-info">
       <h4 class="profile-name"><?= htmlspecialchars($admin_name) ?></h4>
       <div class="profile-meta">
