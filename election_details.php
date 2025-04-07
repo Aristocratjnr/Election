@@ -84,7 +84,7 @@ try {
         }
         
         .main-content {
-            margin-left: 1500px;
+            margin-left: 150px;
             width: calc(100% - 250px);
         }
         
@@ -228,13 +228,7 @@ try {
             border-left-color: var(--warning-color);
         }
         
-        .hover-effect {
-            transition: all 0.3s ease;
-        }
         
-        .hover-effect:hover {
-            transform: scale(1.02);
-        }
     </style>
 </head>
 <body>
@@ -242,7 +236,7 @@ try {
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <div class="main-content">
-                <?php include 'includes/header.php'; ?>
+                <?php include 'includes/header.php'; ?><br><br><br>
                 
                 <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4">
                     <!-- Page Header -->
