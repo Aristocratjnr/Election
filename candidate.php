@@ -153,9 +153,6 @@ $candidates = $conn->query("
             transition: all 0.2s ease;
         }
 
-        .action-btn-group .btn:hover {
-            transform: translateY(-2px);
-        }
 
         .modal-content {
             border-radius: 0.75rem;
@@ -199,11 +196,6 @@ $candidates = $conn->query("
             0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
             40% { transform: translateY(-10px); }
             60% { transform: translateY(-5px); }
-        }
-
-        .hover-shade:hover {
-            background-color: #f8f9fc;
-            cursor: pointer;
         }
 
         ::-webkit-scrollbar {
