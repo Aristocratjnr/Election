@@ -131,10 +131,6 @@ if ($electionID) {
             margin-bottom: 1.5rem;
         }
         
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
-        }
         
         .card-header {
             background-color: white;
@@ -156,11 +152,7 @@ if ($electionID) {
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
         }
-        
-        .candidate-card:hover .candidate-photo {
-            transform: scale(1.05);
-        }
-        
+    
         .progress {
             height: 0.85rem;
             border-radius: 1rem;
@@ -183,11 +175,7 @@ if ($electionID) {
             transition: all 0.3s ease;
             background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0.1) 100%);
         }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.18);
-        }
+    
         
         .bg-gradient-primary {
             background: linear-gradient(45deg, var(--primary-dark) 0%, var(--primary-color) 100%);
@@ -228,10 +216,6 @@ if ($electionID) {
             overflow: hidden;
         }
         
-        .candidate-card:hover {
-            border-color: var(--primary-color);
-            box-shadow: 0 0.5rem 1.5rem rgba(67, 97, 238, 0.12);
-        }
         
         .winner-badge {
             position: absolute;
@@ -252,9 +236,6 @@ if ($electionID) {
             transition: transform 0.3s ease;
         }
         
-        .candidate-card:hover .winner-badge {
-            transform: rotate(15deg) scale(1.1);
-        }
         
         .position-title {
             color: var(--gray-dark);
@@ -542,9 +523,9 @@ if ($electionID) {
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <div class="main-content">
-                <?php include 'includes/header.php'; ?>
+                <?php include 'includes/header.php'; ?><br><br>
                 
-                <main class="col-12 px-md-4 py-4">
+                <main class="col-12 px-md-4 py-5">
                     <div class="page-header animate__animated animate__fadeIn">
                         <div>
                             <h1 class="page-title">Election Results</h1>
@@ -744,7 +725,7 @@ if ($electionID) {
                         <i class="bi bi-info-circle-fill fs-1 mb-3"></i>
                         <h4 class="mt-2">Select an Election</h4>
                         <p class="mb-3">Choose an election from the dropdown above to view detailed voting results and statistics.</p>
-                                        <button class="btn btn-outline-primary" onclick="document.querySelector('select[name=\\'election\\']').focus()">
+                                        <button class="btn btn-outline-primary" onclick="document.querySelector('select[name=\'election\']').focus()">
                                             <i class="bi bi-arrow-up-circle me-2"></i> Select Election
                                         </button>
                                     </div>
