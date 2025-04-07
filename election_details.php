@@ -84,7 +84,7 @@ try {
         }
         
         .main-content {
-            margin-left: 150px;
+            margin-left: 120px;
             width: calc(100% - 250px);
         }
         
