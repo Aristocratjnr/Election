@@ -69,7 +69,6 @@ $success = $_GET['success'] ?? null;
         }
         
         
-        
         .card-header {
             background-color: var(--secondary-color);
             border-bottom: 1px solid #e3e6f0;
@@ -288,8 +287,8 @@ $success = $_GET['success'] ?? null;
 </head>
 <body>
 <?php include 'includes/sidebar.php'; ?>
-<?php include 'includes/header.php'; ?><br><br>
-    <div class="container-fluid py-3 px-2">
+<?php include 'includes/header.php'; ?><br><br><br><br>
+    <div class="container-fluid py-3">
         <!-- Error/Success Alerts -->
         <?php if ($error === 'not_found'): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -319,7 +318,7 @@ $success = $_GET['success'] ?? null;
             </div>
         <?php endif; ?>
 
-        <div class="card">
+        <div class="card w-50 mx-auto">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">
                     <i class="bi bi-calendar-event me-2"></i>
