@@ -20,9 +20,8 @@ $admin_name = $_SESSION['login_name'] ?? 'Administrator';
 $role = $_SESSION['role'] ?? 'admin';
 $last_login = $_SESSION['last_login'] ?? null;
 
-$default_profile_pic = 'assets/img/aristo.png';
+$default_profile_pic = 'assets/img/aristocrat.jpeg';
 
-// Check if profile picture exists in database and is accessible
 $profile_pic_path = '';
 if (!empty($profile_pic)) {
     // Construct the full path
