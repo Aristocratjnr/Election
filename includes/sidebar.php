@@ -1,361 +1,26 @@
-<!-- ======= Admin Premium Sidebar UI ======= -->
-<aside id="sidebar" class="sidebar">
-  <!-- Mobile Header -->
-  <div class="mobile-header">
-    <div class="logo">ElectionAdmin</div>
-    <button class="mobile-toggle">
-      <i class="bi bi-list"></i>
-    </button>
-  </div>
-
-  <?php
-  // Enhanced secure session initialization
-  if (session_status() === PHP_SESSION_NONE) {
+<?php
+// ======= Admin Premium Sidebar UI =======
+// Secure session initialization
+if (session_status() === PHP_SESSION_NONE) {
     session_start([
-      'cookie_secure' => true,
-      'cookie_httponly' => true,
-      'use_strict_mode' => true,
-      'cookie_samesite' => 'Strict'
+        'cookie_secure' => true,
+        'cookie_httponly' => true,
+        'use_strict_mode' => true,
+        'cookie_samesite' => 'Strict'
     ]);
-  }
+}
 
-  // Initialize admin data with defaults
-  $adminData = [
-    'name' => 'Administrator',
-    'profile_picture' => null,
-    'role' => 'admin',
-    'unread_notifications' => 0,
-    'last_login' => null
-  ];
+// Current page detection - works with direct PHP files
+$current_script = basename($_SERVER['SCRIPT_NAME']);
+$current_page = str_replace('.php', '', $current_script);
+$current_action = $_GET['action'] ?? null;
 
-  // Current page detection
-  $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-  
-  // Admin data
-  $admin_name = isset($_SESSION['login_name']) ? $_SESSION['login_name'] : 'David A.';
-  $profile_pic = isset($_SESSION['profile_pic']) ? $_SESSION['profile_pic'] : null;
-  $unread_notifications = isset($_SESSION['unread_notifications']) ? $_SESSION['unread_notifications'] : 0;
-  
-  // Menu configuration - Focused on administrative features
-  $menu_items = [
-    'dashboard' => [
-      'title' => 'Admin Dashboard',
-      'icon' => 'bi-speedometer2',
-      'url' => 'index.php?page=dashboard',
-      'active' => in_array($current_page, ['dashboard']) || $_SERVER['SCRIPT_NAME'] === 'index.php',
-      'tooltip' => 'Administrative Dashboard'
-    ],'elections' => [
-    'title' => 'Election Control',
-    'icon' => 'bi-calendar-event',
-    'url' => 'index.php?page=elections&action=manage',
-    'active' => in_array($current_page, ['elections', 'election_config', 'candidates', 'positions', 'ballots', 'election_results']),
-    'indicator' => 'bi-chevron-right',
-    'tooltip' => 'Manage Elections, Candidates, Positions and Ballots',
-    'subitems' => [
-        'manage' => [
-            'title' => 'All Elections',
-            'icon' => 'bi-list-ul',
-            'url' => 'index.php?page=elections&action=manage',
-            'active' => ($current_page == 'elections' && (!isset($_GET['action']) || $_GET['action'] == 'manage'))
-        ],
-        'create' => [
-            'title' => 'Create New',
-            'icon' => 'bi-plus-circle',
-            'url' => 'index.php?page=elections&action=create',
-            'active' => ($current_page == 'elections' && isset($_GET['action']) && $_GET['action'] == 'create')
-        ],
-        'positions' => [
-            'title' => 'Positions',
-            'icon' => 'bi-award',
-            'url' => 'index.php?page=positions&action=manage',
-            'active' => $current_page == 'positions',
-            'subsubitems' => [
-                'manage_positions' => [
-                    'title' => 'Manage Positions',
-                    'icon' => 'bi-list-check',
-                    'url' => 'index.php?page=positions&action=manage'
-                ],
-                'create_position' => [
-                    'title' => 'Add Position',
-                    'icon' => 'bi-plus-lg',
-                    'url' => 'index.php?page=positions&action=create'
-                ]
-            ]
-        ],
-        'candidates' => [
-            'title' => 'Candidates',
-            'icon' => 'bi-person-badge',
-            'url' => 'index.php?page=candidates&action=manage',
-            'active' => $current_page == 'candidates',
-            'subsubitems' => [
-                'manage_candidates' => [
-                    'title' => 'All Candidates',
-                    'icon' => 'bi-people',
-                    'url' => 'index.php?page=candidates&action=manage'
-                ],
-                'add_candidate' => [
-                    'title' => 'Add Candidate',
-                    'icon' => 'bi-person-plus',
-                    'url' => 'index.php?page=candidates&action=create'
-                ],
-                'import' => [
-                    'title' => 'Bulk Import',
-                    'icon' => 'bi-upload',
-                    'url' => 'index.php?page=candidates&action=import'
-                ]
-            ]
-        ],
-        'ballots' => [
-            'title' => 'Ballot Design',
-            'icon' => 'bi-file-earmark-text',
-            'url' => 'index.php?page=ballots&action=design',
-            'active' => $current_page == 'ballots',
-            'subsubitems' => [
-                'design' => [
-                    'title' => 'Ballot Designer',
-                    'icon' => 'bi-palette',
-                    'url' => 'index.php?page=ballots&action=design'
-                ],
-                'preview' => [
-                    'title' => 'Live Preview',
-                    'icon' => 'bi-eye',
-                    'url' => 'index.php?page=ballots&action=preview'
-                ],
-                'templates' => [
-                    'title' => 'Templates',
-                    'icon' => 'bi-collection',
-                    'url' => 'index.php?page=ballots&action=templates'
-                ]
-            ]
-        ],
-        'results' => [
-            'title' => 'Results',
-            'icon' => 'bi-graph-up',
-            'url' => 'index.php?page=election_results&action=view',
-            'active' => $current_page == 'election_results',
-            'subsubitems' => [
-                'live' => [
-                    'title' => 'Live Results',
-                    'icon' => 'bi-speedometer2',
-                    'url' => 'index.php?page=election_results&action=live'
-                ],
-                'reports' => [
-                    'title' => 'Generate Reports',
-                    'icon' => 'bi-file-earmark-bar-graph',
-                    'url' => 'index.php?page=election_results&action=reports'
-                ],
-                'analytics' => [
-                    'title' => 'Voter Analytics',
-                    'icon' => 'bi-pie-chart',
-                    'url' => 'index.php?page=election_results&action=analytics'
-                ]
-            ]
-        ],
-        'settings' => [
-            'title' => 'Configuration',
-            'icon' => 'bi-gear',
-            'url' => 'index.php?page=election_config&action=general',
-            'active' => $current_page == 'election_config',
-            'subsubitems' => [
-                'general' => [
-                    'title' => 'General Settings',
-                    'icon' => 'bi-sliders',
-                    'url' => 'index.php?page=election_config&action=general'
-                ],
-                'voting' => [
-                    'title' => 'Voting Rules',
-                    'icon' => 'bi-check2-square',
-                    'url' => 'index.php?page=election_config&action=voting'
-                ],
-                'eligibility' => [
-                    'title' => 'Voter Eligibility',
-                    'icon' => 'bi-person-check',
-                    'url' => 'index.php?page=election_config&action=eligibility'
-                ],
-                'security' => [
-                    'title' => 'Security',
-                    'icon' => 'bi-shield-lock',
-                    'url' => 'index.php?page=election_config&action=security'
-                ]
-            ]
-        ]
-    ]
-],
-    'voters' => [
-      'title' => 'Voter Management',
-      'icon' => 'bi-people-fill',
-      'url' => 'index.php?page=voters',
-      'active' => in_array($current_page, ['voters', 'voter_groups']),
-      'tooltip' => 'Manage Voters and Groups',
-      'subitems' => [
-        'voters' => [
-          'title' => 'Voter List',
-          'icon' => 'bi-person-lines-fill',
-          'url' => 'index.php?page=voters'
-        ],
-        'groups' => [
-          'title' => 'Voter Groups',
-          'icon' => 'bi-collection',
-          'url' => 'index.php?page=voter_groups'
-        ],
-        'import' => [
-          'title' => 'Bulk Import',
-          'icon' => 'bi-upload',
-          'url' => 'index.php?page=voter_import'
-        ]
-      ]
-    ],
-    'results' => [
-      'title' => 'Results & Analytics',
-      'icon' => 'bi-bar-chart-line',
-      'url' => 'index.php?page=results',
-      'active' => $current_page == 'results',
-      'badge' => ['type' => 'success', 'text' => 'Live'],
-      'tooltip' => 'Election Results',
-      'subitems' => [
-        'live' => [
-          'title' => 'Live Results',
-          'icon' => 'bi-graph-up-arrow',
-          'url' => 'index.php?page=results'
-        ],
-        'reports' => [
-          'title' => 'Detailed Reports',
-          'icon' => 'bi-file-earmark-bar-graph',
-          'url' => 'index.php?page=reports'
-        ],
-        'audit' => [
-          'title' => 'Audit Logs',
-          'icon' => 'bi-shield-check',
-          'url' => 'index.php?page=audit_logs'
-        ]
-      ]
-    ],
-  
-    'settings' => [
-      'title' => 'Admin Preferences',
-      'icon' => 'bi-person-gear',
-      'active' => $current_page == 'profile',
-      'tooltip' => 'Administrator Settings',
-      'subitems' => [
-        'profile' => [
-          'title' => 'Admin Profile',
-          'icon' => 'bi-person',
-          'url' => 'index.php?page=profile'
-        ],
-        'security' => [
-          'title' => 'Account Security',
-          'icon' => 'bi-shield-lock',
-          'url' => 'index.php?page=security'
-        ],
-        'notifications' => [
-          'title' => 'Notification Settings',
-          'icon' => 'bi-bell',
-          'url' => 'index.php?page=notifications'
-        ]
-      ]
-    ]
-  ];
-  ?>
-
-  <!-- Admin Profile Card -->
-<div class="profile-card">
-  <div class="profile-avatar">
-    <?php if ($profile_pic): ?>
-      <img src="assets/img/profile/admins/<?php echo htmlspecialchars($profile_pic); ?>" 
-           alt="<?php echo htmlspecialchars($admin_name); ?>" 
-           onerror="this.src='assets/img/aristo.png'">
-    <?php else: ?>
-      <div class="avatar-fallback">
-        <?php echo strtoupper(substr($admin_name, 0, 1)); ?>
-      </div>
-    <?php endif; ?>
-  </div>
-  <div class="profile-info">
-    <h4 class="profile-name"><?php echo htmlspecialchars($admin_name); ?></h4>
-    <div class="profile-meta">
-      <span class="profile-role">Admin</span>
-      <span class="profile-status admin">
-        <i class="bi bi-circle-fill"></i>
-        Active
-      </span>
-    </div>
-  </div>
- 
-</div>
-
-  <!-- Main Navigation -->
-  <nav class="sidebar-navigation">
-    <ul class="nav-menu">
-      <?php foreach ($menu_items as $key => $item): ?>
-        <?php 
-        $hasChildren = isset($item['subitems']);
-        $isActive = $item['active'] ?? false;
-        ?>
-        
-        <li class="nav-item <?php echo $isActive ? 'active' : ''; ?>">
-          <?php if ($hasChildren): ?>
-            <div class="nav-parent">
-              <div class="nav-link settings-toggle" data-tooltip="<?php echo $item['tooltip'] ?? $item['title']; ?>">
-                <i class="bi <?php echo $item['icon']; ?>"></i>
-                <span><?php echo $item['title']; ?></span>
-                <i class="nav-arrow bi bi-chevron-down"></i>
-              </div>
-              <ul class="submenu settings-dropdown">
-                <?php foreach ($item['subitems'] as $subkey => $subitem): ?>
-                  <li class="submenu-item <?php echo $current_page == $subkey ? 'active' : ''; ?>">
-                    <a href="<?php echo $subitem['url']; ?>">
-                      <i class="bi <?php echo $subitem['icon']; ?>"></i>
-                      <span><?php echo $subitem['title']; ?></span>
-                    </a>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-            </div>
-          <?php else: ?>
-            <a href="<?php echo $item['url']; ?>" class="nav-link" data-tooltip="<?php echo $item['tooltip'] ?? $item['title']; ?>">
-              <i class="bi <?php echo $item['icon']; ?>"></i>
-              <span><?php echo $item['title']; ?></span>
-              <?php if (isset($item['badge'])): ?>
-                <span class="nav-badge bg-<?php echo $item['badge']['type']; ?>">
-                  <?php echo $item['badge']['text']; ?>
-                </span>
-              <?php endif; ?>
-              <?php if (isset($item['indicator'])): ?>
-                <i class="bi <?php echo $item['indicator']; ?>"></i>
-              <?php endif; ?>
-            </a>
-          <?php endif; ?>
-        </li>
-      <?php endforeach; ?>
-    </ul>
-  </nav>
-
-  <!-- Sidebar Footer -->
-  <div class="sidebar-footer">
-    <div class="system-info">
-      <div class="info-item last-login">
-        <i class="bi bi-clock-history"></i>
-        <span id="lastLoginTime">
-          Last login: 
-        </span>
-      </div>
-      <div class="info-item">
-        <i class="bi bi-shield-check"></i>
-        <span>Secure Admin Session</span>
-      </div>
-    </div>
-    <a href="controllers/app.php?action=logout" class="logout-btn" onclick="return confirm('Are you sure you want to logout?');">
-      <i class="bi bi-box-arrow-left"></i>
-      <span>Logout</span>
-    </a>
-    <div class="version-info">
-      Admin Console v2.1.0 · <?php echo date('Y'); ?>
-    </div>
-  </div>
-</aside>
-
-<!-- Sidebar Overlay for Mobile -->
-<div class="sidebar-overlay"></div>
+// Admin data from session
+$admin_name = $_SESSION['login_name'] ?? 'Administrator';
+$profile_pic = $_SESSION['profilePicture'] ?? null;
+$role = $_SESSION['role'] ?? 'admin';
+$last_login = $_SESSION['last_login'] ?? null;
+?>
 
 <style>
 
@@ -741,9 +406,199 @@
 }
 </style>
 
+<aside id="sidebar" class="sidebar">
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <div class="logo">ElectionAdmin</div>
+    <button class="mobile-toggle">
+      <i class="bi bi-list"></i>
+    </button>
+  </div>
+
+  <!-- Admin Profile Card -->
+  <div class="profile-card">
+    <div class="profile-avatar">
+      <?php if ($profile_pic): ?>
+        <img src="assets/img/profile/admins/<?= htmlspecialchars($profile_pic) ?>" 
+             alt="<?= htmlspecialchars($admin_name) ?>"
+             onerror="this.src='assets/img/aristo.png'">
+      <?php else: ?>
+        <div class="avatar-fallback">
+          <?= strtoupper(substr($admin_name, 0, 1)) ?>
+        </div>
+      <?php endif; ?>
+    </div>
+    <div class="profile-info">
+      <h4 class="profile-name"><?= htmlspecialchars($admin_name) ?></h4>
+      <div class="profile-meta">
+        <span class="profile-role"><?= ucfirst($role) ?></span>
+        <span class="profile-status admin">
+          <i class="bi bi-circle-fill"></i>
+          Active
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <nav class="sidebar-navigation">
+    <ul class="nav-menu">
+      <!-- Dashboard -->
+      <li class="nav-item <?= ($current_script === 'dashboard.php' || $current_script === 'index.php') ? 'active' : '' ?>">
+        <a href="dashboard.php" class="nav-link" data-tooltip="Administrative Dashboard">
+          <i class="bi bi-speedometer2"></i>
+          <span>Admin Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Election Control -->
+      <li class="nav-item <?= in_array($current_script, ['elections.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php']) ? 'active' : '' ?>">
+        <div class="nav-parent">
+          <div class="nav-link settings-toggle" data-tooltip="Manage Elections, Candidates, Positions and Ballots">
+            <i class="bi bi-calendar-event"></i>
+            <span>Election Control</span>
+            <i class="nav-arrow bi bi-chevron-down"></i>
+          </div>
+          <ul class="submenu settings-dropdown">
+            <!-- Elections Submenu -->
+            <li class="submenu-item <?= ($current_script === 'elections.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
+              <a href="elections.php">
+                <i class="bi bi-list-ul"></i>
+                <span>All Elections</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'elections.php' && $current_action === 'create') ? 'active' : '' ?>">
+              <a href="elections.php?action=create">
+                <i class="bi bi-plus-circle"></i>
+                <span>Create New</span>
+              </a>
+            </li>
+
+            <!-- Positions Submenu -->
+            <li class="submenu-item <?= ($current_script === 'positions.php') ? 'active' : '' ?>">
+              <a href="positions.php">
+                <i class="bi bi-award"></i>
+                <span>Positions</span>
+              </a>
+            </li>
+
+            <!-- Candidates Submenu -->
+            <li class="submenu-item <?= ($current_script === 'candidates.php') ? 'active' : '' ?>">
+              <a href="candidates.php">
+                <i class="bi bi-person-badge"></i>
+                <span>Candidates</span>
+              </a>
+            </li>
+
+            <!-- Ballots Submenu -->
+            <li class="submenu-item <?= ($current_script === 'ballots.php') ? 'active' : '' ?>">
+              <a href="ballots.php">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Ballot Design</span>
+              </a>
+            </li>
+
+            <!-- Results Submenu -->
+            <li class="submenu-item <?= ($current_script === 'election_results.php') ? 'active' : '' ?>">
+              <a href="election_results.php">
+                <i class="bi bi-graph-up"></i>
+                <span>Results</span>
+              </a>
+            </li>
+
+            <!-- Configuration Submenu -->
+            <li class="submenu-item <?= ($current_script === 'election_config.php') ? 'active' : '' ?>">
+              <a href="election_config.php">
+                <i class="bi bi-gear"></i>
+                <span>Configuration</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Voter Management -->
+      <li class="nav-item <?= in_array($current_script, ['voters.php','voter_groups.php']) ? 'active' : '' ?>">
+        <div class="nav-parent">
+          <div class="nav-link settings-toggle" data-tooltip="Manage Voters and Groups">
+            <i class="bi bi-people-fill"></i>
+            <span>Voter Management</span>
+            <i class="nav-arrow bi bi-chevron-down"></i>
+          </div>
+          <ul class="submenu settings-dropdown">
+            <li class="submenu-item <?= ($current_script === 'voters.php') ? 'active' : '' ?>">
+              <a href="voters.php">
+                <i class="bi bi-person-lines-fill"></i>
+                <span>Voter List</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'voter_groups.php') ? 'active' : '' ?>">
+              <a href="voter_groups.php">
+                <i class="bi bi-collection"></i>
+                <span>Voter Groups</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
+      <!-- Admin Preferences -->
+      <li class="nav-item <?= in_array($current_script, ['profile.php','security.php']) ? 'active' : '' ?>">
+        <div class="nav-parent">
+          <div class="nav-link settings-toggle" data-tooltip="Administrator Settings">
+            <i class="bi bi-person-gear"></i>
+            <span>Admin Preferences</span>
+            <i class="nav-arrow bi bi-chevron-down"></i>
+          </div>
+          <ul class="submenu settings-dropdown">
+            <li class="submenu-item <?= ($current_script === 'profile.php') ? 'active' : '' ?>">
+              <a href="profile.php">
+                <i class="bi bi-person"></i>
+                <span>Admin Profile</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'security.php') ? 'active' : '' ?>">
+              <a href="security.php">
+                <i class="bi bi-shield-lock"></i>
+                <span>Account Security</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <div class="system-info">
+      <div class="info-item last-login">
+        <i class="bi bi-clock-history"></i>
+        <span id="lastLoginTime">
+          Last login: <?= $last_login ? date('M j, Y g:i a', strtotime($last_login)) : 'Never' ?>
+        </span>
+      </div>
+      <div class="info-item">
+        <i class="bi bi-shield-check"></i>
+        <span>Secure Admin Session</span>
+      </div>
+    </div>
+    <a href="logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?');">
+      <i class="bi bi-box-arrow-left"></i>
+      <span>Logout</span>
+    </a>
+    <div class="version-info">
+      Admin Console v2.1.0 · <?= date('Y') ?>
+    </div>
+  </div>
+</aside>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay"></div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Mobile sidebar toggle functionality
+  // Mobile toggle functionality
   const mobileToggle = document.querySelector('.mobile-toggle');
   const sidebar = document.getElementById('sidebar');
   const overlay = document.querySelector('.sidebar-overlay');
@@ -772,6 +627,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Toggle submenus when clicking parent items
   document.querySelectorAll('.nav-parent > .nav-link').forEach(link => {
     link.addEventListener('click', function(e) {
+      if (this.getAttribute('href')) return;
+      
+      e.preventDefault();
       const parent = this.parentElement;
       const submenu = parent.querySelector('.submenu');
       const isActive = parent.parentElement.classList.contains('active');
@@ -794,28 +652,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Function to update the last login time
-function updateLastLoginTime() {
-  const now = new Date();
-  const options = { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  };
-  
-  document.getElementById('lastLoginTime').textContent = 
-    now.toLocaleDateString('en-US', options);
-}
-
-// Update immediately
-updateLastLoginTime();
-
-// Update every second to keep it current
-setInterval(updateLastLoginTime, 1000);
-
+  // Update last login time display
+  function updateLastLoginTime() {
+    const now = new Date();
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    };
+    document.getElementById('lastLoginTime').textContent = 'Last login: ' + now.toLocaleDateString('en-US', options);
+  }
+  updateLastLoginTime();
+  setInterval(updateLastLoginTime, 1000);
 });
 </script>
