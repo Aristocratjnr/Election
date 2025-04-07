@@ -461,14 +461,14 @@ $last_login = $_SESSION['last_login'] ?? null;
           </div>
           <ul class="submenu settings-dropdown">
             <!-- Elections Submenu -->
-            <li class="submenu-item <?= ($current_script === '/election/pages/elections/election.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
-              <a href="/election/pages/elections/election.php">
+            <li class="submenu-item <?= ($current_script === 'election.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
+              <a href="election.php">
                 <i class="bi bi-list-ul"></i>
                 <span>All Elections</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'elections.php' && $current_action === 'create') ? 'active' : '' ?>">
-              <a href="/election/pages/elections/position.php">
+              <a href="election.php">
                 <i class="bi bi-plus-circle"></i>
                 <span>Create New</span>
               </a>
