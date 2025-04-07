@@ -277,8 +277,9 @@ $positions = $conn->query("
     <div class="container-fluid">
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
+            <?php include 'includes/header.php'; ?><br><br>
             <div class="main-content">
-                <nav aria-label="breadcrumb" class="mb-4">
+                <nav aria-label="breadcrumb" class="mb-5">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Manage Positions</li>
@@ -568,6 +569,6 @@ $positions = $conn->query("
             });
         });
     </script>
-    <?php include 'includes/footer.php'; ?>
+  
 </body>
 </html>

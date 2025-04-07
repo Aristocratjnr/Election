@@ -499,8 +499,8 @@ $last_login = $_SESSION['last_login'] ?? null;
             </li>
 
             <!-- Results Submenu -->
-            <li class="submenu-item <?= ($current_script === 'election_results.php') ? 'active' : '' ?>">
-              <a href="election_results.php">
+            <li class="submenu-item <?= ($current_script === 'results.php') ? 'active' : '' ?>">
+              <a href="results.php">
                 <i class="bi bi-graph-up"></i>
                 <span>Results</span>
               </a>
