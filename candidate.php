@@ -231,8 +231,9 @@ $candidates = $conn->query("
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <?php include 'includes/header.php'; ?><br><br>
+            <div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
             <div class="main-content">
-                <main class="col-md-7 ms-sm-auto col-lg-10 px-md-4 py-5">
+                <main class="col-md-7 ms-sm-auto col-lg-10 px-4 py-5 ">
                     <!-- Page Header -->
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                         <div>
@@ -339,6 +340,7 @@ $candidates = $conn->query("
                         </div>
                     </div>
                 </main>
+                </div>
             </div>
         </div>
     </div>
