@@ -1,6 +1,6 @@
 <?php
-require_once '../../includes/auth_check.php';
-require_once '../../configs/dbconnection.php';
+require_once 'includes/auth_check.php';
+require_once 'configs/dbconnection.php';
 
 $action = $_GET['action'] ?? 'manage';
 $electionID = $_GET['id'] ?? null;
