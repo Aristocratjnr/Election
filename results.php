@@ -394,12 +394,14 @@ if ($electionID) {
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.print()">
                                     <i class="bi bi-printer-fill"></i> Print
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-success" id="exportBtn">
-                                    <i class="bi bi-file-earmark-excel-fill"></i> Export
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" id="pdfBtn">
+                                <a href="export_results.php?election=<?php echo $electionID; ?>&type=excel" 
+                                   class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
+                                </a>
+                                <a href="export_results.php?election=<?php echo $electionID; ?>&type=pdf" 
+                                   class="btn btn-sm btn-outline-danger">
                                     <i class="bi bi-file-earmark-pdf-fill"></i> PDF
-                                </button>
+                                </a>
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="bi bi-share-fill"></i> Share
