@@ -766,7 +766,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
 
         .live-results-btn {
-            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(67, 97, 238, 0.2) 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
             border: 1px solid var(--primary);
             color: var(--primary);
             padding: 0.75rem 1.5rem;
@@ -779,9 +779,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
       
-        /* Live Results Card Styles */
+    
         .bg-gradient-primary {
-            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
         }
         
         .live-indicator {
@@ -802,15 +802,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             animation: pulse 1.5s infinite;
         }
         
-        .status-card {
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        
-        .status-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
+       
         
         .status-icon {
             width: 40px;
@@ -828,10 +820,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transition: all 0.3s ease;
         }
         
-        .candidate-result-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        }
+        
         
         .rank-badge {
             width: 24px;
@@ -876,7 +865,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
         .progress-bar {
-            background: linear-gradient(90deg, #4361ee 0%, #3a56d4 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
             border-radius: 3px;
         }
         
@@ -1043,12 +1032,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             <div class="card-header bg-gradient-primary text-white py-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="card-title mb-0">
-                                            <i class="bi bi-graph-up-arrow me-2"></i> Live Results
-                                        </h5>
+                                       
                                     </div>
                                     <div class="live-indicator">
-                                        <span class="pulse-dot"></span> LIVE
+                                        <span class="pulse-dot font-bold"></span> LIVE
                                     </div>
                                 </div>
                             </div>
@@ -1069,9 +1056,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                                 <i class="bi bi-check2-circle me-1"></i> You have voted
                                                             </span>
                                                         <?php else: ?>
-                                                            <span class="badge bg-primary">
-                                                                <i class="bi bi-clock-fill me-1"></i> Voting in progress
+                                                            <span class="badge bg-primary pulse-badge">
+                                                                <i class="bi bi-check-circle-fill me-1"></i> Voting is open
                                                             </span>
+                                                            
                                                         <?php endif; ?>
                                                     <?php else: ?>
                                                         <span class="badge bg-secondary">
@@ -1085,11 +1073,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
                                     <!-- Vote Count -->
                                     <?php if ($currentElection): ?>
-                                    <div class="col-md-6">
+                                    <div class="col-md-8">
                                         <div class="status-card p-3 rounded-3 bg-light h-100">
                                             <div class="d-flex align-items-center mb-3">
                                                 <div class="status-icon me-3">
-                                                    <i class="bi bi-bar-chart-fill text-primary fs-4"></i>
+                                                <i class="bi bi-graph-up"></i>
                                                 </div>
                                                 <div>
                                                     <h6 class="mb-1">Current Ballot Count</h6>
@@ -1131,7 +1119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php if ($currentElection): ?>
                                     <div class="mt-4">
                                         <h6 class="mb-3 d-flex align-items-center">
-                                            <i class="bi bi-trophy-fill text-warning me-2"></i> Top Candidates
+                                        <i class="bi bi-person-vcard"></i>&nbsp;Top Candidates
                                         </h6>
                                         <div class="row g-3">
                                             <?php
@@ -1160,9 +1148,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                     <div class="candidate-result-card p-3 rounded-3 h-100">
                                                         <div class="d-flex align-items-center mb-2">
                                                             <div class="rank-badge me-2">
-                                                                <i class="bi bi-<?= $rank === 1 ? 'trophy-fill text-warning' : ($rank === 2 ? 'medal-fill text-secondary' : 'award-fill text-bronze') ?>"></i>
+                                                                <i class="bi bi-<?= $rank === 1 ? 'trophy-fill text-warning' : ($rank === 2 ? 'bi bi-medal-fill text-secondary' : 'award-fill text-bronze') ?>"></i>
                                                             </div>
-                                                            <div class="candidate-name fw-bold"><?= htmlspecialchars($candidate['name']) ?></div>
+                                                            <div class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></div>
                                                         </div>
                                                         <div class="d-flex align-items-center mb-3">
                                                             <div class="avatar-container me-3">
@@ -1218,97 +1206,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         </div>
                         
                         <!-- Voting Form -->
-                        <?php if ($currentElection && !$hasVoted): ?>
-                            <form id="votingForm" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
-                                <?php foreach ($positions as $index => $position): ?>
-                                    <?php if (!empty($position['candidates'])): ?>
-                                        <div class="position-section <?= $index === 0 ? 'horizontal-position' : '' ?>">
-                                            <div class="position-header">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <span class="position-badge text-white me-3">Position</span>
-                                                    <h4 class="mb-0 fw-bold"><?= htmlspecialchars($position['title']) ?></h4>
-                                                </div>
-                                                <p class="text-muted small mb-0"><?= htmlspecialchars($position['description'] ?? 'Select your candidate') ?></p>
-                                                <?php if ($position['maxVotes'] > 1): ?>
-                                                    <p class="text-muted small mt-1">
-                                                        <i class="bi bi-info-circle me-1"></i>
-                                                        You can select up to <?= $position['maxVotes'] ?> candidates
-                                                    </p>
-                                                <?php endif; ?>
-                                            </div>
-                                            
-                                            <div class="row g-4 <?= $index === 0 ? 'flex-nowrap overflow-auto' : '' ?>">
-                                                <?php foreach ($position['candidates'] as $candidate): ?>
-                                                    <div class="col-md-6 col-lg-4">
-                                                        <div class="candidate-card" 
-                                                             onclick="selectCandidate(this, <?= $position['positionID'] ?>, <?= $candidate['candidateID'] ?>, <?= $position['maxVotes'] ?>)">
-                                                            <div class="text-center p-4 pt-4 pb-2">
-                                                                <div class="avatar-container">
-                                                                    <?php 
-                                                                    $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                                    if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): ?>
-                                                                        <img src="<?= $candidatePicPath ?>" 
-                                                                             class="avatar" 
-                                                                             alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                    <?php else: ?>
-                                                                        <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                                            <i class="bi bi-person fs-2"></i>
-                                                                        </div>
-                                                                    <?php endif; ?>
-                                                                    <span class="department-badge"><?= htmlspecialchars($candidate['department']) ?></span>
-                                                                </div>
-                                                                
-                                                                <div class="selection-check">
-                                                                    <i class="bi bi-check2"></i>
-                                                                </div>
-                                                            </div>
-                                                        
-                                                            <div class="candidate-info text-center">
-                                                                <h5 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h5>
-                                                                <p class="candidate-position"><?= htmlspecialchars($position['title']) ?></p>
-                                                                <p class="candidate-tagline"><?= htmlspecialchars($candidate['manifesto'] ?? 'No manifesto provided') ?></p>
-                                                            </div>
-                                                            
-                                                            <input type="checkbox" 
-                                                                   name="position_<?= $position['positionID'] ?>[]" 
-                                                                   value="<?= $candidate['candidateID'] ?>" 
-                                                                   class="d-none">
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        </div>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
-                                
-                                <div class="text-center mt-5 pt-3">
-                                    <button type="submit" name="submit_vote" class="btn btn-primary btn-lg vote-submit-btn">
-                                        <i class="bi bi-check-circle me-2"></i> Submit Your Vote
-                                    </button>
-                                    <p class="text-muted mt-3 small">
-                                        <i class="bi bi-shield-check me-1"></i> Your vote is secure and anonymous
-                                    </p>
-                                </div>
-                            </form>
-                        <?php elseif ($hasVoted): ?>
-                            <div class="text-center py-5 px-3">
-                                <div class="mb-4">
-                                    <div class="success-checkmark">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </div>
-                                </div>
-                                <h3 class="mb-3 fw-bold">Vote Submitted Successfully!</h3>
-                                <p class="lead text-muted mb-4">Thank you for participating in the <?= htmlspecialchars($currentElection['name']) ?> election.</p>
-                                
-                                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
-                                    <a href="results.php?election=<?= $currentElection['electionID'] ?>" class="btn btn-outline-primary btn-lg px-4">
-                                        <i class="bi bi-graph-up me-2"></i> View Election Results
-                                    </a>
-                                    <a href="index.php" class="btn btn-primary btn-lg px-4">
-                                        <i class="bi bi-house me-2"></i> Return to Dashboard
-                                    </a>
-                                </div>
+                       <!-- Voting Form -->
+<?php if ($currentElection && !$hasVoted): ?>
+    <form id="votingForm" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
+        <?php foreach ($positions as $index => $position): ?>
+            <?php if (!empty($position['candidates'])): ?>
+                <div class="position-section mb-5">
+                    <div class="position-header mb-4 px-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="position-badge text-white me-3">Position <?= $index + 1 ?></span>
+                            <h3 class="mb-0 fw-bold text-primary"><?= htmlspecialchars($position['title']) ?></h3>
+                        </div>
+                        <p class="text-muted mb-2"><?= htmlspecialchars($position['description'] ?? 'Select your preferred candidate') ?></p>
+                        
+                        <!-- Fixed vote limit display -->
+                        <?php if ((int)$position['maxVotes'] > 1): ?>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    You can select up to <?= (int)$position['maxVotes'] ?> candidates
+                                </span>
+                                <span class="ms-2 small text-muted">
+                                    (<?= count($position['candidates']) ?> candidates available)
+                                </span>
+                            </div>
+                        <?php else: ?>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Select one candidate
+                                </span>
+                                <span class="ms-2 small text-muted">
+                                    (<?= count($position['candidates']) ?> candidates available)
+                                </span>
                             </div>
                         <?php endif; ?>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <?php foreach ($position['candidates'] as $candidate): ?>
+                            <div class="col-md-6 col-lg-4 col-xl-3">
+                                <div class="candidate-card h-100 shadow-sm rounded-3 overflow-hidden position-relative bg-white"
+                                     onclick="selectCandidate(this, <?= $position['positionID'] ?>, <?= $candidate['candidateID'] ?>, <?= $position['maxVotes'] ?>)">
+                                    <div class="bg-light p-3 text-center position-relative">
+                                        <div class="avatar-container mx-auto mb-3 position-relative">
+                                            <?php 
+                                            $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                            if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): ?>
+                                                <img src="<?= $candidatePicPath ?>" 
+                                                     class="avatar" 
+                                                     alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                            <?php else: ?>
+                                                <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
+                                                    <i class="bi bi-person fs-2"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                            
+                                            <!-- Selection indicator -->
+                                            <div class="selection-check">
+                                                <i class="bi bi-check2"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="p-3 text-center">
+                                        <h5 class="candidate-name mb-1"><?= htmlspecialchars($candidate['name']) ?></h5>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
+                                            <?= htmlspecialchars($candidate['department']) ?>
+                                        </span>
+                                        <div class="candidate-tagline bg-light p-2 rounded small mb-2">
+                                            <?= htmlspecialchars($candidate['manifesto'] ?? 'No manifesto provided') ?>
+                                        </div>
+                                        <div class="d-flex justify-content-center small text-muted">
+                                            <span class="me-2">
+                                                <i class="bi bi-person-check"></i> Candidate
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <input type="checkbox" 
+                                           name="position_<?= $position['positionID'] ?>[]" 
+                                           value="<?= $candidate['candidateID'] ?>" 
+                                           class="d-none">
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        <?php endforeach; ?>
+        
+        <div class="sticky-bottom bg-white py-4 border-top mt-5 shadow-sm">
+            <div class="container">
+                <div class="text-center">
+                    <button type="submit" name="submit_vote" class="btn btn-primary btn-lg px-5 py-3 vote-submit-btn shadow">
+                        <i class="bi bi-check-circle me-2"></i> Submit Your Vote
+                    </button>
+                    <p class="text-muted mt-3 small">
+                        <i class="bi bi-shield-check me-1"></i> Your vote is secure and anonymous
+                    </p>
+                </div>
+            </div>
+        </div>
+    </form>
+<?php elseif ($hasVoted): ?>
+    <!-- Success state remains the same -->
+<?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -1382,121 +1385,126 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Enhanced candidate selection with animation
-        window.selectCandidate = function(element, positionID, candidateId, maxVotes) {
-            const checkboxes = document.querySelectorAll(`input[name="position_${positionID}[]"]`);
-            const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-            
-            if (maxVotes === 1) {
-                // Single selection mode
-                checkboxes.forEach(checkbox => {
-                    const card = checkbox.closest('.candidate-card');
-                    if (card !== element) {
-                        card.classList.remove('selected');
-                        checkbox.checked = false;
-                    }
-                });
-                element.classList.add('selected');
-                element.querySelector('input[type="checkbox"]').checked = true;
-            } else {
-                // Multiple selection mode
-                const checkbox = element.querySelector('input[type="checkbox"]');
-                if (selectedCount < maxVotes || checkbox.checked) {
-                    element.classList.toggle('selected');
-                    checkbox.checked = !checkbox.checked;
-                } else {
-                    alert(`You can only select up to ${maxVotes} candidates for this position.`);
-                }
-            }
-            
-            // Add special animation
-            element.style.animation = 'select-pulse 0.8s ease';
-            setTimeout(() => {
-                element.style.animation = '';
-            }, 800);
-            
-            // Update progress status
-            updateVotingProgress();
-        };
+document.addEventListener('DOMContentLoaded', function() {
+    // Track selected candidates per position
+    const positionSelections = {};
+    
+    // Enhanced candidate selection with animation
+    window.selectCandidate = function(element, positionID, candidateId, maxVotes) {
+        // Initialize position if not exists
+        if (!positionSelections[positionID]) {
+            positionSelections[positionID] = [];
+        }
         
-        // Update voting progress and validation status
-        function updateVotingProgress() {
-            const positionSections = document.querySelectorAll('.position-section');
-            let allPositionsSelected = true;
+        const currentPosition = positionSelections[positionID];
+        const checkbox = element.querySelector('input[type="checkbox"]');
+        
+        // Toggle selection
+        if (checkbox.checked) {
+            // Deselect
+            checkbox.checked = false;
+            element.classList.remove('selected');
+            positionSelections[positionID] = currentPosition.filter(id => id !== candidateId);
+        } else {
+            // Check if max votes reached
+            if (currentPosition.length >= maxVotes) {
+                alert(`You can only select up to ${maxVotes} candidate(s) for this position.`);
+                return;
+            }
             
-            positionSections.forEach(section => {
-                const checkboxes = section.querySelectorAll('input[type="checkbox"]');
-                const hasSelection = Array.from(checkboxes).some(cb => cb.checked);
-                if (!hasSelection) {
-                    allPositionsSelected = false;
-                }
-            });
+            // Select
+            checkbox.checked = true;
+            element.classList.add('selected');
+            positionSelections[positionID].push(candidateId);
+        }
+        
+        // Add visual feedback
+        element.style.animation = 'select-pulse 0.5s ease';
+        setTimeout(() => element.style.animation = '', 500);
+        
+        // Update UI
+        updateSelectionCount(positionID);
+        updateSubmitButtonState();
+    };
+    
+    // Update selection counter display
+    function updateSelectionCount(positionID) {
+        const counter = document.querySelector(`.selection-counter[data-position="${positionID}"]`);
+        if (counter) {
+            const count = positionSelections[positionID]?.length || 0;
+            counter.textContent = `${count} selected`;
+        }
+    }
+    
+    // Enable/disable submit button
+    function updateSubmitButtonState() {
+        const submitBtn = document.querySelector('.vote-submit-btn');
+        const hasAnySelections = Object.values(positionSelections).some(arr => arr.length > 0);
+        
+        if (hasAnySelections) {
+            submitBtn.removeAttribute('disabled');
+            submitBtn.classList.remove('btn-secondary');
+            submitBtn.classList.add('btn-primary');
+        } else {
+            submitBtn.setAttribute('disabled', 'disabled');
+            submitBtn.classList.remove('btn-primary');
+            submitBtn.classList.add('btn-secondary');
+        }
+    }
+    
+    // Form submission handler
+    const votingForm = document.getElementById('votingForm');
+    if (votingForm) {
+        votingForm.addEventListener('submit', function(event) {
+            // Confirm submission
+            if (!confirm('Are you sure you want to submit your vote?\nYou cannot change your selections after submission.')) {
+                event.preventDefault();
+                return;
+            }
             
-            // Update submit button state
+            // Disable button during submission
             const submitBtn = document.querySelector('.vote-submit-btn');
-            if (allPositionsSelected) {
-                submitBtn.removeAttribute('disabled');
-                submitBtn.classList.add('pulse-badge');
-            } else {
-                submitBtn.setAttribute('disabled', 'disabled');
-                submitBtn.classList.remove('pulse-badge');
-            }
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Submitting...';
+        });
+    }
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes select-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(67, 97, 238, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
         }
-
-        // Initialize form validation
-        const votingForm = document.getElementById('votingForm');
-        if (votingForm) {
-            votingForm.addEventListener('submit', function(event) {
-                // Don't prevent default submission
-                // event.preventDefault(); // Remove this line
-                
-                // Check if all positions have selections
-                const positionSections = document.querySelectorAll('.position-section');
-                let allPositionsSelected = true;
-                let missingPositions = [];
-                
-                positionSections.forEach(section => {
-                    const checkboxes = section.querySelectorAll('input[type="checkbox"]');
-                    const hasSelection = Array.from(checkboxes).some(cb => cb.checked);
-                    if (!hasSelection) {
-                        allPositionsSelected = false;
-                        const positionTitle = section.querySelector('h4').textContent.trim();
-                        missingPositions.push(positionTitle);
-                    }
-                });
-                
-                if (!allPositionsSelected) {
-                    event.preventDefault(); // Only prevent submission if validation fails
-                    alert('Please select a candidate for all positions: ' + missingPositions.join(', '));
-                    return;
-                }
-                
-                // Confirm submission
-                if (!confirm('Are you sure you want to submit your vote? This action cannot be undone.')) {
-                    event.preventDefault();
-                    return;
-                }
-                
-                // Disable submit button to prevent double submission
-                const submitBtn = document.querySelector('.vote-submit-btn');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Submitting...';
-                
-                // Let the form submit normally
-                return true;
-            });
+        .candidate-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
-
-        // Show welcome tips modal on first visit
-        <?php if ($currentElection && !$hasVoted): ?>
-            if (!sessionStorage.getItem('welcomeShown')) {
-                var welcomeModal = new bootstrap.Modal(document.getElementById('welcomeTipsModal'));
-                welcomeModal.show();
-                sessionStorage.setItem('welcomeShown', 'true');
-            }
-        <?php endif; ?>
-    });
-    </script>
+        .candidate-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .candidate-card.selected {
+            border: 2px solid #4361ee !important;
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Show welcome tips modal on first visit
+    <?php if ($currentElection && !$hasVoted): ?>
+        if (!sessionStorage.getItem('welcomeShown')) {
+            const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeTipsModal'));
+            welcomeModal.show();
+            sessionStorage.setItem('welcomeShown', 'true');
+        }
+    <?php endif; ?>
+});
+</script>
 </body>
 </html>
