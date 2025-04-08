@@ -68,7 +68,6 @@ $success = $_GET['success'] ?? null;
             transition: all 0.3s ease;
         }
         
-        
         .card-header {
             background-color: var(--secondary-color);
             border-bottom: 1px solid #e3e6f0;
@@ -106,11 +105,18 @@ $success = $_GET['success'] ?? null;
         }
         
         /* Tables */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(78, 115, 223, 0.03);
+            --bs-table-hover-bg: rgba(78, 115, 223, 0.05);
+        }
+        
         .table th {
             border-top: none;
             font-weight: 600;
             color: #5a5c69;
             white-space: nowrap;
+            background-color: #f8f9fc;
         }
         
         .table-responsive {
@@ -138,13 +144,24 @@ $success = $_GET['success'] ?? null;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05);
         }
         
         .page-title {
             font-size: 1.5rem;
             font-weight: 600;
             color: var(--gray-dark);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .page-title i {
+            margin-right: 10px;
+            color: var(--primary-color);
         }
         
         /* Status indicators */
@@ -166,6 +183,8 @@ $success = $_GET['success'] ?? null;
         .action-btns .btn:hover {
             transform: translateY(-1px);
         }
+        
+       
         
         /* Mobile-specific styles */
         @media (max-width: 767.98px) {
@@ -292,7 +311,7 @@ $success = $_GET['success'] ?? null;
         <!-- Error/Success Alerts -->
         <?php if ($error === 'not_found'): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <i class="bi bi-exclamation-octagon-fill me-2"></i>
                 Election not found or has been deleted.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -333,21 +352,21 @@ $success = $_GET['success'] ?? null;
                 <?php if ($action === 'manage'): ?>
                     <!-- Elections List -->
                     <div class="page-header">
-                        <h1 class="page-title">Elections Management</h1>
+                        <h1 class="page-title"><i class="bi bi-clipboard2-data"></i> Elections Management</h1>
                         <a href="save_election.php" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-1"></i> New Election
                         </a>
                     </div>
                     
                     <div class="table-responsive">
-                        <table class="table table-hover" id="electionsTable" style="width:100%">
+                        <table class="table table-hover table-striped" id="electionsTable" style="width:100%">
                             <thead class="thead-light">
                                 <tr>
-                                    <th>Election</th>
-                                    <th class="mobile-hide">Start Date</th>
-                                    <th class="mobile-hide-sm">End Date</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Actions</th>
+                                    <th><i class="bi bi-card-heading me-1"></i> Election</th>
+                                    <th class="mobile-hide"><i class="bi bi-calendar-check me-1"></i> Start Date</th>
+                                    <th class="mobile-hide-sm"><i class="bi bi-calendar-x me-1"></i> End Date</th>
+                                    <th><i class="bi bi-info-circle me-1"></i> Status</th>
+                                    <th class="text-end"><i class="bi bi-gear me-1"></i> Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -365,25 +384,43 @@ $success = $_GET['success'] ?? null;
                                 ?>
                                 <tr>
                                     <td>
-                                        <strong><?= htmlspecialchars($election['name']) ?></strong>
-                                        <div class="mobile-show text-muted small mt-1" style="display: none;">
-                                            <?= date('M d, Y', strtotime($election['startDate'])) ?> - 
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-calendar2-event me-2 text-primary"></i>
+                                            <div>
+                                                <strong><?= htmlspecialchars($election['name']) ?></strong>
+                                                <div class="mobile-show text-muted small mt-1" style="display: none;">
+                                                    <i class="bi bi-calendar-check me-1"></i><?= date('M d, Y', strtotime($election['startDate'])) ?> 
+                                                    <i class="bi bi-arrow-right mx-1"></i>
+                                                    <i class="bi bi-calendar-x me-1"></i><?= date('M d, Y', strtotime($election['endDate'])) ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="mobile-hide">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-calendar-check me-2 text-muted"></i>
+                                            <?= date('M d, Y', strtotime($election['startDate'])) ?>
+                                        </div>
+                                    </td>
+                                    <td class="mobile-hide-sm">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-calendar-x me-2 text-muted"></i>
                                             <?= date('M d, Y', strtotime($election['endDate'])) ?>
                                         </div>
                                     </td>
-                                    <td class="mobile-hide"><?= date('M d, Y', strtotime($election['startDate'])) ?></td>
-                                    <td class="mobile-hide-sm"><?= date('M d, Y', strtotime($election['endDate'])) ?></td>
                                     <td>
-                                        <span class="badge <?= $statusClass ?>">
-                                            <?php if ($election['status'] === 'Ongoing'): ?>
-                                                <span class="status-indicator bg-white"></span>
-                                            <?php elseif ($election['status'] === 'Scheduled'): ?>
-                                                <span class="status-indicator bg-dark"></span>
-                                            <?php else: ?>
-                                                <span class="status-indicator bg-secondary"></span>
-                                            <?php endif; ?>
-                                            <span class="status-text"><?= $election['status'] ?></span>
-                                        </span>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge <?= $statusClass ?>">
+                                                <?php if ($election['status'] === 'Ongoing'): ?>
+                                                    <span class="status-indicator bg-white"></span>
+                                                <?php elseif ($election['status'] === 'Scheduled'): ?>
+                                                    <span class="status-indicator bg-dark"></span>
+                                                <?php else: ?>
+                                                    <span class="status-indicator bg-secondary"></span>
+                                                <?php endif; ?>
+                                                <span class="status-text"><?= $election['status'] ?></span>
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="text-end action-btns">
                                         <div class="btn-group">
@@ -391,19 +428,25 @@ $success = $_GET['success'] ?? null;
                                                class="btn btn-sm btn-primary" 
                                                data-bs-toggle="tooltip" 
                                                title="Edit">
-                                                <i class="bi bi-pencil"></i>
+                                                <i class="bi bi-pencil-square"></i>
                                             </a>
                                             <button class="btn btn-sm btn-danger delete-election" 
                                                     data-id="<?= $election['electionID'] ?>"
                                                     data-bs-toggle="tooltip" 
                                                     title="Delete">
-                                                <i class="bi bi-trash"></i>
+                                                <i class="bi bi-trash-fill"></i>
                                             </button>
                                             <a href="election_details.php?id=<?= $election['electionID'] ?>" 
                                                class="btn btn-sm btn-info"
                                                data-bs-toggle="tooltip" 
-                                               title="View">
-                                                <i class="bi bi-eye"></i>
+                                               title="View Details">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </a>
+                                            <a href="election_results.php?id=<?= $election['electionID'] ?>" 
+                                               class="btn btn-sm btn-success"
+                                               data-bs-toggle="tooltip" 
+                                               title="View Results">
+                                                <i class="bi bi-bar-chart-fill"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -415,8 +458,8 @@ $success = $_GET['success'] ?? null;
                                 <tr>
                                     <td colspan="5" class="text-center py-4">
                                         <div class="py-3">
-                                            <i class="bi bi-calendar-x" style="font-size: 2rem; color: #d1d3e2;"></i>
-                                            <h5 class="mt-2">No elections found</h5>
+                                            <i class="bi bi-calendar-x" style="font-size: 2.5rem; color: #d1d3e2;"></i>
+                                            <h5 class="mt-3">No elections found</h5>
                                             <p class="text-muted">Create your first election to get started</p>
                                             <a href="elections.php?action=create" class="btn btn-primary mt-2">
                                                 <i class="bi bi-plus-circle me-1"></i> Create Election
@@ -438,15 +481,18 @@ $success = $_GET['success'] ?? null;
                                 <input type="hidden" name="electionID" value="<?= $electionID ?>">
                                 
                                 <div class="mb-4">
-                                    <h5 class="mb-3">Election Information</h5>
+                                    <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Election Information</h5>
                                     <div class="card border-0 shadow-sm">
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-md-12 mb-3">
-                                                    <label class="form-label">Election Name <span class="text-danger">*</span></label>
-                                                    <input type="text" class="form-control" name="name" required
-                                                           value="<?= $action === 'edit' ? htmlspecialchars($election['name'] ?? '') : '' ?>"
-                                                           placeholder="Enter election name">
+                                                    <label class="form-label"><i class="bi bi-card-heading me-1"></i>Election Name <span class="text-danger">*</span></label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-pencil"></i></span>
+                                                        <input type="text" class="form-control" name="name" required
+                                                               value="<?= $action === 'edit' ? htmlspecialchars($election['name'] ?? '') : '' ?>"
+                                                               placeholder="Enter election name">
+                                                    </div>
                                                     <div class="invalid-feedback">
                                                         Please provide an election name.
                                                     </div>
@@ -455,17 +501,23 @@ $success = $_GET['success'] ?? null;
                                             
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label">Start Date <span class="text-danger">*</span></label>
-                                                    <input type="datetime-local" class="form-control" name="startDate" required
-                                                           value="<?= $action === 'edit' ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($election['startDate'] ?? ''))) : '' ?>">
+                                                    <label class="form-label"><i class="bi bi-calendar-check me-1"></i>Start Date <span class="text-danger">*</span></label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                                        <input type="datetime-local" class="form-control" name="startDate" required
+                                                               value="<?= $action === 'edit' ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($election['startDate'] ?? ''))) : '' ?>">
+                                                    </div>
                                                     <div class="invalid-feedback">
                                                         Please select a start date.
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label">End Date <span class="text-danger">*</span></label>
-                                                    <input type="datetime-local" class="form-control" name="endDate" required
-                                                           value="<?= $action === 'edit' ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($election['endDate'] ?? ''))) : '' ?>">
+                                                    <label class="form-label"><i class="bi bi-calendar-x me-1"></i>End Date <span class="text-danger">*</span></label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                                        <input type="datetime-local" class="form-control" name="endDate" required
+                                                               value="<?= $action === 'edit' ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($election['endDate'] ?? ''))) : '' ?>">
+                                                    </div>
                                                     <div class="invalid-feedback">
                                                         Please select an end date.
                                                     </div>
@@ -474,22 +526,28 @@ $success = $_GET['success'] ?? null;
                                             
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label">Status <span class="text-danger">*</span></label>
-                                                    <select class="form-select" name="status" required>
-                                                        <option value="Scheduled" <?= ($election['status'] ?? '') === 'Scheduled' ? 'selected' : '' ?>>Scheduled</option>
-                                                        <option value="Ongoing" <?= ($election['status'] ?? '') === 'Ongoing' ? 'selected' : '' ?>>Ongoing</option>
-                                                        <option value="Completed" <?= ($election['status'] ?? '') === 'Completed' ? 'selected' : '' ?>>Completed</option>
-                                                    </select>
+                                                    <label class="form-label"><i class="bi bi-info-square me-1"></i>Status <span class="text-danger">*</span></label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-list-check"></i></span>
+                                                        <select class="form-select" name="status" required>
+                                                            <option value="Scheduled" <?= ($election['status'] ?? '') === 'Scheduled' ? 'selected' : '' ?>>Scheduled</option>
+                                                            <option value="Ongoing" <?= ($election['status'] ?? '') === 'Ongoing' ? 'selected' : '' ?>>Ongoing</option>
+                                                            <option value="Completed" <?= ($election['status'] ?? '') === 'Completed' ? 'selected' : '' ?>>Completed</option>
+                                                        </select>
+                                                    </div>
                                                     <div class="invalid-feedback">
                                                         Please select a status.
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label">Visibility</label>
-                                                    <select class="form-select" name="visibility">
-                                                        <option value="Public" <?= ($election['visibility'] ?? '') === 'Public' ? 'selected' : '' ?>>Public</option>
-                                                        <option value="Private" <?= ($election['visibility'] ?? '') === 'Private' ? 'selected' : '' ?>>Private</option>
-                                                    </select>
+                                                    <label class="form-label"><i class="bi bi-eye me-1"></i>Visibility</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                                        <select class="form-select" name="visibility">
+                                                            <option value="Public" <?= ($election['visibility'] ?? '') === 'Public' ? 'selected' : '' ?>>Public</option>
+                                                            <option value="Private" <?= ($election['visibility'] ?? '') === 'Private' ? 'selected' : '' ?>>Private</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -502,7 +560,7 @@ $success = $_GET['success'] ?? null;
                                     </a>
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bi bi-save me-1"></i>
-                                        <?= $action === 'edit' ? 'Update' : 'Create' ?>
+                                        <?= $action === 'edit' ? 'Update Election' : 'Create Election' ?>
                                     </button>
                                 </div>
                             </form>
@@ -518,16 +576,22 @@ $success = $_GET['success'] ?? null;
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p>Are you sure you want to delete this election? This action cannot be undone.</p>
-                    <p class="text-danger"><strong>Warning:</strong> All associated data (candidates, votes, etc.) will also be deleted.</p>
+                    <p class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Warning:</strong> All associated data (candidates, votes, etc.) will also be deleted.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <a href="#" id="confirmDelete" class="btn btn-danger">Delete</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel
+                    </button>
+                    <a href="#" id="confirmDelete" class="btn btn-danger">
+                        <i class="bi bi-trash-fill me-1"></i>Delete
+                    </a>
                 </div>
             </div>
         </div>
@@ -549,7 +613,7 @@ $success = $_GET['success'] ?? null;
                     details: {
                         display: $.fn.dataTable.Responsive.display.modal({
                             header: function(row) {
-                                return 'Election Details';
+                                return '<i class="bi bi-info-circle me-2"></i>Election Details';
                             }
                         }),
                         renderer: $.fn.dataTable.Responsive.renderer.tableAll({
@@ -559,7 +623,7 @@ $success = $_GET['success'] ?? null;
                 },
                 "order": [[1, "desc"]],
                 "language": {
-                    "emptyTable": "No elections found",
+                    "emptyTable": "<div class='text-center py-4'><i class='bi bi-calendar-x' style='font-size: 2rem; color: #d1d3e2;'></i><p class='mt-2'>No elections found</p></div>",
                     "search": "_INPUT_",
                     "searchPlaceholder": "Search elections...",
                     "lengthMenu": "Show _MENU_ entries",
@@ -574,7 +638,11 @@ $success = $_GET['success'] ?? null;
                     { "responsivePriority": 1, "targets": 0 },
                     { "responsivePriority": 2, "targets": 4 },
                     { "responsivePriority": 3, "targets": 3 }
-                ]
+                ],
+                "initComplete": function(settings, json) {
+                    // Add search icon to search input
+                    $('.dataTables_filter input').before('<i class="bi bi-search text-muted me-2"></i>');
+                }
             });
         }
         
