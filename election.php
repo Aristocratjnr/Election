@@ -315,18 +315,6 @@ $success = $_GET['success'] ?? null;
                 Election not found or has been deleted.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        <?php elseif ($error === 'missing_fields'): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                Please fill in all required fields.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php elseif ($error === 'db_error'): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                A database error occurred. Please try again.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
         <?php endif; ?>
         
         <?php if ($success === 'created'): ?>
@@ -365,7 +353,7 @@ $success = $_GET['success'] ?? null;
                     <!-- Elections List -->
                     <div class="page-header">
                         <h1 class="page-title"><i class="bi bi-clipboard2-data"></i> Elections Management</h1>
-                        <a href="save_election.php" class="btn btn-primary">
+                        <a href="new_election.php" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-1"></i> New Election
                         </a>
                     </div>
@@ -490,9 +478,7 @@ $success = $_GET['success'] ?? null;
                         <div class="col-lg-8">
                             <form method="POST" action="save_election.php" id="electionForm" class="needs-validation" novalidate>
                                 <input type="hidden" name="action" value="<?= $action ?>">
-                                <?php if ($action === 'edit'): ?>
-                                    <input type="hidden" name="electionID" value="<?= $election['electionID'] ?>">
-                                <?php endif; ?>
+                                <input type="hidden" name="electionID" value="<?= $electionID ?>">
                                 
                                 <div class="mb-4">
                                     <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Election Information</h5>
