@@ -27,6 +27,7 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Ctype\\' => 23,
             'Svg\\' => 4,
+            'Sonata\\GoogleAuthenticator\\' => 27,
             'Sabberworm\\CSS\\' => 15,
         ),
         'P' => 
@@ -51,6 +52,7 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
             'GrahamCampbell\\ResultType\\' => 26,
+            'Google\\Authenticator\\' => 21,
             'Google\\Auth\\' => 12,
         ),
         'F' => 
@@ -90,6 +92,10 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         'Svg\\' => 
         array (
             0 => __DIR__ . '/..' . '/phenx/php-svg-lib/src/Svg',
+        ),
+        'Sonata\\GoogleAuthenticator\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sonata-project/google-authenticator/src',
         ),
         'Sabberworm\\CSS\\' => 
         array (
@@ -151,6 +157,10 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         'GrahamCampbell\\ResultType\\' => 
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
+        ),
+        'Google\\Authenticator\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sonata-project/google-authenticator/src',
         ),
         'Google\\Auth\\' => 
         array (

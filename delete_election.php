@@ -19,6 +19,7 @@ if (isset($_GET['id'])) {
         }
         
     } catch (Exception $e) {
+        error_log("Election deletion error: " . $e->getMessage());
         header('Location: election.php?error=delete_failed');
         exit;
     }

@@ -5,6 +5,7 @@
         "google/auth": "^1.24",
         "tecnickcom/tcpdf": "*",
         "phpoffice/phpspreadsheet": "^1.29",
-        "dompdf/dompdf": "^2.0"
+        "dompdf/dompdf": "^2.0",
+        "spomky-labs/otphp": "^11.2"
     }
 }
