@@ -1470,7 +1470,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         const votingForm = document.getElementById('votingForm');
         if (votingForm) {
             votingForm.addEventListener('submit', function(event) {
-                event.preventDefault(); // Prevent default form submission
+                // Don't prevent default submission
+                // event.preventDefault(); // Remove this line
                 
                 // Check if all positions have selections
                 const positionSections = document.querySelectorAll('.position-section');
@@ -1488,12 +1489,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 });
                 
                 if (!allPositionsSelected) {
+                    event.preventDefault(); // Only prevent submission if validation fails
                     alert('Please select a candidate for all positions: ' + missingPositions.join(', '));
                     return;
                 }
                 
                 // Confirm submission
                 if (!confirm('Are you sure you want to submit your vote? This action cannot be undone.')) {
+                    event.preventDefault();
                     return;
                 }
                 
@@ -1502,8 +1505,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Submitting...';
                 
-                // Submit the form
-                this.submit();
+                // Let the form submit normally
+                return true;
             });
         }
 
