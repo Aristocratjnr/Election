@@ -532,12 +532,7 @@ if (!empty($profile_pic)) {
                 <span>Voter List</span>
               </a>
             </li>
-            <li class="submenu-item <?= ($current_script === 'voter_groups.php') ? 'active' : '' ?>">
-              <a href="voter_groups.php">
-                <i class="bi bi-collection"></i>
-                <span>Voter Groups</span>
-              </a>
-            </li>
+            
           </ul>
         </div>
       </li>

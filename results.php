@@ -76,445 +76,312 @@ if ($electionID) {
 }
 ?>
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Election Results - EMS</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Election Results - SmartVote</title>
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --primary-light: #4895ef;
-            --primary-dark: #3f37c9;
-            --secondary-color: #f8f9fc;
-            --accent-color: #4cc9f0;
-            --success-color: #4dd4ac;
-            --warning-color: #ffd166;
-            --danger-color: #ef476f;
-            --gray-dark: #212529;
-            --gray-medium: #6c757d;
-            --gray-light: #e9ecef;
-        }
-        
+        /* Base Styles */
         body {
-            background-color: #f0f2f5;
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
+            background-color: #f8f9fa;
         }
-        
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(145deg, var(--primary-dark) 0%, var(--primary-color) 100%);
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-        }
-        
         .main-content {
-            margin-left: 280px;
-            width: calc(100% - 280px);
-            transition: all 0.3s ease;
+            margin-left: 250px;
+            transition: all 0.3s;
         }
         
+        /* Card Styles */
         .card {
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 0.8rem;
+            transition: transform 0.2s, box-shadow 0.2s;
             overflow: hidden;
-            margin-bottom: 1.5rem;
         }
-        
         
         .card-header {
-            background-color: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 1.25rem 1.5rem;
+            background-color: rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            padding: 1rem 1.25rem;
         }
         
-        .results-card {
-            border-left: 4px solid var(--primary-color);
-            margin-bottom: 2rem;
+        /* Icon Styles */
+        .card-icon {
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+        .bg-primary-light {
+            background-color: rgba(13, 110, 253, 0.15);
+            color: #0d6efd;
+        }
+        .bg-success-light {
+            background-color: rgba(25, 135, 84, 0.15);
+            color: #198754;
+        }
+        .bg-info-light {
+            background-color: rgba(13, 202, 240, 0.15);
+            color: #0dcaf0;
+        }
+        .bg-warning-light {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+        }
+        .bg-danger-light {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: #dc3545;
+        }
+        .bg-secondary-light {
+            background-color: rgba(108, 117, 125, 0.15);
+            color: #6c757d;
         }
         
+        /* Progress Bar Styles */
+        .progress-thin {
+            height: 6px;
+            border-radius: 3px;
+        }
+        .progress-bar-custom {
+            background-color: #e9ecef;
+            border-radius: 0.5rem;
+            height: 0.75rem;
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .progress-custom {
+            background: linear-gradient(to right, #4e73df, #224abe);
+            border-radius: 0.5rem;
+            height: 100%;
+            transition: width 1s ease-in-out;
+        }
+        
+        /* Avatar and Image Styles */
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+        .initials-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #6c757d;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
         .candidate-photo {
             width: 90px;
             height: 90px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid white;
+            border: 3px solid white;
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s;
         }
-    
-        .progress {
-            height: 0.85rem;
-            border-radius: 1rem;
-            background-color: var(--gray-light);
-            overflow: hidden;
+        .card:hover .candidate-photo {
+            transform: scale(1.05);
         }
         
-        .progress-bar {
-            background-image: linear-gradient(to right, var(--primary-light), var(--primary-color));
-            border-radius: 1rem;
-            transition: width 1.2s cubic-bezier(0.65, 0, 0.35, 1);
-        }
-        
-        .stat-card {
-            border-radius: 1rem;
-            color: white;
-            padding: 1.75rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
-            transition: all 0.3s ease;
-            background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0.1) 100%);
-        }
-    
-        
-        .bg-gradient-primary {
-            background: linear-gradient(45deg, var(--primary-dark) 0%, var(--primary-color) 100%);
-        }
-        
-        .bg-gradient-success {
-            background: linear-gradient(45deg, #2bb673 0%, var(--success-color) 100%);
-        }
-        
-        .bg-gradient-info {
-            background: linear-gradient(45deg, #3a86ff 0%, var(--accent-color) 100%);
-        }
-        
-        .stat-card i {
-            font-size: 2.75rem;
-            opacity: 0.85;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .stat-card .card-title {
-            font-size: 1rem;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            opacity: 0.9;
-            margin-bottom: 0.75rem;
-        }
-        
-        .stat-card .card-text {
-            font-size: 1.75rem;
-            font-weight: 700;
-        }
-        
-        .candidate-card {
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 0, 0, 0.03);
-            border-radius: 1rem;
-            overflow: hidden;
-        }
-        
-        
+        /* Badge Styles */
         .winner-badge {
             position: absolute;
-            top: -12px;
-            right: -12px;
-            background: linear-gradient(45deg, #ffc107 0%, #ff9800 100%);
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(45deg, #ffc107, #ff9800);
             color: white;
             border-radius: 50%;
-            width: 48px;
-            height: 48px;
+            width: 45px;
+            height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-            z-index: 1;
-            border: 3px solid white;
-            transition: transform 0.3s ease;
-        }
-        
-        
-        .position-title {
-            color: var(--gray-dark);
-            font-weight: 700;
-            margin-bottom: 1.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid rgba(67, 97, 238, 0.2);
-            position: relative;
-        }
-        
-        .position-title:after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 80px;
-            height: 2px;
-            background-color: var(--primary-color);
-        }
-        
-        .vote-count {
-            font-weight: 700;
-            color: var(--primary-dark);
             font-size: 1.1rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+            z-index: 2;
+            border: 2px solid white;
+            transition: transform 0.2s;
+        }
+        .card:hover .winner-badge {
+            transform: rotate(15deg) scale(1.1);
         }
         
+        /* Text Styles */
+        .position-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .vote-count {
+            font-weight: 600;
+            color: #0d6efd;
+        }
         .percentage {
             font-weight: 600;
-            color: var(--accent-color);
+            color: #198754;
         }
         
-        .filter-card {
-            background-color: white;
-            border-radius: 1rem;
-            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
-            margin-bottom: 2rem;
-        }
-        
-        .filter-card .form-select {
+        /* Button Styles */
+        .btn {
             border-radius: 0.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-            background-color: #f8f9fa;
-            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s;
         }
-        
-        .filter-card .form-select:focus {
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
-            border-color: var(--primary-color);
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
         }
-        
-        .section-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .section-header i {
-            font-size: 1.5rem;
-            margin-right: 0.75rem;
-            color: var(--primary-color);
-        }
-        
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            border-radius: 0.5rem;
-            padding: 0.5rem 1.25rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 0.25rem 0.5rem rgba(67, 97, 238, 0.2);
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 0.5rem 1rem rgba(67, 97, 238, 0.3);
-        }
-        
-        .btn-outline-primary {
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-            border-radius: 0.5rem;
-            padding: 0.5rem 1.25rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 0.25rem 0.5rem rgba(67, 97, 238, 0.2);
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .action-buttons .btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .alert {
-            border-radius: 0.75rem;
+            background: linear-gradient(to right, #4e73df, #224abe);
             border: none;
-            padding: 1.5rem;
-            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+        }
+        .btn-outline-primary {
+            border-color: #4e73df;
+            color: #4e73df;
+        }
+        .btn-outline-primary:hover {
+            background: linear-gradient(to right, #4e73df, #224abe);
         }
         
-        .alert-info {
-            background-color: rgba(76, 201, 240, 0.1);
-            color: var(--accent-color);
+        /* Filter Section */
+        .filter-section {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 0.8rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        .filter-section:hover {
+            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
         }
         
-        .alert-warning {
-            background-color: rgba(255, 209, 102, 0.1);
-            color: var(--warning-color);
+        /* Results Cards */
+        .results-card {
+            border: none;
+            border-radius: 0.8rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .results-card:hover {
+            transform: translateY(-5px);
         }
         
-        .candidate-info {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-        }
-        
-        .candidate-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--gray-dark);
-        }
-        
-        .vote-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-        }
-        
-        .no-results {
+        /* Empty State */
+        .empty-state {
             text-align: center;
             padding: 3rem 0;
         }
-        
-        .no-results i {
+        .empty-state-icon {
             font-size: 4rem;
-            color: var(--gray-medium);
             margin-bottom: 1rem;
+            color: #6c757d;
+            opacity: 0.5;
         }
         
-        .page-header {
-            background-color: white;
-            padding: 1.5rem 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .page-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--gray-dark);
-            margin-bottom: 0;
-        }
-        
-        .position-badge {
-            display: inline-block;
-            background-color: var(--primary-light);
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            margin-left: 0.75rem;
-            vertical-align: middle;
-        }
-        
-        @media (max-width: 991px) {
-            .sidebar {
-                width: 70px;
-                overflow: hidden;
+        /* Print Styling */
+        @media print {
+            body {
+                background-color: white;
+                margin: 0;
+                padding: 0;
             }
-            
-            .main-content {
-                margin-left: 70px;
-                width: calc(100% - 70px);
-            }
-            
-            .position-title {
-                font-size: 1.5rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-            
             .main-content {
                 margin-left: 0;
                 width: 100%;
             }
-            
-            .stat-card {
-                margin-bottom: 1rem;
+            .no-print {
+                display: none !important;
             }
-            
-            .candidate-photo {
-                width: 70px;
-                height: 70px;
+            .card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            .progress-custom {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
             }
         }
         
-        /* Animation effects */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .scale-in {
-            animation: scaleIn 0.3s ease-in-out;
-        }
-        
-        @keyframes scaleIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        
-        .election-status {
-            display: inline-block;
-            padding: 0.35rem 0.75rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .status-active {
-            background-color: rgba(77, 212, 172, 0.15);
-            color: var(--success-color);
-        }
-        
-        .status-completed {
-            background-color: rgba(76, 201, 240, 0.15);
-            color: var(--accent-color);
-        }
-        
-        .status-upcoming {
-            background-color: rgba(255, 209, 102, 0.15);
-            color: var(--warning-color);
-        }
-        
-        .winner-indicator {
+        /* Stats Badge */
+        .stats-badge {
             position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background-color: var(--success-color);
-            color: white;
-            font-size: 0.75rem;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
             font-weight: 600;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            z-index: 1;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Status Indicator */
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .status-active {
+            background-color: #198754;
+            box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.2);
+        }
+        .status-completed {
+            background-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+        }
+        .status-pending {
+            background-color: #ffc107;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+        }
+        
+        /* Candidate Details */
+        .candidate-details {
+            transition: all 0.3s;
+            padding: 1.25rem;
+        }
+        .candidate-details:hover {
+            background-color: rgba(13, 110, 253, 0.03);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        .section-header i {
+            color: #0d6efd;
         }
     </style>
 </head>
@@ -523,51 +390,84 @@ if ($electionID) {
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <div class="main-content">
-                <?php include 'includes/header.php'; ?><br><br>
+                <?php include 'includes/header.php'; ?>
+                <br>
                 
-                <main class="col-12 px-md-4 py-5">
-                    <div class="page-header animate__animated animate__fadeIn">
-                        <div>
-                            <h1 class="page-title">Election Results</h1>
-                            <p class="text-muted mb-0">View and analyze election results by position and candidate</p>
-                        </div>
-                        <div class="action-buttons">
-                            <button type="button" class="btn btn-outline-primary" onclick="window.print()">
-                                <i class="bi bi-printer"></i> Print
+                <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4"><br>
+                    <!-- Page Header with Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="no-print mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page"><i class="bi bi-bar-chart-fill"></i> Election Results</li>
+                        </ol>
+                    </nav>
+                    
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+                        <h1 class="h2"><i class="bi bi-trophy-fill text-warning me-2"></i> Election Results</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0 no-print">
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                                    <i class="bi bi-printer-fill"></i> Print
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" id="exportBtn">
+                                    <i class="bi bi-file-earmark-excel-fill"></i> Export
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="pdfBtn">
+                                    <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-share-fill"></i> Share
                             </button>
-                            <button type="button" class="btn btn-outline-primary">
-                                <i class="bi bi-file-earmark-excel"></i> Export
-                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-envelope-fill"></i> Email</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-link-45deg"></i> Copy Link</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-broadcast"></i> Publish</a></li>
+                            </ul>
                         </div>
                     </div>
-
-                    <div class="card filter-card animate__animated animate__fadeIn">
-                        <div class="card-body p-4">
-                            <div class="section-header">
-                                <i class="bi bi-funnel-fill"></i>
-                                <h5 class="mb-0 fw-bold">Election Filter</h5>
-                            </div>
+                    
+                    <!-- Election Filter -->
+                    <div class="card border-0 shadow-sm mb-4 filter-section no-print">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="card-title mb-0"><i class="bi bi-funnel-fill text-primary me-2"></i> Election Filter</h5>
+                        </div>
+                        <div class="card-body">
                             <form method="GET" class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-medium">Select Election</label>
-                                    <select class="form-select shadow-sm" name="election" onchange="this.form.submit()">
-                                        <option value="">-- Select Election --</option>
-                                        <?php while ($election = $elections->fetch_assoc()): ?>
-                                        <option value="<?php echo $election['electionID']; ?>" 
-                                            <?php echo $electionID == $election['electionID'] ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($election['name']); ?>
-                                            (<?php echo date('M Y', strtotime($election['startDate'])); ?>)
-                                        </option>
-                                        <?php endwhile; ?>
-                                    </select>
+                                    <label class="form-label d-flex align-items-center">
+                                        <i class="bi bi-calendar2-event text-primary me-2"></i>
+                                        Select Election
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                        <select class="form-select" name="election" onchange="this.form.submit()">
+                                            <option value="">-- Select Election --</option>
+                                            <?php while ($election = $elections->fetch_assoc()): ?>
+                                            <option value="<?php echo $election['electionID']; ?>" 
+                                                <?php echo $electionID == $election['electionID'] ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($election['name']); ?>
+                                                (<?php echo date('M Y', strtotime($election['startDate'])); ?>)
+                                            </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="bi bi-filter-square-fill"></i> Filter
+                                        </button>
+                                    </div>
                                 </div>
                                 <?php if ($electionID): ?>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-medium">Results Generated</label>
+                                    <label class="form-label d-flex align-items-center">
+                                        <i class="bi bi-clock-history text-primary me-2"></i>
+                                        Results Generated
+                                    </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="bi bi-clock-history"></i></span>
+                                        <span class="input-group-text"><i class="bi bi-clock-fill"></i></span>
                                         <input type="text" class="form-control" 
                                                value="<?php echo date('F j, Y, g:i a'); ?>" readonly>
+                                        <span class="input-group-text"><i class="bi bi-check2-circle text-success"></i></span>
                                     </div>
                                 </div>
                                 <?php endif; ?>
@@ -576,214 +476,444 @@ if ($electionID) {
                     </div>
 
                     <?php if ($electionID && $electionDetails): ?>
-                    <div class="card scale-in">
-                        <div class="card-body p-4">
-                            <div class="section-header">
-                                <i class="bi bi-bar-chart-fill"></i>
-                                <h5 class="mb-0 fw-bold">Election Overview</h5>
-                            </div>
-                            
-                            <div class="row mb-4 mt-3">
-                                <div class="col-md-4">
-                                    <div class="stat-card bg-gradient-primary">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="card-title">Total Votes Cast</h6>
-                                                <h2 class="card-text"><?php echo number_format($totalVotes); ?></h2>
-                                            </div>
-                                            <i class="bi bi-people-fill"></i>
-                                        </div>
-                                    </div>
+                    <!-- Election Header Section -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h3 class="mb-2 d-flex align-items-center">
+                                        <i class="bi bi-award-fill text-warning me-2"></i>
+                                        <?php echo htmlspecialchars($electionDetails['name']); ?>
+                                    </h3>
+                                    <p class="text-muted mb-0 d-flex align-items-center">
+                                        <i class="bi bi-calendar-range me-2"></i>
+                                        <?php echo date('F j, Y', strtotime($electionDetails['startDate'])); ?> - 
+                                        <?php echo date('F j, Y', strtotime($electionDetails['endDate'])); ?>
+                                        <span class="badge bg-<?php echo $electionDetails['status'] == 'active' ? 'success' : ($electionDetails['status'] == 'completed' ? 'primary' : 'warning'); ?> ms-3">
+                                            <i class="bi bi-<?php echo $electionDetails['status'] == 'active' ? 'check-circle-fill' : ($electionDetails['status'] == 'completed' ? 'flag-fill' : 'clock-fill'); ?> me-1"></i>
+                                            <?php echo ucfirst($electionDetails['status']); ?>
+                                        </span>
+                                    </p>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="stat-card bg-gradient-success">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="card-title">Election Status</h6>
-                                                <div class="d-flex align-items-center">
-                                                    <h2 class="card-text text-capitalize mb-0"><?php echo $electionDetails['status']; ?></h2>
-                                                    <?php 
-                                                    $statusClass = 'status-upcoming';
-                                                    if ($electionDetails['status'] == 'active') $statusClass = 'status-active';
-                                                    if ($electionDetails['status'] == 'completed') $statusClass = 'status-completed';
-                                                    ?>
-                                                </div>
-                                            </div>
-                                            <i class="bi bi-check2-circle"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="stat-card bg-gradient-info">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="card-title">Voting Period</h6>
-                                                <p class="card-text mb-0">
-                                                    <?php echo date('M j, Y', strtotime($electionDetails['startDate'])); ?> - 
-                                                    <?php echo date('M j, Y', strtotime($electionDetails['endDate'])); ?>
-                                                </p>
-                                            </div>
-                                            <i class="bi bi-calendar-event-fill"></i>
-                                        </div>
+                                <div class="col-md-4 text-md-end">
+                                    <div class="d-inline-block border rounded-pill px-3 py-2 text-primary fw-bold">
+                                        <i class="bi bi-people-fill me-2"></i>
+                                        Total Votes: <?php echo number_format($totalVotes); ?>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Election Overview Cards -->
+                    <div class="row mb-4">
+                        <!-- Total Votes Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted d-flex align-items-center">
+                                        <i class="bi bi-check2-square text-primary me-2"></i>
+                                        Total Votes
+                                    </h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon bg-primary-light me-3">
+                                            <i class="bi bi-check2-circle fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h2 class="mb-0"><?php echo number_format($totalVotes); ?></h2>
+                                            <p class="text-muted mb-0 d-flex align-items-center">
+                                                <i class="bi bi-graph-up-arrow me-1"></i>
+                                                Votes Cast
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Election Status Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted d-flex align-items-center">
+                                        <i class="bi bi-info-square text-success me-2"></i>
+                                        Election Status
+                                    </h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon bg-success-light me-3">
+                                            <i class="bi bi-<?php echo $electionDetails['status'] == 'active' ? 'activity' : ($electionDetails['status'] == 'completed' ? 'flag-fill' : 'clock-history'); ?> fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h2 class="mb-0 text-capitalize">
+                                                <span class="status-indicator status-<?php echo $electionDetails['status']; ?>"></span>
+                                                <?php echo $electionDetails['status']; ?>
+                                            </h2>
+                                            <p class="text-muted mb-0 d-flex align-items-center">
+                                                <i class="bi bi-layers me-1"></i>
+                                                Current Status
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Voting Period Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted d-flex align-items-center">
+                                        <i class="bi bi-calendar-week text-info me-2"></i>
+                                        Voting Period
+                                    </h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon bg-info-light me-3">
+                                            <i class="bi bi-calendar-range fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-1 fw-bold">
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                Start: <?php echo date('M j, Y', strtotime($electionDetails['startDate'])); ?>
+                                            </p>
+                                            <p class="mb-0 fw-bold">
+                                                <i class="bi bi-calendar-check me-1"></i>
+                                                End: <?php echo date('M j, Y', strtotime($electionDetails['endDate'])); ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Election Name Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-muted d-flex align-items-center">
+                                        <i class="bi bi-award text-warning me-2"></i>
+                                        Election Details
+                                    </h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon bg-warning-light me-3">
+                                            <i class="bi bi-trophy fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <h2 class="mb-0 fs-4"><?php echo htmlspecialchars($electionDetails['name']); ?></h2>
+                                            <p class="text-muted mb-0 d-flex align-items-center">
+                                                <i class="bi bi-mortarboard-fill me-1"></i>
+                                                <?php echo isset($electionDetails['category']) ? htmlspecialchars($electionDetails['category']) : 'General Election'; ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                            <?php if (!empty($resultsData)): ?>
-                                <div class="position-results">
-                                    <?php foreach ($resultsData as $index => $position): ?>
-                                    <div class="results-card card mb-5 fade-in" style="animation-delay: <?php echo $index * 0.1; ?>s">
-                                        <div class="card-body p-4">
-                                            <h3 class="position-title d-flex align-items-center">
-                                                <?php echo htmlspecialchars($position['title']); ?>
-                                                <span class="position-badge">Max Votes: <?php echo $position['maxVotes']; ?></span>
-                                            </h3>
-                                            
-                                            <div class="row g-4">
-                                                <?php 
-                                                $maxVotes = max(array_column($position['candidates'], 'voteCount'));
-                                                foreach ($position['candidates'] as $index => $candidate): 
-                                                    $isWinner = ($candidate['voteCount'] == $maxVotes && $maxVotes > 0);
-                                                ?>
-                                                <div class="col-md-6 col-lg-4">
-                                                    <div class="candidate-card card h-100 position-relative scale-in" style="animation-delay: <?php echo $index * 0.05 + 0.2; ?>s">
-                                                        <?php if ($isWinner): ?>
-                                                        <span class="winner-badge" title="Winner">
-                                                            <i class="bi bi-trophy-fill"></i>
-                                                        </span>
-                                                        <?php endif; ?>
-                                                        <div class="card-body p-4">
-                                                            <div class="text-center mb-3">
-                                                                <?php if ($candidate['profilePicture']): ?>
-                                                                <img src="assets/img/profile/students/<?php echo $candidate['profilePicture']; ?>" 
-                                                                     class="candidate-photo mb-3" 
-                                                                     alt="<?php echo htmlspecialchars($candidate['name']); ?>">
-                                                                <?php else: ?>
-                                                                <div class="candidate-photo bg-light d-flex align-items-center justify-content-center mx-auto mb-3">
-                                                                    <i class="bi bi-person-fill text-muted" style="font-size: 2.5rem;"></i>
-                                                                </div>
-                                                                <?php endif; ?>
-                                                                <h5 class="candidate-name"><?php echo htmlspecialchars($candidate['name']); ?></h5>
-                                                            </div>
-                                                            
-                                                            <div class="candidate-stats">
-                                                                <div class="vote-stats">
-                                                                    <span class="text-muted fw-medium">Total Votes</span>
-                                                                    <span class="vote-count"><?php echo number_format($candidate['voteCount']); ?></span>
-                                                                </div>
-                                                                <div class="progress mb-3">
-                                                                    <div class="progress-bar" 
-                                                                         role="progressbar" 
-                                                                         style="width: <?php echo $candidate['percentage']; ?>%" 
-                                                                         aria-valuenow="<?php echo $candidate['percentage']; ?>" 
-                                                                         aria-valuemin="0" 
-                                                                         aria-valuemax="100">
-                                                                    </div>
-                                                                </div>
-                                                                <div class="d-flex justify-content-between">
-                                                                    <small class="text-muted fw-medium">Vote Share</small>
-                                                                    <strong class="percentage"><?php echo $candidate['percentage']; ?>%</strong>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                    <!-- Heading for Results Section -->
+                    <div class="mt-5 mb-4 section-header">
+                        <i class="bi bi-clipboard-data fs-3 text-primary"></i>
+                        <h2>Results by Position</h2>
+                    </div>
+
+                    <!-- Results by Position -->
+                    <?php if (!empty($resultsData)): ?>
+                        <?php foreach ($resultsData as $position): ?>
+                        <div class="card border-0 shadow-sm mb-4 results-card">
+                            <div class="card-header bg-white py-3">
+                                <h3 class="position-title mb-0">
+                                    <i class="bi bi-person-badge fs-4 text-primary"></i>
+                                    <?php echo htmlspecialchars($position['title']); ?>
+                                    <span class="badge bg-secondary ms-2">
+                                        <i class="bi bi-check2-all me-1"></i>
+                                        Max Votes: <?php echo $position['maxVotes']; ?>
+                                    </span>
+                                    <span class="badge bg-info ms-2">
+                                        <i class="bi bi-people-fill me-1"></i>
+                                        Total: <?php echo $position['totalVotes']; ?> votes
+                                    </span>
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-4">
+                                    <?php 
+                                    $maxVotes = max(array_column($position['candidates'], 'voteCount'));
+                                    foreach ($position['candidates'] as $candidate): 
+                                        $isWinner = ($candidate['voteCount'] == $maxVotes && $maxVotes > 0);
+                                    ?>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card border-0 shadow-sm h-100 position-relative">
+                                            <?php if ($isWinner): ?>
+                                            <span class="winner-badge" title="Winner">
+                                                <i class="bi bi-trophy-fill"></i>
+                                            </span>
+                                            <?php endif; ?>
+                                            <div class="card-body text-center candidate-details">
+                                                <?php if ($candidate['profilePicture']): ?>
+                                                <img src="assets/img/profile/students/<?php echo $candidate['profilePicture']; ?>" 
+                                                     class="candidate-photo mb-3" 
+                                                     alt="<?php echo htmlspecialchars($candidate['name']); ?>"
+                                                     onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
+                                                <?php else: ?>
+                                                <div class="candidate-photo bg-light d-flex align-items-center justify-content-center mx-auto mb-3">
+                                                    <i class="bi bi-person text-muted" style="font-size: 2rem;"></i>
+                                                </div>
+                                                <?php endif; ?>
+                                                
+                                                <h5 class="mb-2">
+                                                    <i class="bi bi-person-circle me-1 text-primary"></i>
+                                                    <?php echo htmlspecialchars($candidate['name']); ?>
+                                                </h5>
+                                                
+                                                <div class="d-flex justify-content-between mb-2">
+                                                <span class="text-muted d-flex align-items-center">
+                                                        <i class="bi bi-check2-square me-1"></i>
+                                                        Votes
+                                                    </span>
+                                                    <span class="vote-count d-flex align-items-center">
+                                                        <i class="bi bi-123 me-1"></i>
+                                                        <?php echo number_format($candidate['voteCount']); ?>
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="progress-bar-custom mb-2">
+                                                    <div class="progress-custom" 
+                                                         style="width: <?php echo $candidate['percentage']; ?>%">
                                                     </div>
                                                 </div>
-                                                <?php endforeach; ?>
+                                                
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="text-muted d-flex align-items-center">
+                                                        <i class="bi bi-percent me-1"></i>
+                                                        Percentage
+                                                    </span>
+                                                    <span class="percentage d-flex align-items-center">
+                                                        <i class="bi bi-graph-up-arrow me-1"></i>
+                                                        <?php echo $candidate['percentage']; ?>%
+                                                    </span>
+                                                </div>
+                                                
+                                                <?php if ($isWinner): ?>
+                                                <div class="mt-3">
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="bi bi-trophy-fill me-1"></i>
+                                                        Winner
+                                                    </span>
+                                                </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
                                     <?php endforeach; ?>
                                 </div>
-                                
-                                <div class="text-center mt-4 mb-5 fade-in" style="animation-delay: 0.5s;">
-                                    <div class="d-flex justify-content-center gap-3">
-                                        <button class="btn btn-primary" onclick="window.print()">
-                                            <i class="bi bi-printer me-2"></i> Print Results
-                                        </button>
-                                        <button class="btn btn-outline-primary">
-                                            <i class="bi bi-file-earmark-pdf me-2"></i> Save as PDF
-                                        </button>
-                                    </div>
-                                </div>
-                            <?php else: ?>
-                                <div class="no-results scale-in">
-                                    <i class="bi bi-info-circle"></i>
-                                    <h4 class="mt-3 mb-2">No results available for this election yet</h4>
-                                    <p class="text-muted">Results will be displayed once voting has concluded and tallied.</p>
-                                </div>
-                            <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                        
+                        <!-- Print/Export Buttons -->
+                        <div class="text-center mt-4 no-print">
+                            <button class="btn btn-primary me-3 px-4" onclick="window.print()">
+                                <i class="bi bi-printer-fill me-2"></i> Print Results
+                            </button>
+                            <button class="btn btn-success me-3 px-4" id="exportExcel">
+                                <i class="bi bi-file-earmark-excel-fill me-2"></i> Export to Excel
+                            </button>
+                            <button class="btn btn-danger px-4" id="exportPDF">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i> Save as PDF
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <!-- No Results Message -->
+                        <div class="card border-0 shadow-sm text-center py-5 empty-state">
+                            <div class="card-body">
+                                <i class="bi bi-info-circle-fill empty-state-icon"></i>
+                                <h4 class="mt-3 mb-2">No results available</h4>
+                                <p class="text-muted mb-4">Results will be displayed once voting has concluded and tallied.</p>
+                                <a href="elections.php" class="btn btn-primary">
+                                    <i class="bi bi-calendar2-event me-2"></i> View Elections
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php elseif ($electionID): ?>
+                    <!-- Election Not Found -->
+                    <div class="card border-0 shadow-sm text-center py-5">
+                        <div class="card-body">
+                            <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3 mb-2">Election Not Found</h4>
+                            <p class="text-muted mb-4">The election you selected doesn't exist or may have been removed.</p>
+                            <a href="results.php" class="btn btn-primary">
+                                <i class="bi bi-arrow-left me-2"></i> Back to Results
+                            </a>
                         </div>
                     </div>
-                    <?php elseif ($electionID): ?>
-                    <div class="alert alert-warning text-center py-5 animate__animated animate__fadeIn">
-                        <i class="bi bi-exclamation-triangle-fill fs-1 mb-3"></i>
-                        <h4 class="mt-2">Election Not Found</h4>
-                        <p class="mb-0">The election you selected doesn't exist or may have been removed. Please select a different election.</p>
-                    </div>
                     <?php else: ?>
-                    <div class="alert alert-info text-center py-5 animate__animated animate__fadeIn">
-                        <i class="bi bi-info-circle-fill fs-1 mb-3"></i>
-                        <h4 class="mt-2">Select an Election</h4>
-                        <p class="mb-3">Choose an election from the dropdown above to view detailed voting results and statistics.</p>
-                                        <button class="btn btn-outline-primary" onclick="document.querySelector('select[name=\'election\']').focus()">
-                                            <i class="bi bi-arrow-up-circle me-2"></i> Select Election
-                                        </button>
-                                    </div>
+                    <!-- Select Election Message -->
+                    <div class="card border-0 shadow-sm text-center py-5">
+                        <div class="card-body">
+                            <i class="bi bi-info-circle-fill text-primary" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3 mb-2">Select an Election</h4>
+                            <p class="text-muted mb-4">Choose an election from the dropdown to view detailed voting results.</p>
+                            <button class="btn btn-primary" onclick="document.querySelector('select[name=\'election\']').focus()">
+                                <i class="bi bi-arrow-up-circle me-2"></i> Select Election
+                            </button>
+                        </div>
+                    </div>
                     <?php endif; ?>
                 </main>
             </div>
         </div>
     </div>
 
+    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <script>
-        // Animation for progress bars
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animate progress bars
-            const progressBars = document.querySelectorAll('.progress-bar');
-            progressBars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 100);
-            });
-            
-            // Add animation to cards
-            const cards = document.querySelectorAll('.animate__animated');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-            });
-            
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            // Smooth scroll for page elements
-            if (window.location.hash) {
-                setTimeout(() => {
-                    const element = document.querySelector(window.location.hash);
-                    if (element) {
-                        element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                }, 300);
-            }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate progress bars
+        const progressBars = document.querySelectorAll('.progress-custom');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
         });
         
-        // Function to generate PDF
-        function generatePDF() {
-            // This would be replaced with actual PDF generation logic
-            alert('PDF generation would be implemented here');
-        }
+        // Export to Excel
+        document.getElementById('exportExcel').addEventListener('click', function() {
+            // Create a workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Get all the results data
+            const results = <?php echo json_encode($resultsData); ?>;
+            
+            // Prepare data for export
+            const exportData = [];
+            
+            results.forEach(position => {
+                position.candidates.forEach(candidate => {
+                    exportData.push({
+                        'Position': position.title,
+                        'Candidate Name': candidate.name,
+                        'Votes': candidate.voteCount,
+                        'Percentage': candidate.percentage + '%',
+                        'Is Winner': candidate.voteCount === Math.max(...position.candidates.map(c => c.voteCount)) ? 'Yes' : 'No'
+                    });
+                });
+            });
+            
+            // Create a worksheet
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // Add the worksheet to the workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Election Results");
+            
+            // Export the workbook
+            XLSX.writeFile(wb, 'Election_Results_<?php echo isset($electionDetails['name']) ? preg_replace('/[^a-zA-Z0-9]/', '_', $electionDetails['name']) : 'Results'; ?>_<?php echo date('Y-m-d'); ?>.xlsx');
+        });
         
-        // Function to export data
-        function exportData() {
-            // This would be replaced with actual export logic
-            alert('Data export would be implemented here');
-        }
+        // Export to PDF
+        document.getElementById('exportPDF').addEventListener('click', function() {
+            // Create a new PDF document
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(18);
+            doc.setTextColor(40);
+            doc.text('Election Results: <?php echo isset($electionDetails['name']) ? $electionDetails['name'] : ''; ?>', 105, 15, { align: 'center' });
+            
+            // Add date
+            doc.setFontSize(12);
+            doc.setTextColor(100);
+            doc.text('Generated on: <?php echo date('F j, Y, g:i a'); ?>', 105, 22, { align: 'center' });
+            
+            // Add line
+            doc.setDrawColor(200);
+            doc.setLineWidth(0.5);
+            doc.line(20, 25, 190, 25);
+            
+            let yPosition = 35;
+            
+            // Add results for each position
+            const results = <?php echo json_encode($resultsData); ?>;
+            
+            results.forEach((position, index) => {
+                // Add position title
+                if (index > 0) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(14);
+                doc.setTextColor(40);
+                doc.text(position.title + ' (Max Votes: ' + position.maxVotes + ')', 20, yPosition);
+                yPosition += 10;
+                
+                // Add candidates
+                position.candidates.forEach(candidate => {
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    // Candidate name
+                    doc.setFontSize(12);
+                    doc.setTextColor(60);
+                    doc.text(candidate.name, 25, yPosition);
+                    
+                    // Votes and percentage
+                    doc.text('Votes: ' + candidate.voteCount + ' (' + candidate.percentage + '%)', 25, yPosition + 7);
+                    
+                    // Progress bar
+                    doc.setDrawColor(200);
+                    doc.setLineWidth(0.5);
+                    doc.line(25, yPosition + 12, 185, yPosition + 12);
+                    
+                    doc.setFillColor(78, 115, 223);
+                    doc.rect(25, yPosition + 12, (160 * candidate.percentage / 100), 3, 'F');
+                    
+                    yPosition += 20;
+                });
+                
+                yPosition += 10;
+            });
+            
+            // Save the PDF
+            doc.save('Election_Results_<?php echo isset($electionDetails['name']) ? preg_replace('/[^a-zA-Z0-9]/', '_', $electionDetails['name']) : 'Results'; ?>_<?php echo date('Y-m-d'); ?>.pdf');
+        });
+        
+        // Share functionality
+        document.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const action = this.querySelector('i').className.split(' ')[1];
+                
+                switch(action) {
+                    case 'bi-envelope-fill':
+                        alert('Email sharing would be implemented here');
+                        break;
+                    case 'bi-link-45deg':
+                        navigator.clipboard.writeText(window.location.href)
+                            .then(() => alert('Link copied to clipboard!'))
+                            .catch(() => alert('Failed to copy link'));
+                        break;
+                    case 'bi-broadcast':
+                        alert('Publishing results would be implemented here');
+                        break;
+                }
+            });
+        });
+    });
     </script>
     <?php include 'includes/footer.php'; ?>
 </body>

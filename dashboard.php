@@ -96,6 +96,7 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <style>
+        
         .card-icon {
             width: 50px;
             height: 50px;
@@ -283,7 +284,7 @@ try {
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h5 class="card-title mb-0">Active Election: <?php echo $dashboard_stats['election_title']; ?></h5>
-                                        <a href="election_details.php?id=<?php echo $dashboard_stats['election_id']; ?>" class="btn btn-sm btn-primary">
+                                        <a href="election_details.php?id=<?php echo $dashboard_stats['election_id']; ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-eye"></i> View Details
                                         </a>
                                     </div>
