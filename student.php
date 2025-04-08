@@ -78,9 +78,9 @@ if ($currentElection && !$hasVoted) {
                 SELECT c.*, s.name, s.department, s.profilePicture 
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
-                WHERE c.position = ? AND c.status = 'Approved'
+                WHERE c.status = 'Approved'
+                ORDER BY s.name ASC
             ");
-            $stmt->bind_param('s', $position['title']);
             $stmt->execute();
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
@@ -97,41 +97,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         $error = "You cannot vote at this time.";
     } else {
         try {
-            $conn->begin_transaction();
+            // Start transaction
+            $conn->query("START TRANSACTION");
 
-            // Validate all positions have selections
+            // Check for existing votes
+            $checkStmt = $conn->prepare("SELECT 1 FROM votes WHERE electionID = ? AND studentID = ? LIMIT 1");
+            $checkStmt->bind_param('ii', $currentElection['electionID'], $studentID);
+            $checkStmt->execute();
+            if ($checkStmt->get_result()->num_rows > 0) {
+                throw new Exception("You have already voted in this election.");
+            }
+            $checkStmt->close();
+
+            // Validate selections
             $votes = [];
             foreach ($positions as $position) {
-                $positionTitle = $position['title'];
-                if (!isset($_POST['position_' . $positionTitle])) {
+                if (!isset($_POST['position_' . $position['positionID']]) || empty($_POST['position_' . $position['positionID']])) {
                     throw new Exception("Please select a candidate for all positions.");
                 }
 
-                $candidateID = (int)$_POST['position_' . $positionTitle];
-                $votes[] = [
-                    'electionID' => $currentElection['electionID'],
-                    'candidateID' => $candidateID,
-                    'studentID' => $studentID
-                ];
+                $selectedCandidates = $_POST['position_' . $position['positionID']];
+                if (count($selectedCandidates) > $position['maxVotes']) {
+                    throw new Exception("You can only select up to " . $position['maxVotes'] . " candidates for " . $position['title']);
+                }
+
+                // Remove duplicates
+                $selectedCandidates = array_unique($selectedCandidates);
+                
+                foreach ($selectedCandidates as $candidateID) {
+                    $votes[] = [
+                        'electionID' => $currentElection['electionID'],
+                        'candidateID' => (int)$candidateID,
+                        'studentID' => $studentID
+                    ];
+                }
             }
 
-            // Record votes - using only fields that exist in your votes table
-            $stmt = $conn->prepare("
-                INSERT INTO votes 
-                (electionID, candidateID, studentID, `timestamp`) 
-                VALUES (?, ?, ?, NOW())
-            ");
+            // Insert votes
+            $stmt = $conn->prepare("INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())");
+            $insertedVotes = [];
 
             foreach ($votes as $vote) {
-                $stmt->bind_param('iii',
-                    $vote['electionID'],
-                    $vote['candidateID'],
-                    $vote['studentID']
-                );
-                $stmt->execute();
+                $voteKey = $vote['electionID'] . '-' . $vote['studentID'] . '-' . $vote['candidateID'];
+                if (!isset($insertedVotes[$voteKey])) {
+                    $stmt->bind_param('iii', $vote['electionID'], $vote['candidateID'], $vote['studentID']);
+                    $stmt->execute();
+                    $insertedVotes[$voteKey] = true;
+                }
             }
 
-            $conn->commit();
+            // Commit transaction
+            $conn->query("COMMIT");
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
 
@@ -147,7 +163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             $stmt->close();
 
         } catch (Exception $e) {
-            $conn->rollback();
+            // Rollback transaction on error
+            $conn->query("ROLLBACK");
             $error = "Error submitting vote: " . $e->getMessage();
         }
     }
@@ -196,14 +213,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
         .candidate-card {
-            border: 1px solid var(--border);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            cursor: pointer;
-            border-radius: 12px;
-            background: var(--surface);
-            overflow: hidden;
-            position: relative;
-            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: auto;
+            max-height: 250px; /* Set a maximum height for the cards */
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
         .candidate-card:hover {
@@ -241,11 +258,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
         .avatar-container {
-            position: relative;
-            width: 110px;
-            height: 110px;
+            width: 60px;
+            height: 60px;
             margin: 0 auto;
-            perspective: 1000px;
         }
         
         .avatar {
@@ -296,14 +311,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
         .vote-submit-btn {
-            padding: 14px 36px;
+            padding: 0.5rem 1rem;
             font-weight: 600;
             letter-spacing: 0.5px;
-            border-radius: 12px;
+            border-radius: 8px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             border: none;
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+            margin-top: 1rem;
+            width: 100%;
+            text-align: center;
         }
         
         .vote-submit-btn:hover {
@@ -464,28 +482,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
         .candidate-info {
-            padding: 1.5rem;
+            padding: 0.5rem;
+            text-align: center;
+            flex-grow: 1;
         }
         
         .candidate-name {
             font-weight: 700;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.2rem;
             transition: color 0.3s ease;
         }
         
         .candidate-position {
             color: var(--primary);
             font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            margin-bottom: 0.3rem;
         }
         
         .candidate-tagline {
             color: var(--text-muted);
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
@@ -579,6 +599,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             
             .vote-submit-btn {
                 width: 100%;
+            }
+            
+            .col-md-6, .col-lg-4 {
+                flex: 1 1 calc(50% - 0.5rem); /* Adjust width to fit two cards per row on mobile */
+                max-width: calc(50% - 0.5rem);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .col-md-6, .col-lg-4 {
+                flex: 1 1 100%; /* Adjust width to fit one card per row on smaller screens */
+                max-width: 100%;
             }
         }
 
@@ -696,6 +728,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         .welcome-modal .modal-content {
             animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -0.5rem;
+            margin-left: -0.5rem;
+        }
+
+        .col-md-6, .col-lg-4 {
+            padding-right: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .row.g-4 {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .col-md-6, .col-lg-4 {
+            flex: 1 1 calc(33.333% - 0.5rem); /* Adjust width to fit three cards per row */
+            max-width: calc(33.333% - 0.5rem);
+        }
+
+        .candidate-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .horizontal-position .row {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            overflow-x: hidden; /* Hide scrollbar */
+            -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .horizontal-position .row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .horizontal-position .col-md-6, .horizontal-position .col-lg-4 {
+            flex: 0 0 auto;
+            width: auto;
+            max-width: none;
+        }
+
+        .live-results-btn {
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(67, 97, 238, 0.2) 100%);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.1);
+            margin-top: 1rem;
+        }
+        
+        .live-results-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.2);
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.2) 0%, rgba(67, 97, 238, 0.3) 100%);
+            color: var(--primary);
         }
     </style>
 </head>
@@ -829,22 +932,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <!-- Voting Form -->
                         <?php if ($currentElection && !$hasVoted): ?>
                             <form id="votingForm" method="POST">
-                                <?php foreach ($positions as $position): ?>
+                                <?php foreach ($positions as $index => $position): ?>
                                     <?php if (!empty($position['candidates'])): ?>
-                                        <div class="position-section">
+                                        <div class="position-section <?= $index === 0 ? 'horizontal-position' : '' ?>">
                                             <div class="position-header">
                                                 <div class="d-flex align-items-center mb-2">
                                                     <span class="position-badge text-white me-3">Position</span>
                                                     <h4 class="mb-0 fw-bold"><?= htmlspecialchars($position['title']) ?></h4>
                                                 </div>
                                                 <p class="text-muted small mb-0"><?= htmlspecialchars($position['description'] ?? 'Select your candidate') ?></p>
+                                                <?php if ($position['maxVotes'] > 1): ?>
+                                                    <p class="text-muted small mt-1">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        You can select up to <?= $position['maxVotes'] ?> candidates
+                                                    </p>
+                                                <?php endif; ?>
                                             </div>
                                             
-                                            <div class="row g-4">
+                                            <div class="row g-4 <?= $index === 0 ? 'flex-nowrap overflow-auto' : '' ?>">
                                                 <?php foreach ($position['candidates'] as $candidate): ?>
                                                     <div class="col-md-6 col-lg-4">
-                                                        <div class="candidate-card"
-                                                             onclick="selectCandidate(this, '<?= htmlspecialchars($position['title']) ?>', <?= $candidate['candidateID'] ?>)">
+                                                        <div class="candidate-card" 
+                                                             onclick="selectCandidate(this, <?= $position['positionID'] ?>, <?= $candidate['candidateID'] ?>, <?= $position['maxVotes'] ?>)">
                                                             <div class="text-center p-4 pt-4 pb-2">
                                                                 <div class="avatar-container">
                                                                     <?php 
@@ -872,12 +981,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                                 <p class="candidate-tagline"><?= htmlspecialchars($candidate['manifesto'] ?? 'No manifesto provided') ?></p>
                                                             </div>
                                                             
-                                                            <input type="radio" 
-                                                                   name="position_<?= htmlspecialchars($position['title']) ?>" 
+                                                            <input type="checkbox" 
+                                                                   name="position_<?= $position['positionID'] ?>[]" 
                                                                    value="<?= $candidate['candidateID'] ?>" 
                                                                    class="d-none" 
-                                                                   required>
-                                                        </div>
+                                                                   <?= $position['maxVotes'] === 1 ? 'required' : '' ?>>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
@@ -989,18 +1097,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Enhanced candidate selection with animation
-        window.selectCandidate = function(element, positionTitle, candidateId) {
-            // Deselect other candidates for this position
-            document.querySelectorAll(`input[name="position_${positionTitle}"]`).forEach(radio => {
-                const card = radio.closest('.candidate-card');
-                if (card !== element) {
-                    card.classList.remove('selected');
-                }
-            });
+        window.selectCandidate = function(element, positionID, candidateId, maxVotes) {
+            const checkboxes = document.querySelectorAll(`input[name="position_${positionID}[]"]`);
+            const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
             
-            // Select current candidate
-            element.classList.add('selected');
-            element.querySelector('input[type="radio"]').checked = true;
+            if (maxVotes === 1) {
+                // Single selection mode
+                checkboxes.forEach(checkbox => {
+                    const card = checkbox.closest('.candidate-card');
+                    if (card !== element) {
+                        card.classList.remove('selected');
+                        checkbox.checked = false;
+                    }
+                });
+                element.classList.add('selected');
+                element.querySelector('input[type="checkbox"]').checked = true;
+            } else {
+                // Multiple selection mode
+                const checkbox = element.querySelector('input[type="checkbox"]');
+                if (selectedCount < maxVotes || checkbox.checked) {
+                    element.classList.toggle('selected');
+                    checkbox.checked = !checkbox.checked;
+                } else {
+                    alert(`You can only select up to ${maxVotes} candidates for this position.`);
+                }
+            }
             
             // Add special animation
             element.style.animation = 'select-pulse 0.8s ease';
@@ -1010,25 +1131,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             
             // Update progress status
             updateVotingProgress();
-        }; 
+        };
         
         // Update voting progress and validation status
         function updateVotingProgress() {
-            const positionCount = document.querySelectorAll('.position-section').length;
-            let completedPositions = 0;
+            const positionSections = document.querySelectorAll('.position-section');
+            let allPositionsSelected = true;
             
-            // Check how many positions have selections
-            document.querySelectorAll('.position-section').forEach(position => {
-                const inputs = position.querySelectorAll('input[type="radio"]');
-                const hasSelection = Array.from(inputs).some(input => input.checked);
-                if (hasSelection) {
-                    completedPositions++;
+            positionSections.forEach(section => {
+                const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+                const hasSelection = Array.from(checkboxes).some(cb => cb.checked);
+                if (!hasSelection) {
+                    allPositionsSelected = false;
                 }
             });
             
             // Update submit button state
             const submitBtn = document.querySelector('.vote-submit-btn');
-            if (completedPositions === positionCount) {
+            if (allPositionsSelected) {
                 submitBtn.removeAttribute('disabled');
                 submitBtn.classList.add('pulse-badge');
             } else {

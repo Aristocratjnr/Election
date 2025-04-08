@@ -521,7 +521,7 @@ if ($electionID) {
                             <div class="card-body">
                                 <div class="row g-4">
                                     <?php 
-                                    $maxVotes = max(array_column($position['candidates'], 'voteCount'));
+                                    $maxVotes = !empty($position['candidates']) ? max(array_column($position['candidates'], 'voteCount')) : 0;
                                     foreach ($position['candidates'] as $candidate): 
                                         $isWinner = ($candidate['voteCount'] == $maxVotes && $maxVotes > 0);
                                     ?>

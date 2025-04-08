@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 05, 2025 at 03:11 AM
+-- Generation Time: Apr 08, 2025 at 02:56 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,6 +24,59 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `adminID` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `role` enum('admin','super_admin') NOT NULL DEFAULT 'admin',
+  `status` enum('Active','Inactive') NOT NULL DEFAULT 'Active',
+  `last_login` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admins`
+--
+
+INSERT INTO `admins` (`adminID`, `username`, `password`, `name`, `email`, `role`, `status`, `last_login`, `created_at`) VALUES
+(1, 'admin', '$2y$10$8gKZT7k1ssMQQy2x9dM0Lezlbdg/tcQ0GgCoYh0aPFB1IQDTQMyfe', 'System Administrator', 'admin@example.com', 'super_admin', 'Active', NULL, '2025-04-07 00:43:59');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ballot_designs`
+--
+
+CREATE TABLE `ballot_designs` (
+  `designID` int(11) NOT NULL,
+  `electionID` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `style` varchar(50) DEFAULT 'modern',
+  `show_logo` tinyint(1) DEFAULT 1,
+  `show_header` tinyint(1) DEFAULT 1,
+  `show_footer` tinyint(1) DEFAULT 1,
+  `logo_position` enum('left','center','right') DEFAULT 'center',
+  `header_color` varchar(20) DEFAULT '#4361ee',
+  `font_family` varchar(50) DEFAULT 'Poppins',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ballot_designs`
+--
+
+INSERT INTO `ballot_designs` (`designID`, `electionID`, `title`, `description`, `style`, `show_logo`, `show_header`, `show_footer`, `logo_position`, `header_color`, `font_family`, `created_at`) VALUES
+(1, 1, '', '', 'modern', 1, 1, 1, '', '#4361ee', 'Poppins', '2025-04-08 10:29:37');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `candidates`
 --
 
@@ -32,8 +85,18 @@ CREATE TABLE `candidates` (
   `studentID` int(11) DEFAULT NULL,
   `position` varchar(100) NOT NULL,
   `manifesto` text DEFAULT NULL,
-  `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending'
+  `photo` varchar(255) DEFAULT NULL,
+  `status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
+  `positionID` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `candidates`
+--
+
+INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `photo`, `status`, `positionID`) VALUES
+(1, 1231231, 'Vice President', 'I will improve campus facilities', '67f5098563da6.jpg', 'Approved', NULL),
+(2372714, 10945821, 'SRC President', 'kkkkjk', '67f506fd784bd.jpeg', 'Approved', NULL);
 
 -- --------------------------------------------------------
 
@@ -65,6 +128,13 @@ CREATE TABLE `elections` (
   `status` enum('Scheduled','Ongoing','Completed') DEFAULT 'Scheduled'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `elections`
+--
+
+INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES
+(1, 'Student Council Election', '2025-05-01', '2025-05-10', 'Ongoing');
+
 -- --------------------------------------------------------
 
 --
@@ -84,6 +154,17 @@ CREATE TABLE `notifications` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`notification_id`, `user_id`, `user_type`, `title`, `message`, `type`, `related_election`, `related_candidate`, `is_read`, `created_at`) VALUES
+(4, 1231231, 'student', 'Vote Confirmation', 'Your vote has been recorded', 'vote', 1, NULL, 0, '2025-04-05 01:40:59'),
+(6, 10928371, 'student', 'System Alert', 'Complete your profile information', 'system', NULL, NULL, 1, '2025-04-05 01:40:59'),
+(28, 10928371, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-06 22:10:01'),
+(29, 10928371, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-06 22:11:51'),
+(32, 10928371, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-07 14:53:55');
+
 -- --------------------------------------------------------
 
 --
@@ -97,6 +178,38 @@ CREATE TABLE `password_resets` (
   `expires_at` datetime NOT NULL,
   `used` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `password_resets`
+--
+
+INSERT INTO `password_resets` (`id`, `email`, `token`, `expires_at`, `used`) VALUES
+(1, 'bmfhpwww@sharklasers.com', '75829dd9f5c4e7572633c81e4b9e1a4a944de9d0e747f1b0faa10ccecab8561f', '2025-04-05 04:20:13', 0),
+(2, 'davidayim01@gmail.com', '8f832eb81198fc1182e662568841e2f1d1a6457cd6a093dc90f2bde3c5c618af', '2025-04-05 04:26:46', 0),
+(3, 'simonsetor561@outlook.com', 'b79d191ef32fa7c496785a4f4e78e4955d5b28ed826c420b1920ac29b4ec70a2', '2025-04-05 18:18:24', 0),
+(4, 'simonsetor561@outlook.com', '704924dd502fc999e5a44769f492bf3f213a1d174005953b49df351c93400bb4', '2025-04-05 21:47:24', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `positions`
+--
+
+CREATE TABLE `positions` (
+  `positionID` int(11) NOT NULL,
+  `electionID` int(11) NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `maxVotes` int(11) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `positions`
+--
+
+INSERT INTO `positions` (`positionID`, `electionID`, `title`, `description`, `maxVotes`) VALUES
+(3, 1, 'SRC President', 'Fees', 2),
+(6, 1, 'Secretray', 'aqeewqe', 2);
 
 -- --------------------------------------------------------
 
@@ -140,9 +253,10 @@ CREATE TABLE `students` (
 --
 
 INSERT INTO `students` (`studentID`, `name`, `email`, `password`, `dateOfBirth`, `department`, `contactNumber`, `registrationDate`, `status`, `created_at`, `role`, `profilePicture`, `two_factor_secret`, `two_factor_enabled`) VALUES
-(1231231, 'Mark Zuckerberg', 'bmfhpwww@sharklasers.com', '$2y$10$7FDUeiD7rMAHhCdqTSjuSO2C7.YK1Gd/CFb./1x7/ZyRCHK3Qp/4i', '2000-01-02', 'Computer Science', '233551784926', '2025-04-04', 'Active', '2025-04-04 12:42:19', 'student', '1231231_1743771186.jpg', NULL, 0),
-(10945821, 'Aristocratjnr', 'david.obuobi@inkris.ca', '$2y$10$PaQkW9.LAKdG5atPFSosZuPBivPtBZKwl9.ZLJz1p1WAxyqGIzPGq', '2002-09-23', 'Administrator', '0551784926', '2025-04-02', 'Active', '2025-04-02 14:03:42', 'admin', '10945821_1743812623.jpeg', '5XDSYJDRZEEUEQXQ', 0),
-(13131231, 'Aristocrat David Junior', 'davidayim01@gmail.com', '$2y$10$vRLylj3K3z1WQrejHryDTeipq.pRx.0r4ZKSPdU0JcNLqmM.f4G.G', '2000-01-02', 'Computer Science.', '233209945369', '2025-04-02', 'Active', '2025-04-02 00:29:14', 'student', '13131231_1743682891.png', NULL, 0),
+(1231231, 'Mark Zuckerberg', 'bmfhpwww@sharklasers.com', '$2y$10$ag16iX19SDynJKqcOjh8muRo3ls..w/AuM3JIcS7pu4rGJ5PUOUNq', '2000-01-02', 'Computer Science', '233551784926', '2025-04-04', 'Active', '2025-04-04 12:42:19', 'student', '1231231_1743771186.jpg', NULL, 0),
+(10928371, 'Simon Setor AB', 'simonsetor561@outlook.com', '$2y$10$7EV7xdblc9dDJ4H5jYKDXelVFaJAA8ML8nvQw2LlG/IRyD6HlpHfW', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 15:16:55', 'student', '10928371_1743868570.jpg', 'YQW6YAFSMH2YY2YG', 0),
+(10945821, 'Aristocratjnr', 'david.obuobi@inkris.ca', '$2y$10$PaQkW9.LAKdG5atPFSosZuPBivPtBZKwl9.ZLJz1p1WAxyqGIzPGq', '2002-09-23', 'Administrator', '0551784926', '2025-04-02', 'Active', '2025-04-02 14:03:42', 'admin', '10945821_1744050996.jpeg', 'EO7CYYN3Q5TZKHUP', 1),
+(109911311, 'Testing', 'daobuobi006@st.ug.edu.gh', '$2y$10$be5XjjUTu7RdH4zFiWI3VeMhMJBB7XIUGnaYcn5ThuET0RaV2wE8O', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 18:35:06', 'student', NULL, NULL, 0),
 (2147483647, 'Aristocratjnr', 'ayimobuob44i@gmail.com', '$2y$10$7gIfjP28JzVySUIFT5xXy.OV39inN0W54wyhwyDufYbXfIyoqKwYe', '2000-01-02', 'Chemistry', '233551784926', '2025-04-01', 'Active', '2025-04-01 15:50:04', 'student', NULL, NULL, 0);
 
 -- --------------------------------------------------------
@@ -164,11 +278,27 @@ CREATE TABLE `votes` (
 --
 
 --
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`adminID`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `ballot_designs`
+--
+ALTER TABLE `ballot_designs`
+  ADD PRIMARY KEY (`designID`),
+  ADD KEY `electionID` (`electionID`);
+
+--
 -- Indexes for table `candidates`
 --
 ALTER TABLE `candidates`
   ADD PRIMARY KEY (`candidateID`),
-  ADD KEY `studentID` (`studentID`);
+  ADD KEY `studentID` (`studentID`),
+  ADD KEY `fk_candidates_position` (`positionID`);
 
 --
 -- Indexes for table `categories`
@@ -200,6 +330,13 @@ ALTER TABLE `password_resets`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `positions`
+--
+ALTER TABLE `positions`
+  ADD PRIMARY KEY (`positionID`),
+  ADD KEY `electionID` (`electionID`);
+
+--
 -- Indexes for table `results`
 --
 ALTER TABLE `results`
@@ -228,10 +365,22 @@ ALTER TABLE `votes`
 --
 
 --
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `adminID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `ballot_designs`
+--
+ALTER TABLE `ballot_designs`
+  MODIFY `designID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT for table `candidates`
 --
 ALTER TABLE `candidates`
-  MODIFY `candidateID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2372714;
+  MODIFY `candidateID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2372715;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -243,19 +392,25 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `elections`
 --
 ALTER TABLE `elections`
-  MODIFY `electionID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `electionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `positions`
+--
+ALTER TABLE `positions`
+  MODIFY `positionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `results`
@@ -280,10 +435,17 @@ ALTER TABLE `votes`
 --
 
 --
+-- Constraints for table `ballot_designs`
+--
+ALTER TABLE `ballot_designs`
+  ADD CONSTRAINT `ballot_designs_ibfk_1` FOREIGN KEY (`electionID`) REFERENCES `elections` (`electionID`);
+
+--
 -- Constraints for table `candidates`
 --
 ALTER TABLE `candidates`
-  ADD CONSTRAINT `candidates_ibfk_1` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`) ON DELETE CASCADE;
+  ADD CONSTRAINT `candidates_ibfk_1` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_candidates_position` FOREIGN KEY (`positionID`) REFERENCES `positions` (`positionID`);
 
 --
 -- Constraints for table `categories`
@@ -299,6 +461,12 @@ ALTER TABLE `categories`
 ALTER TABLE `notifications`
   ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`related_election`) REFERENCES `elections` (`electionID`) ON DELETE SET NULL,
   ADD CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`related_candidate`) REFERENCES `candidates` (`candidateID`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `positions`
+--
+ALTER TABLE `positions`
+  ADD CONSTRAINT `positions_ibfk_1` FOREIGN KEY (`electionID`) REFERENCES `elections` (`electionID`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `results`

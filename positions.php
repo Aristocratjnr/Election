@@ -345,8 +345,8 @@ $positions = $conn->query("
                             <div class="card-stats-info">
                             <p class="card-stats-number">
                                 <?php 
-                                $avgVotes = $conn->query("SELECT AVG(maxVotes) as avg FROM positions")->fetch_assoc();
-                                echo ($avgVotes['avg'] !== null) ? number_format($avgVotes['avg'], 1) : '0.0';
+                                $avgVotes = $conn->query("SELECT COALESCE(AVG(maxVotes), 0) as avg FROM positions")->fetch_assoc();
+                                echo number_format($avgVotes['avg'], 1);
                                 ?>
                             </p>
                                 <p class="card-stats-label">Avg. Max Votes</p>
@@ -459,12 +459,16 @@ $positions = $conn->query("
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="maxVotes" class="form-label">Max Votes Allowed</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-people"></i></span>
-                                <input type="number" class="form-control" id="maxVotes" name="maxVotes" value="1" min="1" required>
-                            </div>
-                            <small class="form-text text-muted">Number of candidates a voter can select for this position</small>
+                            <label for="maxVotes" class="form-label">Maximum Votes</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="maxVotes" 
+                                   name="maxVotes" 
+                                   value="<?= isset($position) ? $position['maxVotes'] : '1' ?>" 
+                                   min="1" 
+                                   max="999"
+                                   required>
+                            <div class="form-text">Maximum number of candidates that can be voted for this position.</div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -566,6 +570,15 @@ $positions = $conn->query("
                 $("#positionsTable tbody tr").filter(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
+            });
+
+            document.getElementById('positionForm').addEventListener('submit', function(e) {
+                const maxVotes = document.getElementById('maxVotes').value;
+                if (maxVotes < 1) {
+                    e.preventDefault();
+                    alert('Maximum votes must be at least 1');
+                    return false;
+                }
             });
         });
     </script>

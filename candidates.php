@@ -14,7 +14,7 @@ require 'configs/dbconnection.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_candidate'])) {
         $studentID = $_POST['studentID'];
-        $position = $_POST['position'];
+        $positionID = $_POST['positionID'];
         $manifesto = $_POST['manifesto'];
         $status = $_POST['status'];
         $photo = '';
@@ -39,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        $stmt = $conn->prepare("INSERT INTO candidates (studentID, position, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("issss", $studentID, $position, $manifesto, $status, $photo);
+        $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
         
         if ($stmt->execute()) {
             $success = "Candidate added successfully!";
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['update_candidate'])) {
         $candidateID = $_POST['candidateID'];
         $studentID = $_POST['studentID'];
-        $position = $_POST['position'];
+        $positionID = $_POST['positionID'];
         $manifesto = $_POST['manifesto'];
         $status = $_POST['status'];
         $photo = $_POST['current_photo'];
@@ -79,8 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        $stmt = $conn->prepare("UPDATE candidates SET studentID = ?, position = ?, manifesto = ?, status = ?, photo = ? WHERE candidateID = ?");
-        $stmt->bind_param("issssi", $studentID, $position, $manifesto, $status, $photo, $candidateID);
+        $stmt = $conn->prepare("UPDATE candidates SET studentID = ?, positionID = ?, manifesto = ?, status = ?, photo = ? WHERE candidateID = ?");
+        $stmt->bind_param("iisssi", $studentID, $positionID, $manifesto, $status, $photo, $candidateID);
         
         if ($stmt->execute()) {
             $success = "Candidate updated successfully!";
@@ -116,11 +116,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get all students for dropdown
 $students = $conn->query("SELECT studentID, name FROM students ORDER BY name ASC");
 
-// Get all candidates with student details
+// Get all positions for dropdown
+$positions = $conn->query("SELECT positionID, title FROM positions ORDER BY title ASC");
+
+// Get all candidates with student and position details
 $candidates = $conn->query("
-    SELECT c.*, s.name as studentName, s.profilePicture 
+    SELECT c.*, s.name as studentName, s.profilePicture, p.title as positionTitle
     FROM candidates c
     JOIN students s ON c.studentID = s.studentID
+    LEFT JOIN positions p ON c.positionID = p.positionID
     ORDER BY s.name ASC
 ");
 ?>
@@ -284,51 +288,110 @@ $candidates = $conn->query("
         }
 
         .modal-content {
-            border-radius: 16px;
             border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
         .modal-header {
-            background-color: var(--primary-color);
+            background: linear-gradient(45deg, #4e73df, #224abe);
             color: white;
-            padding: 1.5rem 2rem;
-            border-bottom: none;
+            border-radius: 1rem 1rem 0 0;
+            padding: 1.5rem;
         }
 
         .modal-title {
-            font-weight: 600;
             font-size: 1.25rem;
+            font-weight: 600;
         }
 
         .modal-body {
             padding: 2rem;
         }
 
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e0e4ec;
-            transition: var(--transition);
+        .photo-upload-container {
+            position: relative;
+            width: 100%;
+            min-height: 200px;
+            border: 2px dashed #e0e4ec;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background-color: #f8f9fc;
+            transition: all 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.2);
+        .photo-upload-container:hover {
+            border-color: #4e73df;
+            background-color: #f0f2ff;
+        }
+
+        .photo-upload-container.dragover {
+            border-color: #4e73df;
+            background-color: #f0f2ff;
+        }
+
+        .photo-preview-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            color: #4e73df;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.875rem;
+            color: #adb5bd;
         }
 
         .form-label {
-            font-weight: 500;
+            font-weight: 600;
+            color: #2d3748;
             margin-bottom: 0.5rem;
-            color: #4a5568;
         }
 
-        .alert {
-            border-radius: 8px;
-            padding: 1rem 1.5rem;
-            border: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #e0e4ec;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e0e4ec;
+            padding: 1.5rem;
+        }
+
+        .btn-modal {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
         }
 
         .page-header {
@@ -359,7 +422,10 @@ $candidates = $conn->query("
         }
 
         .header-actions {
-            min-width: 200px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 320px;
         }
 
         @media (max-width: 768px) {
@@ -371,19 +437,51 @@ $candidates = $conn->query("
             .header-actions {
                 width: 100%;
                 min-width: auto;
+                justify-content: space-between;
+            }
+
+            .badge-count {
+                min-width: auto;
+            }
+
+            .btn-primary {
+                min-width: auto;
             }
         }
 
         .badge-count {
-            background-color: rgba(78, 115, 223, 0.1);
-            color: var(--primary-color);
-            padding: 0.35rem 0.75rem;
-            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
             font-weight: 600;
-            font-size: 0.85rem;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.5rem;
+            background-color: rgba(78, 115, 223, 0.1);
+            color: #4e73df;
+            min-width: 140px;
         }
 
-       
+        .badge-count i {
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 160px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primary i {
+            margin-right: 0.5rem;
+        }
 
         .position-badge {
             display: inline-block;
@@ -533,13 +631,14 @@ $candidates = $conn->query("
                                         </h1>
                                         <p class="page-subtitle">Create and manage election candidates</p>
                                     </div>
-                                    <div class="header-actions d-flex align-items-center">
-                                        <span class="badge-count me-3">
-                                            <i class="fas fa-user-check me-1"></i>
+                                    <div class="header-actions">
+                                        <span class="badge-count">
+                                            <i class="fas fa-user-check"></i>
                                             <?php echo $candidates->num_rows; ?> Candidates
                                         </span>
-                                        <button class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                                            <i class="fas fa-plus me-2"></i>New Candidate
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                            <i class="fas fa-plus"></i>
+                                            New Candidate
                                         </button>
                                     </div>
                                 </div>
@@ -591,9 +690,9 @@ $candidates = $conn->query("
                                                         <tr>
                                                             <td>
                                                                 <?php if ($candidate['photo']): ?>
-                                                                    <img src="uploads/candidates/<?php echo htmlspecialchars($candidate['photo']); ?>" 
+                                                                    <img src="uploads/candidates/<?= htmlspecialchars($candidate['photo'] ?? '') ?>" 
                                                                          class="candidate-img" 
-                                                                         alt="<?php echo htmlspecialchars($candidate['studentName']); ?>">
+                                                                         alt="<?= htmlspecialchars($candidate['studentName'] ?? '') ?>">
                                                                 <?php else: ?>
                                                                     <div class="candidate-img bg-light d-flex align-items-center justify-content-center">
                                                                         <i class="fas fa-user text-muted"></i>
@@ -603,14 +702,14 @@ $candidates = $conn->query("
                                                             <td>
                                                                 <div class="d-flex align-items-center">
                                                                     <div>
-                                                                        <h6 class="mb-0"><?php echo htmlspecialchars($candidate['studentName']); ?></h6>
-                                                                        <small class="text-muted">ID: <?php echo $candidate['studentID']; ?></small>
+                                                                        <h6 class="mb-0"><?= htmlspecialchars($candidate['studentName'] ?? '') ?></h6>
+                                                                        <small class="text-muted">ID: <?= $candidate['studentID'] ?? '' ?></small>
                                                                     </div>
                                                                 </div>
                                                             </td>
                                                             <td>
                                                                 <span class="position-badge">
-                                                                    <?php echo htmlspecialchars($candidate['position']); ?>
+                                                                    <?= htmlspecialchars($candidate['positionTitle'] ?? '') ?>
                                                                 </span>
                                                             </td>
                                                             <td>
@@ -618,7 +717,7 @@ $candidates = $conn->query("
                                                                     echo $candidate['status'] === 'Approved' ? 'success' : 
                                                                         ($candidate['status'] === 'Pending' ? 'warning' : 'danger'); 
                                                                 ?>">
-                                                                    <?php echo $candidate['status']; ?>
+                                                                    <?= htmlspecialchars($candidate['status'] ?? '') ?>
                                                                 </span>
                                                             </td>
                                                             <td>
@@ -626,16 +725,16 @@ $candidates = $conn->query("
                                                                     <button class="btn btn-sm btn-outline-primary edit-btn" 
                                                                             data-bs-toggle="modal" 
                                                                             data-bs-target="#editCandidateModal"
-                                                                            data-id="<?php echo $candidate['candidateID']; ?>"
-                                                                            data-studentid="<?php echo $candidate['studentID']; ?>"
-                                                                            data-position="<?php echo htmlspecialchars($candidate['position']); ?>"
-                                                                            data-manifesto="<?php echo htmlspecialchars($candidate['manifesto']); ?>"
-                                                                            data-status="<?php echo $candidate['status']; ?>"
-                                                                            data-photo="<?php echo htmlspecialchars($candidate['photo']); ?>">
+                                                                            data-id="<?= $candidate['candidateID'] ?? '' ?>"
+                                                                            data-studentid="<?= $candidate['studentID'] ?? '' ?>"
+                                                                            data-positionid="<?= $candidate['positionID'] ?? '' ?>"
+                                                                            data-manifesto="<?= htmlspecialchars($candidate['manifesto'] ?? '') ?>"
+                                                                            data-status="<?= htmlspecialchars($candidate['status'] ?? '') ?>"
+                                                                            data-photo="<?= htmlspecialchars($candidate['photo'] ?? '') ?>">
                                                                         <i class="fas fa-edit"></i>
                                                                     </button>
                                                                     <form method="POST" class="d-inline">
-                                                                        <input type="hidden" name="candidateID" value="<?php echo $candidate['candidateID']; ?>">
+                                                                        <input type="hidden" name="candidateID" value="<?= $candidate['candidateID'] ?? '' ?>">
                                                                         <button type="submit" name="delete_candidate" 
                                                                                 class="btn btn-sm btn-outline-danger" 
                                                                                 onclick="return confirm('Are you sure you want to delete this candidate?')">
@@ -672,59 +771,52 @@ $candidates = $conn->query("
 
     <!-- Add Candidate Modal -->
     <div class="modal fade" id="addCandidateModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Candidate</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <form method="POST" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="fas fa-user-plus me-2"></i>
-                            Add New Candidate
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
                     <div class="modal-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="studentID" class="form-label">Student</label>
-                                <select class="form-select" id="studentID" name="studentID" required>
-                                    <option value="">Select Student</option>
-                                    <?php 
-                                    $students->data_seek(0);
-                                    while ($student = $students->fetch_assoc()): ?>
-                                        <option value="<?php echo $student['studentID']; ?>">
-                                            <?php echo htmlspecialchars($student['name']); ?>
-                                        </option>
-                                    <?php endwhile; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="position" class="form-label">Position</label>
-                                <input type="text" class="form-control" id="position" name="position" required>
-                            </div>
-                            <div class="col-12">
-                                <label for="manifesto" class="form-label">Manifesto</label>
-                                <textarea class="form-control" id="manifesto" name="manifesto" rows="4"></textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="status" class="form-label">Status</label>
-                                <select class="form-select" id="status" name="status" required>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Rejected">Rejected</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="photo" class="form-label">Photo</label>
-                                <input type="file" class="form-control" id="photo" name="photo" accept="image/*" onchange="previewImage(this, 'addPhotoPreview')">
-                                <img id="addPhotoPreview" class="photo-preview d-none" src="#" alt="Photo preview">
-                            </div>
+                        <div class="mb-3">
+                            <label for="studentID" class="form-label">Student</label>
+                            <select class="form-select" id="studentID" name="studentID" required>
+                                <option value="">Select Student</option>
+                                <?php while ($student = $students->fetch_assoc()): ?>
+                                    <option value="<?= $student['studentID'] ?>"><?= htmlspecialchars($student['name']) ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="positionID" class="form-label">Position</label>
+                            <select class="form-select" id="positionID" name="positionID" required>
+                                <option value="">Select Position</option>
+                                <?php while ($position = $positions->fetch_assoc()): ?>
+                                    <option value="<?= $position['positionID'] ?>"><?= htmlspecialchars($position['title']) ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manifesto" class="form-label">Manifesto</label>
+                            <textarea class="form-control" id="manifesto" name="manifesto" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">Photo</label>
+                            <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="add_candidate" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Save Candidate
-                        </button>
+                        <button type="submit" name="add_candidate" class="btn btn-primary">Add Candidate</button>
                     </div>
                 </form>
             </div>
@@ -733,62 +825,61 @@ $candidates = $conn->query("
 
     <!-- Edit Candidate Modal -->
     <div class="modal fade" id="editCandidateModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Candidate</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <form method="POST" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="fas fa-user-edit me-2"></i>
-                            Edit Candidate
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
+                    <input type="hidden" name="candidateID" id="edit_candidateID">
+                    <input type="hidden" name="current_photo" id="edit_current_photo">
                     <div class="modal-body">
-                        <input type="hidden" name="candidateID" id="edit_candidateID">
-                        <input type="hidden" name="current_photo" id="current_photo">
-                        
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="edit_studentID" class="form-label">Student</label>
-                                <select class="form-select" id="edit_studentID" name="studentID" required>
-                                    <option value="">Select Student</option>
-                                    <?php 
-                                    $students->data_seek(0);
-                                    while ($student = $students->fetch_assoc()): ?>
-                                        <option value="<?php echo $student['studentID']; ?>">
-                                            <?php echo htmlspecialchars($student['name']); ?>
-                                        </option>
-                                    <?php endwhile; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="edit_position" class="form-label">Position</label>
-                                <input type="text" class="form-control" id="edit_position" name="position" required>
-                            </div>
-                            <div class="col-12">
-                                <label for="edit_manifesto" class="form-label">Manifesto</label>
-                                <textarea class="form-control" id="edit_manifesto" name="manifesto" rows="4"></textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="edit_status" class="form-label">Status</label>
-                                <select class="form-select" id="edit_status" name="status" required>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Rejected">Rejected</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="edit_photo" class="form-label">Photo</label>
-                                <input type="file" class="form-control" id="edit_photo" name="photo" accept="image/*" onchange="previewImage(this, 'editPhotoPreview')">
-                                <img id="editPhotoPreview" class="photo-preview" src="#" alt="Photo preview">
-                            </div>
+                        <div class="mb-3">
+                            <label for="edit_studentID" class="form-label">Student</label>
+                            <select class="form-select" id="edit_studentID" name="studentID" required>
+                                <option value="">Select Student</option>
+                                <?php 
+                                $students->data_seek(0);
+                                while ($student = $students->fetch_assoc()): 
+                                ?>
+                                    <option value="<?= $student['studentID'] ?>"><?= htmlspecialchars($student['name']) ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_positionID" class="form-label">Position</label>
+                            <select class="form-select" id="edit_positionID" name="positionID" required>
+                                <option value="">Select Position</option>
+                                <?php 
+                                $positions->data_seek(0);
+                                while ($position = $positions->fetch_assoc()): 
+                                ?>
+                                    <option value="<?= $position['positionID'] ?>"><?= htmlspecialchars($position['title']) ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_manifesto" class="form-label">Manifesto</label>
+                            <textarea class="form-control" id="edit_manifesto" name="manifesto" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_photo" class="form-label">Photo</label>
+                            <input type="file" class="form-control" id="edit_photo" name="photo" accept="image/*">
+                            <div id="current_photo_preview" class="mt-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_status" class="form-label">Status</label>
+                            <select class="form-select" id="edit_status" name="status" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="update_candidate" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Update Candidate
-                        </button>
+                        <button type="submit" name="update_candidate" class="btn btn-primary">Update Candidate</button>
                     </div>
                 </form>
             </div>
@@ -803,33 +894,80 @@ $candidates = $conn->query("
             btn.addEventListener('click', function() {
                 document.getElementById('edit_candidateID').value = this.dataset.id;
                 document.getElementById('edit_studentID').value = this.dataset.studentid;
-                document.getElementById('edit_position').value = this.dataset.position;
+                document.getElementById('edit_positionID').value = this.dataset.positionid;
                 document.getElementById('edit_manifesto').value = this.dataset.manifesto;
                 document.getElementById('edit_status').value = this.dataset.status;
-                document.getElementById('current_photo').value = this.dataset.photo;
+                document.getElementById('edit_current_photo').value = this.dataset.photo;
                 
                 // Show current photo preview
-                const photoPreview = document.getElementById('editPhotoPreview');
+                const preview = document.getElementById('current_photo_preview');
                 if (this.dataset.photo) {
-                    photoPreview.src = 'uploads/candidates/' + this.dataset.photo;
-                    photoPreview.classList.remove('d-none');
+                    preview.innerHTML = `<img src="uploads/candidates/${this.dataset.photo}" class="img-thumbnail" style="max-height: 100px;">`;
                 } else {
-                    photoPreview.src = '#';
-                    photoPreview.classList.add('d-none');
+                    preview.innerHTML = '';
                 }
             });
         });
 
-        // Image preview function
+        // Enhanced photo upload functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const photoUploadContainer = document.getElementById('photoUploadContainer');
+            const photoInput = document.getElementById('photo');
+            const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+
+            // Click to upload
+            photoUploadContainer.addEventListener('click', function() {
+                photoInput.click();
+            });
+
+            // Drag and drop functionality
+            photoUploadContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            photoUploadContainer.addEventListener('dragleave', function() {
+                this.classList.remove('dragover');
+            });
+
+            photoUploadContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    photoInput.files = e.dataTransfer.files;
+                    previewImage(photoInput, 'addPhotoPreview');
+                }
+            });
+        });
+
+        // Enhanced image preview function
         function previewImage(input, previewId) {
             const preview = document.getElementById(previewId);
+            const placeholder = document.getElementById('uploadPlaceholder');
+            
             if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    input.value = '';
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     preview.src = e.target.result;
                     preview.classList.remove('d-none');
+                    placeholder.style.display = 'none';
                 }
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '#';
+                preview.classList.add('d-none');
+                placeholder.style.display = 'block';
             }
         }
 
