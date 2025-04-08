@@ -1,5 +1,4 @@
 <?php
-// ======= Admin Premium Sidebar UI =======
 // Secure session initialization
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
