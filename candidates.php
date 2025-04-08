@@ -107,8 +107,7 @@ $candidates = $conn->query("
             overflow: hidden;
         }
 
-       
-
+    
         .card-header {
             background-color: white;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -380,7 +379,8 @@ $candidates = $conn->query("
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <?php include 'includes/header.php'; ?>
-            <div class="card w-75 mx-auto">
+
+            <div class="w-75 mx-auto">
             <div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
             <div class="main-content">
                 <ma class="col-md-7 ms-sm-auto col-lg-10 px-4 py-5 ">
