@@ -177,6 +177,56 @@ if ($electionID) {
             border: 3px solid white;
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
         }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        /* Export Modal Styles */
+        .modal-content {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            border-radius: 15px 15px 0 0;
+        }
+        .list-group-item {
+            border: 1px solid rgba(0,0,0,0.125);
+            margin-bottom: 5px;
+            border-radius: 8px !important;
+            transition: all 0.3s ease;
+        }
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        .form-check-input:checked + .form-check-label {
+            color: #198754;
+            font-weight: 500;
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #198754, #20c997);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -194,10 +244,10 @@ if ($electionID) {
                         <div class="btn-toolbar mb-2 mb-md-0">
                             <?php if ($isAdmin && $electionID): ?>
                             <div class="btn-group me-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="printBtn">
                                     <i class="bi bi-printer"></i> Print
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="exportBtn">
                                     <i class="bi bi-file-earmark-excel"></i> Export
                                 </button>
                             </div>
@@ -223,8 +273,110 @@ if ($electionID) {
                         </div>
                     </div>
                     
+                    <!-- Export Modal -->
+                    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title" id="exportModalLabel">
+                                        <i class="bi bi-download me-2"></i>Export Vote Records
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form action="export_votes.php" method="post">
+                                    <div class="modal-body">
+                                        <input type="hidden" name="election_id" value="<?php echo $electionID; ?>">
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label">Export Format</label>
+                                            <div class="d-flex gap-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatCSV" value="csv" checked>
+                                                    <label class="form-check-label" for="formatCSV">
+                                                        <i class="bi bi-file-earmark-text"></i> CSV
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatExcel" value="excel">
+                                                    <label class="form-check-label" for="formatExcel">
+                                                        <i class="bi bi-file-earmark-excel"></i> Excel
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatPDF" value="pdf">
+                                                    <label class="form-check-label" for="formatPDF">
+                                                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Data to Export</label>
+                                            <div class="list-group">
+                                                <label class="list-group-item">
+                                                    <input class="form-check-input me-2" type="checkbox" name="exportStats" checked>
+                                                    <i class="bi bi-graph-up me-2"></i>Election Statistics
+                                                </label>
+                                                <label class="list-group-item">
+                                                    <input class="form-check-input me-2" type="checkbox" name="exportVoters" checked>
+                                                    <i class="bi bi-people me-2"></i>Voters List
+                                                </label>
+                                                <label class="list-group-item">
+                                                    <input class="form-check-input me-2" type="checkbox" name="exportBreakdown" checked>
+                                                    <i class="bi bi-pie-chart me-2"></i>Vote Breakdown
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-download me-2"></i>Export
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Print Styles -->
+                    <style media="print">
+                        @page {
+                            size: auto;
+                            margin: 20mm;
+                        }
+                        body * {
+                            visibility: hidden;
+                        }
+                        .print-section, .print-section * {
+                            visibility: visible;
+                        }
+                        .print-section {
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                        }
+                        .no-print {
+                            display: none !important;
+                        }
+                        .card {
+                            border: none !important;
+                            box-shadow: none !important;
+                        }
+                        .card-header {
+                            background-color: #f8f9fa !important;
+                            border-bottom: 1px solid #dee2e6 !important;
+                        }
+                        .vote-item {
+                            border-left: 3px solid #0d6efd !important;
+                            page-break-inside: avoid;
+                        }
+                    </style>
+                    
                     <!-- Filter Card -->
-                    <div class="card border-0 shadow-sm mb-4">
+                    <div class="card border-0 shadow-sm mb-4 no-print">
                         <div class="card-body">
                             <form method="GET" class="row g-3">
                                 <div class="col-md-6">
@@ -255,6 +407,7 @@ if ($electionID) {
                     </div>
 
                     <?php if ($electionID && $electionDetails): ?>
+                    <div class="print-section">
                     <!-- Stats Cards -->
                     <div class="row mb-4">
                         <!-- Total Votes Card -->
@@ -468,12 +621,13 @@ if ($electionID) {
                                 <i class="bi bi-info-circle-fill fs-1 text-muted mb-3"></i>
                                 <h4 class="mb-2">No votes recorded yet</h4>
                                 <p class="text-muted">Voting records will appear here once votes are cast.</p>
-                                <button class="btn btn-primary mt-3" onclick="location.reload()">
+                                <button class="btn btn-primary mt-3 no-print" onclick="location.reload()">
                                     <i class="bi bi-arrow-repeat me-2"></i> Refresh
                                 </button>
                             </div>
                         </div>
                     <?php endif; ?>
+                    </div>
                     
                     <?php elseif ($electionID): ?>
                     <!-- Election Not Found -->
@@ -525,6 +679,39 @@ if ($electionID) {
                 });
             });
         }
+        
+        // Print functionality
+        const printBtn = document.getElementById('printBtn');
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                window.print();
+            });
+        }
+        
+        // Export format change handler
+        const formatInputs = document.querySelectorAll('input[name="exportFormat"]');
+        formatInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const format = this.value;
+                const exportBtn = document.querySelector('#exportModal .btn-success');
+                
+                // Update button icon based on format
+                const icon = exportBtn.querySelector('i');
+                icon.className = 'bi ';
+                
+                switch(format) {
+                    case 'csv':
+                        icon.className += 'bi-file-earmark-text';
+                        break;
+                    case 'excel':
+                        icon.className += 'bi-file-earmark-excel';
+                        break;
+                    case 'pdf':
+                        icon.className += 'bi-file-earmark-pdf';
+                        break;
+                }
+            });
+        });
     });
     </script>
     <?php include 'includes/footer.php'; ?>
