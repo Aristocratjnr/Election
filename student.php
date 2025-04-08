@@ -800,6 +800,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             background: linear-gradient(135deg, rgba(67, 97, 238, 0.2) 0%, rgba(67, 97, 238, 0.3) 100%);
             color: var(--primary);
         }
+
+        /* Live Results Card Styles */
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+        }
+        
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .pulse-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #fff;
+            margin-right: 6px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .status-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(67, 97, 238, 0.1);
+        }
+        
+        .candidate-result-card {
+            background-color: #fff;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .candidate-result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+        
+        .rank-badge {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .text-bronze {
+            color: #cd7f32;
+        }
+        
+        .candidate-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .candidate-avatar-placeholder {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 1.5rem;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress {
+            height: 6px;
+            border-radius: 3px;
+            background-color: #f3f4f6;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #4361ee 0%, #3a56d4 100%);
+            border-radius: 3px;
+        }
+        
+        @media (max-width: 768px) {
+            .status-card {
+                margin-bottom: 1rem;
+            }
+            
+            .candidate-result-card {
+                margin-bottom: 1rem;
+            }
+            
+            .vote-count, .vote-percentage {
+                font-size: 0.875rem;
+            }
+            
+            .candidate-name {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -929,9 +1060,188 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             </div>
                         <?php endif; ?>
                         
+                        <!-- Replace the status card with a live results card -->
+                        <div class="card mb-4 border-0 shadow-sm">
+                            <div class="card-header bg-gradient-primary text-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title mb-0">
+                                            <i class="bi bi-graph-up-arrow me-2"></i> Live Results
+                                        </h5>
+                                    </div>
+                                    <div class="live-indicator">
+                                        <span class="pulse-dot"></span> LIVE
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-4">
+                                    <!-- Election Status -->
+                                    <div class="col-md-6">
+                                        <div class="status-card p-3 rounded-3 bg-light h-100">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="status-icon me-3">
+                                                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Election Status</h6>
+                                                    <?php if ($currentElection): ?>
+                                                        <?php if ($hasVoted): ?>
+                                                            <span class="badge bg-success">
+                                                                <i class="bi bi-check2-circle me-1"></i> You have voted
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-primary">
+                                                                <i class="bi bi-clock-fill me-1"></i> Voting in progress
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-secondary">
+                                                            <i class="bi bi-x-circle-fill me-1"></i> No active election
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Vote Count -->
+                                    <?php if ($currentElection): ?>
+                                    <div class="col-md-6">
+                                        <div class="status-card p-3 rounded-3 bg-light h-100">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="status-icon me-3">
+                                                    <i class="bi bi-bar-chart-fill text-primary fs-4"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Current Ballot Count</h6>
+                                                    <?php
+                                                    // Get total votes for this election
+                                                    $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
+                                                    $voteCountStmt = $conn->prepare($voteCountQuery);
+                                                    $voteCountStmt->bind_param("i", $currentElection['electionID']);
+                                                    $voteCountStmt->execute();
+                                                    $voteCountResult = $voteCountStmt->get_result();
+                                                    $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
+                                                    $voteCountStmt->close();
+                                                    
+                                                    // Get total eligible voters
+                                                    $eligibleVotersQuery = "SELECT COUNT(*) as totalVoters FROM students WHERE status = 'Active'";
+                                                    $eligibleVotersResult = $conn->query($eligibleVotersQuery);
+                                                    $eligibleVoters = $eligibleVotersResult->fetch_assoc()['totalVoters'];
+                                                    
+                                                    // Calculate turnout percentage
+                                                    $turnoutPercentage = $eligibleVoters > 0 ? round(($voteCount / $eligibleVoters) * 100, 1) : 0;
+                                                    ?>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="vote-count me-2">
+                                                            <i class="bi bi-people-fill me-1"></i>
+                                                            <?= number_format($voteCount) ?>
+                                                        </div>
+                                                        <div class="vote-percentage">
+                                                            <i class="bi bi-percent me-1"></i>
+                                                            <?= $turnoutPercentage ?>% turnout
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <?php if ($currentElection): ?>
+                                    <div class="mt-4">
+                                        <h6 class="mb-3 d-flex align-items-center">
+                                            <i class="bi bi-trophy-fill text-warning me-2"></i> Top Candidates
+                                        </h6>
+                                        <div class="row g-3">
+                                            <?php
+                                            // Get top candidates by vote count
+                                            $topCandidatesQuery = "
+                                                SELECT c.candidateID, s.name, s.profilePicture, COUNT(v.voteID) as voteCount
+                                                FROM candidates c
+                                                JOIN students s ON c.studentID = s.studentID
+                                                LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
+                                                WHERE c.status = 'Approved'
+                                                GROUP BY c.candidateID
+                                                ORDER BY voteCount DESC
+                                                LIMIT 3
+                                            ";
+                                            $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
+                                            $topCandidatesStmt->bind_param("i", $currentElection['electionID']);
+                                            $topCandidatesStmt->execute();
+                                            $topCandidatesResult = $topCandidatesStmt->get_result();
+                                            
+                                            if ($topCandidatesResult->num_rows > 0):
+                                                $rank = 1;
+                                                while ($candidate = $topCandidatesResult->fetch_assoc()):
+                                                    $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
+                                            ?>
+                                                <div class="col-md-4">
+                                                    <div class="candidate-result-card p-3 rounded-3 h-100">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <div class="rank-badge me-2">
+                                                                <i class="bi bi-<?= $rank === 1 ? 'trophy-fill text-warning' : ($rank === 2 ? 'medal-fill text-secondary' : 'award-fill text-bronze') ?>"></i>
+                                                            </div>
+                                                            <div class="candidate-name fw-bold"><?= htmlspecialchars($candidate['name']) ?></div>
+                                                        </div>
+                                                        <div class="d-flex align-items-center mb-3">
+                                                            <div class="avatar-container me-3">
+                                                                <?php 
+                                                                $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                                if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): 
+                                                                ?>
+                                                                    <img src="<?= $candidatePicPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                                <?php else: ?>
+                                                                    <div class="candidate-avatar-placeholder">
+                                                                        <i class="bi bi-person-fill"></i>
+                                                                    </div>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                            <div class="vote-stats">
+                                                                <div class="vote-count">
+                                                                    <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                                                    <?= number_format($candidate['voteCount']) ?> votes
+                                                                </div>
+                                                                <div class="vote-percentage">
+                                                                    <i class="bi bi-graph-up text-primary me-1"></i>
+                                                                    <?= $votePercentage ?>%
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-gradient-primary" role="progressbar" 
+                                                                 style="width: <?= $votePercentage ?>%;" 
+                                                                 aria-valuenow="<?= $votePercentage ?>" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="100"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php 
+                                                $rank++;
+                                            endwhile;
+                                            else:
+                                            ?>
+                                                <div class="col-12">
+                                                    <div class="alert alert-light text-center">
+                                                        <i class="bi bi-info-circle me-2"></i> No votes cast yet
+                                                    </div>
+                                                </div>
+                                            <?php 
+                                            endif;
+                                            $topCandidatesStmt->close();
+                                            ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        
                         <!-- Voting Form -->
                         <?php if ($currentElection && !$hasVoted): ?>
-                            <form id="votingForm" method="POST">
+                            <form id="votingForm" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
                                 <?php foreach ($positions as $index => $position): ?>
                                     <?php if (!empty($position['candidates'])): ?>
                                         <div class="position-section <?= $index === 0 ? 'horizontal-position' : '' ?>">
@@ -984,8 +1294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                             <input type="checkbox" 
                                                                    name="position_<?= $position['positionID'] ?>[]" 
                                                                    value="<?= $candidate['candidateID'] ?>" 
-                                                                   class="d-none" 
-                                                                   <?= $position['maxVotes'] === 1 ? 'required' : '' ?>>
+                                                                   class="d-none">
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
@@ -1155,6 +1464,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 submitBtn.setAttribute('disabled', 'disabled');
                 submitBtn.classList.remove('pulse-badge');
             }
+        }
+
+        // Initialize form validation
+        const votingForm = document.getElementById('votingForm');
+        if (votingForm) {
+            votingForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+                
+                // Check if all positions have selections
+                const positionSections = document.querySelectorAll('.position-section');
+                let allPositionsSelected = true;
+                let missingPositions = [];
+                
+                positionSections.forEach(section => {
+                    const checkboxes = section.querySelectorAll('input[type="checkbox"]');
+                    const hasSelection = Array.from(checkboxes).some(cb => cb.checked);
+                    if (!hasSelection) {
+                        allPositionsSelected = false;
+                        const positionTitle = section.querySelector('h4').textContent.trim();
+                        missingPositions.push(positionTitle);
+                    }
+                });
+                
+                if (!allPositionsSelected) {
+                    alert('Please select a candidate for all positions: ' + missingPositions.join(', '));
+                    return;
+                }
+                
+                // Confirm submission
+                if (!confirm('Are you sure you want to submit your vote? This action cannot be undone.')) {
+                    return;
+                }
+                
+                // Disable submit button to prevent double submission
+                const submitBtn = document.querySelector('.vote-submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Submitting...';
+                
+                // Submit the form
+                this.submit();
+            });
         }
 
         // Show welcome tips modal on first visit
