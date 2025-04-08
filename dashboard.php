@@ -238,7 +238,7 @@ try {
                     <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content border-0 shadow">
-                                <div class="modal-header bg-primary text-white">
+                                <div class="modal-header bg-info text-white">
                                     <h5 class="modal-title" id="shareModalLabel"><i class="bi bi-share-fill me-2"></i>Share Dashboard</h5>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
@@ -246,7 +246,7 @@ try {
                                     <p class="text-muted mb-3">Share this dashboard with others:</p>
                                     <div class="input-group mb-4">
                                         <input type="text" class="form-control form-control-lg" id="shareLink" value="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?>" readonly>
-                                        <button class="btn btn-primary" type="button" id="copyLinkBtn">
+                                        <button class="btn btn-info" type="button" id="copyLinkBtn">
                                             <i class="bi bi-clipboard"></i> Copy
                                         </button>
                                     </div>
@@ -257,12 +257,6 @@ try {
                                         </button>
                                         <button class="btn btn-outline-success rounded-circle p-3 share-btn" id="shareWhatsappBtn" title="WhatsApp">
                                             <i class="bi bi-whatsapp fs-4"></i>
-                                        </button>
-                                        <button class="btn btn-outline-primary rounded-circle p-3 share-btn" id="shareFacebookBtn" title="Facebook">
-                                            <i class="bi bi-facebook fs-4"></i>
-                                        </button>
-                                        <button class="btn btn-outline-info rounded-circle p-3 share-btn" id="shareTwitterBtn" title="Twitter">
-                                            <i class="bi bi-twitter-x fs-4"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -740,8 +734,6 @@ try {
         const shareLink = document.getElementById('shareLink');
         const shareEmailBtn = document.getElementById('shareEmailBtn');
         const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
-        const shareFacebookBtn = document.getElementById('shareFacebookBtn');
-        const shareTwitterBtn = document.getElementById('shareTwitterBtn');
         
         // Export functionality
         const exportBtn = document.getElementById('exportBtn');
@@ -777,17 +769,6 @@ try {
         shareWhatsappBtn.addEventListener('click', function() {
             const text = 'Check out the SmartVote Dashboard: ' + shareLink.value;
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-        });
-        
-        // Facebook share button click event
-        shareFacebookBtn.addEventListener('click', function() {
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink.value)}`, '_blank');
-        });
-        
-        // Twitter share button click event
-        shareTwitterBtn.addEventListener('click', function() {
-            const text = 'Check out the SmartVote Dashboard';
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareLink.value)}`, '_blank');
         });
         
         // Export button click event
