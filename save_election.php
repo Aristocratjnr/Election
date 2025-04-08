@@ -56,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 
                 if ($stmt->execute()) {
-                    header('Location: elections.php?success=created');
-                    exit();
+                    $success = 'Election created successfully!';
+                    $electionId = $conn->insert_id;
                 } else {
                     $error = 'Failed to create election: ' . $conn->error;
                 }
@@ -82,35 +82,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --secondary-color: #f8f9fc;
             --success-color: #1cc88a;
             --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
         }
         
         body {
             background-color: #f8f9fa;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         
         .creation-card {
             border: none;
             border-radius: 0.5rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
             margin: 2rem auto;
             max-width: 800px;
+            overflow: hidden;
         }
         
         .card-header {
-            background-color: var(--secondary-color);
-            border-bottom: 1px solid #e3e6f0;
-            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
+            color: white;
+            border-bottom: none;
+            padding: 1.5rem 2rem;
         }
         
         .form-control, .form-select {
             border-radius: 0.35rem;
             padding: 0.75rem 1rem;
             border: 1px solid #d1d3e2;
+            transition: all 0.3s;
         }
         
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #5a5c69;
+            margin-bottom: 0.5rem;
         }
         
         .datetime-picker {
@@ -126,6 +138,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             pointer-events: none;
         }
         
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+        }
+        
+        .invalid-feedback {
+            font-size: 0.85rem;
+        }
+        
+        .alert {
+            border-radius: 0.35rem;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.65rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-badge i {
+            margin-right: 0.25rem;
+        }
+        
+        .badge-scheduled {
+            background-color: rgba(78, 115, 223, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .badge-ongoing {
+            background-color: rgba(28, 200, 138, 0.1);
+            color: var(--success-color);
+        }
+        
+        .badge-completed {
+            background-color: rgba(231, 74, 59, 0.1);
+            color: var(--danger-color);
+        }
+        
+        /* Success Modal */
+        .success-modal .modal-header {
+            background-color: var(--success-color);
+            color: white;
+            border-bottom: none;
+        }
+        
+        .success-modal .modal-body {
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .success-modal .modal-icon {
+            font-size: 4rem;
+            color: var(--success-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        .success-modal .btn-close {
+            filter: invert(1);
+        }
+        
         /* Mobile styles */
         @media (max-width: 767.98px) {
             .creation-card {
@@ -135,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             .card-header {
-                padding: 1rem;
+                padding: 1.25rem;
             }
             
             .form-control, .form-select {
@@ -151,46 +242,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container py-4">
-        <div class="creation-card">
+        <div class="creation-card bg-white">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">
-                    <i class="bi bi-calendar-plus me-2"></i>
-                    Create New Election
-                </h4>
-                <a href="../../dashboard.php" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Back
+                <div>
+                    <h4 class="mb-0 fw-bold">
+                        <i class="bi bi-calendar2-plus-fill me-2"></i>
+                        Create New Election
+                    </h4>
+                    <p class="mb-0 opacity-75">Setup a new voting event with custom parameters</p>
+                </div>
+                <a href="election.php" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
                 </a>
             </div>
 
             <div class="card-body p-4">
                 <?php if ($error): ?>
                     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
                         <?php echo htmlspecialchars($error); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
 
                 <form method="POST" action="create_election.php" class="needs-validation" novalidate>
-                    <div class="row g-3">
+                    <div class="row g-4">
                         <!-- Election Name -->
                         <div class="col-12">
-                            <label class="form-label">Election Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="name" 
-                                   value="<?php echo htmlspecialchars($formData['name']); ?>" 
-                                   placeholder="Enter election name" required>
+                            <label class="form-label">
+                                <i class="bi bi-card-heading me-1"></i>
+                                Election Name <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-pencil-square text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control" name="name" 
+                                       value="<?php echo htmlspecialchars($formData['name']); ?>" 
+                                       placeholder="Enter election name" required>
+                            </div>
                             <div class="invalid-feedback">
                                 Please provide a valid election name.
                             </div>
+                            <small class="text-muted">Example: Student Council Election 2023</small>
                         </div>
 
                         <!-- Date & Time -->
                         <div class="col-md-6">
                             <div class="datetime-picker">
-                                <label class="form-label">Start Date & Time <span class="text-danger">*</span></label>
-                                <input type="datetime-local" class="form-control" name="startDate" 
-                                       value="<?php echo htmlspecialchars($formData['startDate']); ?>" required>
-                                <i class="bi bi-calendar-event"></i>
+                                <label class="form-label">
+                                    <i class="bi bi-clock-history me-1"></i>
+                                    Start Date & Time <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-calendar2-check text-primary"></i>
+                                    </span>
+                                    <input type="datetime-local" class="form-control" name="startDate" 
+                                           value="<?php echo htmlspecialchars($formData['startDate']); ?>" required>
+                                </div>
                                 <div class="invalid-feedback">
                                     Please select a start date and time.
                                 </div>
@@ -199,10 +309,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="col-md-6">
                             <div class="datetime-picker">
-                                <label class="form-label">End Date & Time <span class="text-danger">*</span></label>
-                                <input type="datetime-local" class="form-control" name="endDate" 
-                                       value="<?php echo htmlspecialchars($formData['endDate']); ?>" required>
-                                <i class="bi bi-calendar-event"></i>
+                                <label class="form-label">
+                                    <i class="bi bi-clock me-1"></i>
+                                    End Date & Time <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-calendar2-x text-primary"></i>
+                                    </span>
+                                    <input type="datetime-local" class="form-control" name="endDate" 
+                                           value="<?php echo htmlspecialchars($formData['endDate']); ?>" required>
+                                </div>
                                 <div class="invalid-feedback">
                                     Please select an end date and time.
                                 </div>
@@ -211,11 +328,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <!-- Status & Visibility -->
                         <div class="col-md-6">
-                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                            <label class="form-label">
+                                <i class="bi bi-activity me-1"></i>
+                                Status <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select" name="status" required>
-                                <option value="Scheduled" <?php echo $formData['status'] === 'Scheduled' ? 'selected' : ''; ?>>Scheduled</option>
-                                <option value="Ongoing" <?php echo $formData['status'] === 'Ongoing' ? 'selected' : ''; ?>>Ongoing</option>
-                                <option value="Completed" <?php echo $formData['status'] === 'Completed' ? 'selected' : ''; ?>>Completed</option>
+                                <option value="Scheduled" <?php echo $formData['status'] === 'Scheduled' ? 'selected' : ''; ?>>
+                                    <span class="status-badge badge-scheduled">
+                                        <i class="bi bi-clock-history"></i> Scheduled
+                                    </span>
+                                </option>
+                                <option value="Ongoing" <?php echo $formData['status'] === 'Ongoing' ? 'selected' : ''; ?>>
+                                    <span class="status-badge badge-ongoing">
+                                        <i class="bi bi-arrow-repeat"></i> Ongoing
+                                    </span>
+                                </option>
+                                <option value="Completed" <?php echo $formData['status'] === 'Completed' ? 'selected' : ''; ?>>
+                                    <span class="status-badge badge-completed">
+                                        <i class="bi bi-check-circle"></i> Completed
+                                    </span>
+                                </option>
                             </select>
                             <div class="invalid-feedback">
                                 Please select a status.
@@ -223,26 +355,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">Visibility</label>
+                            <label class="form-label">
+                                <i class="bi bi-eye me-1"></i>
+                                Visibility
+                            </label>
                             <select class="form-select" name="visibility">
-                                <option value="Public" <?php echo $formData['visibility'] === 'Public' ? 'selected' : ''; ?>>Public</option>
-                                <option value="Private" <?php echo $formData['visibility'] === 'Private' ? 'selected' : ''; ?>>Private</option>
+                                <option value="Public" <?php echo $formData['visibility'] === 'Public' ? 'selected' : ''; ?>>
+                                    <i class="bi bi-globe me-1"></i> Public
+                                </option>
+                                <option value="Private" <?php echo $formData['visibility'] === 'Private' ? 'selected' : ''; ?>>
+                                    <i class="bi bi-lock me-1"></i> Private
+                                </option>
                             </select>
+                            <small class="text-muted">Public elections are visible to all users</small>
                         </div>
 
                         <!-- Form Actions -->
-                        <div class="col-12 mt-4">
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="reset" class="btn btn-secondary">
-                                    <i class="bi bi-eraser me-1"></i> Reset
+                        <div class="col-12 mt-4 pt-3 border-top">
+                            <div class="d-flex justify-content-end gap-3">
+                                <button type="reset" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i> Reset Form
                                 </button>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save me-1"></i> Create Election
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                    <i class="bi bi-save me-2"></i> Create Election
                                 </button>
                             </div>
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade success-modal" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Success!
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-icon">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h4 class="mb-3">Election Created Successfully!</h4>
+                    <p class="mb-4">Your new election "<strong><?php echo isset($formData['name']) ? htmlspecialchars($formData['name']) : ''; ?></strong>" has been successfully created and is now ready for configuration.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="elections.php" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-list-ul me-2"></i> View All Elections
+                        </a>
+                        <a href="edit_election.php?id=<?php echo isset($electionId) ? $electionId : ''; ?>" class="btn btn-success px-4">
+                            <i class="bi bi-gear me-2"></i> Configure Election
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -294,7 +464,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Format for datetime-local input
         function formatDateTime(date) {
-            return date.toISOString().slice(0, 16);
+            const pad = (num) => num.toString().padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
         }
         
         // Only set defaults if values aren't already set
@@ -307,6 +478,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!endDateInput.value) {
             endDateInput.value = formatDateTime(oneHourLater);
         }
+        
+        // Show success modal if election was created
+        <?php if (!empty($success)): ?>
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+        <?php endif; ?>
     });
     </script>
 </body>
