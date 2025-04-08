@@ -95,7 +95,7 @@ if ($electionID) {
             background-color: #f8f9fa;
         }
         .main-content {
-            margin-left: 250px;
+            margin-left: 90px;
             transition: all 0.3s;
         }
         
@@ -915,6 +915,6 @@ if ($electionID) {
         });
     });
     </script>
-    <?php include 'includes/footer.php'; ?>
+  
 </body>
 </html>
