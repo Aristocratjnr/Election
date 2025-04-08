@@ -157,6 +157,58 @@ try {
             font-weight: bold;
             color: #6c757d;
         }
+        
+        /* Share and Export Modal Styles */
+        .share-btn {
+            transition: all 0.3s ease;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .share-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .share-btn i {
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover i {
+            transform: scale(1.2);
+        }
+        .export-format-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        .export-format-option:hover {
+            background-color: #f8f9fa;
+            border-color: #0d6efd;
+        }
+        .export-format-option input:checked + label {
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        .export-format-option input:checked + label i {
+            color: #0d6efd;
+        }
+        .list-group-item {
+            transition: all 0.2s ease;
+        }
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        .form-switch .form-check-input {
+            cursor: pointer;
+        }
+        .form-switch .form-check-input:checked {
+            background-color: #198754;
+            border-color: #198754;
+        }
     </style>
 </head>
 <body>
@@ -173,12 +225,132 @@ try {
                         <h1 class="h2"></h1>
                         <div class="btn-toolbar mb-2 mb-md-0">
                             <div class="btn-group me-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary"> <i class="bi bi-share action-icon icon"></i>&nbsp;Share</button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary"> <i class="bi bi-file-earmark-arrow-up profile-icon icon"></i>&nbsp;Export</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="shareBtn"> <i class="bi bi-share action-icon icon"></i>&nbsp;Share</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="exportBtn"> <i class="bi bi-file-earmark-arrow-up profile-icon icon"></i>&nbsp;Export</button>
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
                                 <i class="bi bi-calendar"></i> This week
                             </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Share Modal -->
+                    <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title" id="shareModalLabel"><i class="bi bi-share-fill me-2"></i>Share Dashboard</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <p class="text-muted mb-3">Share this dashboard with others:</p>
+                                    <div class="input-group mb-4">
+                                        <input type="text" class="form-control form-control-lg" id="shareLink" value="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?>" readonly>
+                                        <button class="btn btn-primary" type="button" id="copyLinkBtn">
+                                            <i class="bi bi-clipboard"></i> Copy
+                                        </button>
+                                    </div>
+                                    <h6 class="mb-3">Share via:</h6>
+                                    <div class="d-flex justify-content-center gap-3">
+                                        <button class="btn btn-outline-primary rounded-circle p-3 share-btn" id="shareEmailBtn" title="Email">
+                                            <i class="bi bi-envelope-fill fs-4"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success rounded-circle p-3 share-btn" id="shareWhatsappBtn" title="WhatsApp">
+                                            <i class="bi bi-whatsapp fs-4"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary rounded-circle p-3 share-btn" id="shareFacebookBtn" title="Facebook">
+                                            <i class="bi bi-facebook fs-4"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info rounded-circle p-3 share-btn" id="shareTwitterBtn" title="Twitter">
+                                            <i class="bi bi-twitter-x fs-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Export Modal -->
+                    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title" id="exportModalLabel"><i class="bi bi-file-earmark-arrow-down-fill me-2"></i>Export Dashboard Data</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <p class="text-muted mb-4">Choose the format and data to export:</p>
+                                    <form id="exportForm">
+                                        <div class="mb-4">
+                                            <h6 class="mb-3"><i class="bi bi-file-earmark-text me-2"></i>Export Format</h6>
+                                            <div class="d-flex gap-3">
+                                                <div class="form-check export-format-option">
+                                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatCSV" value="csv" checked>
+                                                    <label class="form-check-label d-flex flex-column align-items-center" for="formatCSV">
+                                                        <i class="bi bi-file-earmark-spreadsheet fs-3 mb-2"></i>
+                                                        <span>CSV</span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check export-format-option">
+                                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatExcel" value="excel">
+                                                    <label class="form-check-label d-flex flex-column align-items-center" for="formatExcel">
+                                                        <i class="bi bi-file-earmark-excel fs-3 mb-2"></i>
+                                                        <span>Excel</span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check export-format-option">
+                                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatPDF" value="pdf">
+                                                    <label class="form-check-label d-flex flex-column align-items-center" for="formatPDF">
+                                                        <i class="bi bi-file-earmark-pdf fs-3 mb-2"></i>
+                                                        <span>PDF</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <h6 class="mb-3"><i class="bi bi-database me-2"></i>Data to Export</h6>
+                                            <div class="list-group">
+                                                <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="bi bi-graph-up me-2"></i>
+                                                        Dashboard Statistics
+                                                    </div>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="exportStats" checked>
+                                                    </div>
+                                                </label>
+                                                <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="bi bi-people me-2"></i>
+                                                        Students List
+                                                    </div>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="exportStudents" checked>
+                                                    </div>
+                                                </label>
+                                                <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="bi bi-check2-square me-2"></i>
+                                                        Elections Data
+                                                    </div>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="exportElections" checked>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-success" id="exportSubmitBtn">
+                                        <i class="bi bi-download me-2"></i>Export
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -557,6 +729,134 @@ try {
         }
     });
 });
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Share functionality
+        const shareBtn = document.getElementById('shareBtn');
+        const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const shareLink = document.getElementById('shareLink');
+        const shareEmailBtn = document.getElementById('shareEmailBtn');
+        const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
+        const shareFacebookBtn = document.getElementById('shareFacebookBtn');
+        const shareTwitterBtn = document.getElementById('shareTwitterBtn');
+        
+        // Export functionality
+        const exportBtn = document.getElementById('exportBtn');
+        const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+        const exportSubmitBtn = document.getElementById('exportSubmitBtn');
+        
+        // Share button click event
+        shareBtn.addEventListener('click', function() {
+            shareModal.show();
+        });
+        
+        // Copy link button click event
+        copyLinkBtn.addEventListener('click', function() {
+            shareLink.select();
+            document.execCommand('copy');
+            
+            // Show feedback
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            setTimeout(() => {
+                this.innerHTML = originalText;
+            }, 2000);
+        });
+        
+        // Email share button click event
+        shareEmailBtn.addEventListener('click', function() {
+            const subject = 'SmartVote Dashboard';
+            const body = 'Check out the SmartVote Dashboard: ' + shareLink.value;
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        });
+        
+        // WhatsApp share button click event
+        shareWhatsappBtn.addEventListener('click', function() {
+            const text = 'Check out the SmartVote Dashboard: ' + shareLink.value;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        });
+        
+        // Facebook share button click event
+        shareFacebookBtn.addEventListener('click', function() {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink.value)}`, '_blank');
+        });
+        
+        // Twitter share button click event
+        shareTwitterBtn.addEventListener('click', function() {
+            const text = 'Check out the SmartVote Dashboard';
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareLink.value)}`, '_blank');
+        });
+        
+        // Export button click event
+        exportBtn.addEventListener('click', function() {
+            exportModal.show();
+        });
+        
+        // Export submit button click event
+        exportSubmitBtn.addEventListener('click', function() {
+            const format = document.querySelector('input[name="exportFormat"]:checked').value;
+            const includeStats = document.getElementById('exportStats').checked;
+            const includeStudents = document.getElementById('exportStudents').checked;
+            const includeElections = document.getElementById('exportElections').checked;
+            
+            // Show loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...';
+            this.disabled = true;
+            
+            // Prepare data for export
+            const exportData = {
+                format: format,
+                includeStats: includeStats,
+                includeStudents: includeStudents,
+                includeElections: includeElections
+            };
+            
+            // Send export request
+            fetch('export_dashboard.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(exportData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create a download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Set filename based on format
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                a.download = `smartvote-dashboard-${timestamp}.${format}`;
+                
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                // Close modal
+                exportModal.hide();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while exporting the data');
+            })
+            .finally(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
     });
     </script>
      <?php include 'includes/footer.php'; ?>
