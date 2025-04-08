@@ -95,13 +95,13 @@ if ($electionID) {
             background-color: #f8f9fa;
         }
         .main-content {
-            margin-left: 90px;
-            transition: all 0.3s;
+            margin-left: 10px;
+           
         }
         
         /* Card Styles */
         .card {
-            border-radius: 0.8rem;
+            border-radius: 1rem;
             transition: transform 0.2s, box-shadow 0.2s;
             overflow: hidden;
         }
@@ -218,9 +218,6 @@ if ($electionID) {
             border: 2px solid white;
             transition: transform 0.2s;
         }
-        .card:hover .winner-badge {
-            transform: rotate(15deg) scale(1.1);
-        }
         
         /* Text Styles */
         .position-title {
@@ -249,10 +246,8 @@ if ($electionID) {
             padding: 0.5rem 1rem;
             transition: all 0.2s;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-        }
+        
+        
         .btn-primary {
             background: linear-gradient(to right, #4e73df, #224abe);
             border: none;
@@ -272,9 +267,7 @@ if ($electionID) {
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
         }
-        .filter-section:hover {
-            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
-        }
+        
         
         /* Results Cards */
         .results-card {
@@ -284,9 +277,7 @@ if ($electionID) {
             overflow: hidden;
             transition: transform 0.2s;
         }
-        .results-card:hover {
-            transform: translateY(-5px);
-        }
+        
         
         /* Empty State */
         .empty-state {
@@ -314,11 +305,7 @@ if ($electionID) {
             .no-print {
                 display: none !important;
             }
-            .card {
-                break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #ddd;
-            }
+           
             .progress-custom {
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
@@ -368,9 +355,7 @@ if ($electionID) {
             transition: all 0.3s;
             padding: 1.25rem;
         }
-        .candidate-details:hover {
-            background-color: rgba(13, 110, 253, 0.03);
-        }
+       
         
         /* Section Headers */
         .section-header {
@@ -392,7 +377,7 @@ if ($electionID) {
             <div class="main-content">
                 <?php include 'includes/header.php'; ?>
                 <br>
-                
+                <div class="card w-75 mx-auto shadow-sm border-0">
                 <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4"><br>
                     <!-- Page Header with Breadcrumb -->
                     <nav aria-label="breadcrumb" class="no-print mb-3">
@@ -505,110 +490,7 @@ if ($electionID) {
                         </div>
                     </div>
                     
-                    <!-- Election Overview Cards -->
-                    <div class="row mb-4">
-                        <!-- Total Votes Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title text-muted d-flex align-items-center">
-                                        <i class="bi bi-check2-square text-primary me-2"></i>
-                                        Total Votes
-                                    </h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon bg-primary-light me-3">
-                                            <i class="bi bi-check2-circle fs-4"></i>
-                                        </div>
-                                        <div>
-                                            <h2 class="mb-0"><?php echo number_format($totalVotes); ?></h2>
-                                            <p class="text-muted mb-0 d-flex align-items-center">
-                                                <i class="bi bi-graph-up-arrow me-1"></i>
-                                                Votes Cast
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Election Status Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title text-muted d-flex align-items-center">
-                                        <i class="bi bi-info-square text-success me-2"></i>
-                                        Election Status
-                                    </h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon bg-success-light me-3">
-                                            <i class="bi bi-<?php echo $electionDetails['status'] == 'active' ? 'activity' : ($electionDetails['status'] == 'completed' ? 'flag-fill' : 'clock-history'); ?> fs-4"></i>
-                                        </div>
-                                        <div>
-                                            <h2 class="mb-0 text-capitalize">
-                                                <span class="status-indicator status-<?php echo $electionDetails['status']; ?>"></span>
-                                                <?php echo $electionDetails['status']; ?>
-                                            </h2>
-                                            <p class="text-muted mb-0 d-flex align-items-center">
-                                                <i class="bi bi-layers me-1"></i>
-                                                Current Status
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Voting Period Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title text-muted d-flex align-items-center">
-                                        <i class="bi bi-calendar-week text-info me-2"></i>
-                                        Voting Period
-                                    </h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon bg-info-light me-3">
-                                            <i class="bi bi-calendar-range fs-4"></i>
-                                        </div>
-                                        <div>
-                                            <p class="mb-1 fw-bold">
-                                                <i class="bi bi-calendar-event me-1"></i>
-                                                Start: <?php echo date('M j, Y', strtotime($electionDetails['startDate'])); ?>
-                                            </p>
-                                            <p class="mb-0 fw-bold">
-                                                <i class="bi bi-calendar-check me-1"></i>
-                                                End: <?php echo date('M j, Y', strtotime($electionDetails['endDate'])); ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Election Name Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title text-muted d-flex align-items-center">
-                                        <i class="bi bi-award text-warning me-2"></i>
-                                        Election Details
-                                    </h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon bg-warning-light me-3">
-                                            <i class="bi bi-trophy fs-4"></i>
-                                        </div>
-                                        <div>
-                                            <h2 class="mb-0 fs-4"><?php echo htmlspecialchars($electionDetails['name']); ?></h2>
-                                            <p class="text-muted mb-0 d-flex align-items-center">
-                                                <i class="bi bi-mortarboard-fill me-1"></i>
-                                                <?php echo isset($electionDetails['category']) ? htmlspecialchars($electionDetails['category']) : 'General Election'; ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
 
                     <!-- Heading for Results Section -->
                     <div class="mt-5 mb-4 section-header">
@@ -759,8 +641,11 @@ if ($electionID) {
                                 <i class="bi bi-arrow-up-circle me-2"></i> Select Election
                             </button>
                         </div>
+                        </div>
                     </div>
+                    
                     <?php endif; ?>
+        
                 </main>
             </div>
         </div>
