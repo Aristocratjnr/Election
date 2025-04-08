@@ -172,21 +172,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             exit;
                         }
                     } elseif ($action === 'delete') {
-                        // Delete profile picture if exists
-                        if (!empty($studentData['profilePicture'])) {
-                            $filePath = 'assets/img/profile/students/' . $studentData['profilePicture'];
-                            if (file_exists($filePath)) {
-                                unlink($filePath);
-                            }
-                        }
+                        // Start transaction
+                        $conn->begin_transaction();
                         
-                        // Delete account
-                        $stmt = $conn->prepare("DELETE FROM students WHERE studentID = ?");
-                        $stmt->bind_param('i', $_SESSION['login_id']);
-                        if ($stmt->execute()) {
-                            session_destroy();
-                            header("Location: register.php?deleted=1");
-                            exit;
+                        try {
+                            // Delete related records first
+                            // Delete votes cast by the student
+                            $stmt = $conn->prepare("DELETE FROM votes WHERE studentID = ?");
+                            $stmt->bind_param('i', $_SESSION['login_id']);
+                            $stmt->execute();
+                            
+                            // Delete any other related records (add more if needed)
+                            // For example, if you have comments, preferences, etc.
+                            
+                            // Delete profile picture if exists
+                            if (!empty($studentData['profilePicture'])) {
+                                $filePath = 'assets/img/profile/students/' . $studentData['profilePicture'];
+                                if (file_exists($filePath)) {
+                                    unlink($filePath);
+                                }
+                            }
+                            
+                            // Finally, delete the student account
+                            $stmt = $conn->prepare("DELETE FROM students WHERE studentID = ?");
+                            $stmt->bind_param('i', $_SESSION['login_id']);
+                            
+                            if ($stmt->execute()) {
+                                // Commit the transaction
+                                $conn->commit();
+                                // Destroy the session
+                                session_destroy();
+                                // Redirect to register page
+                                header("Location: register.php?deleted=1");
+                                exit;
+                            } else {
+                                throw new Exception("Failed to delete account");
+                            }
+                        } catch (Exception $e) {
+                            // Rollback the transaction on error
+                            $conn->rollback();
+                            error_log("Account deletion error: " . $e->getMessage());
+                            $errorMessage = "Failed to delete account. Please try again.";
                         }
                     }
                 } else {

@@ -84,7 +84,7 @@ try {
         }
         
         .main-content {
-            margin-left: 250px;
+            margin-left: 120px;
             width: calc(100% - 250px);
         }
         
@@ -99,11 +99,6 @@ try {
             border-radius: 0.35rem;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
             transition: all 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1.5rem 0 rgba(58, 59, 69, 0.2);
         }
         
         .card-header {
@@ -233,13 +228,7 @@ try {
             border-left-color: var(--warning-color);
         }
         
-        .hover-effect {
-            transition: all 0.3s ease;
-        }
         
-        .hover-effect:hover {
-            transform: scale(1.02);
-        }
     </style>
 </head>
 <body>
@@ -247,7 +236,7 @@ try {
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <div class="main-content">
-                <?php include 'includes/header.php'; ?>
+                <?php include 'includes/header.php'; ?><br><br><br>
                 
                 <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4">
                     <!-- Page Header -->

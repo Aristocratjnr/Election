@@ -69,16 +69,4 @@ function require_admin_auth(): void {
 
 // Run the check on pages that include this file
 require_admin_auth();
-
-// Check if admin is accessing admin pages
-if (strpos($_SERVER['PHP_SELF'], '/admin/') !== false && $_SESSION['role'] !== 'admin') {
-    header('Location: login.php');
-    exit();
-}
-
-// Check if student is accessing student pages
-if (strpos($_SERVER['PHP_SELF'], '/student/') !== false && $_SESSION['role'] !== 'student') {
-    header('Location: login.php');
-    exit();
-}
 ?>

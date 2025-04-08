@@ -1,5 +1,4 @@
 <?php
-// ======= Admin Premium Sidebar UI =======
 // Secure session initialization
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
@@ -17,9 +16,23 @@ $current_action = $_GET['action'] ?? null;
 
 // Admin data from session
 $admin_name = $_SESSION['login_name'] ?? 'Administrator';
-$profile_pic = $_SESSION['profilePicture'] ?? null;
 $role = $_SESSION['role'] ?? 'admin';
 $last_login = $_SESSION['last_login'] ?? null;
+
+$default_profile_pic = 'assets/img/aristocrat.jpeg';
+
+$profile_pic_path = '';
+if (!empty($profile_pic)) {
+    // Construct the full path
+    $profile_pic_path = 'assets/img/profile/admins/' . $profile_pic;
+    
+    // Verify the file actually exists
+    if (!file_exists($profile_pic_path)) {
+        $profile_pic_path = $default_profile_pic;
+    }
+} else {
+    $profile_pic_path = $default_profile_pic;
+}
 ?>
 
 <style>
@@ -417,17 +430,11 @@ $last_login = $_SESSION['last_login'] ?? null;
 
   <!-- Admin Profile Card -->
   <div class="profile-card">
-    <div class="profile-avatar">
-      <?php if ($profile_pic): ?>
-        <img src="assets/img/profile/admins/<?= htmlspecialchars($profile_pic) ?>" 
-             alt="<?= htmlspecialchars($admin_name) ?>"
-             onerror="this.src='assets/img/aristo.png'">
-      <?php else: ?>
-        <div class="avatar-fallback">
-          <?= strtoupper(substr($admin_name, 0, 1)) ?>
-        </div>
-      <?php endif; ?>
-    </div>
+  <div class="profile-avatar">
+    <img src="<?= htmlspecialchars($profile_pic_path) ?>" 
+         alt="<?= htmlspecialchars($admin_name) ?>"
+         onerror="this.onerror=null;this.src='<?= htmlspecialchars($default_profile_pic) ?>'">
+</div>
     <div class="profile-info">
       <h4 class="profile-name"><?= htmlspecialchars($admin_name) ?></h4>
       <div class="profile-meta">
@@ -452,7 +459,7 @@ $last_login = $_SESSION['last_login'] ?? null;
       </li>
 
       <!-- Election Control -->
-      <li class="nav-item <?= in_array($current_script, ['elections.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php']) ? 'active' : '' ?>">
+      <li class="nav-item <?= in_array($current_script, ['/election/pages/elections/election.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
           <div class="nav-link settings-toggle" data-tooltip="Manage Elections, Candidates, Positions and Ballots">
             <i class="bi bi-calendar-event"></i>
@@ -461,14 +468,14 @@ $last_login = $_SESSION['last_login'] ?? null;
           </div>
           <ul class="submenu settings-dropdown">
             <!-- Elections Submenu -->
-            <li class="submenu-item <?= ($current_script === 'elections.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
-              <a href="elections.php">
+            <li class="submenu-item <?= ($current_script === 'election.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
+              <a href="election.php">
                 <i class="bi bi-list-ul"></i>
                 <span>All Elections</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'elections.php' && $current_action === 'create') ? 'active' : '' ?>">
-              <a href="elections.php?action=create">
+              <a href="election.php">
                 <i class="bi bi-plus-circle"></i>
                 <span>Create New</span>
               </a>
@@ -499,20 +506,13 @@ $last_login = $_SESSION['last_login'] ?? null;
             </li>
 
             <!-- Results Submenu -->
-            <li class="submenu-item <?= ($current_script === 'election_results.php') ? 'active' : '' ?>">
-              <a href="election_results.php">
+            <li class="submenu-item <?= ($current_script === 'results.php') ? 'active' : '' ?>">
+              <a href="results.php">
                 <i class="bi bi-graph-up"></i>
                 <span>Results</span>
               </a>
             </li>
 
-            <!-- Configuration Submenu -->
-            <li class="submenu-item <?= ($current_script === 'election_config.php') ? 'active' : '' ?>">
-              <a href="election_config.php">
-                <i class="bi bi-gear"></i>
-                <span>Configuration</span>
-              </a>
-            </li>
           </ul>
         </div>
       </li>
@@ -532,12 +532,7 @@ $last_login = $_SESSION['last_login'] ?? null;
                 <span>Voter List</span>
               </a>
             </li>
-            <li class="submenu-item <?= ($current_script === 'voter_groups.php') ? 'active' : '' ?>">
-              <a href="voter_groups.php">
-                <i class="bi bi-collection"></i>
-                <span>Voter Groups</span>
-              </a>
-            </li>
+            
           </ul>
         </div>
       </li>
