@@ -442,7 +442,7 @@ $success = $_GET['success'] ?? null;
                                                title="View Details">
                                                 <i class="bi bi-eye-fill"></i>
                                             </a>
-                                            <a href="election_results.php?id=<?= $election['electionID'] ?>" 
+                                            <a href="results.php?id=<?= $election['electionID'] ?>" 
                                                class="btn btn-sm btn-success"
                                                data-bs-toggle="tooltip" 
                                                title="View Results">
