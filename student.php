@@ -223,11 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
-        .candidate-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--card-hover-shadow);
-            border-color: rgba(67, 97, 238, 0.3);
-        }
+        
         
         .candidate-card.selected {
             border: 2px solid var(--primary);
@@ -324,10 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             text-align: center;
         }
         
-        .vote-submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
-        }
+        
         
         .election-timer {
             background: linear-gradient(135deg, #4c6fff 0%, #6e41e2 100%);
@@ -654,11 +647,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             background-color: white;
         }
 
-        .tip-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.1);
-            border-color: rgba(67, 97, 238, 0.3);
-        }
+        
 
         .tip-icon {
             width: 50px;
@@ -708,12 +697,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transition: all 0.3s ease;
         }
 
-        .gradient-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
-            color: white;
-        }
-
+       
         /* Animation for the welcome modal */
         @keyframes slideIn {
             from {
@@ -757,7 +741,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 100%;
+            height: 80%;
         }
 
         .horizontal-position .row {
@@ -765,12 +749,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             flex-wrap: nowrap;
             gap: 0.5rem;
             padding-bottom: 0.5rem;
-            overflow-x: hidden; /* Hide scrollbar */
-            -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
-            scrollbar-width: none; /* Hide scrollbar for Firefox */
+            overflow-x: hidden; 
+            -ms-overflow-style: none; 
+            scrollbar-width: none;
         }
 
-        /* Hide scrollbar for Chrome, Safari and Opera */
+ 
         .horizontal-position .row::-webkit-scrollbar {
             display: none;
         }
@@ -794,13 +778,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             margin-top: 1rem;
         }
         
-        .live-results-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.2);
-            background: linear-gradient(135deg, rgba(67, 97, 238, 0.2) 0%, rgba(67, 97, 238, 0.3) 100%);
-            color: var(--primary);
-        }
-
+      
         /* Live Results Card Styles */
         .bg-gradient-primary {
             background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
