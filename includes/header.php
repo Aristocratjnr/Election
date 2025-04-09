@@ -74,13 +74,29 @@ if (empty($userData)) {
                         </button>
                     </li>
                     
-                    <!-- Live Results Tab -->
-                    <li class="nav-item mx-2">
-                        <a class="nav-link d-flex align-items-center" href="live_results.php">
-                            <i class="bi bi-bar-chart-fill fs-5 me-1"></i>
-                            <span class="d-none d-md-inline">Live Results</span>
-                        </a>
-                    </li>
+                   <!-- Live Results Tab - Improved UI -->
+<li class="nav-item mx-1">
+    <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
+       href="live_results.php"
+       style="transition: all 0.3s ease;"
+       onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
+       onmouseout="this.style.backgroundColor='transparent';">
+        
+        <!-- Animated Icon with Pulse Effect -->
+        <span class="position-relative">
+            <i class="bi bi-bar-chart-line-fill fs-5 me-2" style="color: #4361ee;"></i>
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                <span class="visually-hidden">Live updates</span>
+            </span>
+        </span>
+        
+        <!-- Text with subtle animation -->
+        <span class="d-none d-md-inline fw-medium" style="color: #2b3445;">
+            Live Results
+        </span>
+        
+    </a>
+</li>
                     
                     <!-- Notification Bell with Real-Time Updates -->
                     <li class="nav-item dropdown mx-2">
