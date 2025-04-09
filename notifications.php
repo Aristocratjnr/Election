@@ -147,6 +147,7 @@ try {
             --notification-info: #00cfe8;
             --notification-warning: #ff9f43;
             --notification-secondary: #82868b;
+            --notification-danger: #ea5455;
         }
         
         /* Container styles */
@@ -154,6 +155,7 @@ try {
             max-height: calc(100vh - 250px);
             overflow-y: auto;
             scrollbar-width: thin;
+            border-radius: 0.5rem;
         }
         
         /* Notification item styles */
@@ -161,7 +163,8 @@ try {
             transition: all 0.3s ease;
             border-left: 4px solid transparent;
             position: relative;
-            padding: 1rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.25rem;
         }
         
         .notification-item.unread {
@@ -171,32 +174,42 @@ try {
         
         .notification-item:hover {
             transform: translateX(5px);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            z-index: 1;
         }
         
         /* Icon styles */
         .notification-icon {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             margin-right: 15px;
             flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
         
         /* Background colors */
-        .bg-primary-light { background-color: rgba(115, 103, 240, 0.1); }
-        .bg-success-light { background-color: rgba(40, 199, 111, 0.1); }
-        .bg-info-light { background-color: rgba(0, 207, 232, 0.1); }
-        .bg-warning-light { background-color: rgba(255, 159, 67, 0.1); }
-        .bg-secondary-light { background-color: rgba(130, 134, 139, 0.1); }
+        .bg-primary-light { background-color: rgba(115, 103, 240, 0.15); }
+        .bg-success-light { background-color: rgba(40, 199, 111, 0.15); }
+        .bg-info-light { background-color: rgba(0, 207, 232, 0.15); }
+        .bg-warning-light { background-color: rgba(255, 159, 67, 0.15); }
+        .bg-secondary-light { background-color: rgba(130, 134, 139, 0.15); }
+        .bg-danger-light { background-color: rgba(234, 84, 85, 0.15); }
         
         /* Text and badge styles */
         .notification-time {
             font-size: 0.75rem;
             color: #6c757d;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notification-time i {
+            margin-right: 0.25rem;
+            font-size: 0.7rem;
         }
         
         .notification-badge {
@@ -216,14 +229,66 @@ try {
         /* Empty state styles */
         .empty-state {
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 1rem;
             color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #dfe3e7;
+            margin-bottom: 1rem;
+            display: block;
         }
         
         /* Card styles */
         .card {
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             overflow: hidden;
+            border: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            padding: 1rem 1.5rem;
+        }
+        
+        /* Button styles */
+        .btn-refresh, .btn-load-more {
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-refresh i, .btn-load-more i {
+            margin-right: 0.35rem;
+        }
+        
+        .btn-refresh:hover, .btn-load-more:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(115, 103, 240, 0.2);
+        }
+        
+        /* Badge styles for categories */
+        .category-badge {
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 0.35rem 0.65rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .category-badge i {
+            margin-right: 0.35rem;
+            font-size: 0.8rem;
         }
         
         /* Responsive styles */
@@ -233,12 +298,12 @@ try {
             }
             
             .notification-item {
-                padding: 0.75rem;
+                padding: 0.75rem 1rem;
             }
             
             .notification-icon {
-                width: 32px;
-                height: 32px;
+                width: 38px;
+                height: 38px;
                 margin-right: 10px;
             }
             
@@ -251,30 +316,12 @@ try {
                 margin-bottom: 0.5rem;
             }
             
-            .badge {
-                font-size: 0.7rem;
-            }
-            
             .card-header {
-                padding: 0.75rem;
+                padding: 0.75rem 1rem;
             }
             
             .card-header h5 {
-                font-size: 1rem;
-            }
-            
-            .btn-sm {
-                padding: 0.25rem 0.5rem;
-                font-size: 0.75rem;
-            }
-            
-            /* Improve touch targets on mobile */
-            .notification-item {
-                padding: 1rem 0.75rem;
-            }
-            
-            .btn-close {
-                padding: 0.75rem;
+                font-size: 1.1rem;
             }
         }
         
@@ -282,10 +329,6 @@ try {
         @media (min-width: 769px) {
             .container {
                 max-width: 960px;
-            }
-            
-            .notification-item {
-                padding: 1rem 1.5rem;
             }
         }
         
@@ -302,29 +345,41 @@ try {
         /* Toast notification styles */
         .toast {
             position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            min-width: 250px;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            min-width: 300px;
             max-width: 90vw;
             z-index: 9999;
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
-        /* Badge styles */
-        .badge {
-            white-space: normal;
-            text-align: left;
+        .toast-header {
+            border-radius: 0.5rem 0.5rem 0 0;
+            display: flex;
+            align-items: center;
         }
         
-        /* Truncate long text */
-        .notification-content h6,
-        .notification-content p {
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .toast-header i {
+            margin-right: 0.5rem;
+            color: var(--notification-primary);
         }
         
-        /* Improve spacing for stacked badges */
-        .badge + .badge {
-            margin-top: 0.25rem;
+        /* Animation for new notifications */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .notification-new {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Card footer */
+        .card-footer {
+            background-color: #f8f9fa;
+            padding: 0.75rem 1.5rem;
         }
     </style>
 </head>
@@ -334,17 +389,19 @@ try {
     <main class="container-fluid container-lg my-4">
         <div class="row justify-content-center">
             <div class="col-12 col-lg-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
-                        <h5 class="mb-0 fw-semibold text-muted">
-                            <i class="bi bi-bell-fill me-2 text-secondary"></i>Notifications
+                <div class="card shadow border-0">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-bell-fill me-2 text-primary"></i>Notifications
                             <?php if ($unreadCount > 0): ?>
-                                <span class="badge bg-danger rounded-pill ms-2"><?= $unreadCount ?> new</span>
+                                <span class="badge bg-danger rounded-pill ms-2">
+                                    <i class="bi bi-envelope-exclamation-fill me-1"></i><?= $unreadCount ?> new
+                                </span>
                             <?php endif; ?>
                         </h5>
                         <div>
-                            <button class="btn btn-sm btn-outline-primary" id="refresh-notifications">
-                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            <button class="btn btn-sm btn-primary btn-refresh" id="refresh-notifications">
+                                <i class="bi bi-arrow-repeat"></i> Refresh
                             </button>
                         </div>
                     </div>
@@ -352,9 +409,14 @@ try {
                     <div class="card-body p-0">
                         <?php if (empty($notifications)): ?>
                             <div class="empty-state py-5">
-                                <i class="bi bi-bell-slash text-muted" style="font-size: 3rem;"></i>
-                                <h5 class="mt-3">No notifications yet</h5>
-                                <p class="text-muted">When you get notifications, they'll appear here</p>
+                                <i class="bi bi-bell-slash text-muted"></i>
+                                <h5 class="mt-3 fw-bold">No notifications yet</h5>
+                                <p class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>When you get notifications, they'll appear here
+                                </p>
+                                <button class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Check again
+                                </button>
                             </div>
                         <?php else: ?>
                             <div class="notification-container">
@@ -365,7 +427,7 @@ try {
                                         <?php if (!$notification['is_read']): ?>
                                             <span class="notification-badge <?= $notification['badge_class'] ?>"></span>
                                         <?php endif; ?>
-                                        <div class="d-flex align-items-start p-3">
+                                        <div class="d-flex align-items-start">
                                             <div class="notification-icon <?= $notification['bg_class'] ?>">
                                                 <i class="bi <?= $notification['icon'] ?> fs-5"></i>
                                             </div>
@@ -373,25 +435,38 @@ try {
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <h6 class="mb-0 fw-bold"><?= htmlspecialchars($notification['title']) ?></h6>
                                                     <small class="notification-time">
-                                                        <?= $notification['time_ago'] ?>
+                                                        <i class="bi bi-clock"></i> <?= $notification['time_ago'] ?>
                                                     </small>
                                                 </div>
                                                 <p class="mb-2 text-muted"><?= htmlspecialchars($notification['message']) ?></p>
                                                 
-                                                <?php if ($notification['election_name']): ?>
-                                                    <span class="badge <?= $notification['badge_class'] ?> text-white mt-1 me-1">
-                                                        <i class="bi bi-calendar-event me-1"></i>
-                                                        <?= htmlspecialchars($notification['election_name']) ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                                
-                                                <?php if ($notification['candidate_position']): ?>
-                                                    <span class="badge <?= $notification['badge_class'] ?> text-white mt-1">
-                                                        <i class="bi bi-person me-1"></i>
-                                                        <?= htmlspecialchars($notification['candidate_name'] ?? 'Candidate') ?> - 
-                                                        <?= htmlspecialchars($notification['candidate_position']) ?>
-                                                    </span>
-                                                <?php endif; ?>
+                                                <div class="d-flex flex-wrap mt-2">
+                                                    <?php if ($notification['election_name']): ?>
+                                                        <span class="category-badge <?= $notification['badge_class'] ?> text-white">
+                                                            <i class="bi bi-calendar-event"></i>
+                                                            <?= htmlspecialchars($notification['election_name']) ?>
+                                                            <?php if ($notification['election_status']): ?>
+                                                                <span class="ms-1">
+                                                                    <?php if ($notification['election_status'] == 'active'): ?>
+                                                                        <i class="bi bi-play-fill"></i>
+                                                                    <?php elseif ($notification['election_status'] == 'completed'): ?>
+                                                                        <i class="bi bi-check2-circle"></i>
+                                                                    <?php elseif ($notification['election_status'] == 'upcoming'): ?>
+                                                                        <i class="bi bi-hourglass-split"></i>
+                                                                    <?php endif; ?>
+                                                                </span>
+                                                            <?php endif; ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if ($notification['candidate_position']): ?>
+                                                        <span class="category-badge <?= $notification['badge_class'] ?> text-white">
+                                                            <i class="bi bi-person-badge"></i>
+                                                            <?= htmlspecialchars($notification['candidate_name'] ?? 'Candidate') ?> - 
+                                                            <?= htmlspecialchars($notification['candidate_position']) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
                                     </a>
@@ -402,15 +477,14 @@ try {
                     </div>
                     
                     <?php if (!empty($notifications)): ?>
-                    <div class="card-footer bg-white py-3 border-top">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <button class="btn btn-sm btn-outline-primary" id="load-more">
-                                <i class="bi bi-arrow-down me-1"></i> Load More
-                            </button>
-                            <small class="text-muted">
-                                Showing <?= count($notifications) ?> of <?= $unreadCount + count($notifications) ?> notifications
-                            </small>
-                        </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <button class="btn btn-sm btn-outline-primary btn-load-more" id="load-more">
+                            <i class="bi bi-arrow-down-circle"></i> Load More
+                        </button>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Showing <?= count($notifications) ?> of <?= $unreadCount + count($notifications) ?> notifications
+                        </small>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -427,7 +501,13 @@ try {
     $(document).ready(function() {
         // Refresh notifications
         $('#refresh-notifications').click(function() {
-            window.location.reload();
+            const $btn = $(this);
+            $btn.html('<span class="spinner-border spinner-border-sm me-1" role="status"></span> Refreshing...');
+            $btn.prop('disabled', true);
+            
+            setTimeout(function() {
+                window.location.reload();
+            }, 500);
         });
         
         // Load more notifications
@@ -451,30 +531,43 @@ try {
                         data.notifications.forEach(function(notification) {
                             const notificationHtml = `
                                 <a href="${notification.action_url || '#'}" 
-                                   class="list-group-item list-group-item-action notification-item ${notification.is_read ? '' : 'unread'}">
+                                   class="list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'}">
                                     ${!notification.is_read ? `<span class="notification-badge ${notification.badge_class}"></span>` : ''}
-                                    <div class="d-flex align-items-start p-3">
+                                    <div class="d-flex align-items-start">
                                         <div class="notification-icon ${notification.bg_class}">
                                             <i class="bi ${notification.icon} fs-5"></i>
                                         </div>
                                         <div class="notification-content">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
                                                 <h6 class="mb-0 fw-bold">${notification.title}</h6>
-                                                <small class="notification-time">${notification.time_ago}</small>
+                                                <small class="notification-time">
+                                                    <i class="bi bi-clock"></i> ${notification.time_ago}
+                                                </small>
                                             </div>
                                             <p class="mb-2 text-muted">${notification.message}</p>
-                                            ${notification.election_name ? `
-                                                <span class="badge ${notification.badge_class} text-white mt-1 me-1">
-                                                    <i class="bi bi-calendar-event me-1"></i>
-                                                    ${notification.election_name}
-                                                </span>
-                                            ` : ''}
-                                            ${notification.candidate_position ? `
-                                                <span class="badge ${notification.badge_class} text-white mt-1">
-                                                    <i class="bi bi-person me-1"></i>
-                                                    ${notification.candidate_name || 'Candidate'} - ${notification.candidate_position}
-                                                </span>
-                                            ` : ''}
+                                            
+                                            <div class="d-flex flex-wrap mt-2">
+                                                ${notification.election_name ? `
+                                                    <span class="category-badge ${notification.badge_class} text-white">
+                                                        <i class="bi bi-calendar-event"></i>
+                                                        ${notification.election_name}
+                                                        ${notification.election_status ? `
+                                                            <span class="ms-1">
+                                                                ${notification.election_status === 'active' ? `<i class="bi bi-play-fill"></i>` : ''}
+                                                                ${notification.election_status === 'completed' ? `<i class="bi bi-check2-circle"></i>` : ''}
+                                                                ${notification.election_status === 'upcoming' ? `<i class="bi bi-hourglass-split"></i>` : ''}
+                                                            </span>
+                                                        ` : ''}
+                                                    </span>
+                                                ` : ''}
+                                                
+                                                ${notification.candidate_position ? `
+                                                    <span class="category-badge ${notification.badge_class} text-white">
+                                                        <i class="bi bi-person-badge"></i>
+                                                        ${notification.candidate_name || 'Candidate'} - ${notification.candidate_position}
+                                                    </span>
+                                                ` : ''}
+                                            </div>
                                         </div>
                                     </div>
                                 </a>
@@ -483,18 +576,32 @@ try {
                         });
                         
                         if (!data.has_more) {
-                            $btn.hide();
+                            $btn.removeClass('btn-outline-primary').addClass('btn-light');
+                            $btn.html('<i class="bi bi-check-circle"></i> All loaded');
+                            setTimeout(() => {
+                                $btn.parent().fadeOut();
+                            }, 2000);
                         }
                     } else {
-                        $btn.hide();
+                        $btn.removeClass('btn-outline-primary').addClass('btn-light');
+                        $btn.html('<i class="bi bi-check-circle"></i> No more notifications');
+                        setTimeout(() => {
+                            $btn.parent().fadeOut();
+                        }, 2000);
                     }
                 },
                 complete: function() {
-                    $btn.html('<i class="bi bi-arrow-down me-1"></i> Load More');
-                    $btn.prop('disabled', false);
+                    if ($btn.html().indexOf('No more') === -1 && $btn.html().indexOf('All loaded') === -1) {
+                        $btn.html('<i class="bi bi-arrow-down-circle"></i> Load More');
+                        $btn.prop('disabled', false);
+                    }
                 },
                 error: function() {
-                    alert('Error loading more notifications');
+                    $btn.html('<i class="bi bi-exclamation-triangle"></i> Error loading');
+                    setTimeout(() => {
+                        $btn.html('<i class="bi bi-arrow-down-circle"></i> Try Again');
+                        $btn.prop('disabled', false);
+                    }, 2000);
                 }
             });
         });
@@ -511,11 +618,18 @@ try {
                 },
                 success: function(data) {
                     if (data.count > 0) {
-                        // Show subtle notification badge instead of alert
+                        // Update notification count in header
                         const $badge = $('#notification-badge');
-                        $badge.text(data.count).removeClass('d-none');
+                        if ($badge.length) {
+                            $badge.text(data.count).removeClass('d-none');
+                        } else {
+                            const $newBadge = $(`<span id="notification-badge" class="badge bg-danger rounded-pill position-absolute start-100 translate-middle">
+                                ${data.count}
+                            </span>`);
+                            $('#nav-notification-icon').append($newBadge);
+                        }
                         
-                        // Optional: Show toast notification
+                        // Show toast notification
                         if (data.latest_notification) {
                             showToastNotification(data.latest_notification);
                         }
@@ -527,27 +641,60 @@ try {
         // Show toast notification
         function showToastNotification(notification) {
             const toastHtml = `
-                <div class="toast show position-fixed bottom-0 end-0 m-3" role="alert" style="z-index: 9999">
+                <div class="toast show" role="alert">
                     <div class="toast-header">
+                        <i class="bi ${notification.icon || 'bi-bell-fill'}"></i>
                         <strong class="me-auto">New Notification</strong>
                         <small>Just now</small>
                         <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
                     </div>
                     <div class="toast-body">
-                        ${notification.message}
+                        <h6 class="mb-1">${notification.title}</h6>
+                        <p class="mb-0">${notification.message}</p>
+                        ${notification.action_url ? `
+                            <div class="mt-2 pt-2 border-top">
+                                <a href="${notification.action_url}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
+            
+            // Remove any existing toast
+            $('.toast').remove();
+            
+            // Add new toast
             $('body').append(toastHtml);
             
             // Auto-hide after 5 seconds
             setTimeout(() => {
-                $('.toast').remove();
+                $('.toast').fadeOut(500, function() {
+                    $(this).remove();
+                });
             }, 5000);
         }
         
         // Check every 30 seconds
         setInterval(checkNewNotifications, 30000);
+        
+        // Mark clicked notifications as read using AJAX
+        $('.notification-item').click(function(e) {
+            const notificationId = $(this).data('id');
+            if (notificationId) {
+                $.ajax({
+                    url: 'api/mark_notification_read.php',
+                    type: 'POST',
+                    data: {
+                        notification_id: notificationId
+                    },
+                    success: function() {
+                        // No need to do anything, just mark as read on server
+                    }
+                });
+            }
+        });
     });
     </script>
 </body>

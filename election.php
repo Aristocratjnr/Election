@@ -56,29 +56,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit') {
     
     try {
         // Process dates with validation
-        $startDate = $_POST['startDate'];
-        $endDate = $_POST['endDate'];
+        $startTimestamp = strtotime($_POST['startDate']);
+        $endTimestamp = strtotime($_POST['endDate']);
         
-        // Check for time fields
-        $startTime = $_POST['start_time'] ?? '08:00:00';
-        $endTime = $_POST['end_time'] ?? '17:00:00';
-        
-        // Make sure we have valid time formats
-        if (!preg_match('/^([0-1][0-9]|2[0-3]):([0-5][0-9])$/', $startTime)) {
-            $startTime = '08:00';
+        if ($startTimestamp === false || $endTimestamp === false) {
+            error_log("Invalid date format. Start: {$_POST['startDate']}, End: {$_POST['endDate']}");
+            throw new Exception("Invalid date format");
         }
         
-        if (!preg_match('/^([0-1][0-9]|2[0-3]):([0-5][0-9])$/', $endTime)) {
-            $endTime = '17:00';
-        }
+        $startDate = date('Y-m-d H:i:s', $startTimestamp);
+        $endDate = date('Y-m-d H:i:s', $endTimestamp);
         
-        // Format the datetime strings for the database
-        $startDateTime = date('Y-m-d', strtotime($startDate)) . ' ' . $startTime . ':00';
-        $endDateTime = date('Y-m-d', strtotime($endDate)) . ' ' . $endTime . ':00';
-        
-        error_log("Formatted dates: Start='{$startDateTime}', End='{$endDateTime}'");
-        
-        if (strtotime($endDateTime) <= strtotime($startDateTime)) {
+        if ($endDate < $startDate) {
             header('Location: election.php?action=edit&id='.$electionID.'&error=invalid_dates');
             exit;
         }
@@ -99,83 +88,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit') {
             error_log("Database reconnection successful");
         }
         
-        // Check if the time columns exist
-        $time_fields_exist = false;
-        $check_fields = $conn->query("SHOW COLUMNS FROM elections LIKE 'start_time'");
-        $time_fields_exist = ($check_fields && $check_fields->num_rows > 0);
+        // Construct the SQL query for better error tracking
+        $sql = "UPDATE elections SET 
+            name = ?, 
+            startDate = ?, 
+            endDate = ?, 
+            status = ?, 
+            visibility = ? 
+            WHERE electionID = ?";
+            
+        error_log("SQL Query: $sql");
         
-        if ($time_fields_exist) {
-            // If time columns exist, use them
-            $sql = "UPDATE elections SET 
-                name = ?, 
-                startDate = ?, 
-                endDate = ?, 
-                start_time = ?,
-                end_time = ?,
-                status = ?, 
-                visibility = ? 
-                WHERE electionID = ?";
-                
-            error_log("SQL Query with time fields: $sql");
-            
-            // Extract just the time part for the time columns
-            $startTimeOnly = $startTime . ':00';
-            $endTimeOnly = $endTime . ':00';
-            
-            // Update election in database
-            $stmt = $conn->prepare($sql);
-            
-            if (!$stmt) {
-                error_log("Prepare failed: " . $conn->error);
-                throw new Exception("Prepare statement failed: " . $conn->error);
-            }
-            
-            error_log("Binding parameters with time fields: Name={$_POST['name']}, StartDate=".date('Y-m-d', strtotime($startDate)).", EndDate=".date('Y-m-d', strtotime($endDate)).", StartTime={$startTimeOnly}, EndTime={$endTimeOnly}, Status={$_POST['status']}, Visibility={$visibility}, ID={$electionID}");
-            
-            $startDateOnly = date('Y-m-d', strtotime($startDate));
-            $endDateOnly = date('Y-m-d', strtotime($endDate));
-            
-            $stmt->bind_param('sssssssi', 
-                $_POST['name'],
-                $startDateOnly,
-                $endDateOnly,
-                $startTimeOnly,
-                $endTimeOnly,
-                $_POST['status'],
-                $visibility,
-                $electionID
-            );
-        } else {
-            // If time columns don't exist, use combined date and time in the date fields
-            $sql = "UPDATE elections SET 
-                name = ?, 
-                startDate = ?, 
-                endDate = ?, 
-                status = ?, 
-                visibility = ? 
-                WHERE electionID = ?";
-                
-            error_log("SQL Query without time fields: $sql");
-            
-            // Update election in database
-            $stmt = $conn->prepare($sql);
-            
-            if (!$stmt) {
-                error_log("Prepare failed: " . $conn->error);
-                throw new Exception("Prepare statement failed: " . $conn->error);
-            }
-            
-            error_log("Binding parameters without time fields: Name={$_POST['name']}, Start={$startDateTime}, End={$endDateTime}, Status={$_POST['status']}, Visibility={$visibility}, ID={$electionID}");
-            
-            $stmt->bind_param('sssssi', 
-                $_POST['name'],
-                $startDateTime,
-                $endDateTime,
-                $_POST['status'],
-                $visibility,
-                $electionID
-            );
+        // Update election in database
+        $stmt = $conn->prepare($sql);
+        
+        error_log("Preparing to execute SQL query for updating election...");
+        
+        if (!$stmt) {
+            error_log("Prepare failed: " . $conn->error);
+            throw new Exception("Prepare statement failed: " . $conn->error);
         }
+        
+        error_log("Binding parameters: Name={$_POST['name']}, Start={$startDate}, End={$endDate}, Status={$_POST['status']}, Visibility={$visibility}, ID={$electionID}");
+        
+        $stmt->bind_param('sssssi', 
+            $_POST['name'],
+            $startDate,
+            $endDate,
+            $_POST['status'],
+            $visibility,
+            $electionID
+        );
         
         error_log("Executing update query...");
         if (!$stmt->execute()) {
