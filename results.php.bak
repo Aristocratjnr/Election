@@ -24,97 +24,6 @@ $electionDetails = null;
 $resultsData = [];
 $totalVotes = 0;
 
-// Helper function to find profile pictures
-function findProfilePicture($candidate) {
-    $possiblePaths = [];
-    $checkedPaths = []; // For debugging
-    
-    // Check student profile picture
-    if (!empty($candidate['profilePicture'])) {
-        $possiblePaths[] = 'assets/img/profile/students/' . $candidate['profilePicture'];
-        $possiblePaths[] = 'assets/img/' . $candidate['profilePicture'];
-    }
-    
-    // Check candidate photo if it exists
-    if (!empty($candidate['candidatePhoto'])) {
-        $possiblePaths[] = 'assets/img/candidates/' . $candidate['candidatePhoto'];
-        $possiblePaths[] = 'assets/img/' . $candidate['candidatePhoto'];
-    }
-    
-    // Check by student ID (common naming pattern)
-    if (!empty($candidate['studentID'])) {
-        $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '.jpg';
-        $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '.png';
-        $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '.jpeg';
-        
-        // Try with timestamp patterns (common in the existing files)
-        $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '_*.jpg';
-        $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '_*.png';
-        $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '_*.jpeg';
-        
-        // Try specific candidate images
-        $stdID = $candidate['studentID'];
-        // Check for student ID pattern files using glob
-        $stdIDFiles = glob("assets/img/profile/students/{$stdID}_*.{jpg,jpeg,png}", GLOB_BRACE);
-        if (!empty($stdIDFiles)) {
-            // Add any found files at the beginning of the array for priority
-            $possiblePaths = array_merge($stdIDFiles, $possiblePaths);
-        }
-    }
-    
-    // Add the name-based files
-    if (!empty($candidate['name'])) {
-        // Convert spaces to underscores and lowercase
-        $nameFile = strtolower(str_replace(' ', '_', $candidate['name']));
-        $possiblePaths[] = "assets/img/profile/students/{$nameFile}.jpg";
-        $possiblePaths[] = "assets/img/profile/students/{$nameFile}.png";
-        $possiblePaths[] = "assets/img/profile/students/{$nameFile}.jpeg";
-    }
-    
-    // Default fallback 
-    $possiblePaths[] = 'assets/img/default-profile.png';
-    $possiblePaths[] = 'assets/img/aristo.png';
-    
-    // Check each path and return the first one that exists
-    foreach ($possiblePaths as $path) {
-        // Skip glob patterns in the exists check
-        if (strpos($path, '*') !== false) {
-            continue;
-        }
-        
-        $checkedPaths[] = $path . " (" . (file_exists($path) ? "exists" : "missing") . ")";
-        
-        if (file_exists($path)) {
-            // Store the debug info in the session for later viewing
-            if (!isset($_SESSION['debug_picture_paths'])) {
-                $_SESSION['debug_picture_paths'] = [];
-            }
-            $_SESSION['debug_picture_paths'][$candidate['studentID']] = [
-                'studentID' => $candidate['studentID'],
-                'name' => $candidate['name'],
-                'found' => $path,
-                'checked' => $checkedPaths
-            ];
-            
-            return $path;
-        }
-    }
-    
-    // Store the debug info in the session for later viewing
-    if (!isset($_SESSION['debug_picture_paths'])) {
-        $_SESSION['debug_picture_paths'] = [];
-    }
-    $_SESSION['debug_picture_paths'][$candidate['studentID']] = [
-        'studentID' => $candidate['studentID'],
-        'name' => $candidate['name'],
-        'found' => false,
-        'checked' => $checkedPaths
-    ];
-    
-    // If no image found, return empty string
-    return '';
-}
-
 if ($electionID) {
     // Get election details
     $electionStmt = $conn->prepare("SELECT * FROM elections WHERE electionID = ?");
@@ -136,8 +45,8 @@ if ($electionID) {
             
             // Get candidates and their results for this position
             $candidates = $conn->query("
-                SELECT c.candidateID, c.studentID, c.position, c.manifesto, c.photo as candidatePhoto,
-                       s.name, s.profilePicture, s.email, s.department,
+                SELECT c.candidateID, c.studentID, c.position, c.manifesto, 
+                       s.name, s.profilePicture, s.email, s.program, s.department, s.yearOfStudy,
                        COALESCE(r.voteCount, 0) as voteCount,
                        COALESCE(r.percentage, 0) as percentage
                 FROM candidates c
@@ -808,13 +717,8 @@ if ($electionID) {
                                             <?php endif; ?>
                                             <div class="card-body text-center candidate-details p-4">
                                                 <div class="position-relative mb-4">
-                                                    <?php 
-                                                    // Check both profile picture sources
-                                                    $profilePic = findProfilePicture($candidate);
-                                                    
-                                                    if (!empty($profilePic)): 
-                                                    ?>
-                                                    <img src="<?php echo $profilePic; ?>" 
+                                                    <?php if ($candidate['profilePicture']): ?>
+                                                    <img src="assets/img/profile/students/<?php echo $candidate['profilePicture']; ?>" 
                                                         class="candidate-photo" 
                                                         alt="<?php echo htmlspecialchars($candidate['name']); ?>"
                                                         data-bs-toggle="modal" 
@@ -841,10 +745,6 @@ if ($electionID) {
                                                 </h5>
                                                 
                                                 <div class="candidate-info mb-3">
-                                                    <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-person-badge me-1"></i> 
-                                                        ID: <?php echo htmlspecialchars($candidate['studentID']); ?>
-                                                    </p>
                                                     <?php if (!empty($candidate['department'])): ?>
                                                     <p class="mb-1 text-muted small">
                                                         <i class="bi bi-building me-1"></i> 
@@ -852,49 +752,17 @@ if ($electionID) {
                                                     </p>
                                                     <?php endif; ?>
                                                     
-                                                    <?php if (!empty($candidate['email'])): ?>
+                                                    <?php if (!empty($candidate['program'])): ?>
                                                     <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-envelope me-1"></i> 
-                                                        <?php echo htmlspecialchars($candidate['email']); ?>
+                                                        <i class="bi bi-book me-1"></i> 
+                                                        <?php echo htmlspecialchars($candidate['program']); ?>
                                                     </p>
                                                     <?php endif; ?>
                                                     
-                                                    <?php if (!empty($candidate['profilePicture']) || !empty($candidate['candidatePhoto'])): ?>
+                                                    <?php if (!empty($candidate['yearOfStudy'])): ?>
                                                     <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-image me-1"></i> 
-                                                        <?php if (!empty($candidate['profilePicture'])): ?>
-                                                        Student Pic: <?php echo htmlspecialchars($candidate['profilePicture']); ?><br>
-                                                        <?php endif; ?>
-                                                        <?php if (!empty($candidate['candidatePhoto'])): ?>
-                                                        Candidate Pic: <?php echo htmlspecialchars($candidate['candidatePhoto']); ?><br>
-                                                        <?php endif; ?>
-                                                        <?php if (!empty($profilePic)): ?>
-                                                        <span class="badge bg-success">Found image: <?php echo basename($profilePic); ?></span>
-                                                        <?php else: ?>
-                                                        <span class="badge bg-danger">No image found</span>
-                                                        <?php endif; ?>
-                                                    </p>
-                                                    <?php endif; ?>
-                                                    
-                                                    <?php 
-                                                    // Display all known files in the students directory
-                                                    $existingFiles = glob("assets/img/profile/students/*");
-                                                    $matchingFiles = [];
-                                                    
-                                                    if (!empty($candidate['studentID'])) {
-                                                        $studentID = $candidate['studentID'];
-                                                        foreach ($existingFiles as $file) {
-                                                            if (strpos(basename($file), $studentID) !== false) {
-                                                                $matchingFiles[] = basename($file);
-                                                            }
-                                                        }
-                                                    }
-                                                    
-                                                    if (!empty($matchingFiles)):
-                                                    ?>
-                                                    <p class="mt-2 text-success small">
-                                                        <i class="bi bi-check-circle me-1"></i>
-                                                        Matching files: <?php echo implode(", ", $matchingFiles); ?>
+                                                        <i class="bi bi-calendar3 me-1"></i> 
+                                                        Year <?php echo htmlspecialchars($candidate['yearOfStudy']); ?>
                                                     </p>
                                                     <?php endif; ?>
                                                 </div>
@@ -959,12 +827,8 @@ if ($electionID) {
                                                             <div class="modal-body">
                                                                 <div class="candidate-modal-info mb-3 pb-3 border-bottom">
                                                                     <div class="d-flex align-items-center">
-                                                                        <?php 
-                                                                        $profilePic = findProfilePicture($candidate);
-                                                                                
-                                                                        if (!empty($profilePic)): 
-                                                                        ?>
-                                                                        <img src="<?php echo $profilePic; ?>" 
+                                                                        <?php if ($candidate['profilePicture']): ?>
+                                                                        <img src="assets/img/profile/students/<?php echo $candidate['profilePicture']; ?>" 
                                                                             class="user-avatar me-3" 
                                                                             alt="<?php echo htmlspecialchars($candidate['name']); ?>"
                                                                             onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
@@ -1008,7 +872,7 @@ if ($electionID) {
                                                     <button class="btn btn-sm btn-outline-primary w-100" 
                                                            data-bs-toggle="modal" 
                                                            data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>">
-                                                        <i class="bi bi-person-lines-fill me-1"></i> View Profile (ID: <?php echo $candidate['studentID']; ?>)
+                                                        <i class="bi bi-person-lines-fill me-1"></i> View Full Profile
                                                     </button>
                                                 </div>
                                                 
@@ -1026,12 +890,8 @@ if ($electionID) {
                                                             <div class="modal-body">
                                                                 <div class="row">
                                                                     <div class="col-md-4 text-center mb-4 mb-md-0">
-                                                                        <?php 
-                                                                        $profilePic = findProfilePicture($candidate);
-                                                                                
-                                                                        if (!empty($profilePic)): 
-                                                                        ?>
-                                                                        <img src="<?php echo $profilePic; ?>" 
+                                                                        <?php if ($candidate['profilePicture']): ?>
+                                                                        <img src="assets/img/profile/students/<?php echo $candidate['profilePicture']; ?>" 
                                                                             class="img-fluid rounded-circle profile-modal-img mb-3" 
                                                                             style="width: 180px; height: 180px; object-fit: cover; border: 5px solid #eee;"
                                                                             alt="<?php echo htmlspecialchars($candidate['name']); ?>"
@@ -1059,6 +919,18 @@ if ($electionID) {
                                                                                 Winner
                                                                             </span>
                                                                         </div>
+                                                                        <?php endif; ?>
+                                                                        
+                                                                        <?php if (!empty($candidate['yearOfStudy'])): ?>
+                                                                        <li class="list-group-item px-0 py-2 d-flex align-items-center">
+                                                                            <div class="card-icon bg-warning-light me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                                                <i class="bi bi-calendar3"></i>
+                                                                            </div>
+                                                                            <div>
+                                                                                <span class="text-muted small">Year of Study</span>
+                                                                                <p class="mb-0 fw-medium">Year <?php echo htmlspecialchars($candidate['yearOfStudy']); ?></p>
+                                                                            </div>
+                                                                        </li>
                                                                         <?php endif; ?>
                                                                         
                                                                         <?php if (!empty($candidate['email'])): ?>
@@ -1300,7 +1172,8 @@ if ($electionID) {
                         exportData.push({
                             'Candidate Name': candidate.name,
                             'Department': candidate.department || 'N/A',
-                            'Email': candidate.email || 'N/A',
+                            'Program': candidate.program || 'N/A',
+                            'Year of Study': candidate.yearOfStudy || 'N/A',
                             'Votes': candidate.voteCount,
                             'Percentage': candidate.percentage + '%',
                             'Is Winner': candidate.voteCount === Math.max(...position.candidates.map(c => c.voteCount)) ? 'Yes' : 'No'
@@ -1403,8 +1276,8 @@ if ($electionID) {
                         if (candidate.department) {
                             doc.text('Department: ' + candidate.department, 30, yPosition + 7);
                         }
-                        if (candidate.email) {
-                            doc.text('Email: ' + candidate.email, 30, yPosition + 14);
+                        if (candidate.program) {
+                            doc.text('Program: ' + candidate.program, 30, yPosition + 14);
                         }
                         
                         // Votes and percentage

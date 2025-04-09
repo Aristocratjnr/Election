@@ -66,7 +66,18 @@ $positions = [];
 if ($currentElection && !$hasVoted) {
     try {
         // Get positions for current election
-        $stmt = $conn->prepare("SELECT * FROM positions WHERE electionID = ?");
+        $stmt = $conn->prepare("
+            SELECT p.* 
+            FROM positions p
+            WHERE p.electionID = ?
+            AND EXISTS (
+                SELECT 1 
+                FROM candidates c 
+                WHERE c.positionID = p.positionID 
+                AND c.status = 'Approved'
+            )
+            ORDER BY p.positionID ASC
+        ");
         $stmt->bind_param('i', $currentElection['electionID']);
         $stmt->execute();
         $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -75,12 +86,15 @@ if ($currentElection && !$hasVoted) {
         // Get candidates for each position
         foreach ($positions as &$position) {
             $stmt = $conn->prepare("
-                SELECT c.*, s.name, s.department, s.profilePicture 
+                SELECT c.candidateID, c.studentID, c.positionID, c.manifesto, c.photo, c.status,
+                       s.name, s.department, s.profilePicture 
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
-                WHERE c.status = 'Approved'
+                WHERE c.positionID = ? 
+                AND c.status = 'Approved'
                 ORDER BY s.name ASC
             ");
+            $stmt->bind_param('i', $position['positionID']);
             $stmt->execute();
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
@@ -340,7 +354,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             right: 0;
             width: 100%;
             height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
             opacity: 0.5;
         }
         
@@ -475,58 +489,151 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
         .candidate-info {
-            padding: 0.5rem;
-            text-align: center;
-            flex-grow: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
-        
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+        }
+
+        .candidate-main {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .candidate-details {
+            flex: 1;
+            min-width: 0;
+        }
+
         .candidate-name {
             font-weight: 700;
-            margin-bottom: 0.2rem;
-            transition: color 0.3s ease;
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            color: var(--text);
+            transition: all 0.3s ease;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.2;
         }
-        
+
         .candidate-position {
+            font-size: 0.75rem;
             color: var(--primary);
             font-weight: 600;
-            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 20px;
+            display: inline-block;
             margin-bottom: 0.3rem;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
-        
-        .candidate-tagline {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+
+        .vote-stats {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        
-        .candidate-card.selected .candidate-name {
-            color: var(--primary);
+
+        .vote-stats i {
+            font-size: 0.9rem;
         }
-        
-        .success-checkmark {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto;
-            padding: 20px;
-            border-radius: 50%;
-            box-sizing: content-box;
-            border: 4px solid var(--success);
-            background-color: rgba(16, 185, 129, 0.1);
+
+        .vote-count, .vote-percentage {
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .candidate-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            margin-right: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .candidate-avatar-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f5f7fa, #eef2f7);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 1.5rem;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-right: 0.8rem;
+            flex-shrink: 0;
         }
-        
-        .success-checkmark i {
-            font-size: 3rem;
-            color: var(--success);
+
+        .progress {
+            height: 6px;
+            border-radius: 3px;
+            background-color: #f5f7fa;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-top: 0.5rem;
         }
-        
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+
+        .rank-badge {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(67, 97, 238, 0.05));
+            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .rank-badge i {
+            font-size: 1rem;
+        }
+
         @keyframes pulsate {
             0% {
                 box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
@@ -538,7 +645,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
             }
         }
-        
+
         @keyframes wave {
             0% {
                 transform: translateX(-50%);
@@ -547,7 +654,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 transform: translateX(0%);
             }
         }
-        
+
         @keyframes float {
             0% {
                 transform: translateY(0px);
@@ -559,18 +666,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 transform: translateY(0px);
             }
         }
-        
+
         @keyframes pulse {
             0% { transform: scale(0.95); opacity: 0.7; }
             50% { transform: scale(1.05); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.7; }
         }
-        
+
         @keyframes select-pulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
             50% { box-shadow: 0 0 0 8px rgba(67, 97, 238, 0.3); }
         }
-        
+
         @media (max-width: 768px) {
             .avatar-container {
                 width: 85px;
@@ -597,6 +704,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             .col-md-6, .col-lg-4 {
                 flex: 1 1 calc(50% - 0.5rem); /* Adjust width to fit two cards per row on mobile */
                 max-width: calc(50% - 0.5rem);
+            }
+            
+            .candidate-avatar, .candidate-avatar-placeholder {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .candidate-name {
+                font-size: 0.9rem;
+            }
+            
+            .vote-stats {
+                padding: 0.3rem 0.6rem;
+            }
+            
+            .candidate-result-card {
+                min-height: 150px;
             }
         }
 
@@ -834,192 +958,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
         }
-        
-        .candidate-result-card {
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 1rem;
-            transition: all 0.3s ease;
-            border: 1px solid #f0f0f5;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
-            height: 100%;
-        }
-        
-        .candidate-result-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
-        }
-        
-        .rank-badge {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(67, 97, 238, 0.05));
-            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
-        }
-        
-        .rank-badge i {
-            font-size: 0.9rem;
-        }
-        
-        .text-bronze {
-            color: #cd7f32;
-        }
-        
-        .text-gold {
-            color: #FFD700;
-        }
-        
-        .text-silver {
-            color: #C0C0C0;
-        }
-        
-        .candidate-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .candidate-result-card:hover .candidate-avatar {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.15);
-        }
-        
-        .candidate-avatar-placeholder {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            background-color: #f5f7fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 1.8rem;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .progress {
-            height: 8px;
-            border-radius: 4px;
-            background-color: #f5f7fa;
-            overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-        
-        .progress-bar {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: progressShine 2s infinite;
-        }
-        
-        .vote-stats {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 0.5rem 0.8rem;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-        
-        .vote-count, .vote-percentage {
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-        
-        .candidate-result-card:hover .vote-count,
-        .candidate-result-card:hover .vote-percentage {
-            color: var(--primary);
-        }
-        
-        .results-section-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.2rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .results-section-header h6 {
-            margin-bottom: 0;
-            font-weight: 700;
-            color: var(--text);
-        }
-        
-        .results-icon {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(67, 97, 238, 0.05));
-            border-radius: 8px;
-            margin-right: 0.8rem;
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-        
-        @keyframes progressShine {
-            0% {
-                left: -100%;
-            }
-            100% {
-                left: 100%;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .status-card {
-                margin-bottom: 1rem;
-            }
-            
-            .candidate-result-card {
-                margin-bottom: 1rem;
-            }
-            
-            .vote-count, .vote-percentage {
-                font-size: 0.8rem;
-            }
-            
-            .candidate-name {
-                font-size: 0.9rem;
-            }
-
-            .candidate-avatar, .candidate-avatar-placeholder {
-                width: 50px;
-                height: 50px;
-            }
-        }
-        
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-            }
-        }
     </style>
 </head>
 <body>
@@ -1163,98 +1101,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 </div>
                             </div>
                             <div class="card-body p-4">
-                                <div class="row g-4">
-                                    <!-- Election Status -->
-                                    <div class="col-md-6">
-                                        <div class="status-card p-3 rounded-3 h-100">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <div class="status-icon me-3">
-                                                    <?php if ($currentElection && $hasVoted): ?>
-                                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                                    <?php elseif ($currentElection): ?>
-                                                        <i class="bi bi-calendar-check text-primary"></i>
-                                                    <?php else: ?>
-                                                        <i class="bi bi-x-circle text-secondary"></i>
-                                                    <?php endif; ?>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold">Election Status</h6>
-                                                    <?php if ($currentElection): ?>
-                                                        <?php if ($hasVoted): ?>
-                                                            <span class="badge bg-success">
-                                                                <i class="bi bi-check2-circle me-1"></i> You have voted
-                                                            </span>
-                                                        <?php else: ?>
-                                                            <span class="badge bg-primary pulse-badge">
-                                                                <i class="bi bi-arrow-clockwise me-1"></i> Voting is open
-                                                            </span>
-                                                            
-                                                        <?php endif; ?>
-                                                    <?php else: ?>
-                                                        <span class="badge bg-secondary">
-                                                            <i class="bi bi-x-circle-fill me-1"></i> No active election
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Vote Count -->
-                                    <?php if ($currentElection): ?>
-                                    <div class="col-md-6">
-                                        <div class="status-card p-3 rounded-3 h-100">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <div class="status-icon me-3">
-                                                    <i class="bi bi-graph-up-arrow text-primary"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-1 fw-bold">Current Ballot Count</h6>
-                                                    <?php
-                                                    // Get total votes for this election
-                                                    $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
-                                                    $voteCountStmt = $conn->prepare($voteCountQuery);
-                                                    $voteCountStmt->bind_param("i", $currentElection['electionID']);
-                                                    $voteCountStmt->execute();
-                                                    $voteCountResult = $voteCountStmt->get_result();
-                                                    $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
-                                                    $voteCountStmt->close();
-                                                    
-                                                    // Get total eligible voters
-                                                    $eligibleVotersQuery = "SELECT COUNT(*) as totalVoters FROM students WHERE status = 'Active'";
-                                                    $eligibleVotersResult = $conn->query($eligibleVotersQuery);
-                                                    $eligibleVoters = $eligibleVotersResult->fetch_assoc()['totalVoters'];
-                                                    
-                                                    // Calculate turnout percentage
-                                                    $turnoutPercentage = $eligibleVoters > 0 ? round(($voteCount / $eligibleVoters) * 100, 1) : 0;
-                                                    ?>
-                                                    <div class="d-flex align-items-center gap-3">
-                                                        <div class="vote-stats">
-                                                            <i class="bi bi-people-fill text-primary me-1"></i>
-                                                            <span class="vote-count"><?= number_format($voteCount) ?></span>
-                                                        </div>
-                                                        <div class="vote-stats">
-                                                            <i class="bi bi-percent text-success me-1"></i>
-                                                            <span class="vote-percentage"><?= $turnoutPercentage ?>% turnout</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <?php if ($eligibleVoters > 0): ?>
-                                            <div class="progress mt-2">
-                                                <div class="progress-bar" style="width: <?= $turnoutPercentage ?>%"></div>
-                                            </div>
-                                            <div class="d-flex justify-content-between mt-1">
-                                                <small class="text-muted">0</small>
-                                                <small class="text-muted"><?= $eligibleVoters ?> eligible</small>
-                                            </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                    <?php endif; ?>
-                                </div>
-
                                 <?php if ($currentElection): ?>
+                                    <?php
+                                    // Get total votes for this election
+                                    $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
+                                    $voteCountStmt = $conn->prepare($voteCountQuery);
+                                    $voteCountStmt->bind_param("i", $currentElection['electionID']);
+                                    $voteCountStmt->execute();
+                                    $voteCountResult = $voteCountStmt->get_result();
+                                    $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
+                                    $voteCountStmt->close();
+                                    ?>
                                     <div class="mt-4">
                                         <div class="results-section-header">
                                             <div class="results-icon">
@@ -1266,18 +1123,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                             <?php
                                             // Get top candidates by vote count
                                             $topCandidatesQuery = "
-                                                SELECT c.candidateID, s.name, s.profilePicture, p.title as position, COUNT(v.voteID) as voteCount
+                                                SELECT c.candidateID, c.photo, s.name, s.profilePicture, p.title as position, COUNT(v.voteID) as voteCount
                                                 FROM candidates c
                                                 JOIN students s ON c.studentID = s.studentID
                                                 JOIN positions p ON c.positionID = p.positionID
                                                 LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
                                                 WHERE c.status = 'Approved'
+                                                AND p.electionID = ?
                                                 GROUP BY c.candidateID
                                                 ORDER BY voteCount DESC
                                                 LIMIT 3
                                             ";
                                             $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
-                                            $topCandidatesStmt->bind_param("i", $currentElection['electionID']);
+                                            $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
                                             $topCandidatesStmt->execute();
                                             $topCandidatesResult = $topCandidatesStmt->get_result();
                                             
@@ -1290,44 +1148,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                     $colorIndex = $rank - 1;
                                             ?>
                                                 <div class="col-md-4">
-                                                    <div class="candidate-result-card h-100">
-                                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                                            <div class="rank-badge">
-                                                                <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
-                                                            </div>
-                                                            <span class="badge bg-light text-primary"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
-                                                        </div>
-                                                        <div class="d-flex align-items-center mb-3">
-                                                            <?php 
-                                                            $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                            if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): 
-                                                            ?>
-                                                                <img src="<?= $candidatePicPath ?>" class="candidate-avatar me-3" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                            <?php else: ?>
-                                                                <div class="candidate-avatar-placeholder me-3">
-                                                                    <i class="bi bi-person-fill"></i>
+                                                    <div class="candidate-result-card">
+                                                        <div class="candidate-info">
+                                                            <div class="candidate-header">
+                                                                <div class="rank-badge">
+                                                                    <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
                                                                 </div>
-                                                            <?php endif; ?>
-                                                            <div>
-                                                                <h6 class="candidate-name mb-1 fw-bold"><?= htmlspecialchars($candidate['name']) ?></h6>
-                                                                <div class="d-flex align-items-center gap-2">
-                                                                    <div class="vote-stats small">
-                                                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                                                        <?= number_format($candidate['voteCount']) ?>
+                                                                <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                                            </div>
+                                                            <div class="candidate-main">
+                                                                <?php 
+                                                                // First check for candidate photo in uploads/candidates directory
+                                                                $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                                                $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                                
+                                                                if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
+                                                                    <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                                <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
+                                                                    <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                                <?php else: ?>
+                                                                    <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
+                                                                        <i class="bi bi-person fs-2"></i>
                                                                     </div>
-                                                                    <div class="vote-stats small">
-                                                                        <i class="bi bi-bar-chart-fill text-primary me-1"></i>
-                                                                        <?= $votePercentage ?>%
+                                                                <?php endif; ?>
+                                                                <div class="candidate-details">
+                                                                    <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
+                                                                    <div class="d-flex flex-column gap-2">
+                                                                        <div class="vote-stats">
+                                                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                                                            <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
+                                                                        </div>
+                                                                        <div class="vote-stats">
+                                                                            <i class="bi bi-bar-chart-fill text-primary"></i>
+                                                                            <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" 
-                                                                 style="width: <?= $votePercentage ?>%;" 
-                                                                 aria-valuenow="<?= $votePercentage ?>" 
-                                                                 aria-valuemin="0" 
-                                                                 aria-valuemax="100"></div>
+                                                            <div class="progress">
+                                                                <div class="progress-bar" role="progressbar" 
+                                                                     style="width: <?= $votePercentage ?>%;" 
+                                                                     aria-valuenow="<?= $votePercentage ?>" 
+                                                                     aria-valuemin="0" 
+                                                                     aria-valuemax="100"></div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1347,20 +1211,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                             $topCandidatesStmt->close();
                                             ?>
                                         </div>
-                                        <?php if ($topCandidatesResult->num_rows > 0): ?>
-                                        <div class="text-center mt-4">
-                                            <a href="results.php" class="btn live-results-btn">
-                                                <i class="bi bi-graph-up me-2"></i> View Complete Results
-                                            </a>
-                                        </div>
-                                        <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
                             </div>
                         </div>
                         
                         <!-- Voting Form -->
-                       <!-- Voting Form -->
 <?php if ($currentElection && !$hasVoted): ?>
     <form id="votingForm" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
         <?php foreach ($positions as $index => $position): ?>
@@ -1405,9 +1261,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                     <div class="bg-light p-3 text-center position-relative">
                                         <div class="avatar-container mx-auto mb-3 position-relative">
                                             <?php 
-                                            $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                            if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): ?>
-                                                <img src="<?= $candidatePicPath ?>" 
+                                            // First check for candidate photo in uploads/candidates directory
+                                            $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                            $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                            
+                                            if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
+                                                <img src="<?= $candidateCustPhotoPath ?>" 
+                                                     class="avatar" 
+                                                     alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                            <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
+                                                <img src="<?= $candidateStdPhotoPath ?>" 
                                                      class="avatar" 
                                                      alt="<?= htmlspecialchars($candidate['name']) ?>">
                                             <?php else: ?>

@@ -79,7 +79,7 @@ try {
                 JOIN students s ON c.studentID = s.studentID
                 LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
                 WHERE c.positionID = ? AND c.status = 'Approved'
-                GROUP BY c.candidateID
+                GROUP BY c.candidateID, c.studentID, c.positionID, s.name, s.department, s.profilePicture
                 ORDER BY voteCount DESC, s.name ASC
             ");
             $stmt->bind_param('ii', $electionID, $position['positionID']);
@@ -678,9 +678,16 @@ try {
                                                         <?php endif; ?>
                                                         
                                                         <?php 
-                                                        $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                        if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): ?>
-                                                            <img src="<?= $candidatePicPath ?>" 
+                                                        // Check for candidate photo first, then fall back to profile picture
+                                                        $candidatePhoto = !empty($candidate['photo']) ? 'uploads/candidates/' . $candidate['photo'] : '';
+                                                        $profilePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                        
+                                                        if (!empty($candidate['photo']) && file_exists($candidatePhoto)): ?>
+                                                            <img src="<?= $candidatePhoto ?>?t=<?= time() ?>" 
+                                                                 class="avatar" 
+                                                                 alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                        <?php elseif (!empty($candidate['profilePicture']) && file_exists($profilePicPath)): ?>
+                                                            <img src="<?= $profilePicPath ?>?t=<?= time() ?>" 
                                                                  class="avatar" 
                                                                  alt="<?= htmlspecialchars($candidate['name']) ?>">
                                                         <?php else: ?>
@@ -783,7 +790,9 @@ try {
         
         function refreshResults() {
             // Reload the page to get fresh data
-            window.location.reload();
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('cache', Date.now());
+            window.location.href = currentUrl.toString();
         }
         
         // Clean up interval when page is closed

@@ -140,8 +140,8 @@ if ($electionID) {
     $candidatesQuery .= " WHERE p.electionID = $electionID";
 }
 
-// Add sorting
-$candidatesQuery .= " ORDER BY s.name ASC";
+// Add sorting and grouping
+$candidatesQuery .= " GROUP BY c.candidateID ORDER BY s.name ASC";
 
 // Get candidates
 $candidates = $conn->query($candidatesQuery);

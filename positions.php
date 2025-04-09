@@ -35,10 +35,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($_POST['delete_position'])) {
         $positionID = $_POST['positionID'];
         
-        $stmt = $conn->prepare("DELETE FROM positions WHERE positionID = ?");
-        $stmt->bind_param("i", $positionID);
-        $stmt->execute();
-        $success = "Position deleted successfully!";
+        // First check if there are any candidates associated with this position
+        $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM candidates WHERE positionID = ?");
+        $check_stmt->bind_param("i", $positionID);
+        $check_stmt->execute();
+        $result = $check_stmt->get_result();
+        $row = $result->fetch_assoc();
+        
+        if ($row['count'] > 0) {
+            $error = "Cannot delete position: There are candidates associated with this position. Please delete the candidates first.";
+        } else {
+            $stmt = $conn->prepare("DELETE FROM positions WHERE positionID = ?");
+            $stmt->bind_param("i", $positionID);
+            if ($stmt->execute()) {
+                $success = "Position deleted successfully!";
+            } else {
+                $error = "Error deleting position: " . $conn->error;
+            }
+        }
     }
 }
 
@@ -416,6 +430,14 @@ $positions = $conn->query("
                 <div class="alert alert-success alert-dismissible fade show">
                     <i class="bi bi-check-circle-fill me-1"></i>
                     <?php echo $success; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (isset($error)): ?>
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <?php echo $error; ?>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 <?php endif; ?>
