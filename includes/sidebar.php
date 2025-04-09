@@ -546,7 +546,7 @@ if (!empty($profile_pic)) {
       </li>
 
       <!-- Admin Preferences -->
-      <li class="nav-item <?= in_array($current_script, ['profile.php','security.php']) ? 'active' : '' ?>">
+      <li class="nav-item <?= in_array($current_script, ['profile.php','security.php','preferences.php','activity.php','appearance.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
           <div class="nav-link settings-toggle" data-tooltip="Administrator Settings">
             <i class="bi bi-person-gear"></i>
@@ -556,14 +556,32 @@ if (!empty($profile_pic)) {
           <ul class="submenu settings-dropdown">
             <li class="submenu-item <?= ($current_script === 'profile.php') ? 'active' : '' ?>">
               <a href="profile.php">
-                <i class="bi bi-person"></i>
+                <i class="bi bi-person-circle"></i>
                 <span>Admin Profile</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'security.php') ? 'active' : '' ?>">
               <a href="security.php">
-                <i class="bi bi-shield-lock"></i>
+                <i class="bi bi-shield-lock-fill"></i>
                 <span>Account Security</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'appearance.php') ? 'active' : '' ?>">
+              <a href="appearance.php">
+                <i class="bi bi-palette-fill"></i>
+                <span>UI Appearance</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'preferences.php') ? 'active' : '' ?>">
+              <a href="preferences.php">
+                <i class="bi bi-sliders"></i>
+                <span>System Settings</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'activity.php') ? 'active' : '' ?>">
+              <a href="activity.php">
+                <i class="bi bi-activity"></i>
+                <span>Activity Log</span>
               </a>
             </li>
           </ul>
