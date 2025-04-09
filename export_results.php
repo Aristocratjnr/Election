@@ -21,8 +21,8 @@ $electionStmt->bind_param("i", $electionID);
 $electionStmt->execute();
 $electionDetails = $electionStmt->get_result()->fetch_assoc();
 
-// Get positions and results
-$positions = $conn->query("SELECT * FROM positions WHERE electionID = $electionID ORDER BY positionID ASC");
+// Get positions for this election
+$positions = $conn->query("SELECT * FROM positions WHERE electionID = $electionID ORDER BY display_order, positionID ASC");
 $resultsData = [];
 
 while ($position = $positions->fetch_assoc()) {

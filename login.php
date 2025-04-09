@@ -236,6 +236,15 @@
           'Login failed'
         );
       }
+      
+      // Check for password changed notification
+      const passwordChanged = urlParams.get('password_changed');
+      if (passwordChanged) {
+        authAlert.textContent = 'Your password has been changed successfully. Please login with your new password.';
+        authAlert.classList.remove('d-none');
+        authAlert.classList.remove('alert-danger');
+        authAlert.classList.add('alert-success');
+      }
     });
     </script>
 

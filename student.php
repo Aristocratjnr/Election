@@ -65,29 +65,24 @@ try {
 $positions = [];
 if ($currentElection && !$hasVoted) {
     try {
-        // Get positions for current election
+        // Get positions for current election - IMPROVED QUERY
         $stmt = $conn->prepare("
-            SELECT p.* 
-            FROM positions p
-            WHERE p.electionID = ?
-            AND EXISTS (
-                SELECT 1 
-                FROM candidates c 
-                WHERE c.positionID = p.positionID 
-                AND c.status = 'Approved'
-            )
-            ORDER BY p.positionID ASC
+            SELECT positionID, title, description, maxVotes
+            FROM positions 
+            WHERE electionID = ?
+            ORDER BY display_order, positionID ASC
         ");
         $stmt->bind_param('i', $currentElection['electionID']);
         $stmt->execute();
         $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Get candidates for each position
+        // Get candidates for each position - IMPROVED QUERY
         foreach ($positions as &$position) {
+            // Use a clearer query that avoids potential issues with status
             $stmt = $conn->prepare("
-                SELECT c.candidateID, c.studentID, c.positionID, c.manifesto, c.photo, c.status,
-                       s.name, s.department, s.profilePicture 
+                SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
+                       s.name, s.department, s.profilePicture
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
                 WHERE c.positionID = ? 
@@ -98,6 +93,9 @@ if ($currentElection && !$hasVoted) {
             $stmt->execute();
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
+            
+            // For debugging
+            error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($position['candidates']));
         }
     } catch (Exception $e) {
         error_log("Positions fetch error: " . $e->getMessage());
@@ -175,6 +173,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             $stmt->bind_param('isi', $studentID, $notification, $currentElection['electionID']);
             $stmt->execute();
             $stmt->close();
+
+            // Update results table with new vote counts
+            require_once 'calculate_vote_results.php';
+            updateVoteResults($conn, $currentElection['electionID']);
+            
+            // Add session variable to show vote successful message
+            $_SESSION['vote_success'] = true;
+            
+            // Redirect to live results page after successful vote
+            header("Location: live_results.php?election=" . $currentElection['electionID'] . "&vote_success=1");
+            exit();
 
         } catch (Exception $e) {
             // Rollback transaction on error
@@ -1121,9 +1130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         </div>
                                         <div class="row g-3">
                                             <?php
-                                            // Get top candidates by vote count
+                                            // Get top candidates by vote count - SIMPLIFIED QUERY
                                             $topCandidatesQuery = "
-                                                SELECT c.candidateID, c.photo, s.name, s.profilePicture, p.title as position, COUNT(v.voteID) as voteCount
+                                                SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
+                                                       p.title as position, COUNT(v.voteID) as voteCount
                                                 FROM candidates c
                                                 JOIN students s ON c.studentID = s.studentID
                                                 JOIN positions p ON c.positionID = p.positionID

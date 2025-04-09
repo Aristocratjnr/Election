@@ -131,6 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
                         if ($stmt->execute()) {
                             $successMessage = "Password changed successfully!";
+                            // Log the user out after password change
+                            session_destroy();
+                            header("Location: login.php?password_changed=1");
+                            exit;
                         } else {
                             $errorMessage = "Failed to update password.";
                         }

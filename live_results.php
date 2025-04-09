@@ -64,22 +64,23 @@ try {
         $error = "Election not found.";
     } else {
         // Get positions for the election
-        $stmt = $conn->prepare("SELECT * FROM positions WHERE electionID = ?");
+        $stmt = $conn->prepare("SELECT DISTINCT * FROM positions WHERE electionID = ? ORDER BY display_order, positionID ASC");
         $stmt->bind_param('i', $electionID);
         $stmt->execute();
         $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Get candidates and vote counts for each position
+        // Get candidates and vote counts for each position - SIMPLIFIED QUERY
         foreach ($positions as &$position) {
             $stmt = $conn->prepare("
-                SELECT c.*, s.name, s.department, s.profilePicture, 
+                SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
+                       s.name, s.department, s.profilePicture, 
                        COUNT(v.voteID) as voteCount
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
                 LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
                 WHERE c.positionID = ? AND c.status = 'Approved'
-                GROUP BY c.candidateID, c.studentID, c.positionID, s.name, s.department, s.profilePicture
+                GROUP BY c.candidateID
                 ORDER BY voteCount DESC, s.name ASC
             ");
             $stmt->bind_param('ii', $electionID, $position['positionID']);
@@ -579,6 +580,40 @@ try {
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <?php elseif ($currentElection): ?>
+                            
+                            <!-- Show vote success message -->
+                            <?php if (isset($_GET['vote_success']) || isset($_SESSION['vote_success'])): ?>
+                            <div class="alert alert-success alert-dismissible fade show">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                                    <div>
+                                        <strong>Success!</strong> Your vote has been successfully recorded. Thank you for participating in the election!
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="removeVoteSuccess()"></button>
+                            </div>
+                            <script>
+                            function removeVoteSuccess() {
+                                // Remove vote_success parameter from URL
+                                if (window.history && window.history.replaceState) {
+                                    var url = window.location.href;
+                                    url = url.replace(/[&?]vote_success=1/, '');
+                                    window.history.replaceState({}, document.title, url);
+                                }
+                                <?php unset($_SESSION['vote_success']); ?>
+                            }
+                            // Auto-hide after 10 seconds
+                            setTimeout(function() {
+                                const alertElement = document.querySelector('.alert-success');
+                                if (alertElement) {
+                                    const bsAlert = new bootstrap.Alert(alertElement);
+                                    bsAlert.close();
+                                    removeVoteSuccess();
+                                }
+                            }, 10000);
+                            </script>
+                            <?php endif; ?>
+                            
                             <!-- Election Info -->
                             <div class="election-timer mb-4">
                                 <div class="row align-items-center">
@@ -832,6 +867,91 @@ try {
             </style>
         `);
     });
+    </script>
+
+    <!-- Include auto-refresh functionality -->
+    <script>
+        // Auto-refresh functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current election ID from URL or data attribute
+            const urlParams = new URLSearchParams(window.location.search);
+            const electionID = urlParams.get('election') || <?= $electionID ?>;
+            
+            // Set refresh interval (30 seconds)
+            const refreshInterval = 30000;
+            
+            // Function to refresh the page
+            function refreshResults() {
+                // If we're not actively interacting with the page, reload it
+                if (!document.activeElement || !['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement.tagName)) {
+                    window.location.reload();
+                } else {
+                    // If user is interacting with form elements, wait until they're done
+                    console.log('User is interacting with the page. Delaying refresh.');
+                    setTimeout(refreshResults, refreshInterval);
+                }
+            }
+            
+            // Set up the auto-refresh timer
+            let refreshTimer = setTimeout(refreshResults, refreshInterval);
+            
+            // Reset the timer when user interacts with the page
+            document.addEventListener('click', function() {
+                clearTimeout(refreshTimer);
+                refreshTimer = setTimeout(refreshResults, refreshInterval);
+            });
+            
+            // Show refresh indicator
+            const refreshIndicator = document.createElement('div');
+            refreshIndicator.className = 'refresh-indicator';
+            refreshIndicator.innerHTML = '<i class="bi bi-arrow-repeat"></i> <span id="refresh-countdown">30</span>';
+            refreshIndicator.style.position = 'fixed';
+            refreshIndicator.style.bottom = '20px';
+            refreshIndicator.style.right = '20px';
+            refreshIndicator.style.backgroundColor = 'rgba(67, 97, 238, 0.9)';
+            refreshIndicator.style.color = 'white';
+            refreshIndicator.style.padding = '8px 15px';
+            refreshIndicator.style.borderRadius = '20px';
+            refreshIndicator.style.fontSize = '12px';
+            refreshIndicator.style.fontWeight = 'bold';
+            refreshIndicator.style.zIndex = '9999';
+            refreshIndicator.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            document.body.appendChild(refreshIndicator);
+            
+            // Update countdown
+            const countdownElement = document.getElementById('refresh-countdown');
+            let secondsLeft = 30;
+            
+            setInterval(function() {
+                secondsLeft -= 1;
+                if (secondsLeft <= 0) {
+                    secondsLeft = 30;
+                }
+                countdownElement.textContent = secondsLeft;
+            }, 1000);
+            
+            // Add manual refresh button
+            refreshIndicator.addEventListener('click', function() {
+                window.location.reload();
+            });
+            refreshIndicator.style.cursor = 'pointer';
+            refreshIndicator.title = 'Click to refresh now';
+            
+            // Add AJAX-based results update (optional, only for browsers that support fetch)
+            if (window.fetch) {
+                // Add capability to update results without full page refresh
+                setInterval(function() {
+                    fetch('calculate_vote_results.php?ajax=1&election=' + electionID)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                console.log('Results updated via AJAX');
+                            }
+                        })
+                        .catch(error => console.error('Error updating results:', error));
+                }, refreshInterval * 2); // Run AJAX update less frequently than page refresh
+            }
+        });
     </script>
 </body>
 </html> 

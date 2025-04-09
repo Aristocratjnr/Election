@@ -123,11 +123,15 @@ if ($electionID) {
     $electionDetails = $electionStmt->get_result()->fetch_assoc();
 
     // Get all positions for this election
-    $positions = $conn->query("
-        SELECT * FROM positions 
-        WHERE electionID = $electionID
-        ORDER BY positionID ASC
+    $stmt = $conn->prepare("
+        SELECT * 
+        FROM positions 
+        WHERE electionID = ? 
+        ORDER BY display_order, positionID ASC
     ");
+    $stmt->bind_param("i", $electionID);
+    $stmt->execute();
+    $positions = $stmt->get_result();
 
     // Get results grouped by position
     if ($positions->num_rows > 0) {
@@ -659,6 +663,45 @@ if ($electionID) {
                                     <i class="bi bi-broadcast-pin me-2 text-primary"></i> Publish Results
                                 </a></li>
                             </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Election Selection & Controls -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">View Election Results</h5>
+                                
+                                <!-- Add refresh results button -->
+                                <?php if ($electionID): ?>
+                                <button id="refreshResultsBtn" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh Results
+                                </button>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <form method="get" class="d-flex flex-wrap gap-2">
+                                <div class="flex-grow-1 min-width-200">
+                                    <select name="election" class="form-select" onchange="this.form.submit()">
+                                        <option value="">Select an Election</option>
+                                        <?php while ($election = $elections->fetch_assoc()): ?>
+                                            <option value="<?php echo $election['electionID']; ?>" <?php echo ($electionID == $election['electionID']) ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($election['name']); ?> 
+                                                (<?php echo $election['status']; ?>)
+                                            </option>
+                                        <?php endwhile; ?>
+                                    </select>
+                                </div>
+                                
+                                <?php if ($electionID): ?>
+                                <a href="export_results.php?election=<?php echo $electionID; ?>&type=excel" class="btn btn-outline-success">
+                                    <i class="bi bi-file-earmark-excel"></i> Export to Excel
+                                </a>
+                                <a href="export_results.php?election=<?php echo $electionID; ?>&type=pdf" class="btn btn-outline-danger">
+                                    <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+                                </a>
+                                <?php endif; ?>
+                            </form>
                         </div>
                     </div>
                     
@@ -1572,6 +1615,57 @@ if ($electionID) {
         document.head.appendChild(style);
     });
     </script>
-  
+    
+    <!-- Add refresh results JavaScript -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const refreshBtn = document.getElementById('refreshResultsBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Updating...';
+                
+                // Call our calculate_vote_results.php script
+                fetch('calculate_vote_results.php?run=1&election=<?php echo $electionID; ?>')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message
+                            alert('Results updated successfully! ' + data.records_updated + ' records updated.');
+                            // Reload the page to show updated results
+                            window.location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                            refreshBtn.disabled = false;
+                            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Results';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating results.');
+                        refreshBtn.disabled = false;
+                        refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Results';
+                    });
+            });
+        }
+    });
+    
+    // Add spin animation
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .spin {
+                animation: spin 1s linear infinite;
+                display: inline-block;
+            }
+            .min-width-200 {
+                min-width: 200px;
+            }
+        </style>
+    `);
+    </script>
 </body>
 </html>

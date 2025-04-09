@@ -10,6 +10,24 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 
 require 'configs/dbconnection.php';
 
+// Check if display_order column exists, add if not
+try {
+    $checkColumnQuery = "SHOW COLUMNS FROM positions LIKE 'display_order'";
+    $columnExists = $conn->query($checkColumnQuery)->num_rows > 0;
+    
+    if (!$columnExists) {
+        // Add display_order column
+        $addColumnQuery = "ALTER TABLE positions ADD COLUMN display_order INT DEFAULT 0";
+        $conn->query($addColumnQuery);
+        
+        // Update display_order to match positionID initially
+        $updateOrderQuery = "UPDATE positions SET display_order = positionID";
+        $conn->query($updateOrderQuery);
+    }
+} catch (Exception $e) {
+    // Silently handle error - we'll continue anyway
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_position'])) {
@@ -17,9 +35,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = $_POST['title'];
         $description = $_POST['description'];
         $maxVotes = $_POST['maxVotes'] ?? 1;
+        $display_order = $_POST['display_order'] ?? 0;
         
-        $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("issi", $electionID, $title, $description, $maxVotes);
+        // If display_order is not set or is 0, set it to the max+1 for this election
+        if ($display_order == 0) {
+            $maxOrderQuery = $conn->prepare("SELECT COALESCE(MAX(display_order), 0) + 1 as next_order FROM positions WHERE electionID = ?");
+            $maxOrderQuery->bind_param("i", $electionID);
+            $maxOrderQuery->execute();
+            $display_order = $maxOrderQuery->get_result()->fetch_assoc()['next_order'];
+        }
+        
+        // Check if positions table has a status column
+        $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
+        if ($checkStatusCol->num_rows > 0) {
+            // Include status field in the query
+            $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order, status) VALUES (?, ?, ?, ?, ?, 'Approved')");
+            $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+        } else {
+            // Original query without status
+            $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+        }
+        
         $stmt->execute();
         $success = "Position added successfully!";
     } elseif (isset($_POST['update_position'])) {
@@ -27,10 +64,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = $_POST['title'];
         $description = $_POST['description'];
         $maxVotes = $_POST['maxVotes'];
+        $display_order = $_POST['display_order'] ?? 0;
         
-        $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ? WHERE positionID = ?");
-        $stmt->bind_param("ssii", $title, $description, $maxVotes, $positionID);
+        // Check if positions table has a status column
+        $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
+        if ($checkStatusCol->num_rows > 0) {
+            // Include status field in the query
+            $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ?, status = 'Approved' WHERE positionID = ?");
+            $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+        } else {
+            // Original query without status
+            $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ? WHERE positionID = ?");
+            $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+        }
+        
         $stmt->execute();
+        
+        // Clear any caches that might affect position display
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+        
         $success = "Position updated successfully!";
     } elseif (isset($_POST['delete_position'])) {
         $positionID = $_POST['positionID'];
@@ -53,6 +107,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Error deleting position: " . $conn->error;
             }
         }
+    } elseif (isset($_POST['move_position'])) {
+        $positionID = $_POST['positionID'];
+        $direction = $_POST['direction'];
+        $electionID = $_POST['electionID'];
+        
+        // Get current display_order
+        $stmt = $conn->prepare("SELECT display_order FROM positions WHERE positionID = ?");
+        $stmt->bind_param("i", $positionID);
+        $stmt->execute();
+        $current = $stmt->get_result()->fetch_assoc();
+        $current_order = $current['display_order'];
+        
+        if ($direction === 'up') {
+            // Get the position above this one
+            $stmt = $conn->prepare("
+                SELECT positionID, display_order 
+                FROM positions 
+                WHERE electionID = ? AND display_order < ? 
+                ORDER BY display_order DESC 
+                LIMIT 1
+            ");
+            $stmt->bind_param("ii", $electionID, $current_order);
+        } else { // down
+            // Get the position below this one
+            $stmt = $conn->prepare("
+                SELECT positionID, display_order 
+                FROM positions 
+                WHERE electionID = ? AND display_order > ? 
+                ORDER BY display_order ASC 
+                LIMIT 1
+            ");
+            $stmt->bind_param("ii", $electionID, $current_order);
+        }
+        
+        $stmt->execute();
+        $swap = $stmt->get_result()->fetch_assoc();
+        
+        if ($swap) {
+            // Swap the display orders
+            $stmt = $conn->prepare("UPDATE positions SET display_order = ? WHERE positionID = ?");
+            $stmt->bind_param("ii", $swap['display_order'], $positionID);
+            $stmt->execute();
+            
+            $stmt = $conn->prepare("UPDATE positions SET display_order = ? WHERE positionID = ?");
+            $stmt->bind_param("ii", $current_order, $swap['positionID']);
+            $stmt->execute();
+            
+            $success = "Position order updated successfully!";
+        }
     }
 }
 
@@ -64,7 +167,7 @@ $positions = $conn->query("
     SELECT p.*, e.name as electionName 
     FROM positions p
     JOIN elections e ON p.electionID = e.electionID
-    ORDER BY p.positionID DESC
+    ORDER BY e.electionID, p.display_order, p.positionID
 ");
 ?>
 
@@ -421,9 +524,14 @@ $positions = $conn->query("
                         <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-list-check me-2"></i>Manage Positions</h1>
                         <p class="mb-0 text-muted"><i class="bi bi-info-circle me-1"></i>Create and manage election positions</p>
                     </div>
-                    <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addPositionModal">
-                        <i class="bi bi-plus-circle me-1"></i> Add Position
-                    </button>
+                    <div>
+                        <a href="position_order.php" class="btn btn-outline-primary shadow-sm me-2">
+                            <i class="bi bi-arrows-move me-1"></i> Manage Order
+                        </a>
+                        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add Position
+                        </button>
+                    </div>
                 </div>
                 
                 <?php if (isset($success)): ?>
@@ -513,6 +621,7 @@ $positions = $conn->query("
                                         <th><i class="bi bi-card-heading me-1"></i>Position Title</th>
                                         <th><i class="bi bi-calendar-event me-1"></i>Election</th>
                                         <th><i class="bi bi-check-square me-1"></i>Max Votes</th>
+                                        <th><i class="bi bi-arrow-down-up me-1"></i>Order</th>
                                         <th><i class="bi bi-text-paragraph me-1"></i>Description</th>
                                         <th class="text-center"><i class="bi bi-gear me-1"></i>Actions</th>
                                     </tr>
@@ -530,18 +639,40 @@ $positions = $conn->query("
                                         <td>
                                             <span class="badge bg-primary"><i class="bi bi-123 me-1"></i><?php echo $position['maxVotes']; ?></span>
                                         </td>
+                                        <td>
+                                            <span class="badge bg-secondary"><i class="bi bi-arrow-down-up me-1"></i><?php echo $position['display_order']; ?></span>
+                                        </td>
                                         <td class="description-cell" title="<?php echo htmlspecialchars($position['description']); ?>">
                                             <i class="bi bi-info-circle me-1"></i><?php echo htmlspecialchars($position['description']); ?>
                                         </td>
                                         <td>
                                             <div class="action-buttons justify-content-center">
+                                                <div class="btn-group btn-group-sm me-1">
+                                                    <form method="POST" style="display:inline;">
+                                                        <input type="hidden" name="positionID" value="<?php echo $position['positionID']; ?>">
+                                                        <input type="hidden" name="electionID" value="<?php echo $position['electionID']; ?>">
+                                                        <input type="hidden" name="direction" value="up">
+                                                        <button type="submit" name="move_position" class="btn btn-sm btn-outline-secondary" title="Move Up">
+                                                            <i class="bi bi-arrow-up"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" style="display:inline;">
+                                                        <input type="hidden" name="positionID" value="<?php echo $position['positionID']; ?>">
+                                                        <input type="hidden" name="electionID" value="<?php echo $position['electionID']; ?>">
+                                                        <input type="hidden" name="direction" value="down">
+                                                        <button type="submit" name="move_position" class="btn btn-sm btn-outline-secondary" title="Move Down">
+                                                            <i class="bi bi-arrow-down"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                                 <button class="btn btn-sm btn-outline-primary edit-btn" 
                                                         data-bs-toggle="modal" 
                                                         data-bs-target="#editPositionModal"
                                                         data-id="<?php echo $position['positionID']; ?>"
                                                         data-title="<?php echo htmlspecialchars($position['title']); ?>"
                                                         data-description="<?php echo htmlspecialchars($position['description']); ?>"
-                                                        data-maxvotes="<?php echo $position['maxVotes']; ?>">
+                                                        data-maxvotes="<?php echo $position['maxVotes']; ?>"
+                                                        data-display-order="<?php echo $position['display_order']; ?>">
                                                     <i class="bi bi-pencil-square"></i> Edit
                                                 </button>
                                                 <form method="POST" style="display:inline;">
@@ -621,6 +752,22 @@ $positions = $conn->query("
                             </div>
                             <div class="form-text"><i class="bi bi-info-circle me-1"></i>Maximum number of candidates that can be voted for this position.</div>
                         </div>
+                        <div class="mb-3">
+                            <label for="display_order" class="form-label"><i class="bi bi-sort-numeric-down me-1"></i>Display Order</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-arrow-down-up"></i></span>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="display_order" 
+                                       name="display_order" 
+                                       value="<?= isset($position) ? $position['display_order'] : '0' ?>" 
+                                       min="0" 
+                                       max="999"
+                                       placeholder="Enter display order (0 = default)"
+                                       required>
+                            </div>
+                            <div class="form-text"><i class="bi bi-info-circle me-1"></i>The order in which this position will be displayed (lower numbers first).</div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -669,6 +816,14 @@ $positions = $conn->query("
                                 <input type="number" class="form-control" id="edit_maxVotes" name="maxVotes" min="1" required>
                             </div>
                             <small class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>Number of candidates a voter can select for this position</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_display_order" class="form-label"><i class="bi bi-sort-numeric-down me-1"></i>Display Order</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-arrow-down-up"></i></span>
+                                <input type="number" class="form-control" id="edit_display_order" name="display_order" min="0" required>
+                            </div>
+                            <small class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>The order in which this position will be displayed</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -721,6 +876,7 @@ $positions = $conn->query("
                 $('#edit_title').val($(this).data('title'));
                 $('#edit_description').val($(this).data('description'));
                 $('#edit_maxVotes').val($(this).data('maxvotes'));
+                $('#edit_display_order').val($(this).data('display-order'));
             });
             
             // Auto-hide alerts after 5 seconds
