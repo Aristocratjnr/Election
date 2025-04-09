@@ -245,7 +245,7 @@ if (isset($admin_data['profile_pic']) && !empty($admin_data['profile_pic'])) {
 // Page title
 $page_title = "My Profile";
 include 'includes/header.php';
-?>
+?><br>
 
 <!DOCTYPE html>
 <html lang="en">
