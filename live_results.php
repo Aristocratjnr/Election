@@ -23,15 +23,42 @@ $positions = [];
 $error = null;
 
 try {
-    // Fetch election details
-    $stmt = $conn->prepare("
-        SELECT * FROM elections 
-        WHERE electionID = ?
-    ");
-    $stmt->bind_param('i', $electionID);
-    $stmt->execute();
-    $currentElection = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    // If no election ID is provided, find the latest ongoing or completed election
+    if ($electionID === 0) {
+        $stmt = $conn->prepare("
+            SELECT * FROM elections 
+            WHERE status IN ('Ongoing', 'Completed')
+            ORDER BY CASE 
+                WHEN status = 'Ongoing' THEN 1 
+                WHEN status = 'Completed' THEN 2 
+                ELSE 3 
+            END, startDate DESC 
+            LIMIT 1
+        ");
+        $stmt->execute();
+        $currentElection = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        if ($currentElection) {
+            $electionID = (int)$currentElection['electionID'];
+        }
+    }
+    
+    // If we have an election ID (either from URL or found above), fetch its details
+    if ($electionID > 0) {
+        $stmt = $conn->prepare("
+            SELECT * FROM elections 
+            WHERE electionID = ?
+        ");
+        $stmt->bind_param('i', $electionID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $currentElection = $result->fetch_assoc();
+        }
+        $stmt->close();
+    }
 
     if (!$currentElection) {
         $error = "Election not found.";
@@ -167,12 +194,14 @@ try {
         .candidate-result {
             display: flex;
             align-items: center;
-            padding: 1rem;
-            border-radius: 12px;
+            padding: 1.5rem;
+            border-radius: 16px;
             background-color: white;
             border: 1px solid var(--border);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         
         .candidate-result:hover {
@@ -186,10 +215,12 @@ try {
         }
         
         .avatar-container {
-            width: 60px;
-            height: 60px;
-            margin-right: 1rem;
+            width: 80px;
+            height: 80px;
+            margin-right: 1.5rem;
             position: relative;
+            flex-shrink: 0;
+            z-index: 2;
         }
         
         .avatar {
@@ -197,24 +228,31 @@ try {
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--border);
+            border: 4px solid var(--border);
             transition: all 0.4s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .candidate-result:hover .avatar {
+            border-color: var(--primary-light);
+            transform: scale(1.05);
         }
         
         .department-badge {
             position: absolute;
-            bottom: 0;
-            right: 0;
+            bottom: -5px;
+            right: -5px;
             background: var(--surface);
             border: 1px solid var(--primary-light);
             color: var(--primary);
             border-radius: 20px;
-            padding: 2px 8px;
-            font-size: 10px;
+            padding: 3px 10px;
+            font-size: 11px;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             letter-spacing: 0.5px;
             text-transform: uppercase;
+            z-index: 3;
         }
         
         .candidate-info {
@@ -378,6 +416,104 @@ try {
             }
         }
         
+        .election-timer {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .counter-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .timer-countdown {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+        }
+        
+        .progress-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .progress-wave:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            animation: wave 3s linear infinite;
+        }
+        
+        @keyframes wave {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0%); }
+        }
+        
+        .winner-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+            z-index: 2;
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 99;
+            cursor: pointer;
+        }
+        
+        .back-to-top.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
         @media (max-width: 768px) {
             .stats-card {
                 margin-bottom: 1rem;
@@ -398,6 +534,13 @@ try {
                 margin-right: 0;
                 margin-bottom: 0.5rem;
             }
+            
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+            }
         }
     </style>
 </head>
@@ -412,14 +555,14 @@ try {
                     <div class="card-header bg-white py-4 px-4 border-0">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                             <div class="mb-3 mb-md-0">
-                                <h2 class="mb-1 fw-bold"><i class="bi bi-graph-up-arrow role-icon icon"></i>&nbsp;Live Results</h2>
-                                <p class="text-muted mb-0">Real-time voting results for <?= htmlspecialchars($currentElection['name'] ?? 'the election') ?></p>
+                                <h2 class="mb-1 fw-bold"><i class="bi bi-bar-chart-fill role-icon icon text-primary"></i>&nbsp;Live Results</h2>
+                                <p class="text-muted mb-0"><i class="bi bi-calendar-check me-2"></i>Real-time voting results for <?= htmlspecialchars($currentElection['name'] ?? 'the election') ?></p>
                             </div>
                             <div class="d-flex align-items-center">
                                 <button id="refreshResults" class="refresh-btn">
                                     <i class="bi bi-arrow-clockwise me-2"></i> Refresh
                                 </button>
-                                <span class="live-indicator">LIVE</span>
+                                <span class="live-indicator"><i class="bi bi-broadcast me-1"></i>LIVE</span>
                             </div>
                         </div>
                     </div>
@@ -447,17 +590,19 @@ try {
                                             <h4 class="text-white mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
                                         </div>
                                         <p class="text-white-50 mb-2">
+                                            <i class="bi bi-calendar-range me-2"></i>
                                             <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
                                         </p>
                                         <div class="progress-wave mt-3"></div>
                                     </div>
                                     <div class="col-md-5 text-md-end">
                                         <div class="timer-countdown text-white mb-1" id="countdown-timer">
+                                            <i class="bi bi-hourglass-split me-2"></i>
                                             <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
                                         </div>
                                         <p class="text-white-50 mb-0">
-                                            <i class="bi bi-clock me-1"></i>
-                                            Status: <?= $currentElection['status'] ?>
+                                            <i class="bi bi-activity me-1"></i>
+                                            Status: <span class="fw-bold"><?= $currentElection['status'] ?></span>
                                         </p>
                                     </div>
                                 </div>
@@ -471,7 +616,7 @@ try {
                                             <i class="bi bi-people-fill"></i>
                                         </div>
                                         <div class="stats-value"><?= number_format($totalVoters) ?></div>
-                                        <div class="stats-label">Total Votes Cast</div>
+                                        <div class="stats-label"><i class="bi bi-check-square me-1"></i>Total Votes Cast</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -480,16 +625,16 @@ try {
                                             <i class="bi bi-person-check-fill"></i>
                                         </div>
                                         <div class="stats-value"><?= number_format($voterTurnout) ?>%</div>
-                                        <div class="stats-label">Voter Turnout</div>
+                                        <div class="stats-label"><i class="bi bi-percent me-1"></i>Voter Turnout</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="stats-card">
                                         <div class="stats-icon purple">
-                                            <i class="bi bi-trophy-fill"></i>
+                                            <i class="bi bi-award-fill"></i>
                                         </div>
                                         <div class="stats-value"><?= count($positions) ?></div>
-                                        <div class="stats-label">Positions</div>
+                                        <div class="stats-label"><i class="bi bi-bookmark-star me-1"></i>Positions</div>
                                     </div>
                                 </div>
                             </div>
@@ -500,13 +645,15 @@ try {
                                     <div class="position-section">
                                         <div class="position-header">
                                             <div class="d-flex align-items-center mb-2">
-                                                <span class="position-badge text-white me-3">Position</span>
+                                                <span class="position-badge text-white me-3">
+                                                    <i class="bi bi-diagram-3-fill me-1"></i>Position
+                                                </span>
                                                 <h4 class="mb-0 fw-bold"><?= htmlspecialchars($position['title']) ?></h4>
                                             </div>
-                                            <p class="text-muted small mb-0"><?= htmlspecialchars($position['description'] ?? '') ?></p>
+                                            <p class="text-muted small mb-0"><i class="bi bi-info-circle-fill me-1"></i><?= htmlspecialchars($position['description'] ?? '') ?></p>
                                             <p class="text-muted small mt-1">
-                                                <i class="bi bi-info-circle me-1"></i>
-                                                Total votes: <?= number_format($position['totalVotes']) ?>
+                                                <i class="bi bi-clipboard-data me-1"></i>
+                                                Total votes: <span class="fw-bold"><?= number_format($position['totalVotes']) ?></span>
                                             </p>
                                         </div>
                                         
@@ -524,6 +671,12 @@ try {
                                             ?>
                                                 <div class="candidate-result <?= $isLeading ? 'leading' : '' ?>">
                                                     <div class="avatar-container">
+                                                        <?php if ($isLeading): ?>
+                                                            <div class="winner-badge" title="Leading Candidate">
+                                                                <i class="bi bi-star-fill"></i>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                        
                                                         <?php 
                                                         $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
                                                         if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): ?>
@@ -535,22 +688,38 @@ try {
                                                                 <i class="bi bi-person fs-2"></i>
                                                             </div>
                                                         <?php endif; ?>
-                                                        <span class="department-badge"><?= htmlspecialchars($candidate['department']) ?></span>
+                                                        <span class="department-badge"><i class="bi bi-building me-1"></i><?= htmlspecialchars($candidate['department']) ?></span>
                                                     </div>
                                                     
                                                     <div class="candidate-info">
-                                                        <h5 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h5>
-                                                        <p class="candidate-position"><?= htmlspecialchars($position['title']) ?></p>
+                                                        <h5 class="candidate-name">
+                                                            <i class="bi bi-person-badge me-1"></i>
+                                                            <?= htmlspecialchars($candidate['name']) ?>
+                                                        </h5>
+                                                        <p class="candidate-position">
+                                                            <i class="bi bi-briefcase me-1"></i>
+                                                            <?= htmlspecialchars($position['title']) ?>
+                                                        </p>
+                                                        <p class="candidate-department d-md-none d-block mb-2">
+                                                            <i class="bi bi-building me-1"></i>
+                                                            <span class="fw-medium"><?= htmlspecialchars($candidate['department']) ?></span>
+                                                        </p>
                                                         
                                                         <div class="d-flex align-items-center">
-                                                            <div class="vote-count"><?= number_format($candidate['voteCount']) ?></div>
-                                                            <div class="vote-percentage"><?= $candidate['votePercentage'] ?>%</div>
+                                                            <div class="vote-count">
+                                                                <i class="bi bi-check2-circle me-1"></i>
+                                                                <?= number_format($candidate['voteCount']) ?>
+                                                            </div>
+                                                            <div class="vote-percentage">
+                                                                <i class="bi bi-graph-up-arrow me-1"></i>
+                                                                <?= isset($candidate['votePercentage']) ? $candidate['votePercentage'] : 0 ?>%
+                                                            </div>
                                                         </div>
                                                         
                                                         <div class="progress">
                                                             <div class="progress-bar" role="progressbar" 
-                                                                 style="width: <?= $candidate['votePercentage'] ?>%;" 
-                                                                 aria-valuenow="<?= $candidate['votePercentage'] ?>" 
+                                                                 style="width: <?= isset($candidate['votePercentage']) ? $candidate['votePercentage'] : 0 ?>%;" 
+                                                                 aria-valuenow="<?= isset($candidate['votePercentage']) ? $candidate['votePercentage'] : 0 ?>" 
                                                                  aria-valuemin="0" 
                                                                  aria-valuemax="100"></div>
                                                         </div>
@@ -586,6 +755,11 @@ try {
         </div>
     </main><br><br><br>
 
+    <!-- Back to top button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="bi bi-arrow-up"></i>
+    </div>
+
     <?php include 'includes/footer.php'; ?>
 
     <!-- Bootstrap JS Bundle with Popper -->
@@ -598,7 +772,13 @@ try {
         
         // Manual refresh button
         document.getElementById('refreshResults').addEventListener('click', function() {
-            refreshResults();
+            this.disabled = true;
+            const icon = this.querySelector('i');
+            icon.classList.add('bi-arrow-clockwise-animate');
+            
+            setTimeout(() => {
+                refreshResults();
+            }, 500);
         });
         
         function refreshResults() {
@@ -610,6 +790,38 @@ try {
         window.addEventListener('beforeunload', function() {
             clearInterval(refreshInterval);
         });
+        
+        // Back to top button functionality
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Add animation to refresh button icon
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                .bi-arrow-clockwise-animate {
+                    animation: spin 1s linear infinite;
+                }
+                
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `);
     });
     </script>
 </body>

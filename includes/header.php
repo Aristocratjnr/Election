@@ -74,6 +74,14 @@ if (empty($userData)) {
                         </button>
                     </li>
                     
+                    <!-- Live Results Tab -->
+                    <li class="nav-item mx-2">
+                        <a class="nav-link d-flex align-items-center" href="live_results.php">
+                            <i class="bi bi-bar-chart-fill fs-5 me-1"></i>
+                            <span class="d-none d-md-inline">Live Results</span>
+                        </a>
+                    </li>
+                    
                     <!-- Notification Bell with Real-Time Updates -->
                     <li class="nav-item dropdown mx-2">
                         <a class="nav-link notification-bell position-relative" href="notifications.php" role="button" aria-expanded="false">
