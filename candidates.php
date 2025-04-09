@@ -10,6 +10,9 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 
 require 'configs/dbconnection.php';
 
+// Get election ID from query parameter if available
+$electionID = $_GET['election'] ?? null;
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_candidate'])) {
@@ -116,17 +119,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get all students for dropdown
 $students = $conn->query("SELECT studentID, name FROM students ORDER BY name ASC");
 
-// Get all positions for dropdown
-$positions = $conn->query("SELECT positionID, title FROM positions ORDER BY title ASC");
+// Get positions for dropdown (filtered by election if specified)
+$positionsQuery = "SELECT positionID, title FROM positions";
+if ($electionID) {
+    $positionsQuery .= " WHERE electionID = $electionID";
+}
+$positionsQuery .= " ORDER BY title ASC";
+$positions = $conn->query($positionsQuery);
 
-// Get all candidates with student and position details
-$candidates = $conn->query("
-    SELECT c.*, s.name as studentName, s.profilePicture, p.title as positionTitle
+// Base query for candidates
+$candidatesQuery = "
+    SELECT c.*, s.name as studentName, s.profilePicture, p.title as positionTitle 
     FROM candidates c
     JOIN students s ON c.studentID = s.studentID
     LEFT JOIN positions p ON c.positionID = p.positionID
-    ORDER BY s.name ASC
-");
+";
+
+// Add filter by election if provided
+if ($electionID) {
+    $candidatesQuery .= " WHERE p.electionID = $electionID";
+}
+
+// Add sorting
+$candidatesQuery .= " ORDER BY s.name ASC";
+
+// Get candidates
+$candidates = $conn->query($candidatesQuery);
+
+// Get election details if ID is provided
+$electionDetails = null;
+if ($electionID) {
+    $stmt = $conn->prepare("SELECT * FROM elections WHERE electionID = ?");
+    $stmt->bind_param("i", $electionID);
+    $stmt->execute();
+    $electionDetails = $stmt->get_result()->fetch_assoc();
+}
 ?>
 
 <!DOCTYPE html>
@@ -136,35 +163,35 @@ $candidates = $conn->query("
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Candidates - EMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #4e73df;
-            --primary-hover: #3a5bc7;
+            --primary-color: #0d6efd;
+            --primary-hover: #0b5ed7;
             --secondary-color: #f8f9fc;
-            --success-color: #1cc88a;
-            --success-hover: #17a673;
-            --warning-color: #f6c23e;
-            --warning-hover: #dda20a;
-            --danger-color: #e74a3b;
-            --danger-hover: #be2617;
+            --success-color: #198754;
+            --success-hover: #157347;
+            --warning-color: #ffc107;
+            --warning-hover: #ffca2c;
+            --danger-color: #dc3545;
+            --danger-hover: #bb2d3b;
             --dark-color: #5a5c69;
             --light-color: #f8f9fc;
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
         }
 
         body {
-            background-color: #f5f7fb;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #4a4a4a;
+            background-color: #f7f9fc;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            color: #444;
         }
 
         .sidebar {
             width: 100px;
-            background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
+            background: linear-gradient(180deg, var(--primary-color) 0%, #0b5ed7 100%);
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
         }
 
@@ -175,22 +202,37 @@ $candidates = $conn->query("
 
         .card {
             border: none;
-            border-radius: 12px;
+            border-radius: 0.75rem;
             box-shadow: var(--card-shadow);
             transition: var(--transition);
             overflow: hidden;
         }
 
-    
+        .card:hover {
+            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.18);
+        }
+
         .card-header {
             background-color: white;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header h5 {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-header i {
+            color: var(--primary-color);
         }
 
         .table-responsive {
             overflow-x: auto;
-            border-radius: 12px;
+            border-radius: 0 0 0.75rem 0.75rem;
         }
 
         .table {
@@ -217,16 +259,18 @@ $candidates = $conn->query("
             border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         }
 
-        
-
-
         .candidate-img {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            transition: transform 0.3s ease;
+        }
+
+        .candidate-img:hover {
+            transform: scale(1.1);
         }
 
         .status-badge {
@@ -253,6 +297,7 @@ $candidates = $conn->query("
 
         .action-btn:hover {
             transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
         }
 
         .btn-primary {
@@ -265,44 +310,68 @@ $candidates = $conn->query("
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
             transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
         }
 
         .btn-outline-primary {
             color: var(--primary-color);
             border-color: var(--primary-color);
+            transition: var(--transition);
         }
 
         .btn-outline-primary:hover {
             background-color: var(--primary-color);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
         }
 
         .btn-outline-danger {
             color: var(--danger-color);
             border-color: var(--danger-color);
+            transition: var(--transition);
         }
 
         .btn-outline-danger:hover {
             background-color: var(--danger-color);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
         }
 
         .modal-content {
             border: none;
             border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+            overflow: hidden;
         }
 
         .modal-header {
-            background: linear-gradient(45deg, #4e73df, #224abe);
+            background: linear-gradient(45deg, #0d6efd, #0a58ca);
             color: white;
             border-radius: 1rem 1rem 0 0;
             padding: 1.5rem;
+            border-bottom: none;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+
+        .modal-header .btn-close:hover {
+            opacity: 1;
         }
 
         .modal-title {
             font-size: 1.25rem;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-title i {
+            margin-right: 0.5rem;
         }
 
         .modal-body {
@@ -314,24 +383,20 @@ $candidates = $conn->query("
             width: 100%;
             min-height: 200px;
             border: 2px dashed #e0e4ec;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 2rem;
             background-color: #f8f9fc;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .photo-upload-container:hover {
-            border-color: #4e73df;
-            background-color: #f0f2ff;
-        }
-
-        .photo-upload-container.dragover {
-            border-color: #4e73df;
-            background-color: #f0f2ff;
+            border-color: #0d6efd;
+            background-color: #f0f7ff;
         }
 
         .photo-preview-container {
@@ -345,42 +410,39 @@ $candidates = $conn->query("
             object-fit: cover;
             border-radius: 50%;
             border: 3px solid #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             margin-bottom: 1rem;
+            transition: transform 0.3s ease;
         }
 
-        .upload-icon {
-            font-size: 2.5rem;
-            color: #4e73df;
-            margin-bottom: 1rem;
-        }
-
-        .upload-text {
-            color: #6c757d;
-            margin-bottom: 0.5rem;
-        }
-
-        .upload-hint {
-            font-size: 0.875rem;
-            color: #adb5bd;
+        .photo-preview:hover {
+            transform: scale(1.05);
         }
 
         .form-label {
             font-weight: 600;
             color: #2d3748;
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-label i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
         }
 
         .form-control, .form-select {
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             border: 1px solid #e0e4ec;
             padding: 0.75rem 1rem;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
         .form-control:focus, .form-select:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         }
 
         .modal-footer {
@@ -391,7 +453,7 @@ $candidates = $conn->query("
         .btn-modal {
             padding: 0.75rem 1.5rem;
             font-weight: 600;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
         }
 
         .page-header {
@@ -407,6 +469,13 @@ $candidates = $conn->query("
             color: #2d3748;
             margin-bottom: 0.5rem;
             width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-title i {
+            color: var(--primary-color);
+            margin-right: 0.75rem;
         }
 
         .page-subtitle {
@@ -460,14 +529,22 @@ $candidates = $conn->query("
             text-align: center;
             white-space: nowrap;
             vertical-align: baseline;
-            border-radius: 0.5rem;
-            background-color: rgba(78, 115, 223, 0.1);
-            color: #4e73df;
+            border-radius: 0.75rem;
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
             min-width: 140px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .badge-count:hover {
+            background-color: rgba(13, 110, 253, 0.15);
+            transform: translateY(-2px);
         }
 
         .badge-count i {
             margin-right: 0.5rem;
+            font-size: 1rem;
         }
 
         .btn-primary {
@@ -477,6 +554,8 @@ $candidates = $conn->query("
             min-width: 160px;
             font-weight: 600;
             letter-spacing: 0.3px;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
         }
 
         .btn-primary i {
@@ -493,8 +572,8 @@ $candidates = $conn->query("
             white-space: nowrap;
             vertical-align: baseline;
             border-radius: 50rem;
-            background-color: rgba(78, 115, 223, 0.1);
-            color: #4e73df;
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
         }
 
         .student-name {
@@ -528,26 +607,6 @@ $candidates = $conn->query("
             background: #a8a8a8;
         }
 
-        /* Floating action button */
-        .fab {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 20px rgba(78, 115, 223, 0.3);
-            z-index: 100;
-            transition: var(--transition);
-        }
-
-        
-
         /* Empty state */
         .empty-state {
             padding: 3rem;
@@ -576,38 +635,46 @@ $candidates = $conn->query("
             margin-right: auto;
         }
 
-        .candidate-photo {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 50%;
+        /* Animation for status badges */
+        .status-badge {
+            transition: all 0.3s ease;
         }
-        .photo-preview {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 50%;
-            margin-top: 10px;
+        
+        .status-badge:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-
-        .table td {
-            vertical-align: middle;
+        
+        /* Improved empty state */
+        .empty-state {
+            background: linear-gradient(145deg, #ffffff, #f7f9fc);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            padding: 4rem 2rem;
+            transition: all 0.3s ease;
         }
-
-        .table th {
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
+        
+        .empty-state:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
         }
-
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
+        
+        /* Animation for alerts */
+        .alert {
+            border-radius: 0.75rem;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
-        .gap-2 {
-            gap: 0.5rem;
+        
+        /* Enhanced table hover effect */
+        .table tr {
+            transition: all 0.2s ease;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.03);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -626,28 +693,101 @@ $candidates = $conn->query("
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="header-content">
                                         <h1 class="page-title">
-                                            <i class="fas fa-users me-2"></i>
+                                            <i class="bi bi-people me-2"></i>
                                             Manage Candidates
                                         </h1>
                                         <p class="page-subtitle">Create and manage election candidates</p>
                                     </div>
                                     <div class="header-actions">
                                         <span class="badge-count">
-                                            <i class="fas fa-user-check"></i>
+                                            <i class="bi bi-person-check"></i>
                                             <?php echo $candidates->num_rows; ?> Candidates
                                         </span>
-                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                                            <i class="fas fa-plus"></i>
-                                            New Candidate
+                                        <button class="btn badge-count bg-primary text-white d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                            <i class="bi bi-plus-lg me-2"></i>
+                                            Add Candidate
                                         </button>
                                     </div>
+                                </div>
+                                
+                                <?php if ($electionDetails): ?>
+                                <div class="election-time-info mt-3 p-3 bg-light rounded-3 border shadow-sm animate__animated animate__fadeIn">
+                                    <div class="d-flex align-items-center flex-wrap">
+                                        <div class="me-4 mb-2 mb-md-0">
+                                            <h6 class="fw-bold mb-2 d-flex align-items-center">
+                                                <i class="bi bi-calendar-event-fill me-2 text-primary"></i> Election Period
+                                            </h6>
+                                            <div class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-calendar-plus-fill text-success me-2"></i>
+                                                <span>Start: <?php echo date('M j, Y - h:i A', strtotime($electionDetails['startDate'])); ?></span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-calendar-x-fill text-danger me-2"></i>
+                                                <span>End: <?php echo date('M j, Y - h:i A', strtotime($electionDetails['endDate'])); ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="me-4 mb-2 mb-md-0">
+                                            <h6 class="fw-bold mb-2 d-flex align-items-center">
+                                                <i class="bi bi-info-circle-fill me-2 text-primary"></i> Status
+                                            </h6>
+                                            <div class="status-badge bg-<?php 
+                                                echo $electionDetails['status'] === 'Ongoing' ? 'success' : 
+                                                    ($electionDetails['status'] === 'Scheduled' ? 'warning' : 'danger'); 
+                                                ?> text-white px-3 py-2 rounded-pill">
+                                                <?php if($electionDetails['status'] === 'Ongoing'): ?>
+                                                    <i class="bi bi-play-circle-fill me-1"></i>
+                                                <?php elseif($electionDetails['status'] === 'Scheduled'): ?>
+                                                    <i class="bi bi-clock-fill me-1"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                                <?php endif; ?>
+                                                <?= htmlspecialchars($electionDetails['status'] ?? '') ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Election Selector -->
+                            <div class="card mb-4 shadow-sm animate__animated animate__fadeIn">
+                                <div class="card-body p-3">
+                                    <form method="GET" class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <label class="form-label mb-2 fw-bold">
+                                                <i class="bi bi-filter-circle-fill me-2 text-primary"></i>
+                                                Select Election
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-search"></i>
+                                                </span>
+                                                <select class="form-select border-start-0" name="election">
+                                                    <option value="">-- All Elections --</option>
+                                                    <?php 
+                                                    $electionsQuery = $conn->query("SELECT electionID, name, startDate FROM elections ORDER BY startDate DESC");
+                                                    while ($election = $electionsQuery->fetch_assoc()): 
+                                                    ?>
+                                                    <option value="<?= $election['electionID'] ?>" <?= ($electionID == $election['electionID']) ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($election['name']) ?> 
+                                                        (<?= date('M j, Y', strtotime($election['startDate'])) ?>)
+                                                    </option>
+                                                    <?php endwhile; ?>
+                                                </select>
+                                                <button type="submit" class="btn btn-primary d-flex align-items-center">
+                                                    <i class="bi bi-funnel-fill me-2"></i>
+                                                    Filter
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
 
                             <?php if (isset($success)): ?>
                                 <div class="alert alert-success alert-dismissible fade show animate__animated animate__fadeIn mb-4">
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-check-circle me-2"></i>
+                                        <i class="bi bi-check-circle me-2"></i>
                                         <span><?php echo $success; ?></span>
                                         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                                     </div>
@@ -657,7 +797,7 @@ $candidates = $conn->query("
                             <?php if (isset($error)): ?>
                                 <div class="alert alert-danger alert-dismissible fade show animate__animated animate__fadeIn mb-4">
                                     <div class="d-flex align-items-center">
-                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <i class="bi bi-exclamation-circle me-2"></i>
                                         <span><?php echo $error; ?></span>
                                         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                                     </div>
@@ -665,10 +805,10 @@ $candidates = $conn->query("
                             <?php endif; ?>
 
                             <!-- Candidates Table -->
-                            <div class="card mb-4">
-                                <div class="card-header">
+                            <div class="card mb-4 shadow-sm">
+                                <div class="card-header bg-white">
                                     <h5 class="mb-0">
-                                        <i class="fas fa-list-ul me-2"></i>
+                                        <i class="bi bi-list-ul me-2"></i>
                                         Candidate List
                                     </h5>
                                 </div>
@@ -676,39 +816,43 @@ $candidates = $conn->query("
                                     <?php if ($candidates->num_rows > 0): ?>
                                         <div class="table-responsive">
                                             <table class="table table-hover mb-0">
-                                                <thead>
+                                                <thead class="table-light">
                                                     <tr>
-                                                        <th width="80">Photo</th>
-                                                        <th>Candidate</th>
-                                                        <th>Position</th>
-                                                        <th>Status</th>
-                                                        <th width="120">Actions</th>
+                                                        <th width="80" class="text-center"><i class="bi bi-image me-1"></i> Photo</th>
+                                                        <th><i class="bi bi-person-badge me-1"></i> Candidate</th>
+                                                        <th><i class="bi bi-briefcase me-1"></i> Position</th>
+                                                        <th><i class="bi bi-shield-check me-1"></i> Status</th>
+                                                        <th width="120"><i class="bi bi-gear me-1"></i> Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <?php while ($candidate = $candidates->fetch_assoc()): ?>
                                                         <tr>
-                                                            <td>
+                                                            <td class="text-center">
                                                                 <?php if ($candidate['photo']): ?>
                                                                     <img src="uploads/candidates/<?= htmlspecialchars($candidate['photo'] ?? '') ?>" 
-                                                                         class="candidate-img" 
+                                                                         class="candidate-img shadow-sm" 
                                                                          alt="<?= htmlspecialchars($candidate['studentName'] ?? '') ?>">
                                                                 <?php else: ?>
-                                                                    <div class="candidate-img bg-light d-flex align-items-center justify-content-center">
-                                                                        <i class="fas fa-user text-muted"></i>
+                                                                    <div class="candidate-img bg-light d-flex align-items-center justify-content-center shadow-sm">
+                                                                        <i class="bi bi-person-fill text-muted"></i>
                                                                     </div>
                                                                 <?php endif; ?>
                                                             </td>
                                                             <td>
                                                                 <div class="d-flex align-items-center">
                                                                     <div>
-                                                                        <h6 class="mb-0"><?= htmlspecialchars($candidate['studentName'] ?? '') ?></h6>
-                                                                        <small class="text-muted">ID: <?= $candidate['studentID'] ?? '' ?></small>
+                                                                        <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($candidate['studentName'] ?? '') ?></h6>
+                                                                        <small class="text-muted d-flex align-items-center">
+                                                                            <i class="bi bi-person-badge me-1"></i>
+                                                                            ID: <?= $candidate['studentID'] ?? '' ?>
+                                                                        </small>
                                                                     </div>
                                                                 </div>
                                                             </td>
                                                             <td>
-                                                                <span class="position-badge">
+                                                                <span class="position-badge d-flex align-items-center justify-content-center">
+                                                                    <i class="bi bi-award me-1"></i>
                                                                     <?= htmlspecialchars($candidate['positionTitle'] ?? '') ?>
                                                                 </span>
                                                             </td>
@@ -716,13 +860,20 @@ $candidates = $conn->query("
                                                                 <span class="status-badge bg-<?php 
                                                                     echo $candidate['status'] === 'Approved' ? 'success' : 
                                                                         ($candidate['status'] === 'Pending' ? 'warning' : 'danger'); 
-                                                                ?>">
+                                                                ?> text-white px-3 py-2 rounded-pill d-inline-flex align-items-center">
+                                                                    <?php if($candidate['status'] === 'Approved'): ?>
+                                                                        <i class="bi bi-check-circle-fill me-1"></i>
+                                                                    <?php elseif($candidate['status'] === 'Pending'): ?>
+                                                                        <i class="bi bi-hourglass-split me-1"></i>
+                                                                    <?php else: ?>
+                                                                        <i class="bi bi-x-circle-fill me-1"></i>
+                                                                    <?php endif; ?>
                                                                     <?= htmlspecialchars($candidate['status'] ?? '') ?>
                                                                 </span>
                                                             </td>
                                                             <td>
                                                                 <div class="d-flex gap-2">
-                                                                    <button class="btn btn-sm btn-outline-primary edit-btn" 
+                                                                    <button class="btn btn-sm btn-outline-primary edit-btn rounded-pill" 
                                                                             data-bs-toggle="modal" 
                                                                             data-bs-target="#editCandidateModal"
                                                                             data-id="<?= $candidate['candidateID'] ?? '' ?>"
@@ -731,14 +882,14 @@ $candidates = $conn->query("
                                                                             data-manifesto="<?= htmlspecialchars($candidate['manifesto'] ?? '') ?>"
                                                                             data-status="<?= htmlspecialchars($candidate['status'] ?? '') ?>"
                                                                             data-photo="<?= htmlspecialchars($candidate['photo'] ?? '') ?>">
-                                                                        <i class="fas fa-edit"></i>
+                                                                        <i class="bi bi-pencil-square"></i>
                                                                     </button>
                                                                     <form method="POST" class="d-inline">
                                                                         <input type="hidden" name="candidateID" value="<?= $candidate['candidateID'] ?? '' ?>">
                                                                         <button type="submit" name="delete_candidate" 
-                                                                                class="btn btn-sm btn-outline-danger" 
+                                                                                class="btn btn-sm btn-outline-danger rounded-pill" 
                                                                                 onclick="return confirm('Are you sure you want to delete this candidate?')">
-                                                                            <i class="fas fa-trash"></i>
+                                                                            <i class="bi bi-trash3-fill"></i>
                                                                         </button>
                                                                     </form>
                                                                 </div>
@@ -751,12 +902,21 @@ $candidates = $conn->query("
                                     <?php else: ?>
                                         <div class="empty-state">
                                             <div class="empty-state-icon">
-                                                <i class="fas fa-user-slash"></i>
+                                                <i class="bi bi-people-fill fs-1 text-primary opacity-50"></i>
                                             </div>
                                             <h4 class="empty-state-title">No Candidates Found</h4>
-                                            <p class="empty-state-text">You haven't added any candidates yet. Click the button below to add your first candidate.</p>
-                                            <button class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                                                <i class="fas fa-plus me-2"></i>Add Candidate
+                                            <p class="empty-state-text">
+                                                <i class="bi bi-info-circle-fill me-1 text-primary"></i>
+                                                <?php if ($electionID): ?>
+                                                    No candidates found for this election. Add candidates using the button below.
+                                                <?php else: ?>
+                                                    You haven't added any candidates yet. Select an election and click the button below to add your first candidate.
+                                                <?php endif; ?>
+                                            </p>
+                                            <button class="btn badge-count bg-primary text-white d-flex align-items-center justify-content-center mx-auto" 
+                                                   data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                                <i class="bi bi-person-plus-fill me-2"></i>
+                                                Add Candidate
                                             </button>
                                         </div>
                                     <?php endif; ?>
@@ -771,17 +931,17 @@ $candidates = $conn->query("
 
     <!-- Add Candidate Modal -->
     <div class="modal fade" id="addCandidateModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Candidate</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Add New Candidate</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST" enctype="multipart/form-data">
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label for="studentID" class="form-label">Student</label>
-                            <select class="form-select" id="studentID" name="studentID" required>
+                            <label for="studentID" class="form-label"><i class="bi bi-person-badge-fill me-1 text-primary"></i>Student</label>
+                            <select class="form-select rounded-pill" id="studentID" name="studentID" required>
                                 <option value="">Select Student</option>
                                 <?php while ($student = $students->fetch_assoc()): ?>
                                     <option value="<?= $student['studentID'] ?>"><?= htmlspecialchars($student['name']) ?></option>
@@ -789,8 +949,8 @@ $candidates = $conn->query("
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="positionID" class="form-label">Position</label>
-                            <select class="form-select" id="positionID" name="positionID" required>
+                            <label for="positionID" class="form-label"><i class="bi bi-award-fill me-1 text-primary"></i>Position</label>
+                            <select class="form-select rounded-pill" id="positionID" name="positionID" required>
                                 <option value="">Select Position</option>
                                 <?php while ($position = $positions->fetch_assoc()): ?>
                                     <option value="<?= $position['positionID'] ?>"><?= htmlspecialchars($position['title']) ?></option>
@@ -798,16 +958,23 @@ $candidates = $conn->query("
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="manifesto" class="form-label">Manifesto</label>
-                            <textarea class="form-control" id="manifesto" name="manifesto" rows="3"></textarea>
+                            <label for="manifesto" class="form-label"><i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto</label>
+                            <textarea class="form-control rounded-3" id="manifesto" name="manifesto" rows="3" placeholder="Candidate's agenda and promises"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="photo" class="form-label">Photo</label>
-                            <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                            <label for="photo" class="form-label"><i class="bi bi-camera-fill me-1 text-primary"></i>Photo</label>
+                            <input type="file" class="form-control rounded-pill" id="photo" name="photo" accept="image/*">
+                            <div id="photoPreview" class="mt-2 text-center d-none">
+                                <img src="#" alt="Preview" class="photo-preview">
+                            </div>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle-fill me-1"></i>
+                                Recommended size: 400x400px, max file size: 2MB
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status" required>
+                            <label for="status" class="form-label"><i class="bi bi-shield-fill-check me-1 text-primary"></i>Status</label>
+                            <select class="form-select rounded-pill" id="status" name="status" required>
                                 <option value="Pending">Pending</option>
                                 <option value="Approved">Approved</option>
                                 <option value="Rejected">Rejected</option>
@@ -815,8 +982,14 @@ $candidates = $conn->query("
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="add_candidate" class="btn btn-primary">Add Candidate</button>
+                        <button type="button" class="btn btn-light d-flex align-items-center justify-content-center" style="min-width: 120px; border-radius: 8px;" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" name="add_candidate" class="btn btn-primary d-flex align-items-center justify-content-center" style="min-width: 150px; border-radius: 8px;">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            <span>Add Candidate</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -825,19 +998,19 @@ $candidates = $conn->query("
 
     <!-- Edit Candidate Modal -->
     <div class="modal fade" id="editCandidateModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Candidate</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Candidate</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="candidateID" id="edit_candidateID">
                     <input type="hidden" name="current_photo" id="edit_current_photo">
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         <div class="mb-3">
-                            <label for="edit_studentID" class="form-label">Student</label>
-                            <select class="form-select" id="edit_studentID" name="studentID" required>
+                            <label for="edit_studentID" class="form-label"><i class="bi bi-person-badge-fill me-1 text-primary"></i>Student</label>
+                            <select class="form-select rounded-pill" id="edit_studentID" name="studentID" required>
                                 <option value="">Select Student</option>
                                 <?php 
                                 $students->data_seek(0);
@@ -848,8 +1021,8 @@ $candidates = $conn->query("
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_positionID" class="form-label">Position</label>
-                            <select class="form-select" id="edit_positionID" name="positionID" required>
+                            <label for="edit_positionID" class="form-label"><i class="bi bi-award-fill me-1 text-primary"></i>Position</label>
+                            <select class="form-select rounded-pill" id="edit_positionID" name="positionID" required>
                                 <option value="">Select Position</option>
                                 <?php 
                                 $positions->data_seek(0);
@@ -860,17 +1033,21 @@ $candidates = $conn->query("
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_manifesto" class="form-label">Manifesto</label>
-                            <textarea class="form-control" id="edit_manifesto" name="manifesto" rows="3"></textarea>
+                            <label for="edit_manifesto" class="form-label"><i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto</label>
+                            <textarea class="form-control rounded-3" id="edit_manifesto" name="manifesto" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_photo" class="form-label">Photo</label>
-                            <input type="file" class="form-control" id="edit_photo" name="photo" accept="image/*">
-                            <div id="current_photo_preview" class="mt-2"></div>
+                            <label for="edit_photo" class="form-label"><i class="bi bi-camera-fill me-1 text-primary"></i>Photo</label>
+                            <input type="file" class="form-control rounded-pill" id="edit_photo" name="photo" accept="image/*">
+                            <div id="current_photo_preview" class="mt-2 text-center"></div>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle-fill me-1"></i>
+                                Leave empty to keep current photo
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status</label>
-                            <select class="form-select" id="edit_status" name="status" required>
+                            <label for="edit_status" class="form-label"><i class="bi bi-shield-fill-check me-1 text-primary"></i>Status</label>
+                            <select class="form-select rounded-pill" id="edit_status" name="status" required>
                                 <option value="Pending">Pending</option>
                                 <option value="Approved">Approved</option>
                                 <option value="Rejected">Rejected</option>
@@ -878,8 +1055,14 @@ $candidates = $conn->query("
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" name="update_candidate" class="btn btn-primary">Update Candidate</button>
+                        <button type="button" class="btn btn-light d-flex align-items-center justify-content-center" style="min-width: 120px; border-radius: 8px;" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" name="update_candidate" class="btn btn-primary d-flex align-items-center justify-content-center" style="min-width: 150px; border-radius: 8px;">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            <span>Update Candidate</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -902,50 +1085,43 @@ $candidates = $conn->query("
                 // Show current photo preview
                 const preview = document.getElementById('current_photo_preview');
                 if (this.dataset.photo) {
-                    preview.innerHTML = `<img src="uploads/candidates/${this.dataset.photo}" class="img-thumbnail" style="max-height: 100px;">`;
+                    preview.innerHTML = `<img src="uploads/candidates/${this.dataset.photo}" class="photo-preview shadow-sm" alt="Current Photo">`;
                 } else {
-                    preview.innerHTML = '';
+                    preview.innerHTML = `<div class="text-center text-muted"><i class="bi bi-image fs-3"></i><p>No current photo</p></div>`;
                 }
             });
         });
 
-        // Enhanced photo upload functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const photoUploadContainer = document.getElementById('photoUploadContainer');
-            const photoInput = document.getElementById('photo');
-            const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        // Handle photo upload preview for Add form
+        document.getElementById('photo')?.addEventListener('change', function() {
+            previewImage(this, 'photoPreview');
+        });
 
-            // Click to upload
-            photoUploadContainer.addEventListener('click', function() {
-                photoInput.click();
-            });
-
-            // Drag and drop functionality
-            photoUploadContainer.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('dragover');
-            });
-
-            photoUploadContainer.addEventListener('dragleave', function() {
-                this.classList.remove('dragover');
-            });
-
-            photoUploadContainer.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
+        // Handle photo upload preview for Edit form
+        document.getElementById('edit_photo')?.addEventListener('change', function() {
+            const preview = document.getElementById('current_photo_preview');
+            
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
                 
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    photoInput.files = e.dataTransfer.files;
-                    previewImage(photoInput, 'addPhotoPreview');
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    this.value = '';
+                    return;
                 }
-            });
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="photo-preview shadow-sm" alt="New Photo">`;
+                }
+                reader.readAsDataURL(file);
+            }
         });
 
-        // Enhanced image preview function
+        // Image preview function
         function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            const placeholder = document.getElementById('uploadPlaceholder');
+            const previewContainer = document.getElementById(previewId);
             
             if (input.files && input.files[0]) {
                 const file = input.files[0];
@@ -959,26 +1135,37 @@ $candidates = $conn->query("
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.classList.remove('d-none');
-                    placeholder.style.display = 'none';
+                    previewContainer.innerHTML = `<img src="${e.target.result}" class="photo-preview shadow-sm" alt="Preview">`;
+                    previewContainer.classList.remove('d-none');
                 }
                 reader.readAsDataURL(file);
             } else {
-                preview.src = '#';
-                preview.classList.add('d-none');
-                placeholder.style.display = 'block';
+                previewContainer.innerHTML = '';
+                previewContainer.classList.add('d-none');
             }
+        }
+
+        // Show success alerts for 3 seconds then fade out
+        const successAlert = document.querySelector('.alert-success');
+        if (successAlert) {
+            setTimeout(() => {
+                successAlert.classList.remove('animate__fadeIn');
+                successAlert.classList.add('animate__fadeOut');
+                setTimeout(() => {
+                    successAlert.remove();
+                }, 500);
+            }, 3000);
         }
 
         // Reset forms when modals are closed
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('hidden.bs.modal', function() {
                 this.querySelector('form').reset();
-                document.querySelectorAll('.photo-preview').forEach(preview => {
-                    preview.src = '#';
-                    preview.classList.add('d-none');
-                });
+                const photoPreview = document.getElementById('photoPreview');
+                if (photoPreview) {
+                    photoPreview.innerHTML = '';
+                    photoPreview.classList.add('d-none');
+                }
             });
         });
     </script>

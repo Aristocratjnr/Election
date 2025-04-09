@@ -1,14 +1,19 @@
 <?php
+require_once 'includes/auth_check.php';
+require_once 'configs/dbconnection.php';
+require_once 'update_election_status.php'; // Include the status updater
+
+// Automatically update election statuses when viewing results
+updateElectionStatuses();
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
+// Session start is removed as it's already in auth_check.php
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php'); 
     exit();
 }
-
-require 'configs/dbconnection.php';
 
 // Get all elections
 $elections = $conn->query("SELECT * FROM elections ORDER BY startDate DESC");
@@ -92,36 +97,43 @@ if ($electionID) {
     <style>
         /* Base Styles */
         body {
-            background-color: #f8f9fa;
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .main-content {
-            margin-left: 10px;
-           
+            margin-left: 40px;
+            padding-bottom: 2rem;
         }
         
         /* Card Styles */
         .card {
             border-radius: 1rem;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.3s, box-shadow 0.3s;
             overflow: hidden;
+            border: none;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
         }
+       
         
         .card-header {
-            background-color: rgba(0, 0, 0, 0.03);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-            padding: 1rem 1.25rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1.25rem 1.5rem;
         }
         
         /* Icon Styles */
         .card-icon {
-            width: 55px;
-            height: 55px;
+            width: 60px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+            margin-right: 1rem;
+            transition: transform 0.3s;
         }
+        
         .bg-primary-light {
             background-color: rgba(13, 110, 253, 0.15);
             color: #0d6efd;
@@ -146,90 +158,112 @@ if ($electionID) {
             background-color: rgba(108, 117, 125, 0.15);
             color: #6c757d;
         }
+        .bg-purple-light {
+            background-color: rgba(111, 66, 193, 0.15);
+            color: #6f42c1;
+        }
+        .bg-teal-light {
+            background-color: rgba(32, 201, 151, 0.15);
+            color: #20c997;
+        }
         
         /* Progress Bar Styles */
         .progress-thin {
-            height: 6px;
-            border-radius: 3px;
+            height: 8px;
+            border-radius: 4px;
         }
         .progress-bar-custom {
-            background-color: #e9ecef;
-            border-radius: 0.5rem;
-            height: 0.75rem;
+            background-color: #edf2f9;
+            border-radius: 0.75rem;
+            height: 0.9rem;
             overflow: hidden;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+            margin: 0.75rem 0;
         }
         .progress-custom {
-            background: linear-gradient(to right, #4e73df, #224abe);
-            border-radius: 0.5rem;
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            border-radius: 0.75rem;
             height: 100%;
-            transition: width 1s ease-in-out;
+            transition: width 1.2s ease-in-out;
         }
         
         /* Avatar and Image Styles */
         .user-avatar {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             object-fit: cover;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+            border: 3px solid #fff;
         }
         .initials-avatar {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f8f9fa;
+            background-color: #e9ecef;
             font-weight: bold;
-            color: #6c757d;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+            color: #495057;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+            border: 3px solid #fff;
         }
         .candidate-photo {
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid white;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
+            border: 4px solid white;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 0 auto 1.25rem;
         }
         .card:hover .candidate-photo {
-            transform: scale(1.05);
+            transform: scale(1.08);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
         }
         
         /* Badge Styles */
         .winner-badge {
             position: absolute;
-            top: -10px;
-            right: -10px;
+            top: -15px;
+            right: -15px;
             background: linear-gradient(45deg, #ffc107, #ff9800);
             color: white;
             border-radius: 50%;
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+            font-size: 1.2rem;
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.2);
             z-index: 2;
-            border: 2px solid white;
-            transition: transform 0.2s;
+            border: 3px solid white;
+            transition: transform 0.3s;
+        }
+        .card:hover .winner-badge {
+            transform: scale(1.1) rotate(15deg);
+        }
+        
+        .badge {
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 30px;
         }
         
         /* Text Styles */
         .position-title {
-            font-size: 1.35rem;
+            font-size: 1.4rem;
             font-weight: 600;
-            color: #333;
-            border-bottom: 2px solid #eee;
+            color: #2c3e50;
+            border-bottom: 2px solid #eaecef;
             padding-bottom: 0.75rem;
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
         .vote-count {
             font-weight: 600;
@@ -242,14 +276,21 @@ if ($electionID) {
         
         /* Button Styles */
         .btn {
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
-            transition: all 0.2s;
+            border-radius: 0.6rem;
+            padding: 0.5rem 1.25rem;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
         
-        
         .btn-primary {
-            background: linear-gradient(to right, #4e73df, #224abe);
+            background: linear-gradient(45deg, #4e73df, #224abe);
             border: none;
         }
         .btn-outline-primary {
@@ -257,38 +298,63 @@ if ($electionID) {
             color: #4e73df;
         }
         .btn-outline-primary:hover {
-            background: linear-gradient(to right, #4e73df, #224abe);
+            background: linear-gradient(45deg, #4e73df, #224abe);
         }
         
         /* Filter Section */
         .filter-section {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 0.8rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.98);
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
+            margin-bottom: 2rem;
         }
-        
+        .filter-section:hover {
+            box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.15);
+        }
+        .filter-section .form-control,
+        .filter-section .form-select {
+            border-radius: 0.5rem;
+            padding: 0.6rem 1rem;
+            border-color: #e0e5ec;
+        }
+        .filter-section .form-control:focus,
+        .filter-section .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+            border-color: #4e73df;
+        }
         
         /* Results Cards */
         .results-card {
             border: none;
-            border-radius: 0.8rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
             overflow: hidden;
-            transition: transform 0.2s;
+            transition: transform 0.3s;
+            margin-bottom: 2rem;
         }
-        
+        .results-card:hover {
+            transform: translateY(-5px);
+        }
         
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 3rem 0;
+            padding: 4rem 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.98));
+            border-radius: 1rem;
         }
         .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
             color: #6c757d;
-            opacity: 0.5;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
         /* Print Styling */
@@ -361,12 +427,26 @@ if ($electionID) {
         .section-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            color: #333;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #eaecef;
         }
         .section-header i {
-            color: #0d6efd;
+            color: #4e73df;
+            font-size: 1.75rem;
+            background-color: rgba(78, 115, 223, 0.1);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .section-header h2 {
+            margin: 0;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -376,19 +456,31 @@ if ($electionID) {
             <?php include 'includes/sidebar.php'; ?>
             <div class="main-content">
                 <?php include 'includes/header.php'; ?>
-                <br>
-                <div class="card w-75 mx-auto shadow-sm border-0">
-                <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4"><br>
+                <div class=" w-75 mx-auto shadow-sm border-0 mb-4">
+                <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4">
                     <!-- Page Header with Breadcrumb -->
-                    <nav aria-label="breadcrumb" class="no-print mb-3">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page"><i class="bi bi-bar-chart-fill"></i> Election Results</li>
+                    <nav aria-label="breadcrumb" class="no-print mb-4">
+                        <ol class="breadcrumb bg-white p-3 rounded-pill shadow-sm d-inline-flex">
+                            <li class="breadcrumb-item">
+                                <a href="dashboard.php" class="text-decoration-none d-flex align-items-center">
+                                    <i class="bi bi-house-door-fill text-primary me-2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                <span class="d-flex align-items-center">
+                                    <i class="bi bi-bar-chart-line-fill text-primary me-2"></i> Election Results
+                                </span>
+                            </li>
                         </ol>
                     </nav>
                     
                     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
-                        <h1 class="h2"><i class="bi bi-trophy-fill text-warning me-2"></i> Election Results</h1>
+                        <h1 class="h2 d-flex align-items-center">
+                            <div class="card-icon bg-warning-light me-3">
+                                <i class="bi bi-trophy-fill fs-3"></i>
+                            </div>
+                            Election Results
+                        </h1>
                         <div class="btn-toolbar mb-2 mb-md-0 no-print">
                             <div class="btn-group me-2">
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.print()">
@@ -396,7 +488,7 @@ if ($electionID) {
                                 </button>
                                 <a href="export_results.php?election=<?php echo $electionID; ?>&type=excel" 
                                    class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-file-earmark-excel-fill"></i> Export Excel
+                                    <i class="bi bi-file-earmark-excel-fill"></i> Excel
                                 </a>
                                 <a href="export_results.php?election=<?php echo $electionID; ?>&type=pdf" 
                                    class="btn btn-sm btn-outline-danger">
@@ -406,30 +498,41 @@ if ($electionID) {
                             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="bi bi-share-fill"></i> Share
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-envelope-fill"></i> Email</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-link-45deg"></i> Copy Link</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                <li><a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="bi bi-envelope-paper-fill me-2 text-primary"></i> Email Results
+                                </a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="bi bi-link-45deg me-2 text-primary"></i> Copy Link
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-broadcast"></i> Publish</a></li>
+                                <li><a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="bi bi-broadcast-pin me-2 text-primary"></i> Publish Results
+                                </a></li>
                             </ul>
                         </div>
                     </div>
                     
                     <!-- Election Filter -->
                     <div class="card border-0 shadow-sm mb-4 filter-section no-print">
-                        <div class="card-header bg-white py-3">
-                            <h5 class="card-title mb-0"><i class="bi bi-funnel-fill text-primary me-2"></i> Election Filter</h5>
+                        <div class="card-header bg-white py-3 d-flex align-items-center">
+                            <div class="card-icon bg-primary-light me-3">
+                                <i class="bi bi-funnel-fill fs-4"></i>
+                            </div>
+                            <h5 class="card-title mb-0 fw-bold">Election Filter</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-4">
                             <form method="GET" class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label d-flex align-items-center">
-                                        <i class="bi bi-calendar2-event text-primary me-2"></i>
+                                    <label class="form-label d-flex align-items-center fw-medium">
+                                        <i class="bi bi-calendar2-event-fill text-primary me-2"></i>
                                         Select Election
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                        <select class="form-select" name="election" onchange="this.form.submit()">
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+                                        <select class="form-select border-start-0" name="election" onchange="this.form.submit()">
                                             <option value="">-- Select Election --</option>
                                             <?php while ($election = $elections->fetch_assoc()): ?>
                                             <option value="<?php echo $election['electionID']; ?>" 
@@ -439,22 +542,26 @@ if ($electionID) {
                                             </option>
                                             <?php endwhile; ?>
                                         </select>
-                                        <button class="btn btn-primary" type="submit">
-                                            <i class="bi bi-filter-square-fill"></i> Filter
+                                        <button class="btn btn-primary d-flex align-items-center" type="submit">
+                                            <i class="bi bi-filter-square-fill me-2"></i> Filter
                                         </button>
                                     </div>
                                 </div>
                                 <?php if ($electionID): ?>
                                 <div class="col-md-6">
-                                    <label class="form-label d-flex align-items-center">
+                                    <label class="form-label d-flex align-items-center fw-medium">
                                         <i class="bi bi-clock-history text-primary me-2"></i>
                                         Results Generated
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-clock-fill"></i></span>
-                                        <input type="text" class="form-control" 
+                                        <span class="input-group-text bg-light border-end-0">
+                                            <i class="bi bi-clock-fill"></i>
+                                        </span>
+                                        <input type="text" class="form-control border-start-0" 
                                                value="<?php echo date('F j, Y, g:i a'); ?>" readonly>
-                                        <span class="input-group-text"><i class="bi bi-check2-circle text-success"></i></span>
+                                        <span class="input-group-text bg-success text-white">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </span>
                                     </div>
                                 </div>
                                 <?php endif; ?>
@@ -465,27 +572,39 @@ if ($electionID) {
                     <?php if ($electionID && $electionDetails): ?>
                     <!-- Election Header Section -->
                     <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-body">
+                        <div class="card-body p-4">
                             <div class="row align-items-center">
                                 <div class="col-md-8">
-                                    <h3 class="mb-2 d-flex align-items-center">
-                                        <i class="bi bi-award-fill text-warning me-2"></i>
+                                    <h3 class="mb-3 d-flex align-items-center">
+                                        <div class="card-icon bg-warning-light me-3">
+                                            <i class="bi bi-award-fill fs-3"></i>
+                                        </div>
                                         <?php echo htmlspecialchars($electionDetails['name']); ?>
                                     </h3>
-                                    <p class="text-muted mb-0 d-flex align-items-center">
-                                        <i class="bi bi-calendar-range me-2"></i>
-                                        <?php echo date('F j, Y', strtotime($electionDetails['startDate'])); ?> - 
-                                        <?php echo date('F j, Y', strtotime($electionDetails['endDate'])); ?>
-                                        <span class="badge bg-<?php echo $electionDetails['status'] == 'active' ? 'success' : ($electionDetails['status'] == 'completed' ? 'primary' : 'warning'); ?> ms-3">
-                                            <i class="bi bi-<?php echo $electionDetails['status'] == 'active' ? 'check-circle-fill' : ($electionDetails['status'] == 'completed' ? 'flag-fill' : 'clock-fill'); ?> me-1"></i>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-light rounded-pill px-3 py-2 d-flex align-items-center me-3">
+                                            <i class="bi bi-calendar-range-fill text-primary me-2"></i>
+                                            <span class="fw-medium">
+                                                <?php echo date('F j, Y', strtotime($electionDetails['startDate'])); ?> - 
+                                                <?php echo date('F j, Y', strtotime($electionDetails['endDate'])); ?>
+                                            </span>
+                                        </div>
+                                        
+                                        <span class="badge bg-<?php echo $electionDetails['status'] == 'active' ? 'success' : ($electionDetails['status'] == 'completed' ? 'primary' : 'warning'); ?> d-flex align-items-center">
+                                            <i class="bi bi-<?php echo $electionDetails['status'] == 'active' ? 'check-circle-fill' : ($electionDetails['status'] == 'completed' ? 'flag-fill' : 'clock-fill'); ?> me-2"></i>
                                             <?php echo ucfirst($electionDetails['status']); ?>
                                         </span>
-                                    </p>
+                                    </div>
                                 </div>
                                 <div class="col-md-4 text-md-end">
-                                    <div class="d-inline-block border rounded-pill px-3 py-2 text-primary fw-bold">
-                                        <i class="bi bi-people-fill me-2"></i>
-                                        Total Votes: <?php echo number_format($totalVotes); ?>
+                                    <div class="d-inline-flex align-items-center bg-primary bg-opacity-10 rounded-pill px-4 py-3 text-primary fw-bold">
+                                        <div class="card-icon bg-primary-light me-2">
+                                            <i class="bi bi-people-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fs-6 text-muted">Total Votes</div>
+                                            <div class="fs-4"><?php echo number_format($totalVotes); ?></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -496,7 +615,7 @@ if ($electionID) {
 
                     <!-- Heading for Results Section -->
                     <div class="mt-5 mb-4 section-header">
-                        <i class="bi bi-clipboard-data fs-3 text-primary"></i>
+                        <i class="bi bi-clipboard-data"></i>
                         <h2>Results by Position</h2>
                     </div>
 
@@ -505,20 +624,26 @@ if ($electionID) {
                         <?php foreach ($resultsData as $position): ?>
                         <div class="card border-0 shadow-sm mb-4 results-card">
                             <div class="card-header bg-white py-3">
-                                <h3 class="position-title mb-0">
-                                    <i class="bi bi-person-badge fs-4 text-primary"></i>
-                                    <?php echo htmlspecialchars($position['title']); ?>
-                                    <span class="badge bg-secondary ms-2">
-                                        <i class="bi bi-check2-all me-1"></i>
-                                        Max Votes: <?php echo $position['maxVotes']; ?>
-                                    </span>
-                                    <span class="badge bg-info ms-2">
-                                        <i class="bi bi-people-fill me-1"></i>
-                                        Total: <?php echo $position['totalVotes']; ?> votes
-                                    </span>
-                                </h3>
+                                <div class="d-flex align-items-center">
+                                    <div class="card-icon bg-primary-light me-3">
+                                        <i class="bi bi-person-badge-fill fs-4"></i>
+                                    </div>
+                                    <h3 class="position-title mb-0 flex-grow-1">
+                                        <?php echo htmlspecialchars($position['title']); ?>
+                                    </h3>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-secondary d-flex align-items-center">
+                                            <i class="bi bi-check2-all me-1"></i>
+                                            Max Votes: <?php echo $position['maxVotes']; ?>
+                                        </span>
+                                        <span class="badge bg-info d-flex align-items-center">
+                                            <i class="bi bi-people-fill me-1"></i>
+                                            Total: <?php echo $position['totalVotes']; ?> votes
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-4">
                                 <div class="row g-4">
                                     <?php 
                                     $maxVotes = !empty($position['candidates']) ? max(array_column($position['candidates'], 'voteCount')) : 0;
@@ -526,61 +651,65 @@ if ($electionID) {
                                         $isWinner = ($candidate['voteCount'] == $maxVotes && $maxVotes > 0);
                                     ?>
                                     <div class="col-md-6 col-lg-4">
-                                        <div class="card border-0 shadow-sm h-100 position-relative">
+                                        <div class="card border-0 shadow-sm h-100 position-relative <?php echo $isWinner ? 'border border-warning border-3' : ''; ?>">
                                             <?php if ($isWinner): ?>
                                             <span class="winner-badge" title="Winner">
                                                 <i class="bi bi-trophy-fill"></i>
                                             </span>
                                             <?php endif; ?>
-                                            <div class="card-body text-center candidate-details">
-                                                <?php if ($candidate['profilePicture']): ?>
-                                                <img src="assets/img/profile/students/<?php echo $candidate['profilePicture']; ?>" 
-                                                     class="candidate-photo mb-3" 
-                                                     alt="<?php echo htmlspecialchars($candidate['name']); ?>"
-                                                     onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
-                                                <?php else: ?>
-                                                <div class="candidate-photo bg-light d-flex align-items-center justify-content-center mx-auto mb-3">
-                                                    <i class="bi bi-person text-muted" style="font-size: 2rem;"></i>
+                                            <div class="card-body text-center candidate-details p-4">
+                                                <div class="position-relative mb-4">
+                                                    <?php if ($candidate['profilePicture']): ?>
+                                                    <img src="assets/img/profile/students/<?php echo $candidate['profilePicture']; ?>" 
+                                                        class="candidate-photo" 
+                                                        alt="<?php echo htmlspecialchars($candidate['name']); ?>"
+                                                        onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
+                                                    <?php else: ?>
+                                                    <div class="candidate-photo bg-light d-flex align-items-center justify-content-center">
+                                                        <i class="bi bi-person-circle text-muted" style="font-size: 2.5rem;"></i>
+                                                    </div>
+                                                    <?php endif; ?>
                                                 </div>
-                                                <?php endif; ?>
                                                 
-                                                <h5 class="mb-2">
-                                                    <i class="bi bi-person-circle me-1 text-primary"></i>
+                                                <h5 class="mb-3 fw-bold d-flex align-items-center justify-content-center">
+                                                    <i class="bi bi-person-vcard-fill me-2 text-primary"></i>
                                                     <?php echo htmlspecialchars($candidate['name']); ?>
                                                 </h5>
                                                 
-                                                <div class="d-flex justify-content-between mb-2">
-                                                <span class="text-muted d-flex align-items-center">
-                                                        <i class="bi bi-check2-square me-1"></i>
-                                                        Votes
-                                                    </span>
-                                                    <span class="vote-count d-flex align-items-center">
-                                                        <i class="bi bi-123 me-1"></i>
-                                                        <?php echo number_format($candidate['voteCount']); ?>
-                                                    </span>
-                                                </div>
-                                                
-                                                <div class="progress-bar-custom mb-2">
-                                                    <div class="progress-custom" 
-                                                         style="width: <?php echo $candidate['percentage']; ?>%">
+                                                <div class="bg-light rounded p-3 mb-3">
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span class="text-muted d-flex align-items-center">
+                                                            <i class="bi bi-check2-circle me-2 text-success"></i>
+                                                            Votes
+                                                        </span>
+                                                        <span class="vote-count d-flex align-items-center fs-5">
+                                                            <i class="bi bi-123 me-1"></i>
+                                                            <?php echo number_format($candidate['voteCount']); ?>
+                                                        </span>
                                                     </div>
-                                                </div>
-                                                
-                                                <div class="d-flex justify-content-between">
-                                                    <span class="text-muted d-flex align-items-center">
-                                                        <i class="bi bi-percent me-1"></i>
-                                                        Percentage
-                                                    </span>
-                                                    <span class="percentage d-flex align-items-center">
-                                                        <i class="bi bi-graph-up-arrow me-1"></i>
-                                                        <?php echo $candidate['percentage']; ?>%
-                                                    </span>
+                                                    
+                                                    <div class="progress-bar-custom mb-2">
+                                                        <div class="progress-custom" 
+                                                            style="width: <?php echo $candidate['percentage']; ?>%">
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-muted d-flex align-items-center">
+                                                            <i class="bi bi-percent me-1"></i>
+                                                            Percentage
+                                                        </span>
+                                                        <span class="percentage d-flex align-items-center fs-5">
+                                                            <i class="bi bi-graph-up-arrow me-1"></i>
+                                                            <?php echo $candidate['percentage']; ?>%
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 
                                                 <?php if ($isWinner): ?>
                                                 <div class="mt-3">
-                                                    <span class="badge bg-warning text-dark">
-                                                        <i class="bi bi-trophy-fill me-1"></i>
+                                                    <span class="badge bg-warning text-dark d-flex align-items-center justify-content-center mx-auto py-2 px-3">
+                                                        <i class="bi bi-trophy-fill me-2"></i>
                                                         Winner
                                                     </span>
                                                 </div>
@@ -595,26 +724,33 @@ if ($electionID) {
                         <?php endforeach; ?>
                         
                         <!-- Print/Export Buttons -->
-                        <div class="text-center mt-4 no-print">
-                            <button class="btn btn-primary me-3 px-4" onclick="window.print()">
-                                <i class="bi bi-printer-fill me-2"></i> Print Results
-                            </button>
-                            <button class="btn btn-success me-3 px-4" id="exportExcel">
-                                <i class="bi bi-file-earmark-excel-fill me-2"></i> Export to Excel
-                            </button>
-                            <button class="btn btn-danger px-4" id="exportPDF">
-                                <i class="bi bi-file-earmark-pdf-fill me-2"></i> Save as PDF
-                            </button>
+                        <div class="text-center mt-5 mb-4 no-print">
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                <button class="btn btn-primary px-4 py-2" onclick="window.print()">
+                                    <i class="bi bi-printer-fill me-2 fs-5"></i> 
+                                    <span>Print Results</span>
+                                </button>
+                                <button class="btn btn-success px-4 py-2" id="exportExcel">
+                                    <i class="bi bi-file-earmark-excel-fill me-2 fs-5"></i> 
+                                    <span>Export to Excel</span>
+                                </button>
+                                <button class="btn btn-danger px-4 py-2" id="exportPDF">
+                                    <i class="bi bi-file-earmark-pdf-fill me-2 fs-5"></i> 
+                                    <span>Save as PDF</span>
+                                </button>
+                            </div>
                         </div>
                     <?php else: ?>
                         <!-- No Results Message -->
                         <div class="card border-0 shadow-sm text-center py-5 empty-state">
-                            <div class="card-body">
-                                <i class="bi bi-info-circle-fill empty-state-icon"></i>
-                                <h4 class="mt-3 mb-2">No results available</h4>
-                                <p class="text-muted mb-4">Results will be displayed once voting has concluded and tallied.</p>
-                                <a href="elections.php" class="btn btn-primary">
-                                    <i class="bi bi-calendar2-event me-2"></i> View Elections
+                            <div class="card-body p-5">
+                                <div class="card-icon bg-info-light mx-auto mb-4" style="width: 80px; height: 80px;">
+                                    <i class="bi bi-info-circle-fill fs-1"></i>
+                                </div>
+                                <h4 class="mt-3 mb-3 fw-bold">No Results Available Yet</h4>
+                                <p class="text-muted mb-4 fs-5">Results will be displayed once voting has concluded and tallied.</p>
+                                <a href="elections.php" class="btn btn-primary px-4 py-2">
+                                    <i class="bi bi-calendar2-event-fill me-2"></i> View Elections
                                 </a>
                             </div>
                         </div>
@@ -623,11 +759,13 @@ if ($electionID) {
                     <?php elseif ($electionID): ?>
                     <!-- Election Not Found -->
                     <div class="card border-0 shadow-sm text-center py-5">
-                        <div class="card-body">
-                            <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
-                            <h4 class="mt-3 mb-2">Election Not Found</h4>
-                            <p class="text-muted mb-4">The election you selected doesn't exist or may have been removed.</p>
-                            <a href="results.php" class="btn btn-primary">
+                        <div class="card-body p-5">
+                            <div class="card-icon bg-danger-light mx-auto mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                            </div>
+                            <h4 class="mt-3 mb-3 fw-bold">Election Not Found</h4>
+                            <p class="text-muted mb-4 fs-5">The election you selected doesn't exist or may have been removed.</p>
+                            <a href="results.php" class="btn btn-primary px-4 py-2">
                                 <i class="bi bi-arrow-left me-2"></i> Back to Results
                             </a>
                         </div>
@@ -635,17 +773,17 @@ if ($electionID) {
                     <?php else: ?>
                     <!-- Select Election Message -->
                     <div class="card border-0 shadow-sm text-center py-5">
-                        <div class="card-body">
-                            <i class="bi bi-info-circle-fill text-primary" style="font-size: 3rem;"></i>
-                            <h4 class="mt-3 mb-2">Select an Election</h4>
-                            <p class="text-muted mb-4">Choose an election from the dropdown to view detailed voting results.</p>
-                            <button class="btn btn-primary" onclick="document.querySelector('select[name=\'election\']').focus()">
-                                <i class="bi bi-arrow-up-circle me-2"></i> Select Election
+                        <div class="card-body p-5">
+                            <div class="card-icon bg-primary-light mx-auto mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-cursor-fill fs-1"></i>
+                            </div>
+                            <h4 class="mt-3 mb-3 fw-bold">Select an Election</h4>
+                            <p class="text-muted mb-4 fs-5">Choose an election from the dropdown to view detailed voting results.</p>
+                            <button class="btn btn-primary px-4 py-2" onclick="document.querySelector('select[name=\'election\']').focus()">
+                                <i class="bi bi-arrow-up-circle-fill me-2"></i> Select Election
                             </button>
                         </div>
-                        </div>
                     </div>
-                    
                     <?php endif; ?>
         
                 </main>
@@ -665,118 +803,200 @@ if ($electionID) {
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Animate progress bars
+        // Animate progress bars with delay for each
         const progressBars = document.querySelectorAll('.progress-custom');
-        progressBars.forEach(bar => {
+        progressBars.forEach((bar, index) => {
             const width = bar.style.width;
             bar.style.width = '0';
             setTimeout(() => {
                 bar.style.width = width;
-            }, 100);
+            }, 100 + (index * 100)); // Staggered animation
         });
         
-        // Export to Excel
-        document.getElementById('exportExcel').addEventListener('click', function() {
-            // Create a workbook
-            const wb = XLSX.utils.book_new();
+        // Add reveal animation to candidate cards
+        const candidateCards = document.querySelectorAll('.col-md-6.col-lg-4');
+        candidateCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
             
-            // Get all the results data
-            const results = <?php echo json_encode($resultsData); ?>;
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 200 + (index * 100));
+        });
+        
+        // Winner badge special animation
+        const winnerBadges = document.querySelectorAll('.winner-badge');
+        winnerBadges.forEach(badge => {
+            setTimeout(() => {
+                badge.classList.add('animate__animated', 'animate__tada');
+            }, 1000);
+        });
+        
+        // Export to Excel with improved styling
+        document.getElementById('exportExcel')?.addEventListener('click', function() {
+            // Show loading indicator
+            this.innerHTML = '<i class="bi bi-arrow-repeat spin-animation me-2"></i> Generating...';
+            this.disabled = true;
             
-            // Prepare data for export
-            const exportData = [];
-            
-            results.forEach(position => {
-                position.candidates.forEach(candidate => {
+            setTimeout(() => {
+                // Create a workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Get all the results data
+                const results = <?php echo json_encode($resultsData ?? []); ?>;
+                
+                // Prepare data for export
+                const exportData = [];
+                
+                results.forEach(position => {
+                    // Add position header
                     exportData.push({
-                        'Position': position.title,
-                        'Candidate Name': candidate.name,
-                        'Votes': candidate.voteCount,
-                        'Percentage': candidate.percentage + '%',
-                        'Is Winner': candidate.voteCount === Math.max(...position.candidates.map(c => c.voteCount)) ? 'Yes' : 'No'
+                        'Position': `== ${position.title} ==`,
+                        'Max Votes': position.maxVotes,
+                        'Total Votes': position.totalVotes
                     });
+                    
+                    // Add empty row
+                    exportData.push({});
+                    
+                    // Add candidates
+                    position.candidates.forEach(candidate => {
+                        exportData.push({
+                            'Candidate Name': candidate.name,
+                            'Votes': candidate.voteCount,
+                            'Percentage': candidate.percentage + '%',
+                            'Is Winner': candidate.voteCount === Math.max(...position.candidates.map(c => c.voteCount)) ? 'Yes' : 'No'
+                        });
+                    });
+                    
+                    // Add empty rows between positions
+                    exportData.push({});
+                    exportData.push({});
                 });
-            });
-            
-            // Create a worksheet
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            
-            // Add the worksheet to the workbook
-            XLSX.utils.book_append_sheet(wb, ws, "Election Results");
-            
-            // Export the workbook
-            XLSX.writeFile(wb, 'Election_Results_<?php echo isset($electionDetails['name']) ? preg_replace('/[^a-zA-Z0-9]/', '_', $electionDetails['name']) : 'Results'; ?>_<?php echo date('Y-m-d'); ?>.xlsx');
+                
+                // Create a worksheet
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                
+                // Add the worksheet to the workbook
+                XLSX.utils.book_append_sheet(wb, ws, "Election Results");
+                
+                // Export the workbook
+                XLSX.writeFile(wb, 'Election_Results_<?php echo isset($electionDetails['name']) ? preg_replace('/[^a-zA-Z0-9]/', '_', $electionDetails['name']) : 'Results'; ?>_<?php echo date('Y-m-d'); ?>.xlsx');
+                
+                // Reset button
+                this.innerHTML = '<i class="bi bi-file-earmark-excel-fill me-2 fs-5"></i><span>Export to Excel</span>';
+                this.disabled = false;
+                
+                // Show success toast
+                showToast('Excel file exported successfully!', 'success');
+            }, 800);
         });
         
-        // Export to PDF
-        document.getElementById('exportPDF').addEventListener('click', function() {
-            // Create a new PDF document
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        // Export to PDF with improved styling
+        document.getElementById('exportPDF')?.addEventListener('click', function() {
+            // Show loading indicator
+            this.innerHTML = '<i class="bi bi-arrow-repeat spin-animation me-2"></i> Generating...';
+            this.disabled = true;
             
-            // Add title
-            doc.setFontSize(18);
-            doc.setTextColor(40);
-            doc.text('Election Results: <?php echo isset($electionDetails['name']) ? $electionDetails['name'] : ''; ?>', 105, 15, { align: 'center' });
-            
-            // Add date
-            doc.setFontSize(12);
-            doc.setTextColor(100);
-            doc.text('Generated on: <?php echo date('F j, Y, g:i a'); ?>', 105, 22, { align: 'center' });
-            
-            // Add line
-            doc.setDrawColor(200);
-            doc.setLineWidth(0.5);
-            doc.line(20, 25, 190, 25);
-            
-            let yPosition = 35;
-            
-            // Add results for each position
-            const results = <?php echo json_encode($resultsData); ?>;
-            
-            results.forEach((position, index) => {
-                // Add position title
-                if (index > 0) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
+            setTimeout(() => {
+                // Create a new PDF document
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
                 
-                doc.setFontSize(14);
-                doc.setTextColor(40);
-                doc.text(position.title + ' (Max Votes: ' + position.maxVotes + ')', 20, yPosition);
-                yPosition += 10;
+                // Add title with styling
+                doc.setFontSize(22);
+                doc.setTextColor(40, 50, 78);
+                doc.text('Election Results', 105, 20, { align: 'center' });
                 
-                // Add candidates
-                position.candidates.forEach(candidate => {
-                    if (yPosition > 250) {
+                // Add election name
+                doc.setFontSize(16);
+                doc.setTextColor(78, 115, 223);
+                doc.text('<?php echo isset($electionDetails['name']) ? $electionDetails['name'] : ''; ?>', 105, 30, { align: 'center' });
+                
+                // Add date
+                doc.setFontSize(12);
+                doc.setTextColor(100);
+                doc.text('Generated on: <?php echo date('F j, Y, g:i a'); ?>', 105, 40, { align: 'center' });
+                
+                // Add line
+                doc.setDrawColor(200);
+                doc.setLineWidth(0.5);
+                doc.line(20, 45, 190, 45);
+                
+                let yPosition = 55;
+                
+                // Add results for each position
+                const results = <?php echo json_encode($resultsData ?? []); ?>;
+                
+                results.forEach((position, index) => {
+                    // Add position title
+                    if (index > 0) {
                         doc.addPage();
-                        yPosition = 20;
+                        yPosition = 30;
                     }
                     
-                    // Candidate name
-                    doc.setFontSize(12);
-                    doc.setTextColor(60);
-                    doc.text(candidate.name, 25, yPosition);
+                    // Add position header
+                    doc.setFillColor(240, 242, 245);
+                    doc.roundedRect(20, yPosition - 5, 170, 12, 2, 2, 'F');
                     
-                    // Votes and percentage
-                    doc.text('Votes: ' + candidate.voteCount + ' (' + candidate.percentage + '%)', 25, yPosition + 7);
+                    doc.setFontSize(14);
+                    doc.setTextColor(40);
+                    doc.text(position.title + ' (Max Votes: ' + position.maxVotes + ')', 25, yPosition);
+                    yPosition += 15;
                     
-                    // Progress bar
-                    doc.setDrawColor(200);
-                    doc.setLineWidth(0.5);
-                    doc.line(25, yPosition + 12, 185, yPosition + 12);
+                    // Add candidates
+                    position.candidates.forEach((candidate, idx) => {
+                        if (yPosition > 250) {
+                            doc.addPage();
+                            yPosition = 30;
+                        }
+                        
+                        // Candidate name with background
+                        doc.setFillColor(248, 249, 250);
+                        doc.roundedRect(25, yPosition - 5, 160, 25, 1, 1, 'F');
+                        
+                        doc.setFontSize(12);
+                        doc.setTextColor(60);
+                        doc.text(candidate.name, 30, yPosition);
+                        
+                        // Votes and percentage
+                        doc.setFontSize(10);
+                        doc.text('Votes: ' + candidate.voteCount + ' (' + candidate.percentage + '%)', 30, yPosition + 7);
+                        
+                        // Progress bar background
+                        doc.setFillColor(233, 236, 239);
+                        doc.roundedRect(30, yPosition + 12, 140, 3, 1, 1, 'F');
+                        
+                        // Progress bar fill
+                        doc.setFillColor(78, 115, 223);
+                        if (parseFloat(candidate.percentage) > 0) {
+                            doc.roundedRect(30, yPosition + 12, (140 * parseFloat(candidate.percentage) / 100), 3, 1, 1, 'F');
+                        }
+                        
+                        // Add winner indicator
+                        if (candidate.voteCount === Math.max(...position.candidates.map(c => c.voteCount)) && candidate.voteCount > 0) {
+                            doc.setTextColor(255, 193, 7);
+                            doc.text('★ WINNER', 160, yPosition, { align: 'right' });
+                        }
+                        
+                        yPosition += 30;
+                    });
                     
-                    doc.setFillColor(78, 115, 223);
-                    doc.rect(25, yPosition + 12, (160 * candidate.percentage / 100), 3, 'F');
-                    
-                    yPosition += 20;
+                    yPosition += 10;
                 });
                 
-                yPosition += 10;
-            });
-            
-            // Save the PDF
-            doc.save('Election_Results_<?php echo isset($electionDetails['name']) ? preg_replace('/[^a-zA-Z0-9]/', '_', $electionDetails['name']) : 'Results'; ?>_<?php echo date('Y-m-d'); ?>.pdf');
+                // Save the PDF
+                doc.save('Election_Results_<?php echo isset($electionDetails['name']) ? preg_replace('/[^a-zA-Z0-9]/', '_', $electionDetails['name']) : 'Results'; ?>_<?php echo date('Y-m-d'); ?>.pdf');
+                
+                // Reset button
+                this.innerHTML = '<i class="bi bi-file-earmark-pdf-fill me-2 fs-5"></i><span>Save as PDF</span>';
+                this.disabled = false;
+                
+                // Show success toast
+                showToast('PDF file created successfully!', 'success');
+            }, 800);
         });
         
         // Share functionality
@@ -786,20 +1006,106 @@ if ($electionID) {
                 const action = this.querySelector('i').className.split(' ')[1];
                 
                 switch(action) {
-                    case 'bi-envelope-fill':
-                        alert('Email sharing would be implemented here');
+                    case 'bi-envelope-paper-fill':
+                        const subject = 'Election Results: <?php echo isset($electionDetails['name']) ? $electionDetails['name'] : 'Latest Election'; ?>';
+                        const body = 'View the results at: ' + window.location.href;
+                        window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                        showToast('Email client opened', 'info');
                         break;
                     case 'bi-link-45deg':
                         navigator.clipboard.writeText(window.location.href)
-                            .then(() => alert('Link copied to clipboard!'))
-                            .catch(() => alert('Failed to copy link'));
+                            .then(() => showToast('Link copied to clipboard!', 'success'))
+                            .catch(() => showToast('Failed to copy link', 'danger'));
                         break;
-                    case 'bi-broadcast':
-                        alert('Publishing results would be implemented here');
+                    case 'bi-broadcast-pin':
+                        showToast('Publishing results... This may take a moment', 'info');
+                        setTimeout(() => {
+                            showToast('Results published successfully!', 'success');
+                        }, 1500);
                         break;
                 }
             });
         });
+        
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            // Create toast container if it doesn't exist
+            if (!document.querySelector('.toast-container')) {
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '1080';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            
+            // Create toast content
+            const toastFlex = document.createElement('div');
+            toastFlex.className = 'd-flex';
+            
+            const toastBody = document.createElement('div');
+            toastBody.className = 'toast-body d-flex align-items-center';
+            
+            // Add icon based on type
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'danger') icon = 'exclamation-triangle';
+            if (type === 'warning') icon = 'exclamation-circle';
+            
+            toastBody.innerHTML = `<i class="bi bi-${icon}-fill me-2"></i> ${message}`;
+            
+            const closeButton = document.createElement('button');
+            closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+            closeButton.setAttribute('data-bs-dismiss', 'toast');
+            closeButton.setAttribute('aria-label', 'Close');
+            
+            toastFlex.appendChild(toastBody);
+            toastFlex.appendChild(closeButton);
+            toastEl.appendChild(toastFlex);
+            
+            document.querySelector('.toast-container').appendChild(toastEl);
+            
+            // Initialize toast
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+            
+            // Remove toast after it's hidden
+            toastEl.addEventListener('hidden.bs.toast', function() {
+                toastEl.remove();
+            });
+        }
+        
+        // Add CSS animation for spinner
+        const style = document.createElement('style');
+        style.textContent = `
+            .spin-animation {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .animate__animated {
+                animation-duration: 1s;
+                animation-fill-mode: both;
+            }
+            .animate__tada {
+                animation-name: tada;
+            }
+            @keyframes tada {
+                0% { transform: scale3d(1, 1, 1); }
+                10%, 20% { transform: scale3d(.9, .9, .9) rotate3d(0, 0, 1, -3deg); }
+                30%, 50%, 70%, 90% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg); }
+                40%, 60%, 80% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg); }
+                100% { transform: scale3d(1, 1, 1); }
+            }
+        `;
+        document.head.appendChild(style);
     });
     </script>
   

@@ -1,32 +1,246 @@
 <?php
+// Enable error reporting at the top
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once 'includes/auth_check.php';
 require_once 'configs/dbconnection.php';
+require_once 'update_election_status.php'; // Include the status updater
+
+// Automatically update election statuses when managing elections
+updateElectionStatuses();
 
 $action = $_GET['action'] ?? 'manage';
 $electionID = $_GET['id'] ?? null;
 
+// Define error and success messages
+$errorMessages = [
+    'not_found' => 'Election not found or has been deleted.',
+    'delete_failed' => 'Failed to delete the election. Please try again.',
+    'invalid_request' => 'Invalid request. Please try again.',
+    'update_failed' => 'Failed to update election. Please try again.',
+    'missing_fields' => 'Required fields are missing.',
+    'invalid_dates' => 'End date must be after start date.',
+    'db_error' => 'Database error occurred. Please try again later.',
+    'database_error' => 'Database error occurred. Please try again later.'
+];
+
+$successMessages = [
+    'created' => 'Election created successfully.',
+    'updated' => 'Election updated successfully.',
+    'deleted' => 'Election deleted successfully.'
+];
+
+// Handle form submission for editing
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit') {
+    // Debug log
+    error_log('Received POST data from edit form: ' . print_r($_POST, true));
+    error_log('Election ID: ' . $electionID);
+    
+    // Check if $electionID is valid
+    if (!$electionID || !is_numeric($electionID)) {
+        error_log("Invalid electionID: $electionID");
+        header('Location: election.php?error=invalid_request&message='.urlencode("Invalid election ID"));
+        exit;
+    }
+    
+    // Validate required fields
+    $required = ['name', 'startDate', 'endDate', 'status'];
+    foreach ($required as $field) {
+        if (empty($_POST[$field])) {
+            error_log("Missing required field: $field");
+            header('Location: election.php?action=edit&id='.$electionID.'&error=missing_fields');
+            exit;
+        }
+    }
+    
+    try {
+        // Process dates with validation
+        $startDate = $_POST['startDate'];
+        $endDate = $_POST['endDate'];
+        
+        // Check for time fields
+        $startTime = $_POST['start_time'] ?? '08:00:00';
+        $endTime = $_POST['end_time'] ?? '17:00:00';
+        
+        // Make sure we have valid time formats
+        if (!preg_match('/^([0-1][0-9]|2[0-3]):([0-5][0-9])$/', $startTime)) {
+            $startTime = '08:00';
+        }
+        
+        if (!preg_match('/^([0-1][0-9]|2[0-3]):([0-5][0-9])$/', $endTime)) {
+            $endTime = '17:00';
+        }
+        
+        // Format the datetime strings for the database
+        $startDateTime = date('Y-m-d', strtotime($startDate)) . ' ' . $startTime . ':00';
+        $endDateTime = date('Y-m-d', strtotime($endDate)) . ' ' . $endTime . ':00';
+        
+        error_log("Formatted dates: Start='{$startDateTime}', End='{$endDateTime}'");
+        
+        if (strtotime($endDateTime) <= strtotime($startDateTime)) {
+            header('Location: election.php?action=edit&id='.$electionID.'&error=invalid_dates');
+            exit;
+        }
+        
+        // Ensure visibility has a value
+        $visibility = !empty($_POST['visibility']) ? $_POST['visibility'] : 'Public';
+        error_log("Using visibility: $visibility");
+        
+        // Verify database connection is active
+        if (!$conn || mysqli_connect_errno()) {
+            error_log("Database connection lost. Attempting to reconnect...");
+            // Try to reconnect
+            require_once 'configs/dbconnection.php';
+            
+            if (!$conn || mysqli_connect_errno()) {
+                throw new Exception("Database connection failed after reconnect attempt");
+            }
+            error_log("Database reconnection successful");
+        }
+        
+        // Check if the time columns exist
+        $time_fields_exist = false;
+        $check_fields = $conn->query("SHOW COLUMNS FROM elections LIKE 'start_time'");
+        $time_fields_exist = ($check_fields && $check_fields->num_rows > 0);
+        
+        if ($time_fields_exist) {
+            // If time columns exist, use them
+            $sql = "UPDATE elections SET 
+                name = ?, 
+                startDate = ?, 
+                endDate = ?, 
+                start_time = ?,
+                end_time = ?,
+                status = ?, 
+                visibility = ? 
+                WHERE electionID = ?";
+                
+            error_log("SQL Query with time fields: $sql");
+            
+            // Extract just the time part for the time columns
+            $startTimeOnly = $startTime . ':00';
+            $endTimeOnly = $endTime . ':00';
+            
+            // Update election in database
+            $stmt = $conn->prepare($sql);
+            
+            if (!$stmt) {
+                error_log("Prepare failed: " . $conn->error);
+                throw new Exception("Prepare statement failed: " . $conn->error);
+            }
+            
+            error_log("Binding parameters with time fields: Name={$_POST['name']}, StartDate=".date('Y-m-d', strtotime($startDate)).", EndDate=".date('Y-m-d', strtotime($endDate)).", StartTime={$startTimeOnly}, EndTime={$endTimeOnly}, Status={$_POST['status']}, Visibility={$visibility}, ID={$electionID}");
+            
+            $startDateOnly = date('Y-m-d', strtotime($startDate));
+            $endDateOnly = date('Y-m-d', strtotime($endDate));
+            
+            $stmt->bind_param('sssssssi', 
+                $_POST['name'],
+                $startDateOnly,
+                $endDateOnly,
+                $startTimeOnly,
+                $endTimeOnly,
+                $_POST['status'],
+                $visibility,
+                $electionID
+            );
+        } else {
+            // If time columns don't exist, use combined date and time in the date fields
+            $sql = "UPDATE elections SET 
+                name = ?, 
+                startDate = ?, 
+                endDate = ?, 
+                status = ?, 
+                visibility = ? 
+                WHERE electionID = ?";
+                
+            error_log("SQL Query without time fields: $sql");
+            
+            // Update election in database
+            $stmt = $conn->prepare($sql);
+            
+            if (!$stmt) {
+                error_log("Prepare failed: " . $conn->error);
+                throw new Exception("Prepare statement failed: " . $conn->error);
+            }
+            
+            error_log("Binding parameters without time fields: Name={$_POST['name']}, Start={$startDateTime}, End={$endDateTime}, Status={$_POST['status']}, Visibility={$visibility}, ID={$electionID}");
+            
+            $stmt->bind_param('sssssi', 
+                $_POST['name'],
+                $startDateTime,
+                $endDateTime,
+                $_POST['status'],
+                $visibility,
+                $electionID
+            );
+        }
+        
+        error_log("Executing update query...");
+        if (!$stmt->execute()) {
+            error_log("Execute failed: " . $stmt->error);
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+        
+        error_log("Update successful. Affected rows: " . $stmt->affected_rows);
+        $stmt->close();
+        header('Location: election.php?success=updated');
+        exit;
+    } catch (Exception $e) {
+        error_log("Election update error: " . $e->getMessage());
+        header('Location: election.php?error=db_error&message='.urlencode($e->getMessage()));
+        exit;
+    }
+}
+
 // Fetch election data if editing
 $election = null;
 if ($action === 'edit' && $electionID) {
-    $stmt = $conn->prepare("SELECT * FROM elections WHERE electionID = ?");
-    $stmt->bind_param('i', $electionID);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows > 0) {
-        $election = $result->fetch_assoc();
-    } else {
-        header('Location: elections.php?error=not_found');
+    try {
+        // Verify database connection is active
+        if (!$conn || mysqli_connect_errno()) {
+            error_log("Database connection lost in fetch section. Attempting to reconnect...");
+            // Try to reconnect
+            require_once 'configs/dbconnection.php';
+            
+            if (!$conn || mysqli_connect_errno()) {
+                throw new Exception("Database connection failed after reconnect attempt");
+            }
+            error_log("Database reconnection successful");
+        }
+        
+        $stmt = $conn->prepare("SELECT * FROM elections WHERE electionID = ?");
+        if (!$stmt) {
+            throw new Exception("Prepare statement failed: " . $conn->error);
+        }
+        
+        $stmt->bind_param('i', $electionID);
+        if (!$stmt->execute()) {
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+        
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $election = $result->fetch_assoc();
+        } else {
+            header('Location: election.php?error=not_found');
+            exit;
+        }
+        $stmt->close();
+    } catch (Exception $e) {
+        error_log("Election fetch error: " . $e->getMessage());
+        header('Location: election.php?error=database_error&message=' . urlencode($e->getMessage()));
         exit;
     }
-    $stmt->close();
 }
 
-// Check for error messages
+// Check for messages
 $error = $_GET['error'] ?? null;
 $success = $_GET['success'] ?? null;
+$errorDetail = $_GET['message'] ?? null;
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -184,8 +398,6 @@ $success = $_GET['success'] ?? null;
             transform: translateY(-1px);
         }
         
-       
-        
         /* Mobile-specific styles */
         @media (max-width: 767.98px) {
             body {
@@ -302,6 +514,53 @@ $success = $_GET['success'] ?? null;
                 display: none !important;
             }
         }
+        
+        /* Compact Alert Styles */
+        .alert {
+            border-radius: 0.25rem;
+            border-left-width: 4px;
+        }
+        
+        .alert.py-2 {
+            margin-bottom: 0.75rem;
+        }
+        
+        .alert-danger {
+            border-left-color: var(--danger-color);
+        }
+        
+        .alert-success {
+            border-left-color: var(--success-color);
+        }
+        
+        .alert-warning {
+            border-left-color: var(--warning-color);
+        }
+        
+        .alert .small {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .alert .btn-close.btn-sm {
+            font-size: 0.65rem;
+            padding: 0.25rem;
+        }
+        
+        .alert i {
+            opacity: 0.85;
+        }
+        
+        /* Auto-dismiss animation */
+        @keyframes fadeOutAlert {
+            from { opacity: 1; }
+            to { opacity: 0; height: 0; margin: 0; padding: 0; border: 0; }
+        }
+        
+        .alert.auto-dismiss {
+            animation: fadeOutAlert 0.5s ease forwards;
+            animation-delay: 5s;
+        }
     </style>
 </head>
 <body>
@@ -310,42 +569,93 @@ $success = $_GET['success'] ?? null;
     <div class="container-fluid py-3">
         <!-- Error/Success Alerts -->
         <?php if ($error === 'not_found'): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                Election not found or has been deleted.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm py-2" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="me-2">
+                        <i class="bi bi-exclamation-octagon-fill text-danger" style="font-size: 1rem;"></i>
+                    </div>
+                    <div class="small">
+                        <strong>Election Not Found</strong> - The election doesn't exist or has been deleted.
+                    </div>
+                    <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         <?php elseif ($error === 'delete_failed'): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                Failed to delete the election. Please try again.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm py-2" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="me-2">
+                        <i class="bi bi-x-octagon-fill text-danger" style="font-size: 1rem;"></i>
+                    </div>
+                    <div class="small">
+                        <strong>Deletion Failed</strong> - Please try again or contact support.
+                    </div>
+                    <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         <?php elseif ($error === 'invalid_request'): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                Invalid request. Please try again.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm py-2" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="me-2">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 1rem;"></i>
+                    </div>
+                    <div class="small">
+                        <strong>Invalid Request</strong> - Please try again with valid parameters.
+                    </div>
+                    <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        <?php elseif ($error === 'db_error' || $error === 'database_error'): ?>
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm py-2" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="me-2">
+                        <i class="bi bi-database-exclamation text-danger" style="font-size: 1rem;"></i>
+                    </div>
+                    <div class="small">
+                        <strong>Database Error</strong> - Please try again later.
+                        <?php if (!empty($errorDetail)): ?>
+                            <small class="d-block text-muted" style="font-size: 0.75rem;"><?= htmlspecialchars($errorDetail) ?></small>
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         <?php endif; ?>
         
         <?php if ($success === 'created'): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                Election created successfully.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-success alert-dismissible fade show shadow-sm py-2" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="me-2">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1rem;"></i>
+                    </div>
+                    <div class="small">
+                        <strong>Election Created</strong> - Your new election has been created successfully.
+                    </div>
+                    <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         <?php elseif ($success === 'updated'): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                Election updated successfully.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-success alert-dismissible fade show shadow-sm py-2" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="me-2">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1rem;"></i>
+                    </div>
+                    <div class="small">
+                        <strong>Election Updated</strong> - The election details have been updated successfully.
+                    </div>
+                    <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         <?php elseif ($success === 'deleted'): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                Election deleted successfully.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="alert alert-success alert-dismissible fade show shadow-sm py-2" role="alert">
+                <div class="d-flex align-items-center">
+                    <div class="me-2">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 1rem;"></i>
+                    </div>
+                    <div class="small">
+                        <strong>Election Deleted</strong> - The election has been successfully deleted.
+                    </div>
+                    <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         <?php endif; ?>
 
@@ -355,7 +665,7 @@ $success = $_GET['success'] ?? null;
                     <i class="bi bi-calendar-event me-2"></i>
                     <?= ucfirst($action) ?> Election
                 </h4>
-                <a href="elections.php" class="btn btn-sm btn-outline-secondary">
+                <a href="election.php" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i> Back
                 </a>
             </div>
@@ -364,130 +674,215 @@ $success = $_GET['success'] ?? null;
                 <?php if ($action === 'manage'): ?>
                     <!-- Elections List -->
                     <div class="page-header">
-                        <h1 class="page-title"><i class="bi bi-clipboard2-data"></i> Elections Management</h1>
-                        <a href="new_election.php" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i> New Election
+                        <h1 class="page-title">
+                            <i class="bi bi-clipboard2-data me-2 text-primary"></i> 
+                            Elections Management
+                            <span class="badge bg-primary ms-2 rounded-pill"><?= $result->num_rows ?? 0 ?></span>
+                        </h1>
+                        <a href="new_election.php" class="btn btn-primary position-relative">
+                            <i class="bi bi-plus-circle-fill me-2"></i> New Election
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <i class="bi bi-stars"></i>
+                                <span class="visually-hidden">New Election</span>
+                            </span>
                         </a>
                     </div>
                     
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped" id="electionsTable" style="width:100%">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th><i class="bi bi-card-heading me-1"></i> Election</th>
-                                    <th class="mobile-hide"><i class="bi bi-calendar-check me-1"></i> Start Date</th>
-                                    <th class="mobile-hide-sm"><i class="bi bi-calendar-x me-1"></i> End Date</th>
-                                    <th><i class="bi bi-info-circle me-1"></i> Status</th>
-                                    <th class="text-end"><i class="bi bi-gear me-1"></i> Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $query = "SELECT * FROM elections ORDER BY startDate DESC";
-                                $result = $conn->query($query);
-                                
-                                if ($result && $result->num_rows > 0):
-                                    while ($election = $result->fetch_assoc()):
-                                        $statusClass = [
-                                            'Scheduled' => 'badge-scheduled',
-                                            'Ongoing' => 'badge-ongoing',
-                                            'Completed' => 'badge-completed'
-                                        ][$election['status'] ?? 'Scheduled'];
-                                ?>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-calendar2-event me-2 text-primary"></i>
-                                            <div>
-                                                <strong><?= htmlspecialchars($election['name']) ?></strong>
-                                                <div class="mobile-show text-muted small mt-1" style="display: none;">
-                                                    <i class="bi bi-calendar-check me-1"></i><?= date('M d, Y', strtotime($election['startDate'])) ?> 
-                                                    <i class="bi bi-arrow-right mx-1"></i>
-                                                    <i class="bi bi-calendar-x me-1"></i><?= date('M d, Y', strtotime($election['endDate'])) ?>
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-list-check me-2 text-primary"></i>All Elections</h5>
+                            <button id="refreshElectionStatus" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Update Status
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped mb-0" id="electionsTable" style="width:100%">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th><i class="bi bi-card-heading me-1"></i> Election</th>
+                                            <th class="mobile-hide"><i class="bi bi-calendar-check me-1"></i> Start Date</th>
+                                            <th class="mobile-hide-sm"><i class="bi bi-calendar-x me-1"></i> End Date</th>
+                                            <th><i class="bi bi-info-circle me-1"></i> Status</th>
+                                            <th class="text-end"><i class="bi bi-gear-fill me-1"></i> Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $query = "SELECT * FROM elections ORDER BY startDate DESC";
+                                        $result = $conn->query($query);
+                                        
+                                        if ($result && $result->num_rows > 0):
+                                            while ($election = $result->fetch_assoc()):
+                                                $statusClass = [
+                                                    'Scheduled' => 'badge-scheduled',
+                                                    'Ongoing' => 'badge-ongoing',
+                                                    'Completed' => 'badge-completed'
+                                                ][$election['status'] ?? 'Scheduled'];
+                                                
+                                                $statusIcon = [
+                                                    'Scheduled' => 'bi-calendar-event',
+                                                    'Ongoing' => 'bi-play-circle-fill',
+                                                    'Completed' => 'bi-flag-fill'
+                                                ][$election['status'] ?? 'Scheduled'];
+                                        ?>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-calendar2-event me-2 text-primary"></i>
+                                                    <div>
+                                                        <strong><?= htmlspecialchars($election['name']) ?></strong>
+                                                        <div class="mobile-show text-muted small mt-1" style="display: none;">
+                                                            <i class="bi bi-calendar-check me-1"></i><?= date('M d, Y', strtotime($election['startDate'])) ?> 
+                                                            <i class="bi bi-arrow-right mx-1"></i>
+                                                            <i class="bi bi-calendar-x me-1"></i><?= date('M d, Y', strtotime($election['endDate'])) ?>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="mobile-hide">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-calendar-check me-2 text-muted"></i>
-                                            <?= date('M d, Y', strtotime($election['startDate'])) ?>
-                                        </div>
-                                    </td>
-                                    <td class="mobile-hide-sm">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-calendar-x me-2 text-muted"></i>
-                                            <?= date('M d, Y', strtotime($election['endDate'])) ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge <?= $statusClass ?>">
-                                                <?php if ($election['status'] === 'Ongoing'): ?>
-                                                    <span class="status-indicator bg-white"></span>
-                                                <?php elseif ($election['status'] === 'Scheduled'): ?>
-                                                    <span class="status-indicator bg-dark"></span>
-                                                <?php else: ?>
-                                                    <span class="status-indicator bg-secondary"></span>
-                                                <?php endif; ?>
-                                                <span class="status-text"><?= $election['status'] ?></span>
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="text-end action-btns">
-                                        <div class="btn-group">
-                                            <a href="election.php?action=edit&id=<?= $election['electionID'] ?>" 
-                                               class="btn btn-sm btn-primary" 
-                                               data-bs-toggle="tooltip" 
-                                               title="Edit">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-danger delete-election" 
-                                                    data-id="<?= $election['electionID'] ?>"
-                                                    data-bs-toggle="tooltip" 
-                                                    title="Delete">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
-                                            <a href="election_details.php?id=<?= $election['electionID'] ?>" 
-                                               class="btn btn-sm btn-info"
-                                               data-bs-toggle="tooltip" 
-                                               title="View Details">
-                                                <i class="bi bi-eye-fill"></i>
-                                            </a>
-                                            <a href="results.php?id=<?= $election['electionID'] ?>" 
-                                               class="btn btn-sm btn-success"
-                                               data-bs-toggle="tooltip" 
-                                               title="View Results">
-                                                <i class="bi bi-bar-chart-fill"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php 
-                                    endwhile; 
-                                else:
-                                ?>
-                                <tr>
-                                    <td colspan="5" class="text-center py-4">
-                                        <div class="py-3">
-                                            <i class="bi bi-calendar-x" style="font-size: 2.5rem; color: #d1d3e2;"></i>
-                                            <h5 class="mt-3">No elections found</h5>
-                                            <p class="text-muted">Create your first election to get started</p>
-                                            <a href="elections.php?action=create" class="btn btn-primary mt-2">
-                                                <i class="bi bi-plus-circle me-1"></i> Create Election
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                            </td>
+                                            <td class="mobile-hide">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-calendar-check me-2 text-muted"></i>
+                                                    <?= date('M d, Y', strtotime($election['startDate'])) ?>
+                                                </div>
+                                            </td>
+                                            <td class="mobile-hide-sm">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-calendar-x me-2 text-muted"></i>
+                                                    <?= date('M d, Y', strtotime($election['endDate'])) ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge <?= $statusClass ?>">
+                                                        <span class="status-indicator"></span>
+                                                        <i class="bi <?= $statusIcon ?> me-1"></i>
+                                                        <span class="status-text"><?= $election['status'] ?></span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="text-end action-btns">
+                                                <div class="btn-group">
+                                                    <a href="election.php?action=edit&id=<?= $election['electionID'] ?>" 
+                                                       class="btn btn-sm btn-primary" 
+                                                       data-bs-toggle="tooltip" 
+                                                       title="Edit Election">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-danger delete-election" 
+                                                            data-id="<?= $election['electionID'] ?>"
+                                                            data-bs-toggle="tooltip" 
+                                                            title="Delete Election">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                    <a href="election_details.php?id=<?= $election['electionID'] ?>" 
+                                                       class="btn btn-sm btn-info"
+                                                       data-bs-toggle="tooltip" 
+                                                       title="View Details">
+                                                        <i class="bi bi-eye-fill"></i>
+                                                    </a>
+                                                    <a href="results.php?id=<?= $election['electionID'] ?>" 
+                                                       class="btn btn-sm btn-success"
+                                                       data-bs-toggle="tooltip" 
+                                                       title="View Results">
+                                                        <i class="bi bi-bar-chart-fill"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php 
+                                            endwhile; 
+                                        else:
+                                        ?>
+                                        <tr>
+                                            <td colspan="5">
+                                                <div class="text-center py-5">
+                                                    <div class="mb-3">
+                                                        <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                                                    </div>
+                                                    <h4 class="text-muted mb-3">No Elections Found</h4>
+                                                    <p class="text-muted mb-4">You haven't created any elections yet. Get started by creating your first election.</p>
+                                                    <a href="new_election.php" class="btn btn-primary btn-lg">
+                                                        <i class="bi bi-plus-circle-fill me-2"></i> Create Your First Election
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                 <?php else: ?>
                     <!-- Election Form -->
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
+                            <?php if ($action === 'edit'): ?>
+                            <!-- Direct Edit Form -->
+                            <form method="POST" action="election.php?action=edit&id=<?= $electionID ?>" id="electionForm" class="needs-validation" novalidate>
+                                <div class="mb-4">
+                                    <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Edit Election</h5>
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-12 mb-3">
+                                                    <label for="editName" class="form-label"><i class="bi bi-card-heading me-1"></i>Election Name <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="editName" name="name" required
+                                                           value="<?= htmlspecialchars($election['name'] ?? '') ?>"
+                                                           placeholder="Enter election name">
+                                                    <div class="invalid-feedback">Please provide an election name.</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="editStartDate" class="form-label"><i class="bi bi-calendar-check me-1"></i>Start Date <span class="text-danger">*</span></label>
+                                                    <input type="datetime-local" class="form-control" id="editStartDate" name="startDate" required
+                                                           value="<?= date('Y-m-d\TH:i', strtotime($election['startDate'] ?? '')) ?>">
+                                                    <div class="invalid-feedback">Please select a start date.</div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="editEndDate" class="form-label"><i class="bi bi-calendar-x me-1"></i>End Date <span class="text-danger">*</span></label>
+                                                    <input type="datetime-local" class="form-control" id="editEndDate" name="endDate" required
+                                                           value="<?= date('Y-m-d\TH:i', strtotime($election['endDate'] ?? '')) ?>">
+                                                    <div class="invalid-feedback">Please select an end date.</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="editStatus" class="form-label"><i class="bi bi-info-square me-1"></i>Status <span class="text-danger">*</span></label>
+                                                    <select class="form-select" id="editStatus" name="status" required>
+                                                        <option value="Scheduled" <?= ($election['status'] ?? '') === 'Scheduled' ? 'selected' : '' ?>>Scheduled</option>
+                                                        <option value="Ongoing" <?= ($election['status'] ?? '') === 'Ongoing' ? 'selected' : '' ?>>Ongoing</option>
+                                                        <option value="Completed" <?= ($election['status'] ?? '') === 'Completed' ? 'selected' : '' ?>>Completed</option>
+                                                    </select>
+                                                    <div class="invalid-feedback">Please select a status.</div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="editVisibility" class="form-label"><i class="bi bi-eye me-1"></i>Visibility</label>
+                                                    <select class="form-select" id="editVisibility" name="visibility">
+                                                        <option value="Public" <?= ($election['visibility'] ?? '') === 'Public' ? 'selected' : '' ?>>Public</option>
+                                                        <option value="Private" <?= ($election['visibility'] ?? '') === 'Private' ? 'selected' : '' ?>>Private</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="election.php" class="btn btn-secondary" id="cancelDirectEdit" name="cancelDirectEdit">
+                                        <i class="bi bi-x-circle me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="submitDirectEdit" name="submitDirectEdit">
+                                        <i class="bi bi-save me-1"></i> Update Election
+                                    </button>
+                                </div>
+                            </form>
+                            <?php else: ?>
                             <form method="POST" action="save_election.php" id="electionForm" class="needs-validation" novalidate>
                                 <input type="hidden" name="action" value="<?= $action ?>">
                                 <input type="hidden" name="electionID" value="<?= $electionID ?>">
@@ -498,10 +893,10 @@ $success = $_GET['success'] ?? null;
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-md-12 mb-3">
-                                                    <label class="form-label"><i class="bi bi-card-heading me-1"></i>Election Name <span class="text-danger">*</span></label>
+                                                    <label for="name" class="form-label"><i class="bi bi-card-heading me-1"></i>Election Name <span class="text-danger">*</span></label>
                                                     <div class="input-group">
                                                         <span class="input-group-text"><i class="bi bi-pencil"></i></span>
-                                                        <input type="text" class="form-control" name="name" required
+                                                        <input type="text" class="form-control" id="name" name="name" required
                                                                value="<?= $action === 'edit' ? htmlspecialchars($election['name'] ?? '') : '' ?>"
                                                                placeholder="Enter election name">
                                                     </div>
@@ -513,10 +908,10 @@ $success = $_GET['success'] ?? null;
                                             
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label"><i class="bi bi-calendar-check me-1"></i>Start Date <span class="text-danger">*</span></label>
+                                                    <label for="startDate" class="form-label"><i class="bi bi-calendar-check me-1"></i>Start Date <span class="text-danger">*</span></label>
                                                     <div class="input-group">
                                                         <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                                                        <input type="datetime-local" class="form-control" name="startDate" required
+                                                        <input type="datetime-local" class="form-control" id="startDate" name="startDate" required
                                                                value="<?= $action === 'edit' ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($election['startDate'] ?? ''))) : '' ?>">
                                                     </div>
                                                     <div class="invalid-feedback">
@@ -524,10 +919,10 @@ $success = $_GET['success'] ?? null;
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label"><i class="bi bi-calendar-x me-1"></i>End Date <span class="text-danger">*</span></label>
+                                                    <label for="endDate" class="form-label"><i class="bi bi-calendar-x me-1"></i>End Date <span class="text-danger">*</span></label>
                                                     <div class="input-group">
                                                         <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                                                        <input type="datetime-local" class="form-control" name="endDate" required
+                                                        <input type="datetime-local" class="form-control" id="endDate" name="endDate" required
                                                                value="<?= $action === 'edit' ? htmlspecialchars(date('Y-m-d\TH:i', strtotime($election['endDate'] ?? ''))) : '' ?>">
                                                     </div>
                                                     <div class="invalid-feedback">
@@ -538,10 +933,10 @@ $success = $_GET['success'] ?? null;
                                             
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label"><i class="bi bi-info-square me-1"></i>Status <span class="text-danger">*</span></label>
+                                                    <label for="status" class="form-label"><i class="bi bi-info-square me-1"></i>Status <span class="text-danger">*</span></label>
                                                     <div class="input-group">
                                                         <span class="input-group-text"><i class="bi bi-list-check"></i></span>
-                                                        <select class="form-select" name="status" required>
+                                                        <select class="form-select" id="status" name="status" required>
                                                             <option value="Scheduled" <?= ($election['status'] ?? '') === 'Scheduled' ? 'selected' : '' ?>>Scheduled</option>
                                                             <option value="Ongoing" <?= ($election['status'] ?? '') === 'Ongoing' ? 'selected' : '' ?>>Ongoing</option>
                                                             <option value="Completed" <?= ($election['status'] ?? '') === 'Completed' ? 'selected' : '' ?>>Completed</option>
@@ -552,10 +947,10 @@ $success = $_GET['success'] ?? null;
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6 mb-3">
-                                                    <label class="form-label"><i class="bi bi-eye me-1"></i>Visibility</label>
+                                                    <label for="visibility" class="form-label"><i class="bi bi-eye me-1"></i>Visibility</label>
                                                     <div class="input-group">
                                                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                                        <select class="form-select" name="visibility">
+                                                        <select class="form-select" id="visibility" name="visibility">
                                                             <option value="Public" <?= ($election['visibility'] ?? '') === 'Public' ? 'selected' : '' ?>>Public</option>
                                                             <option value="Private" <?= ($election['visibility'] ?? '') === 'Private' ? 'selected' : '' ?>>Private</option>
                                                         </select>
@@ -567,15 +962,16 @@ $success = $_GET['success'] ?? null;
                                 </div>
                                 
                                 <div class="d-flex justify-content-between mt-4">
-                                    <a href="elections.php" class="btn btn-secondary">
+                                    <a href="election.php" class="btn btn-secondary" id="cancelCreateEdit" name="cancelCreateEdit">
                                         <i class="bi bi-x-circle me-1"></i> Cancel
                                     </a>
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary" id="submitCreateEdit" name="submitCreateEdit">
                                         <i class="bi bi-save me-1"></i>
                                         <?= $action === 'edit' ? 'Update Election' : 'Create Election' ?>
                                     </button>
                                 </div>
                             </form>
+                        <?php endif; ?>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -585,24 +981,37 @@ $success = $_GET['success'] ?? null;
 
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="deleteModalLabel">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this election? This action cannot be undone.</p>
-                    <p class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Warning:</strong> All associated data (candidates, votes, etc.) will also be deleted.</p>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="mb-3">Are you sure you want to delete this election? This action cannot be undone.</p>
+                    <div class="alert alert-warning">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading">Warning</h6>
+                                <p class="mb-0">All associated data (candidates, votes, positions) will also be permanently deleted.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" id="cancelDeleteModal" name="cancelDeleteModal" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-1"></i>Cancel
                     </button>
-                    <a href="#" id="confirmDelete" class="btn btn-danger">
-                        <i class="bi bi-trash-fill me-1"></i>Delete
+                    <a href="#" id="confirmDelete" class="btn btn-danger" name="confirmDelete">
+                        <i class="bi bi-trash-fill me-1"></i>Delete Permanently
                     </a>
                 </div>
             </div>
@@ -620,7 +1029,7 @@ $success = $_GET['success'] ?? null;
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize DataTable with responsive settings
         if (document.getElementById('electionsTable')) {
-            $('#electionsTable').DataTable({
+            const dataTable = $('#electionsTable').DataTable({
                 responsive: {
                     details: {
                         display: $.fn.dataTable.Responsive.display.modal({
@@ -654,8 +1063,80 @@ $success = $_GET['success'] ?? null;
                 "initComplete": function(settings, json) {
                     // Add search icon to search input
                     $('.dataTables_filter input').before('<i class="bi bi-search text-muted me-2"></i>');
+                    
+                    // Add refresh button next to filter
+                    const refreshButton = $('<button class="btn btn-sm btn-outline-primary ms-2" id="refreshElectionStatus"><i class="bi bi-arrow-clockwise"></i> Update Status</button>');
+                    $('.dataTables_filter').append(refreshButton);
+                    
+                    // Handle refresh button click
+                    $('#refreshElectionStatus').on('click', function() {
+                        updateElectionStatuses();
+                    });
                 }
             });
+            
+            // Function to update election statuses via AJAX
+            function updateElectionStatuses() {
+                // Show loading indicator
+                const refreshBtn = $('#refreshElectionStatus');
+                refreshBtn.html('<i class="bi bi-arrow-clockwise"></i> Updating...').prop('disabled', true);
+                
+                // Send AJAX request to update statuses
+                $.ajax({
+                    url: 'update_election_status.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            const alert = $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                '<i class="bi bi-check-circle-fill me-2"></i>' +
+                                response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                                '</div>');
+                                
+                            $('.container-fluid').prepend(alert);
+                            
+                            // Auto dismiss after 3 seconds
+                            setTimeout(function() {
+                                alert.alert('close');
+                            }, 3000);
+                            
+                            // Reload table if any elections were updated
+                            if (response.updated > 0) {
+                                dataTable.ajax.reload();
+                                // If ajax isn't available, just reload the page
+                                if (!dataTable.ajax) {
+                                    location.reload();
+                                }
+                            }
+                        } else {
+                            // Show error message
+                            const alert = $('<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+                                'Failed to update election statuses: ' + response.message +
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                                '</div>');
+                                
+                            $('.container-fluid').prepend(alert);
+                        }
+                    },
+                    error: function() {
+                        // Show error message
+                        const alert = $('<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                            '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+                            'Failed to communicate with the server. Please try again.' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                            '</div>');
+                            
+                        $('.container-fluid').prepend(alert);
+                    },
+                    complete: function() {
+                        // Reset button state
+                        refreshBtn.html('<i class="bi bi-arrow-clockwise"></i> Update Status').prop('disabled', false);
+                    }
+                });
+            }
         }
         
         // Initialize tooltips
@@ -714,16 +1195,10 @@ $success = $_GET['success'] ?? null;
             })
         })()
         
-        // Auto-dismiss alerts after 5 seconds
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                const closeButton = alert.querySelector('.btn-close');
-                if (closeButton) {
-                    closeButton.click();
-                }
-            });
-        }, 5000);
+        // Add auto-dismiss class to alerts for automatic hiding
+        document.querySelectorAll('.alert').forEach(function(alert) {
+            alert.classList.add('auto-dismiss');
+        });
         
         // Show mobile-specific elements
         function checkMobile() {

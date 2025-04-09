@@ -1,5 +1,5 @@
 <?php
-// Start session securely
+// Start session securely only if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_secure' => true,

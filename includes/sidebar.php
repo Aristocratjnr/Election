@@ -1,5 +1,5 @@
 <?php
-// Secure session initialization
+// Secure session initialization - This check is already here but let's make sure it works
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_secure' => true,

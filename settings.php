@@ -363,6 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
         
         .settings-card:hover {
             box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            transform: translateY(-3px);
         }
         
         .settings-card-header {
@@ -450,6 +451,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
         .btn-primary:hover {
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
+            transform: translateY(-2px);
         }
         
         .btn-warning {
@@ -475,6 +477,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
         
         .action-card-item:hover {
             background-color: rgba(0,0,0,0.02);
+            transform: translateX(5px);
         }
         
         .action-card-item:last-child {
@@ -564,6 +567,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
             width: 100%;
             background-color: #52c41a;
         }
+
+        /* Enhanced UI */
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .breadcrumb-item a:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+        
+        .btn-outline-warning:hover, .btn-outline-danger:hover {
+            transform: translateY(-2px);
+        }
+        
+        .qr-code-container {
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -576,8 +609,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                 <h2 class="mb-0"><i class="bi bi-gear-fill me-2 text-primary"></i> Account Settings</h2>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"> <i class="bi bi-box-arrow-in-left action-icon icon"></i><a href="student.php">dashboard</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">settings</li>
+                        <li class="breadcrumb-item"><a href="student.php"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><i class="bi bi-sliders me-1"></i>Settings</li>
                     </ol>
                 </nav>
             </div>

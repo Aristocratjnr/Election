@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 08, 2025 at 02:56 PM
+-- Generation Time: Apr 09, 2025 at 02:27 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -95,8 +95,9 @@ CREATE TABLE `candidates` (
 --
 
 INSERT INTO `candidates` (`candidateID`, `studentID`, `position`, `manifesto`, `photo`, `status`, `positionID`) VALUES
-(1, 1231231, 'Vice President', 'I will improve campus facilities', '67f5098563da6.jpg', 'Approved', NULL),
-(2372714, 10945821, 'SRC President', 'kkkkjk', '67f506fd784bd.jpeg', 'Approved', NULL);
+(2372716, 109911311, '', 'okkkk', '67f52086d94a6.png', 'Pending', 7),
+(2372717, 1231231, '', 'kjkjk', '67f5209d51ff6.jpg', 'Approved', 3),
+(2372718, 10928371, '', 'kkjj', '67f520b804fdb.jpg', 'Approved', 6);
 
 -- --------------------------------------------------------
 
@@ -133,7 +134,25 @@ CREATE TABLE `elections` (
 --
 
 INSERT INTO `elections` (`electionID`, `name`, `startDate`, `endDate`, `status`) VALUES
-(1, 'Student Council Election', '2025-05-01', '2025-05-10', 'Ongoing');
+(1, 'Student Council Election', '2025-05-01', '2025-05-10', 'Ongoing'),
+(15, 'TrebuchetAcademykk', '2025-04-09', '2025-04-10', 'Ongoing');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `election_votes`
+-- (See below for the actual view)
+--
+CREATE TABLE `election_votes` (
+`voteID` int(11)
+,`electionID` int(11)
+,`candidateID` int(11)
+,`studentID` int(11)
+,`timestamp` datetime
+,`status` enum('pending','verified','rejected')
+,`ip_address` varchar(45)
+,`election_name` varchar(100)
+);
 
 -- --------------------------------------------------------
 
@@ -208,8 +227,9 @@ CREATE TABLE `positions` (
 --
 
 INSERT INTO `positions` (`positionID`, `electionID`, `title`, `description`, `maxVotes`) VALUES
-(3, 1, 'SRC President', 'Fees', 2),
-(6, 1, 'Secretray', 'aqeewqe', 2);
+(3, 1, 'SRC President', 'Fees', 1),
+(6, 1, 'Secretray', 'aqeewqe', 1),
+(7, 1, 'Vice President', 'dassaa', 1);
 
 -- --------------------------------------------------------
 
@@ -256,6 +276,7 @@ INSERT INTO `students` (`studentID`, `name`, `email`, `password`, `dateOfBirth`,
 (1231231, 'Mark Zuckerberg', 'bmfhpwww@sharklasers.com', '$2y$10$ag16iX19SDynJKqcOjh8muRo3ls..w/AuM3JIcS7pu4rGJ5PUOUNq', '2000-01-02', 'Computer Science', '233551784926', '2025-04-04', 'Active', '2025-04-04 12:42:19', 'student', '1231231_1743771186.jpg', NULL, 0),
 (10928371, 'Simon Setor AB', 'simonsetor561@outlook.com', '$2y$10$7EV7xdblc9dDJ4H5jYKDXelVFaJAA8ML8nvQw2LlG/IRyD6HlpHfW', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 15:16:55', 'student', '10928371_1743868570.jpg', 'YQW6YAFSMH2YY2YG', 0),
 (10945821, 'Aristocratjnr', 'david.obuobi@inkris.ca', '$2y$10$PaQkW9.LAKdG5atPFSosZuPBivPtBZKwl9.ZLJz1p1WAxyqGIzPGq', '2002-09-23', 'Administrator', '0551784926', '2025-04-02', 'Active', '2025-04-02 14:03:42', 'admin', '10945821_1744050996.jpeg', 'EO7CYYN3Q5TZKHUP', 1),
+(19218182, 'Aristocratjnr', 'afa@gmail.ocm', '$2y$10$1aVtgFlP2F.Kj9G/xul63epdW.tDS6S0n0IxojF4cZZaRayA5gCE2', '2000-01-02', 'Computer Science', '23355184926', '2025-04-08', 'Active', '2025-04-08 19:13:43', 'student', '19218182_1744140047.jpg', NULL, 0),
 (109911311, 'Testing', 'daobuobi006@st.ug.edu.gh', '$2y$10$be5XjjUTu7RdH4zFiWI3VeMhMJBB7XIUGnaYcn5ThuET0RaV2wE8O', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 18:35:06', 'student', NULL, NULL, 0),
 (2147483647, 'Aristocratjnr', 'ayimobuob44i@gmail.com', '$2y$10$7gIfjP28JzVySUIFT5xXy.OV39inN0W54wyhwyDufYbXfIyoqKwYe', '2000-01-02', 'Chemistry', '233551784926', '2025-04-01', 'Active', '2025-04-01 15:50:04', 'student', NULL, NULL, 0);
 
@@ -270,8 +291,19 @@ CREATE TABLE `votes` (
   `electionID` int(11) DEFAULT NULL,
   `candidateID` int(11) DEFAULT NULL,
   `studentID` int(11) DEFAULT NULL,
-  `timestamp` datetime DEFAULT current_timestamp()
+  `timestamp` datetime DEFAULT current_timestamp(),
+  `status` enum('pending','verified','rejected') DEFAULT 'pending',
+  `ip_address` varchar(45) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `election_votes`
+--
+DROP TABLE IF EXISTS `election_votes`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `election_votes`  AS SELECT `v`.`voteID` AS `voteID`, `v`.`electionID` AS `electionID`, `v`.`candidateID` AS `candidateID`, `v`.`studentID` AS `studentID`, `v`.`timestamp` AS `timestamp`, `v`.`status` AS `status`, `v`.`ip_address` AS `ip_address`, `e`.`name` AS `election_name` FROM (`votes` `v` join `elections` `e` on(`v`.`electionID` = `e`.`electionID`)) WHERE `v`.`timestamp` >= `e`.`startDate` AND `v`.`timestamp` <= `e`.`endDate` ;
 
 --
 -- Indexes for dumped tables
@@ -380,7 +412,7 @@ ALTER TABLE `ballot_designs`
 -- AUTO_INCREMENT for table `candidates`
 --
 ALTER TABLE `candidates`
-  MODIFY `candidateID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2372715;
+  MODIFY `candidateID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2372719;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -392,7 +424,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `elections`
 --
 ALTER TABLE `elections`
-  MODIFY `electionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `electionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -410,7 +442,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `positions`
 --
 ALTER TABLE `positions`
-  MODIFY `positionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `positionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `results`
@@ -428,7 +460,7 @@ ALTER TABLE `students`
 -- AUTO_INCREMENT for table `votes`
 --
 ALTER TABLE `votes`
-  MODIFY `voteID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `voteID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- Constraints for dumped tables
