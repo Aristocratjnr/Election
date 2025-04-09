@@ -132,6 +132,78 @@ $pageTitle = "Election Categories"; // Used in header.php
         .rotating {
             animation: rotating 1s linear infinite;
         }
+
+        /* Enhanced UI Elements */
+        .table th {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .badge {
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        
+        .btn {
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            padding: 0.5rem 1.2rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .card-header {
+            background-color: rgba(0, 0, 0, 0.025);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
+        
+        .search-box {
+            max-width: 250px;
+            transition: max-width 0.3s ease;
+        }
+        
+        .search-box:focus-within {
+            max-width: 300px;
+        }
+        
+        .modal-header {
+            align-items: center;
+            padding: 1rem 1.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1rem 1.5rem;
+        }
+        
+        /* Pulse animation for icons */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse-icon {
+            animation: pulse 2s infinite;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -148,17 +220,17 @@ $pageTitle = "Election Categories"; // Used in header.php
                     <!-- Page Header -->
                     <div class="page-title-box d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <h1 class="h2"><i class="bi bi-bookmark-fill me-2"></i>Categories Management</h1>
+                            <h1 class="h2"><i class="bi bi-bookmark-fill me-2 text-primary"></i>Categories Management</h1>
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb mb-0">
-                                    <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                                    <li class="breadcrumb-item active">Categories</li>
+                                    <li class="breadcrumb-item"><a href="dashboard.php"><i class="bi bi-house-door me-1"></i>Dashboard</a></li>
+                                    <li class="breadcrumb-item active"><i class="bi bi-bookmark me-1"></i>Categories</li>
                                 </ol>
                             </nav>
                         </div>
                         <div>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                                <i class="bi bi-plus-circle me-1"></i> Add New Category
+                            <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                <i class="bi bi-plus-circle-fill me-1 pulse-icon"></i> Add New Category
                             </button>
                         </div>
                     </div>
@@ -169,47 +241,52 @@ $pageTitle = "Election Categories"; // Used in header.php
                             <div class="row align-items-center">
                                 <div class="col-md-4">
                                     <label for="electionSelect" class="form-label fw-bold mb-0">
-                                        <i class="bi bi-filter me-1"></i> Select Election:
+                                        <i class="bi bi-funnel-fill me-1 text-primary"></i> Select Election:
                                     </label>
                                 </div>
                                 <div class="col-md-8">
-                                    <select class="form-select" id="electionSelect">
-                                        <option value="">All Elections</option>
-                                        <?php while ($election = $elections->fetch_assoc()): 
-                                            $statusBadge = "";
-                                            if (isset($election['status'])) {
-                                                $statusColor = "secondary";
-                                                if ($election['status'] == 'Ongoing') $statusColor = "success";
-                                                elseif ($election['status'] == 'Completed') $statusColor = "primary";
-                                                elseif ($election['status'] == 'Scheduled') $statusColor = "info";
-                                                $statusBadge = " <span class='badge bg-".$statusColor." rounded-pill'>".$election['status']."</span>";
-                                            }
-                                        ?>
-                                            <option value="<?= $election['electionID'] ?>">
-                                                <?= htmlspecialchars($election['name']) ?><?= $statusBadge ?>
-                                            </option>
-                                        <?php endwhile; ?>
-                                    </select>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="bi bi-calendar2-event text-primary"></i>
+                                        </span>
+                                        <select class="form-select" id="electionSelect">
+                                            <option value=""><i class="bi bi-collection"></i> All Elections</option>
+                                            <?php while ($election = $elections->fetch_assoc()): 
+                                                $statusBadge = "";
+                                                if (isset($election['status'])) {
+                                                    $statusColor = "secondary";
+                                                    if ($election['status'] == 'Ongoing') $statusColor = "success";
+                                                    elseif ($election['status'] == 'Completed') $statusColor = "primary";
+                                                    elseif ($election['status'] == 'Scheduled') $statusColor = "info";
+                                                    $statusBadge = " <span class='badge bg-".$statusColor." rounded-pill'>".$election['status']."</span>";
+                                                }
+                                            ?>
+                                                <option value="<?= $election['electionID'] ?>">
+                                                    <?= htmlspecialchars($election['name']) ?><?= $statusBadge ?>
+                                                </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Categories Display -->
-                    <div class="card">
+                    <div class="card shadow-sm">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-list-check me-1"></i> 
+                                <i class="bi bi-list-check me-2 text-primary"></i> 
                                 Categories
                                 <span class="badge bg-secondary category-count ms-2" id="categoryCount">0</span>
                             </h5>
                             <div class="d-flex gap-2">
-                                <button id="refreshCategories" class="btn btn-outline-primary btn-sm">
+                                <button id="refreshCategories" class="btn btn-outline-primary btn-sm shadow-sm">
                                     <i class="bi bi-arrow-clockwise"></i> Refresh
                                 </button>
-                                <div class="input-group search-box">
+                                <div class="input-group search-box shadow-sm">
                                     <span class="input-group-text bg-light border-0">
-                                        <i class="bi bi-search"></i>
+                                        <i class="bi bi-search text-primary"></i>
                                     </span>
                                     <input type="text" id="searchCategories" class="form-control border-0 bg-light" placeholder="Search categories...">
                                 </div>
@@ -218,13 +295,13 @@ $pageTitle = "Election Categories"; // Used in header.php
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle" id="categoriesTable">
-                                    <thead>
+                                    <thead class="table-light">
                                         <tr>
-                                            <th width="60">#</th>
-                                            <th><i class="bi bi-bookmark me-1"></i>Category Name</th>
-                                            <th><i class="bi bi-calendar-event me-1"></i>Election</th>
-                                            <th><i class="bi bi-clock-history me-1"></i>Created</th>
-                                            <th class="text-end"><i class="bi bi-gear me-1"></i>Actions</th>
+                                            <th width="60"><i class="bi bi-hash me-1 text-primary"></i>#</th>
+                                            <th><i class="bi bi-bookmark me-1 text-primary"></i>Category Name</th>
+                                            <th><i class="bi bi-calendar-event me-1 text-primary"></i>Election</th>
+                                            <th><i class="bi bi-clock-history me-1 text-primary"></i>Created</th>
+                                            <th class="text-end"><i class="bi bi-gear-fill me-1 text-primary"></i>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="categoriesTableBody">
@@ -234,11 +311,11 @@ $pageTitle = "Election Categories"; // Used in header.php
                             </div>
                             <!-- Empty state for when no categories exist -->
                             <div id="emptyState" class="empty-state d-none">
-                                <i class="bi bi-bookmark-x"></i>
-                                <h5 id="emptyStateTitle">No Categories Found</h5>
+                                <i class="bi bi-bookmark-x-fill text-muted pulse-icon"></i>
+                                <h5 id="emptyStateTitle" class="mt-3">No Categories Found</h5>
                                 <p class="text-muted" id="emptyStateMessage">Start by creating a new category or select a different election.</p>
-                                <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                                    <i class="bi bi-plus-circle me-1"></i> Create Category
+                                <button class="btn btn-primary mt-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                    <i class="bi bi-plus-circle-fill me-1"></i> Create Category
                                 </button>
                             </div>
                             
@@ -247,7 +324,7 @@ $pageTitle = "Election Categories"; // Used in header.php
                                 <div class="spinner-border text-primary mb-3" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
-                                <p class="text-muted">Loading categories...</p>
+                                <p class="text-muted"><i class="bi bi-hourglass-split me-1"></i> Loading categories...</p>
                             </div>
                         </div>
                     </div>
@@ -259,44 +336,58 @@ $pageTitle = "Election Categories"; // Used in header.php
     <!-- Add Category Modal -->
     <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content shadow">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="addCategoryModalLabel">
-                        <i class="bi bi-bookmark-plus me-1"></i> Add New Category
+                        <i class="bi bi-bookmark-plus-fill me-2"></i> Add New Category
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="addCategoryForm">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="electionID" class="form-label">Election</label>
-                            <select class="form-select" id="electionID" name="electionID" required>
-                                <option value="" selected disabled>Select Election</option>
-                                <?php 
-                                // Reset the elections result pointer
-                                $electionsQuery->execute();
-                                $elections = $electionsQuery->get_result();
-                                while ($election = $elections->fetch_assoc()): 
-                                ?>
-                                <option value="<?= $election['electionID'] ?>">
-                                    <?= htmlspecialchars($election['name']) ?>
-                                </option>
-                                <?php endwhile; ?>
-                            </select>
-                            <div class="invalid-feedback">Please select an election.</div>
+                            <label for="electionID" class="form-label">
+                                <i class="bi bi-calendar2-event me-1"></i> Election
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-calendar-check text-primary"></i>
+                                </span>
+                                <select class="form-select" id="electionID" name="electionID" required>
+                                    <option value="" selected disabled>Select Election</option>
+                                    <?php 
+                                    // Reset the elections result pointer
+                                    $electionsQuery->execute();
+                                    $elections = $electionsQuery->get_result();
+                                    while ($election = $elections->fetch_assoc()): 
+                                    ?>
+                                    <option value="<?= $election['electionID'] ?>">
+                                        <?= htmlspecialchars($election['name']) ?>
+                                    </option>
+                                    <?php endwhile; ?>
+                                </select>
+                                <div class="invalid-feedback">Please select an election.</div>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="categoryName" class="form-label">Category Name</label>
-                            <input type="text" class="form-control" id="categoryName" name="categoryName" required>
-                            <div class="invalid-feedback">Please enter a category name.</div>
+                            <label for="categoryName" class="form-label">
+                                <i class="bi bi-bookmark me-1"></i> Category Name
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-tag-fill text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control" id="categoryName" name="categoryName" placeholder="Enter category name" required>
+                                <div class="invalid-feedback">Please enter a category name.</div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-1"></i> Cancel
+                            <i class="bi bi-x-circle-fill me-1"></i> Cancel
                         </button>
-                        <button type="submit" class="btn btn-primary" id="saveCategory">
-                            <i class="bi bi-save me-1"></i> Save Category
+                        <button type="submit" class="btn btn-primary shadow-sm" id="saveCategory">
+                            <i class="bi bi-save-fill me-1"></i> Save Category
                         </button>
                     </div>
                 </form>
@@ -307,10 +398,10 @@ $pageTitle = "Election Categories"; // Used in header.php
     <!-- Edit Category Modal -->
     <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content shadow">
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title" id="editCategoryModalLabel">
-                        <i class="bi bi-pencil-square me-1"></i> Edit Category
+                        <i class="bi bi-pencil-square me-2"></i> Edit Category
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -318,33 +409,47 @@ $pageTitle = "Election Categories"; // Used in header.php
                     <input type="hidden" id="editCategoryId" name="categoryID">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="editElectionID" class="form-label">Election</label>
-                            <select class="form-select" id="editElectionID" name="electionID" required>
-                                <?php 
-                                // Reset the elections result pointer
-                                $electionsQuery->execute();
-                                $elections = $electionsQuery->get_result();
-                                while ($election = $elections->fetch_assoc()): 
-                                ?>
-                                <option value="<?= $election['electionID'] ?>">
-                                    <?= htmlspecialchars($election['name']) ?>
-                                </option>
-                                <?php endwhile; ?>
-                            </select>
-                            <div class="invalid-feedback">Please select an election.</div>
+                            <label for="editElectionID" class="form-label">
+                                <i class="bi bi-calendar2-event me-1"></i> Election
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-calendar-check text-info"></i>
+                                </span>
+                                <select class="form-select" id="editElectionID" name="electionID" required>
+                                    <?php 
+                                    // Reset the elections result pointer
+                                    $electionsQuery->execute();
+                                    $elections = $electionsQuery->get_result();
+                                    while ($election = $elections->fetch_assoc()): 
+                                    ?>
+                                    <option value="<?= $election['electionID'] ?>">
+                                        <?= htmlspecialchars($election['name']) ?>
+                                    </option>
+                                    <?php endwhile; ?>
+                                </select>
+                                <div class="invalid-feedback">Please select an election.</div>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="editCategoryName" class="form-label">Category Name</label>
-                            <input type="text" class="form-control" id="editCategoryName" name="categoryName" required>
-                            <div class="invalid-feedback">Please enter a category name.</div>
+                            <label for="editCategoryName" class="form-label">
+                                <i class="bi bi-bookmark me-1"></i> Category Name
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-tag-fill text-info"></i>
+                                </span>
+                                <input type="text" class="form-control" id="editCategoryName" name="categoryName" placeholder="Enter category name" required>
+                                <div class="invalid-feedback">Please enter a category name.</div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle me-1"></i> Cancel
+                            <i class="bi bi-x-circle-fill me-1"></i> Cancel
                         </button>
-                        <button type="submit" class="btn btn-info" id="updateCategory">
-                            <i class="bi bi-check-circle me-1"></i> Update Category
+                        <button type="submit" class="btn btn-info text-white shadow-sm" id="updateCategory">
+                            <i class="bi bi-check-circle-fill me-1"></i> Update Category
                         </button>
                     </div>
                 </form>
@@ -355,23 +460,28 @@ $pageTitle = "Election Categories"; // Used in header.php
     <!-- Delete Category Confirmation Modal -->
     <div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content shadow">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="deleteCategoryModalLabel">
-                        <i class="bi bi-exclamation-triangle me-1"></i> Confirm Deletion
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deletion
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete the category "<span id="deleteCategoryName"></span>"?</p>
-                    <p class="text-danger"><i class="bi bi-exclamation-circle"></i> This action cannot be undone.</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-question-circle-fill text-danger me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <p class="mb-1">Are you sure you want to delete the category "<span id="deleteCategoryName" class="fw-bold"></span>"?</p>
+                            <p class="text-danger mb-0"><i class="bi bi-exclamation-octagon-fill me-1"></i> This action cannot be undone.</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Cancel
+                        <i class="bi bi-x-circle-fill me-1"></i> Cancel
                     </button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete" data-category-id="">
-                        <i class="bi bi-trash me-1"></i> Delete Category
+                    <button type="button" class="btn btn-danger shadow-sm" id="confirmDelete" data-category-id="">
+                        <i class="bi bi-trash-fill me-1"></i> Delete Category
                     </button>
                 </div>
             </div>
@@ -410,7 +520,8 @@ $pageTitle = "Election Categories"; // Used in header.php
                 emptyTable: ""
             },
             columnDefs: [
-                { orderable: false, targets: 4 } // Disable sorting on Actions column
+                { orderable: false, targets: 4 }, // Disable sorting on Actions column
+                { className: "align-middle", targets: "_all" } // Center align all cells vertically
             ],
             dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip',
             initComplete: function() {
@@ -535,8 +646,12 @@ $pageTitle = "Election Categories"; // Used in header.php
             $('#editElectionID').val(electionId);
             $('#editCategoryName').val(categoryName);
             
-            // Show edit modal
-            $('#editCategoryModal').modal('show');
+            // Show edit modal with a small animation
+            $(this).addClass('rotating');
+            setTimeout(() => {
+                $(this).removeClass('rotating');
+                $('#editCategoryModal').modal('show');
+            }, 300);
         });
         
         // Edit category form submit
@@ -642,6 +757,11 @@ $pageTitle = "Election Categories"; // Used in header.php
         $('input, select').on('input change', function() {
             $(this).removeClass('is-invalid');
         });
+
+        // Visual feedback on form submission
+        $('#addCategoryForm, #editCategoryForm').on('submit', function() {
+            $(this).find('button[type="submit"]').prepend('<span class="spinner-grow spinner-grow-sm me-1" role="status" aria-hidden="true"></span>');
+        });
     });
     
     // Function to load categories
@@ -716,18 +836,25 @@ $pageTitle = "Election Categories"; // Used in header.php
                                 index + 1,
                                 categoryName,
                                 electionName,
-                                metaInfo,
+                                `<div>
+                                    <span class="text-muted"><i class="bi bi-clock me-1"></i>${formatDate(category.created_at || 'N/A')}</span>
+                                    ${metaInfo}
+                                </div>`,
                                 `<div class="text-end">
                                     <button class="btn btn-sm btn-outline-info btn-action edit-category me-1" 
                                         data-id="${category.categoryID}" 
                                         data-election-id="${category.electionID}"
-                                        data-name="${categoryName}">
-                                        <i class="bi bi-pencil"></i>
+                                        data-name="${categoryName}"
+                                        data-bs-toggle="tooltip"
+                                        title="Edit this category">
+                                        <i class="bi bi-pencil-fill"></i>
                                     </button>
                                     <button class="btn btn-sm btn-outline-danger btn-action delete-category" 
                                         data-id="${category.categoryID}" 
-                                        data-name="${categoryName}">
-                                        <i class="bi bi-trash"></i>
+                                        data-name="${categoryName}"
+                                        data-bs-toggle="tooltip"
+                                        title="Delete this category">
+                                        <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </div>`
                             ]);
@@ -802,15 +929,22 @@ $pageTitle = "Election Categories"; // Used in header.php
     // Function to show toast notifications
     function showToast(title, message, type = 'info') {
         const toastId = 'toast-' + Date.now();
+        let iconClass = 'info-circle-fill';
+        
+        if (type === 'success') iconClass = 'check-circle-fill';
+        else if (type === 'danger') iconClass = 'exclamation-triangle-fill';
+        else if (type === 'warning') iconClass = 'exclamation-circle-fill';
+        
         const html = `
             <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header bg-${type} text-white">
-                    <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                    <i class="bi bi-${iconClass} me-2"></i>
                     <strong class="me-auto">${title}</strong>
-                    <small>Just now</small>
+                    <small><i class="bi bi-clock me-1"></i>Just now</small>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
                 <div class="toast-body">
+                    <i class="bi bi-${type === 'success' ? 'check-lg' : type === 'danger' ? 'x-lg' : 'info-lg'} me-2"></i>
                     ${message}
                 </div>
             </div>
