@@ -767,29 +767,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         .live-results-btn {
             background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: 1px solid var(--primary);
-            color: var(--primary);
+            border: none;
+            color: white;
             padding: 0.75rem 1.5rem;
             font-weight: 600;
             letter-spacing: 0.5px;
             border-radius: 8px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.1);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
             margin-top: 1rem;
         }
         
-      
-    
+        .live-results-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.3);
+        }
+        
         .bg-gradient-primary {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 10px;
         }
         
         .live-indicator {
             display: flex;
             align-items: center;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.8rem;
+            font-weight: 700;
             letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
         }
         
         .pulse-dot {
@@ -802,71 +809,181 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             animation: pulse 1.5s infinite;
         }
         
-       
-        
         .status-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(67, 97, 238, 0.1);
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(67, 97, 238, 0.05));
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f5;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
         }
         
         .candidate-result-card {
             background-color: #fff;
-            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
             transition: all 0.3s ease;
+            border: 1px solid #f0f0f5;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+            height: 100%;
         }
         
-        
+        .candidate-result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
+        }
         
         .rank-badge {
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(67, 97, 238, 0.05));
+            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
+        }
+        
+        .rank-badge i {
+            font-size: 0.9rem;
         }
         
         .text-bronze {
             color: #cd7f32;
         }
         
+        .text-gold {
+            color: #FFD700;
+        }
+        
+        .text-silver {
+            color: #C0C0C0;
+        }
+        
         .candidate-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
             object-fit: cover;
             border: 3px solid #fff;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .candidate-result-card:hover .candidate-avatar {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.15);
         }
         
         .candidate-avatar-placeholder {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #f3f4f6;
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            background-color: #f5f7fa;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #6b7280;
-            font-size: 1.5rem;
+            color: var(--primary);
+            font-size: 1.8rem;
             border: 3px solid #fff;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         
         .progress {
-            height: 6px;
-            border-radius: 3px;
-            background-color: #f3f4f6;
+            height: 8px;
+            border-radius: 4px;
+            background-color: #f5f7fa;
             overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
         .progress-bar {
             background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 3px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+        
+        .vote-stats {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 0.5rem 0.8rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .vote-count, .vote-percentage {
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .candidate-result-card:hover .vote-count,
+        .candidate-result-card:hover .vote-percentage {
+            color: var(--primary);
+        }
+        
+        .results-section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .results-section-header h6 {
+            margin-bottom: 0;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .results-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(67, 97, 238, 0.05));
+            border-radius: 8px;
+            margin-right: 0.8rem;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        @keyframes progressShine {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
         }
         
         @media (max-width: 768px) {
@@ -879,11 +996,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             }
             
             .vote-count, .vote-percentage {
-                font-size: 0.875rem;
+                font-size: 0.8rem;
             }
             
             .candidate-name {
                 font-size: 0.9rem;
+            }
+
+            .candidate-avatar, .candidate-avatar-placeholder {
+                width: 50px;
+                height: 50px;
             }
         }
         
@@ -1028,14 +1150,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <?php endif; ?>
                         
                         <!-- Replace the status card with a live results card -->
-                        <div class="card mb-4 border-0 shadow-sm">
-                            <div class="card-header bg-gradient-primary text-white py-3">
+                        <div class="card mb-4 border-0 shadow-sm rounded-4 overflow-hidden">
+                            <div class="card-header bg-gradient-primary text-white py-3 px-4">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                       
+                                        <h5 class="mb-0 fw-bold">Election Results</h5>
+                                        <p class="mb-0 opacity-75 small">Live updates from the voting system</p>
                                     </div>
                                     <div class="live-indicator">
-                                        <span class="pulse-dot font-bold"></span> LIVE
+                                        <span class="pulse-dot"></span> LIVE
                                     </div>
                                 </div>
                             </div>
@@ -1043,13 +1166,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <div class="row g-4">
                                     <!-- Election Status -->
                                     <div class="col-md-6">
-                                        <div class="status-card p-3 rounded-3 bg-light h-100">
-                                            <div class="d-flex align-items-center mb-3">
+                                        <div class="status-card p-3 rounded-3 h-100">
+                                            <div class="d-flex align-items-center mb-2">
                                                 <div class="status-icon me-3">
-                                                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                                    <?php if ($currentElection && $hasVoted): ?>
+                                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                                    <?php elseif ($currentElection): ?>
+                                                        <i class="bi bi-calendar-check text-primary"></i>
+                                                    <?php else: ?>
+                                                        <i class="bi bi-x-circle text-secondary"></i>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <div>
-                                                    <h6 class="mb-1">Election Status</h6>
+                                                    <h6 class="mb-1 fw-bold">Election Status</h6>
                                                     <?php if ($currentElection): ?>
                                                         <?php if ($hasVoted): ?>
                                                             <span class="badge bg-success">
@@ -1057,7 +1186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                             </span>
                                                         <?php else: ?>
                                                             <span class="badge bg-primary pulse-badge">
-                                                                <i class="bi bi-check-circle-fill me-1"></i> Voting is open
+                                                                <i class="bi bi-arrow-clockwise me-1"></i> Voting is open
                                                             </span>
                                                             
                                                         <?php endif; ?>
@@ -1073,14 +1202,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
                                     <!-- Vote Count -->
                                     <?php if ($currentElection): ?>
-                                    <div class="col-md-8">
-                                        <div class="status-card p-3 rounded-3 bg-light h-100">
-                                            <div class="d-flex align-items-center mb-3">
+                                    <div class="col-md-6">
+                                        <div class="status-card p-3 rounded-3 h-100">
+                                            <div class="d-flex align-items-center mb-2">
                                                 <div class="status-icon me-3">
-                                                <i class="bi bi-graph-up"></i>
+                                                    <i class="bi bi-graph-up-arrow text-primary"></i>
                                                 </div>
                                                 <div>
-                                                    <h6 class="mb-1">Current Ballot Count</h6>
+                                                    <h6 class="mb-1 fw-bold">Current Ballot Count</h6>
                                                     <?php
                                                     // Get total votes for this election
                                                     $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
@@ -1099,18 +1228,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                     // Calculate turnout percentage
                                                     $turnoutPercentage = $eligibleVoters > 0 ? round(($voteCount / $eligibleVoters) * 100, 1) : 0;
                                                     ?>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="vote-count me-2">
-                                                            <i class="bi bi-people-fill me-1"></i>
-                                                            <?= number_format($voteCount) ?>
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="vote-stats">
+                                                            <i class="bi bi-people-fill text-primary me-1"></i>
+                                                            <span class="vote-count"><?= number_format($voteCount) ?></span>
                                                         </div>
-                                                        <div class="vote-percentage">
-                                                            <i class="bi bi-percent me-1"></i>
-                                                            <?= $turnoutPercentage ?>% turnout
+                                                        <div class="vote-stats">
+                                                            <i class="bi bi-percent text-success me-1"></i>
+                                                            <span class="vote-percentage"><?= $turnoutPercentage ?>% turnout</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <?php if ($eligibleVoters > 0): ?>
+                                            <div class="progress mt-2">
+                                                <div class="progress-bar" style="width: <?= $turnoutPercentage ?>%"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-1">
+                                                <small class="text-muted">0</small>
+                                                <small class="text-muted"><?= $eligibleVoters ?> eligible</small>
+                                            </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <?php endif; ?>
@@ -1118,16 +1256,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
                                 <?php if ($currentElection): ?>
                                     <div class="mt-4">
-                                        <h6 class="mb-3 d-flex align-items-center">
-                                        <i class="bi bi-person-vcard"></i>&nbsp;Top Candidates
-                                        </h6>
+                                        <div class="results-section-header">
+                                            <div class="results-icon">
+                                                <i class="bi bi-trophy"></i>
+                                            </div>
+                                            <h6>Top Candidates</h6>
+                                        </div>
                                         <div class="row g-3">
                                             <?php
                                             // Get top candidates by vote count
                                             $topCandidatesQuery = "
-                                                SELECT c.candidateID, s.name, s.profilePicture, COUNT(v.voteID) as voteCount
+                                                SELECT c.candidateID, s.name, s.profilePicture, p.title as position, COUNT(v.voteID) as voteCount
                                                 FROM candidates c
                                                 JOIN students s ON c.studentID = s.studentID
+                                                JOIN positions p ON c.positionID = p.positionID
                                                 LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
                                                 WHERE c.status = 'Approved'
                                                 GROUP BY c.candidateID
@@ -1141,43 +1283,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                             
                                             if ($topCandidatesResult->num_rows > 0):
                                                 $rank = 1;
+                                                $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
+                                                $rankIcon = ['trophy', 'award', 'award'];
                                                 while ($candidate = $topCandidatesResult->fetch_assoc()):
                                                     $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
+                                                    $colorIndex = $rank - 1;
                                             ?>
                                                 <div class="col-md-4">
-                                                    <div class="candidate-result-card p-3 rounded-3 h-100">
-                                                        <div class="d-flex align-items-center mb-2">
-                                                            <div class="rank-badge me-2">
-                                                                <i class="bi bi-<?= $rank === 1 ? 'trophy-fill text-warning' : ($rank === 2 ? 'bi bi-medal-fill text-secondary' : 'award-fill text-bronze') ?>"></i>
+                                                    <div class="candidate-result-card h-100">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <div class="rank-badge">
+                                                                <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
                                                             </div>
-                                                            <div class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></div>
+                                                            <span class="badge bg-light text-primary"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
                                                         </div>
                                                         <div class="d-flex align-items-center mb-3">
-                                                            <div class="avatar-container me-3">
-                                                                <?php 
-                                                                $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                                if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): 
-                                                                ?>
-                                                                    <img src="<?= $candidatePicPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                <?php else: ?>
-                                                                    <div class="candidate-avatar-placeholder">
-                                                                        <i class="bi bi-person-fill"></i>
-                                                                    </div>
-                                                                <?php endif; ?>
-                                                            </div>
-                                                            <div class="vote-stats">
-                                                                <div class="vote-count">
-                                                                    <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                                                    <?= number_format($candidate['voteCount']) ?> votes
+                                                            <?php 
+                                                            $candidatePicPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                            if (!empty($candidate['profilePicture']) && file_exists($candidatePicPath)): 
+                                                            ?>
+                                                                <img src="<?= $candidatePicPath ?>" class="candidate-avatar me-3" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                            <?php else: ?>
+                                                                <div class="candidate-avatar-placeholder me-3">
+                                                                    <i class="bi bi-person-fill"></i>
                                                                 </div>
-                                                                <div class="vote-percentage">
-                                                                    <i class="bi bi-graph-up text-primary me-1"></i>
-                                                                    <?= $votePercentage ?>%
+                                                            <?php endif; ?>
+                                                            <div>
+                                                                <h6 class="candidate-name mb-1 fw-bold"><?= htmlspecialchars($candidate['name']) ?></h6>
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <div class="vote-stats small">
+                                                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                                                        <?= number_format($candidate['voteCount']) ?>
+                                                                    </div>
+                                                                    <div class="vote-stats small">
+                                                                        <i class="bi bi-bar-chart-fill text-primary me-1"></i>
+                                                                        <?= $votePercentage ?>%
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="progress">
-                                                            <div class="progress-bar bg-gradient-primary" role="progressbar" 
+                                                            <div class="progress-bar" role="progressbar" 
                                                                  style="width: <?= $votePercentage ?>%;" 
                                                                  aria-valuenow="<?= $votePercentage ?>" 
                                                                  aria-valuemin="0" 
@@ -1187,12 +1333,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                 </div>
                                             <?php 
                                                 $rank++;
-                                            endwhile;
+                                                endwhile;
                                             else:
                                             ?>
                                                 <div class="col-12">
-                                                    <div class="alert alert-light text-center">
-                                                        <i class="bi bi-info-circle me-2"></i> No votes cast yet
+                                                    <div class="alert alert-light border-0 shadow-sm text-center py-4">
+                                                        <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
+                                                        <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
                                                     </div>
                                                 </div>
                                             <?php 
@@ -1200,6 +1347,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                             $topCandidatesStmt->close();
                                             ?>
                                         </div>
+                                        <?php if ($topCandidatesResult->num_rows > 0): ?>
+                                        <div class="text-center mt-4">
+                                            <a href="results.php" class="btn live-results-btn">
+                                                <i class="bi bi-graph-up me-2"></i> View Complete Results
+                                            </a>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
                             </div>
