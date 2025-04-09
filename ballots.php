@@ -620,12 +620,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $column_exists = $conn->query($check_column_query)->num_rows > 0;
 
                                     if ($column_exists) {
-                                        $candidates_query = "SELECT * FROM candidates WHERE positionID = ?";
+                                        $candidates_query = "SELECT c.*, s.name, s.department FROM candidates c 
+                                                           LEFT JOIN students s ON c.studentID = s.studentID 
+                                                           WHERE c.positionID = ?";
                                         $stmt = $conn->prepare($candidates_query);
                                         $stmt->bind_param("i", $position['positionID']);
                                     } else {
                                         // Fallback query if positionID doesn't exist
-                                        $candidates_query = "SELECT * FROM candidates";
+                                        $candidates_query = "SELECT c.*, s.name, s.department FROM candidates c 
+                                                           LEFT JOIN students s ON c.studentID = s.studentID";
                                         $stmt = $conn->prepare($candidates_query);
                                     }
                                     
@@ -637,9 +640,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <input type="radio" name="vote_<?php echo $position['positionID']; ?>" 
                                                    value="<?php echo $candidate['candidateID']; ?>" required>
                                             <div class="candidate-info">
-                                                <strong><?php echo htmlspecialchars($candidate['name']); ?></strong>
+                                                <strong><?php echo htmlspecialchars($candidate['name'] ?? 'Candidate #'.$candidate['studentID']); ?></strong>
                                                 <small class="text-muted d-block">
-                                                    <?php echo htmlspecialchars($candidate['party'] ?? 'Independent'); ?>
+                                                    <?php 
+                                                    if (!empty($candidate['department'])) {
+                                                        echo htmlspecialchars($candidate['department']); 
+                                                    }
+                                                    
+                                                    if (!empty($candidate['manifesto'])) {
+                                                        echo !empty($candidate['department']) ? ' - ' : '';
+                                                        echo htmlspecialchars($candidate['manifesto']);
+                                                    }
+                                                    
+                                                    if (empty($candidate['department']) && empty($candidate['manifesto'])) {
+                                                        echo 'No additional information';
+                                                    }
+                                                    ?>
                                                 </small>
                                             </div>
                                         </li>

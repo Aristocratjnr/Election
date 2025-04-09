@@ -462,12 +462,18 @@ try {
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <p class="mb-0 text-muted"><?php echo htmlspecialchars($category['description']); ?></p>
+                                                    <p class="mb-0 text-muted"><?php echo isset($category['description']) ? htmlspecialchars($category['description']) : 'No description available'; ?></p>
                                                 </td>
                                                 <td>
                                                     <?php 
-                                                    $cand_query = $conn->prepare("SELECT COUNT(*) as count FROM candidates WHERE categoryID = ?");
-                                                    $cand_query->bind_param("i", $category['categoryID']);
+                                                    // Count candidates related to positions in this election
+                                                    $cand_query = $conn->prepare("
+                                                        SELECT COUNT(*) as count 
+                                                        FROM candidates c
+                                                        JOIN positions p ON c.positionID = p.positionID 
+                                                        WHERE p.electionID = ?
+                                                    ");
+                                                    $cand_query->bind_param("i", $election_id);
                                                     $cand_query->execute();
                                                     $cand_count = $cand_query->get_result()->fetch_assoc()['count'];
                                                     ?>

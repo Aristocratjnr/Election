@@ -77,6 +77,18 @@ if ($currentElection && !$hasVoted) {
         $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
+        // Filter out duplicate positions by title (case-insensitive)
+        $uniquePositions = [];
+        $seenTitles = [];
+        foreach ($positions as $position) {
+            $title = strtolower($position['title']);
+            if (!isset($seenTitles[$title])) {
+                $uniquePositions[] = $position;
+                $seenTitles[$title] = true;
+            }
+        }
+        $positions = $uniquePositions;
+
         // Get candidates for each position - IMPROVED QUERY
         foreach ($positions as &$position) {
             // Use a clearer query that avoids potential issues with status
