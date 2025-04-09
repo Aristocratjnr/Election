@@ -21,30 +21,87 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    header('Location: election.php?error=not_found');
+    header('Location: election.php?error=election_not_found');
     exit;
 }
 
 $election = $result->fetch_assoc();
 $stmt->close();
 
-// Check if time columns exist in the table
-$time_fields_exist = false;
-try {
-    $check_fields = $conn->query("SHOW COLUMNS FROM elections LIKE 'start_time'");
-    $time_fields_exist = ($check_fields->num_rows > 0);
-} catch (Exception $e) {
-    // If the query fails, assume time fields don't exist
-    $time_fields_exist = false;
-}
-
-// Set default times or use values from database
-$start_time = "08:00";
-$end_time = "17:00";
-
-if ($time_fields_exist && isset($election['start_time']) && isset($election['end_time'])) {
-    $start_time = substr($election['start_time'], 0, 5); // Format: HH:MM
-    $end_time = substr($election['end_time'], 0, 5);     // Format: HH:MM
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Log POST data for debugging
+    error_log('POST data: ' . print_r($_POST, true));
+    
+    // Validate inputs
+    $required = ['name', 'startDate', 'endDate', 'status'];
+    $missing_fields = [];
+    foreach ($required as $field) {
+        if (empty($_POST[$field])) {
+            $missing_fields[] = $field;
+        }
+    }
+    
+    if (!empty($missing_fields)) {
+        $error_msg = 'Missing fields: ' . implode(', ', $missing_fields);
+        header('Location: edit_elections.php?id='.$electionID.'&error=missing_fields&message='.urlencode($error_msg));
+        exit;
+    }
+    
+    try {
+        // Check date validity
+        $startDate = date('Y-m-d H:i:s', strtotime($_POST['startDate']));
+        $endDate = date('Y-m-d H:i:s', strtotime($_POST['endDate']));
+        
+        if ($endDate < $startDate) {
+            header('Location: edit_elections.php?id='.$electionID.'&error=invalid_dates');
+            exit;
+        }
+        
+        // Set default visibility if not provided
+        $visibility = isset($_POST['visibility']) ? $_POST['visibility'] : 'Public';
+        
+        // Update election
+        $stmt = $conn->prepare("UPDATE elections SET 
+            name = ?, 
+            startDate = ?, 
+            endDate = ?, 
+            status = ?, 
+            visibility = ? 
+            WHERE electionID = ?");
+        
+        $stmt->bind_param('sssssi', 
+            $_POST['name'],
+            $startDate,
+            $endDate,
+            $_POST['status'],
+            $visibility,
+            $electionID
+        );
+        
+        if ($stmt->execute()) {
+            $stmt->close();
+            $conn->close();
+            header('Location: election.php?success=election_updated');
+            exit;
+        } else {
+            $error = "Database error: " . $stmt->error;
+            error_log($error);
+            $stmt->close();
+            $conn->close();
+            header('Location: edit_elections.php?id='.$electionID.'&error=update_failed&message='.urlencode($error));
+            exit;
+        }
+    } catch (Exception $e) {
+        $error = "Exception: " . $e->getMessage();
+        error_log($error);
+        if (isset($stmt)) {
+            $stmt->close();
+        }
+        $conn->close();
+        header('Location: edit_elections.php?id='.$electionID.'&error=exception&message='.urlencode($error));
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -81,16 +138,6 @@ if ($time_fields_exist && isset($election['start_time']) && isset($election['end
             background-color: #4e73df;
             border-color: #4e73df;
         }
-        .time-inputs {
-            margin-top: 10px;
-        }
-        .time-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .input-group-text {
-            background-color: #f8f9fa;
-        }
     </style>
 </head>
 <body>
@@ -99,73 +146,79 @@ if ($time_fields_exist && isset($election['start_time']) && isset($election['end
     <div class="container">
         <h1><i class="bi bi-pencil-square me-2"></i>Edit Election</h1>
         
-        <?php if (isset($_GET['error'])): ?>
-        <div class="alert alert-danger alert-dismissible fade show">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <?php
+        <?php 
+        // Display error messages
+        if (isset($_GET['error'])): 
+            $error_type = $_GET['error'];
+            $error_msg = '';
+            
+            // Define error messages
             $errors = [
                 'invalid_id' => 'Invalid election ID',
-                'not_found' => 'Election not found',
-                'missing_fields' => 'Required fields missing',
+                'election_not_found' => 'Election not found',
+                'missing_fields' => 'Required fields missing: ' . 
+                    (isset($_GET['message']) ? htmlspecialchars($_GET['message']) : 'Please fill all required fields'),
+                'missing_name' => 'Election name is required',
+                'missing_startDate' => 'Start date is required',
+                'missing_endDate' => 'End date is required',
+                'missing_status' => 'Status is required',
                 'invalid_dates' => 'End date must be after start date',
-                'update_failed' => 'Failed to update election'
+                'update_failed' => 'Failed to update election: ' . 
+                    (isset($_GET['message']) ? htmlspecialchars($_GET['message']) : 'Unknown error'),
+                'exception' => 'An error occurred: ' .
+                    (isset($_GET['message']) ? htmlspecialchars($_GET['message']) : 'Unknown error')
             ];
-            echo $errors[$_GET['error']] ?? 'An error occurred';
-            ?>
-            <?php if (isset($_GET['message'])): ?>
-            <br>Details: <?= htmlspecialchars($_GET['message']) ?>
-            <?php endif; ?>
+            
+            // Get error message
+            $error_msg = $errors[$error_type] ?? 'An error occurred';
+        ?>
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?= $error_msg ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <?php endif; ?>
         
-        <!-- Use the election.php handler instead of self-processing -->
-        <form method="POST" action="election.php?action=edit&id=<?= $electionID ?>" id="electionForm" class="needs-validation" novalidate>
-            <input type="hidden" name="form_source" value="edit_elections">
+        <?php if (isset($_GET['success'])): ?>
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <?php 
+            $success_messages = [
+                'election_updated' => 'Election was updated successfully'
+            ];
+            echo $success_messages[$_GET['success']] ?? 'Operation completed successfully';
+            ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php endif; ?>
+        
+        <form method="POST" action="<?= htmlspecialchars($_SERVER['PHP_SELF']).'?id='.$electionID ?>" id="electionForm" class="needs-validation">
             <div class="mb-4">
                 <label for="name" class="form-label">Election Name</label>
                 <input type="text" class="form-control" id="name" name="name" 
-                       value="<?= htmlspecialchars($election['name']) ?>" required aria-required="true">
+                       value="<?= htmlspecialchars($election['name']) ?>" required>
                 <div class="invalid-feedback">Please provide an election name.</div>
             </div>
             
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <label for="startDate" class="form-label"><i class="bi bi-calendar-date me-1"></i>Start Date</label>
-                    <input type="date" class="form-control" id="startDate" name="startDate" 
-                           value="<?= date('Y-m-d', strtotime($election['startDate'])) ?>" required aria-required="true">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="datetime-local" class="form-control" id="startDate" name="startDate" 
+                           value="<?= date('Y-m-d\TH:i', strtotime($election['startDate'])) ?>" required>
                     <div class="invalid-feedback">Please select a start date.</div>
-                    
-                    <div class="time-inputs">
-                        <label for="start_time" class="form-label"><i class="bi bi-clock me-1"></i>Start Time</label>
-                        <div class="input-group">
-                            <input type="time" class="form-control" id="start_time" name="start_time" 
-                                value="<?= $start_time ?>" required aria-required="true">
-                            <span class="input-group-text"><i class="bi bi-alarm"></i></span>
-                        </div>
-                    </div>
                 </div>
                 <div class="col-md-6">
-                    <label for="endDate" class="form-label"><i class="bi bi-calendar-check me-1"></i>End Date</label>
-                    <input type="date" class="form-control" id="endDate" name="endDate" 
-                           value="<?= date('Y-m-d', strtotime($election['endDate'])) ?>" required aria-required="true">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="datetime-local" class="form-control" id="endDate" name="endDate" 
+                           value="<?= date('Y-m-d\TH:i', strtotime($election['endDate'])) ?>" required>
                     <div class="invalid-feedback">Please select an end date.</div>
-                    
-                    <div class="time-inputs">
-                        <label for="end_time" class="form-label"><i class="bi bi-clock me-1"></i>End Time</label>
-                        <div class="input-group">
-                            <input type="time" class="form-control" id="end_time" name="end_time" 
-                                value="<?= $end_time ?>" required aria-required="true">
-                            <span class="input-group-text"><i class="bi bi-alarm"></i></span>
-                        </div>
-                    </div>
                 </div>
             </div>
             
             <div class="row mb-4">
                 <div class="col-md-6">
                     <label for="status" class="form-label">Status</label>
-                    <select class="form-select" id="status" name="status" required aria-required="true">
+                    <select class="form-select" id="status" name="status" required>
                         <option value="Scheduled" <?= $election['status'] === 'Scheduled' ? 'selected' : '' ?>>Scheduled</option>
                         <option value="Ongoing" <?= $election['status'] === 'Ongoing' ? 'selected' : '' ?>>Ongoing</option>
                         <option value="Completed" <?= $election['status'] === 'Completed' ? 'selected' : '' ?>>Completed</option>
@@ -182,10 +235,10 @@ if ($time_fields_exist && isset($election['start_time']) && isset($election['end
             </div>
             
             <div class="d-flex justify-content-between mt-4">
-                <a href="election.php" class="btn btn-secondary" id="cancelButton">
+                <a href="elections.php" class="btn btn-secondary" id="cancelButton">
                     <i class="bi bi-x-circle me-1"></i> Cancel
                 </a>
-                <button type="submit" class="btn btn-primary" id="updateButton" name="updateButton">
+                <button type="submit" class="btn btn-primary" id="updateButton">
                     <i class="bi bi-save me-1"></i> Update Election
                 </button>
             </div>
@@ -196,51 +249,40 @@ if ($time_fields_exist && isset($election['start_time']) && isset($election['end
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    // Enhanced form validation
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('electionForm');
         
+        // Direct link for cancel button (no preventDefault)
         document.getElementById('cancelButton').addEventListener('click', function() {
-            window.location.href = 'election.php';
+            window.location.href = 'elections.php';
         });
         
+        // Form validation
         form.addEventListener('submit', function(event) {
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
             }
             
-            // Get date and time values
-            const startDate = document.getElementById('startDate').value;
-            const startTime = document.getElementById('start_time').value;
-            const endDate = document.getElementById('endDate').value;
-            const endTime = document.getElementById('end_time').value;
+            // Custom date validation
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
             
-            // Create combined date-time objects for comparison
-            const startDateTime = new Date(`${startDate}T${startTime}`);
-            const endDateTime = new Date(`${endDate}T${endTime}`);
-            
-            // Validate end date-time is after start date-time
-            if (endDateTime <= startDateTime) {
-                alert('End date and time must be after start date and time');
+            if (endDate < startDate) {
+                alert('End date must be after start date');
                 event.preventDefault();
                 return false;
             }
             
-            // Set hidden fields for form submission if needed
-            // No hidden fields needed as we're sending the separate values
-            
-            // Log form data to console for debugging
-            console.log('Form data:', {
-                name: document.getElementById('name').value,
-                startDate: startDate,
-                startTime: startTime,
-                endDate: endDate,
-                endTime: endTime,
-                status: document.getElementById('status').value,
-                visibility: document.getElementById('visibility').value
-            });
-            
             form.classList.add('was-validated');
+        });
+        
+        // Ensure all form controls are initialized properly
+        document.querySelectorAll('.form-control, .form-select').forEach(function(element) {
+            element.addEventListener('change', function() {
+                this.classList.remove('is-invalid');
+            });
         });
     });
     </script>

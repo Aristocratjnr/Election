@@ -617,14 +617,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
             
             <!-- Success/Error Messages -->
             <?php if ($successMessage): ?>
-                <div class="alert alert-success alert-dismissible fade show" id="successAlert">
-                    <i class="bi bi-check-circle-fill me-2"></i> <?php echo $successMessage; ?>
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" id="successAlert">
+                    <i class="bi bi-check-circle-fill me-2 fs-4"></i>
+                    <div>
+                        <?php echo $successMessage; ?>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
             <?php if ($errorMessage): ?>
-                <div class="alert alert-danger alert-dismissible fade show">
-                    <i class="bi bi-exclamation-circle-fill me-2"></i> <?php echo $errorMessage; ?>
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                    <div>
+                        <?php echo $errorMessage; ?>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
@@ -654,33 +660,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                             <div class="col-md-8">
                                 <div class="row">
                                     <div class="col-12 mb-3">
-                                        <label for="name" class="form-label">Full Name</label>
+                                        <label for="name" class="form-label"><i class="bi bi-person-badge me-1"></i> Full Name</label>
                                         <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
                                             <input type="text" class="form-control" id="name" name="name" 
                                                    value="<?php echo htmlspecialchars($studentData['name'] ?? ''); ?>" required>
                                         </div>
                                     </div>
                                     <div class="col-12 mb-3">
-                                        <label for="email" class="form-label">Email Address</label>
+                                        <label for="email" class="form-label"><i class="bi bi-envelope me-1"></i> Email Address</label>
                                         <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
                                             <input type="email" class="form-control" id="email" name="email" 
                                                    value="<?php echo htmlspecialchars($studentData['email'] ?? ''); ?>" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="department" class="form-label">Department</label>
+                                        <label for="department" class="form-label"><i class="bi bi-building me-1"></i> Department</label>
                                         <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-buildings department-icon icon"></i></span>
+                                            <span class="input-group-text"><i class="bi bi-buildings-fill"></i></span>
                                             <input type="text" class="form-control" id="department" name="department" 
                                                    value="<?php echo htmlspecialchars($studentData['department'] ?? ''); ?>" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="contactNumber" class="form-label">Contact Number</label>
+                                        <label for="contactNumber" class="form-label"><i class="bi bi-telephone me-1"></i> Contact Number</label>
                                         <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                            <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
                                             <input type="tel" class="form-control" id="contactNumber" name="contactNumber" 
                                                    value="<?php echo htmlspecialchars($studentData['contactNumber'] ?? ''); ?>">
                                         </div>
@@ -705,9 +711,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                 <div class="card-body">
                     <form action="settings.php" method="POST">
                         <div class="mb-3">
-                            <label for="current_password" class="form-label">Current Password</label>
+                            <label for="current_password" class="form-label"><i class="bi bi-key-fill me-1"></i> Current Password</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
                                 <input type="password" class="form-control" id="current_password" name="current_password" required>
                                 <button class="btn btn-outline-secondary password-toggle" type="button">
                                     <i class="bi bi-eye"></i>
@@ -715,21 +721,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="new_password" class="form-label">New Password</label>
+                            <label for="new_password" class="form-label"><i class="bi bi-lock-fill me-1"></i> New Password</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                                 <input type="password" class="form-control" id="new_password" name="new_password" required>
                                 <button class="btn btn-outline-secondary password-toggle" type="button">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             </div>
                             <div class="password-strength mt-2" id="passwordStrength"></div>
-                            <small class="text-muted">Minimum 8 characters with at least one number and one letter</small>
+                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i> Minimum 8 characters with at least one number and one letter</small>
                         </div>
                         <div class="mb-4">
-                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <label for="confirm_password" class="form-label"><i class="bi bi-lock-fill me-1"></i> Confirm New Password</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                <span class="input-group-text"><i class="bi bi-shield-lock-fill"></i></span>
                                 <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                                 <button class="btn btn-outline-secondary password-toggle" type="button">
                                     <i class="bi bi-eye"></i>
@@ -752,15 +758,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
     <div class="card-body">
         <?php if (isset($studentData['two_factor_enabled']) && $studentData['two_factor_enabled']): ?>
             <!-- 2FA is enabled -->
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle-fill me-2"></i> Two-Factor Authentication is currently <strong>enabled</strong> on your account.
+            <div class="alert alert-success d-flex align-items-center">
+                <i class="bi bi-shield-lock-fill me-2 fs-4"></i>
+                <div>
+                    Two-Factor Authentication is currently <strong>enabled</strong> on your account.
+                </div>
             </div>
             
             <form action="settings.php" method="POST">
                 <div class="mb-3">
-                    <label for="disable_password" class="form-label">Enter your password to disable 2FA:</label>
+                    <label for="disable_password" class="form-label"><i class="bi bi-unlock me-1"></i> Enter your password to disable 2FA:</label>
                     <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                        <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
                         <input type="password" class="form-control" id="disable_password" name="disable_password" required>
                         <button class="btn btn-outline-secondary password-toggle" type="button">
                             <i class="bi bi-eye"></i>
@@ -769,7 +778,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                 </div>
                 <div class="text-end">
                     <button type="submit" name="disable_2fa" class="btn btn-danger">
-                        <i class="bi bi-x-circle me-2"></i> Disable 2FA
+                        <i class="bi bi-shield-x me-2"></i> Disable 2FA
                     </button>
                 </div>
             </form>
@@ -784,16 +793,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
             'SmartVote'
         );
         ?>
-        <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
-        <img src="<?php echo $qrCodeUrl; ?>" class="img-fluid mb-3" style="max-width: 200px;">
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i> Can't scan? Enter this code manually: <strong><?php echo chunk_split($_SESSION['2fa_secret'], 4, ' '); ?></strong>
+        <p><i class="bi bi-qr-code me-2"></i> Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+        <div class="qr-code-container">
+            <img src="<?php echo $qrCodeUrl; ?>" class="img-fluid mb-3" style="max-width: 200px;">
+        </div>
+        <div class="alert alert-info d-flex align-items-center">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <div>
+                Can't scan? Enter this code manually: <strong><?php echo chunk_split($_SESSION['2fa_secret'], 4, ' '); ?></strong>
+            </div>
         </div>
     </div>
             
             <form action="settings.php" method="POST">
                 <div class="mb-3">
-                    <label for="verification_code" class="form-label">Enter 6-digit verification code:</label>
+                    <label for="verification_code" class="form-label"><i class="bi bi-123 me-1"></i> Enter 6-digit verification code:</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
                         <input type="text" class="form-control" id="verification_code" name="verification_code" 
@@ -808,10 +822,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
             </form>
         <?php else: ?>
             <!-- 2FA not set up -->
-            <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle me-2"></i> Two-Factor Authentication is currently <strong>disabled</strong>.
+            <div class="alert alert-warning d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+                <div>
+                    Two-Factor Authentication is currently <strong>disabled</strong>.
+                </div>
             </div>
-            <p>Two-factor authentication adds an extra layer of security to your account by requiring more than just a password to log in.</p>
+            <p><i class="bi bi-shield me-2"></i> Two-factor authentication adds an extra layer of security to your account by requiring more than just a password to log in.</p>
             
             <form action="settings.php" method="POST">
                 <div class="text-end">
@@ -831,8 +848,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                 <div class="card-body">
                     <div class="action-card-item d-flex justify-content-between align-items-center">
                         <div class="action-text">
-                            <h6>Deactivate Account</h6>
-                            <p>Temporarily disable your account (you can reactivate later)</p>
+                            <h6><i class="bi bi-pause-circle-fill me-2 text-warning"></i> Deactivate Account</h6>
+                            <p><i class="bi bi-info-circle me-1"></i> Temporarily disable your account (you can reactivate later)</p>
                         </div>
                         <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#deactivateModal">
                             <i class="bi bi-pause-circle me-1"></i> Deactivate
@@ -841,8 +858,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                     <hr>
                     <div class="action-card-item d-flex justify-content-between align-items-center">
                         <div class="action-text">
-                            <h6>Delete Account</h6>
-                            <p>Permanently remove your account and all data</p>
+                            <h6><i class="bi bi-trash3-fill me-2 text-danger"></i> Delete Account</h6>
+                            <p><i class="bi bi-exclamation-circle me-1"></i> Permanently remove your account and all data</p>
                         </div>
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                             <i class="bi bi-trash3 me-1"></i> Delete
@@ -858,27 +875,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i> Confirm Deactivation</h5>
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Deactivation</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="settings.php" method="POST">
                     <div class="modal-body">
                         <div class="text-center mb-4">
-                            <i class="bi bi-pause-circle text-warning" style="font-size: 3rem;"></i>
+                            <i class="bi bi-pause-circle-fill text-warning" style="font-size: 4rem;"></i>
                             <h4 class="mt-3">Account Deactivation</h4>
-                            <p class="text-muted">Your account will be temporarily deactivated</p>
+                            <p class="text-muted"><i class="bi bi-info-circle me-1"></i> Your account will be temporarily deactivated</p>
                         </div>
-                        <div class="alert alert-warning">
-                            <i class="bi bi-info-circle me-2"></i> You can reactivate your account by logging in again.
+                        <div class="alert alert-warning d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <div>
+                                You can reactivate your account by logging in again.
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="deactivatePassword" class="form-label">Enter your password to confirm:</label>
-                            <input type="password" class="form-control" id="deactivatePassword" name="action_password" required>
+                            <label for="deactivatePassword" class="form-label"><i class="bi bi-key-fill me-1"></i> Enter your password to confirm:</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                <input type="password" class="form-control" id="deactivatePassword" name="action_password" required>
+                                <button class="btn btn-outline-secondary password-toggle" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <input type="hidden" name="account_action" value="deactivate">
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
                         <button type="submit" class="btn btn-warning text-white">
                             <i class="bi bi-pause-circle me-2"></i> Deactivate Account
                         </button>
@@ -899,27 +927,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                 <form action="settings.php" method="POST">
                     <div class="modal-body">
                         <div class="text-center mb-4">
-                            <i class="bi bi-trash3 text-danger" style="font-size: 3rem;"></i>
+                            <i class="bi bi-trash3-fill text-danger" style="font-size: 4rem;"></i>
                             <h4 class="mt-3">Delete Your Account?</h4>
-                            <p class="text-muted">This action cannot be undone</p>
+                            <p class="text-muted"><i class="bi bi-exclamation-circle me-1"></i> This action cannot be undone</p>
                         </div>
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i> All your data will be permanently erased from our systems.
+                        <div class="alert alert-danger d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>
+                                All your data will be permanently erased from our systems.
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="deletePassword" class="form-label">Enter your password to confirm:</label>
-                            <input type="password" class="form-control" id="deletePassword" name="action_password" required>
+                            <label for="deletePassword" class="form-label"><i class="bi bi-key-fill me-1"></i> Enter your password to confirm:</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                <input type="password" class="form-control" id="deletePassword" name="action_password" required>
+                                <button class="btn btn-outline-secondary password-toggle" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="confirmDelete" required>
                             <label class="form-check-label" for="confirmDelete">
-                                I understand this action is permanent and cannot be reversed
+                                <i class="bi bi-check-circle me-1"></i> I understand this action is permanent and cannot be reversed
                             </label>
                         </div>
                         <input type="hidden" name="account_action" value="delete">
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
                         <button type="submit" class="btn btn-danger">
                             <i class="bi bi-trash3 me-2"></i> Permanently Delete Account
                         </button>
