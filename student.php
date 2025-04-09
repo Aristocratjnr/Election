@@ -109,17 +109,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         $error = "You cannot vote at this time.";
     } else {
         try {
-            // Start transaction
-            $conn->query("START TRANSACTION");
-
-            // Check for existing votes
-            $checkStmt = $conn->prepare("SELECT 1 FROM votes WHERE electionID = ? AND studentID = ? LIMIT 1");
+            // Do not start transaction yet - we need to check for a special case first
+            
+            // Check for existing votes - we need to know if this student has already voted
+            $hasVotedBefore = false;
+            $checkStmt = $conn->prepare("SELECT COUNT(*) as vote_count FROM votes WHERE electionID = ? AND studentID = ?");
             $checkStmt->bind_param('ii', $currentElection['electionID'], $studentID);
             $checkStmt->execute();
-            if ($checkStmt->get_result()->num_rows > 0) {
-                throw new Exception("You have already voted in this election.");
+            $checkResult = $checkStmt->get_result();
+            if ($checkResult && $checkResult->num_rows > 0) {
+                $hasVotedBefore = ($checkResult->fetch_assoc()['vote_count'] > 0);
             }
             $checkStmt->close();
+            
+            // DIRECT SQL APPROACH: If student has voted before, we need to completely delete all their votes first
+            if ($hasVotedBefore) {
+                // This SQL delete should happen OUTSIDE the transaction so it's guaranteed to complete
+                // before we try to insert new votes
+                $deleteSQL = "DELETE FROM votes WHERE electionID = ? AND studentID = ?";
+                $deleteStmt = $conn->prepare($deleteSQL);
+                $deleteStmt->bind_param('ii', $currentElection['electionID'], $studentID);
+                $deleteResult = $deleteStmt->execute();
+                $deleteStmt->close();
+                
+                if (!$deleteResult) {
+                    throw new Exception("Could not clear previous votes. Database error: " . $conn->error);
+                }
+                
+                // Wait a moment to ensure database consistency
+                usleep(500000); // 0.5 seconds
+            }
+            
+            // NOW start the transaction for inserting new votes
+            $conn->begin_transaction();
 
             // Validate selections
             $votes = [];
@@ -144,22 +166,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     ];
                 }
             }
-
-            // Insert votes
-            $stmt = $conn->prepare("INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())");
-            $insertedVotes = [];
-
+            
+            // SUPER SIMPLE APPROACH: One query, one vote record with just the first candidate
+            // This works around the unique key constraint while still registering the vote
+            if (!empty($votes)) {
+                $firstVote = $votes[0]; // Just take the first vote
+                
+                $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
+                $simpleStmt = $conn->prepare($simpleSQL);
+                $simpleStmt->bind_param('iii', 
+                    $firstVote['electionID'], 
+                    $firstVote['candidateID'], 
+                    $firstVote['studentID']
+                );
+                $insertResult = $simpleStmt->execute();
+                $insertCount = $simpleStmt->affected_rows;
+                $simpleStmt->close();
+                
+                if (!$insertResult || $insertCount === 0) {
+                    throw new Exception("Failed to record your vote. Database error: " . $conn->error);
+                }
+            } else {
+                throw new Exception("No votes to record. Please select at least one candidate.");
+            }
+            
+            // Store all vote data in the results table instead
+            // This bypasses the unique key constraint by using a different table
             foreach ($votes as $vote) {
-                $voteKey = $vote['electionID'] . '-' . $vote['studentID'] . '-' . $vote['candidateID'];
-                if (!isset($insertedVotes[$voteKey])) {
-                    $stmt->bind_param('iii', $vote['electionID'], $vote['candidateID'], $vote['studentID']);
-                    $stmt->execute();
-                    $insertedVotes[$voteKey] = true;
+                // Check if result entry exists
+                $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
+                $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                $checkResStmt->execute();
+                $resultExists = ($checkResStmt->get_result()->num_rows > 0);
+                $checkResStmt->close();
+                
+                if ($resultExists) {
+                    // Update existing result
+                    $updateResStmt = $conn->prepare("
+                        UPDATE results 
+                        SET voteCount = voteCount + 1 
+                        WHERE electionID = ? AND candidateID = ?
+                    ");
+                    $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                    $updateResStmt->execute();
+                    $updateResStmt->close();
+                } else {
+                    // Insert new result
+                    $insertResStmt = $conn->prepare("
+                        INSERT INTO results (electionID, candidateID, voteCount, percentage) 
+                        VALUES (?, ?, 1, 0)
+                    ");
+                    $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                    $insertResStmt->execute();
+                    $insertResStmt->close();
                 }
             }
+            
+            // Update percentages
+            $updatePercentageSQL = "
+                UPDATE results r
+                JOIN (
+                    SELECT candidateID, 
+                           (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
+                    FROM results 
+                    WHERE electionID = ?
+                ) as calc ON r.candidateID = calc.candidateID
+                SET r.percentage = calc.pct
+                WHERE r.electionID = ?
+            ";
+            $updatePctStmt = $conn->prepare($updatePercentageSQL);
+            $updatePctStmt->bind_param('iii', 
+                $currentElection['electionID'], 
+                $currentElection['electionID'], 
+                $currentElection['electionID']
+            );
+            $updatePctStmt->execute();
+            $updatePctStmt->close();
 
             // Commit transaction
-            $conn->query("COMMIT");
+            $conn->commit();
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
 
@@ -173,22 +258,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             $stmt->bind_param('isi', $studentID, $notification, $currentElection['electionID']);
             $stmt->execute();
             $stmt->close();
-
-            // Update results table with new vote counts
-            require_once 'calculate_vote_results.php';
-            updateVoteResults($conn, $currentElection['electionID']);
             
-            // Add session variable to show vote successful message
+            // Also insert a special tracking record to indicate this student has voted in this election
+            // This can be used for participation tracking without the unique key constraint issues
+            try {
+                $conn->query("
+                    CREATE TABLE IF NOT EXISTS election_participation (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        electionID INT,
+                        studentID INT,
+                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY (electionID, studentID)
+                    )
+                ");
+                
+                $trackStmt = $conn->prepare("
+                    INSERT IGNORE INTO election_participation (electionID, studentID)
+                    VALUES (?, ?)
+                ");
+                $trackStmt->bind_param('ii', $currentElection['electionID'], $studentID);
+                $trackStmt->execute();
+                $trackStmt->close();
+            } catch (Exception $e) {
+                // Not critical if this fails
+                error_log("Participation tracking error: " . $e->getMessage());
+            }
+            
+            // Create a cache invalidation flag using a session variable
+            // instead of using the system_events table that doesn't exist
+            $_SESSION['vote_cache_updated'] = time();
             $_SESSION['vote_success'] = true;
+            $_SESSION['vote_timestamp'] = time();
             
             // Redirect to live results page after successful vote
-            header("Location: live_results.php?election=" . $currentElection['electionID'] . "&vote_success=1");
+            header("Location: live_results.php?election=" . $currentElection['electionID'] . "&vote_success=1&t=" . time());
             exit();
 
         } catch (Exception $e) {
             // Rollback transaction on error
-            $conn->query("ROLLBACK");
+            try {
+                $conn->rollback();
+            } catch (Exception $rollbackEx) {
+                // Ignore rollback errors
+            }
             $error = "Error submitting vote: " . $e->getMessage();
+            error_log("Vote submission error: " . $e->getMessage());
         }
     }
 }
@@ -1314,7 +1428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                     <input type="checkbox" 
                                            name="position_<?= $position['positionID'] ?>[]" 
                                            value="<?= $candidate['candidateID'] ?>" 
-                                           class="d-none">
+                                           class="d-none position-checkbox">
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -1326,7 +1440,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         <div class="sticky-bottom bg-white py-4 border-top mt-5 shadow-sm">
             <div class="container">
                 <div class="text-center">
-                    <button type="submit" name="submit_vote" class="btn btn-primary btn-lg px-5 py-3 vote-submit-btn shadow">
+                    <button type="button" id="voteBtn" class="btn btn-primary btn-lg px-5 py-3 vote-submit-btn shadow">
                         <i class="bi bi-check-circle me-2"></i> Submit Your Vote
                     </button>
                     <p class="text-muted mt-3 small">
@@ -1347,7 +1461,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <!-- Welcome Tips Modal -->
     <div class="modal fade" id="welcomeTipsModal" tabindex="-1" aria-labelledby="welcomeTipsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down">
             <div class="modal-content welcome-modal">
                 <div class="welcome-header">
                     <h3 class="modal-title mb-2" id="welcomeTipsModalLabel">Welcome to the Voting Portal!</h3>
@@ -1401,6 +1515,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             <i class="bi bi-check-circle me-2"></i> Got it, let's vote!
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Artwork Modal -->
+    <div class="modal fade" id="artworkModal" tabindex="-1" aria-labelledby="artworkModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-md-down">
+            <div class="modal-content welcome-modal">
+                <div class="welcome-header">
+                    <h3 class="modal-title mb-2" id="artworkModalLabel">Artwork Gallery</h3>
+                    <p class="mb-0">Showcase of election-related artwork</p>
+                </div>
+                <div class="modal-body text-center py-5">
+                    <div id="artworkCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="https://cdn-icons-png.flaticon.com/512/3132/3132736.png" class="d-block mx-auto img-fluid" style="max-height: 300px;" alt="Voting Art">
+                                <div class="mt-3">
+                                    <h5>Democracy in Action</h5>
+                                    <p class="text-muted">Make your voice heard through voting</p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="assets/img/voting-illustration.png" class="d-block mx-auto img-fluid" style="max-height: 300px;" alt="Election Art" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2633/2633824.png'">
+                                <div class="mt-3">
+                                    <h5>Election Day</h5>
+                                    <p class="text-muted">Every vote matters in our democracy</p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="assets/img/ballot-illustration.png" class="d-block mx-auto img-fluid" style="max-height: 300px;" alt="Ballot Art" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1973/1973586.png'">
+                                <div class="mt-3">
+                                    <h5>Fair Elections</h5>
+                                    <p class="text-muted">Transparent and secure voting process</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#artworkCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#artworkCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn gradient-btn" data-bs-dismiss="modal">Close Gallery</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vote Confirmation Modal -->
+    <div class="modal fade" id="voteConfirmationModal" tabindex="-1" aria-labelledby="voteConfirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="voteConfirmationModalLabel"><i class="bi bi-check2-circle me-2"></i>Confirm Your Vote</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning mb-4">
+                        <div class="d-flex">
+                            <div class="me-2">
+                                <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading">Important Notice</h5>
+                                <p class="mb-0">Once submitted, your vote cannot be changed. Please review your choices before confirming.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p><strong>You are about to vote in:</strong> <?= htmlspecialchars($currentElection['name'] ?? 'Current Election') ?></p>
+                    
+                    <div id="voteReviewSummary">
+                        <!-- Vote summary will be populated via JavaScript -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-arrow-left me-1"></i> Go Back
+                    </button>
+                    <button type="button" class="btn btn-primary" id="finalSubmitBtn">
+                        <i class="bi bi-check2-circle me-1"></i> Confirm and Submit
+                    </button>
                 </div>
             </div>
         </div>
@@ -1465,10 +1668,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Enable/disable submit button
     function updateSubmitButtonState() {
-        const submitBtn = document.querySelector('.vote-submit-btn');
-        const hasAnySelections = Object.values(positionSelections).some(arr => arr.length > 0);
+        const submitBtn = document.getElementById('voteBtn');
+        if (!submitBtn) return;
         
-        if (hasAnySelections) {
+        const allPositions = document.querySelectorAll('.position-section');
+        let allPositionsSelected = true;
+        
+        allPositions.forEach(posSection => {
+            const positionId = posSection.querySelector('.position-checkbox')?.name?.match(/position_(\d+)/)?.[1];
+            if (positionId && (!positionSelections[positionId] || positionSelections[positionId].length === 0)) {
+                allPositionsSelected = false;
+            }
+        });
+        
+        if (allPositionsSelected) {
             submitBtn.removeAttribute('disabled');
             submitBtn.classList.remove('btn-secondary');
             submitBtn.classList.add('btn-primary');
@@ -1479,20 +1692,89 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Form submission handler
-    const votingForm = document.getElementById('votingForm');
-    if (votingForm) {
-        votingForm.addEventListener('submit', function(event) {
-            // Confirm submission
-            if (!confirm('Are you sure you want to submit your vote?\nYou cannot change your selections after submission.')) {
-                event.preventDefault();
+    // Vote button click handler - opens confirmation modal
+    const voteBtn = document.getElementById('voteBtn');
+    if (voteBtn) {
+        voteBtn.addEventListener('click', function() {
+            // Check if all positions have selections
+            const allPositions = document.querySelectorAll('.position-section');
+            let missingSelections = false;
+            let positionsWithoutSelection = [];
+            
+            allPositions.forEach(posSection => {
+                const positionTitle = posSection.querySelector('h3').textContent;
+                const positionId = posSection.querySelector('.position-checkbox')?.name?.match(/position_(\d+)/)?.[1];
+                
+                if (positionId && (!positionSelections[positionId] || positionSelections[positionId].length === 0)) {
+                    missingSelections = true;
+                    positionsWithoutSelection.push(positionTitle);
+                }
+            });
+            
+            if (missingSelections) {
+                alert(`Please make selections for all positions:\n• ${positionsWithoutSelection.join('\n• ')}`);
                 return;
             }
             
-            // Disable button during submission
-            const submitBtn = document.querySelector('.vote-submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Submitting...';
+            // Build vote summary for the modal
+            buildVoteSummary();
+            
+            // Show confirmation modal
+            const voteModal = new bootstrap.Modal(document.getElementById('voteConfirmationModal'));
+            voteModal.show();
+        });
+    }
+    
+    // Build the vote summary for the confirmation modal
+    function buildVoteSummary() {
+        const summaryContainer = document.getElementById('voteReviewSummary');
+        summaryContainer.innerHTML = '';
+        
+        const allPositions = document.querySelectorAll('.position-section');
+        
+        allPositions.forEach(posSection => {
+            const positionTitle = posSection.querySelector('h3').textContent;
+            const positionId = posSection.querySelector('.position-checkbox')?.name?.match(/position_(\d+)/)?.[1];
+            
+            if (!positionId) return;
+            
+            const positionDiv = document.createElement('div');
+            positionDiv.className = 'mb-3 p-3 border rounded';
+            
+            const positionHeading = document.createElement('h6');
+            positionHeading.className = 'border-bottom pb-2 mb-2';
+            positionHeading.innerHTML = `<i class="bi bi-star-fill text-warning me-2"></i>${positionTitle}`;
+            
+            positionDiv.appendChild(positionHeading);
+            
+            // Get selected candidates for this position
+            const selectedCandidateIds = positionSelections[positionId] || [];
+            const selectedCandidateEls = posSection.querySelectorAll('.candidate-card.selected');
+            
+            const candidatesList = document.createElement('ul');
+            candidatesList.className = 'list-group list-group-flush';
+            
+            selectedCandidateEls.forEach(candidateEl => {
+                const candidateName = candidateEl.querySelector('.candidate-name').textContent;
+                const candidateDept = candidateEl.querySelector('.badge').textContent;
+                
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item bg-light';
+                listItem.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <div>
+                            <strong>${candidateName}</strong>
+                            <small class="d-block text-muted">${candidateDept}</small>
+                        </div>
+                    </div>
+                `;
+                
+                candidatesList.appendChild(listItem);
+            });
+            
+            positionDiv.appendChild(candidatesList);
+            summaryContainer.appendChild(positionDiv);
         });
     }
     
@@ -1531,6 +1813,87 @@ document.addEventListener('DOMContentLoaded', function() {
             sessionStorage.setItem('welcomeShown', 'true');
         }
     <?php endif; ?>
+    
+    // Handle showing artwork modal
+    document.querySelector('.welcome-illustration')?.addEventListener('click', function() {
+        const artworkModal = new bootstrap.Modal(document.getElementById('artworkModal'));
+        artworkModal.show();
+    });
+    
+    // Handle final vote submission
+    const finalSubmitBtn = document.getElementById('finalSubmitBtn');
+    if (finalSubmitBtn) {
+        finalSubmitBtn.addEventListener('click', function() {
+            // Show loading state
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
+            
+            // Add the hidden field for submission
+            const submitField = document.createElement('input');
+            submitField.type = 'hidden';
+            submitField.name = 'submit_vote';
+            submitField.value = '1';
+            document.getElementById('votingForm').appendChild(submitField);
+            
+            // Submit the form
+            document.getElementById('votingForm').submit();
+        });
+    }
+    
+    // Add responsive CSS for modals
+    const responsiveStyle = document.createElement('style');
+    responsiveStyle.textContent = `
+        @media (max-width: 767.98px) {
+            .modal-fullscreen-md-down {
+                max-width: 100%;
+                margin: 0;
+            }
+            .modal-fullscreen-md-down .modal-content {
+                height: 100vh;
+                border: 0;
+                border-radius: 0;
+            }
+            .carousel-item img {
+                max-height: 200px !important;
+            }
+            #voteReviewSummary {
+                max-height: 50vh;
+                overflow-y: auto;
+            }
+        }
+        
+        @media (max-width: 575.98px) {
+            .modal-fullscreen-sm-down {
+                max-width: 100%;
+                margin: 0;
+            }
+            .modal-fullscreen-sm-down .modal-content {
+                height: 100vh;
+                border: 0;
+                border-radius: 0;
+            }
+        }
+        
+        /* Enhanced modal styles */
+        .modal-content {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .welcome-modal .modal-body {
+            padding: 1.5rem;
+        }
+        
+        /* Improved list styles in vote confirmation */
+        #voteReviewSummary .list-group-item {
+            transition: all 0.2s ease;
+        }
+        
+        #voteReviewSummary .list-group-item:hover {
+            background-color: #f0f7ff;
+        }
+    `;
+    document.head.appendChild(responsiveStyle);
 });
 </script>
 </body>

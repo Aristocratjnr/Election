@@ -240,6 +240,9 @@ async function loadNotifications(refresh = false) {
             updateNotificationBadge(data.total);
             renderNotifications(data.notifications);
             setupAutoRefresh();
+            
+            // Check for votes cast
+            checkVoteCast();
         }
     } catch (error) {
         console.error('Notification error:', error);
@@ -305,6 +308,44 @@ function setupAutoRefresh() {
             loadNotifications(true);
         }
     }, 120000);
+}
+
+// Function to check if student has cast votes
+async function checkVoteCast() {
+    try {
+        const response = await fetch('vote_status_check.php');
+        if (!response.ok) throw new Error('Network error');
+        
+        const data = await response.json();
+        
+        if (data.success && data.has_voted) {
+            // Update the notification badge to include vote count
+            const currentCount = parseInt(document.querySelector('.notification-count').textContent || '0');
+            updateNotificationBadge(currentCount + data.vote_count);
+            
+            // Add vote notification to the notification list if not already present
+            if (data.vote_count > 0) {
+                const container = document.getElementById('notificationsContainer');
+                if (container && !document.querySelector('.vote-notification')) {
+                    const voteNotification = document.createElement('div');
+                    voteNotification.className = 'notification-item bg-light-success p-3 mb-2 rounded vote-notification';
+                    voteNotification.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success p-2 rounded-circle me-3"></i>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">Vote Cast Successfully</h6>
+                                <p class="mb-0 small">You have cast ${data.vote_count} vote(s) in ${data.election_name}</p>
+                            </div>
+                            <span class="text-muted small">Just now</span>
+                        </div>
+                    `;
+                    container.prepend(voteNotification);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Vote status check error:', error);
+    }
 }
 
 // Initial load

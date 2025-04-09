@@ -459,7 +459,7 @@ if (!empty($profile_pic)) {
       </li>
 
       <!-- Election Control -->
-      <li class="nav-item <?= in_array($current_script, ['/election/pages/elections/election.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php']) ? 'active' : '' ?>">
+      <li class="nav-item <?= in_array($current_script, ['election.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php','categories.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
           <div class="nav-link settings-toggle" data-tooltip="Manage Elections, Candidates, Positions and Ballots">
             <i class="bi bi-calendar-event"></i>
@@ -478,6 +478,14 @@ if (!empty($profile_pic)) {
               <a href="election.php">
                 <i class="bi bi-plus-circle"></i>
                 <span>Create New</span>
+              </a>
+            </li>
+
+            <!-- Categories Submenu -->
+            <li class="submenu-item <?= ($current_script === 'categories.php') ? 'active' : '' ?>">
+              <a href="categories.php">
+                <i class="bi bi-bookmark-fill"></i>
+                <span>Categories</span>
               </a>
             </li>
 

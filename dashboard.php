@@ -381,6 +381,83 @@ try {
         .main-content {
             transition: all 0.3s ease;
         }
+        
+        .sidebar-footer {
+            transition: all 0.3s ease;
+        }
+        
+        /* Active Card Styling */
+        .active-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .active-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 5px;
+        }
+        
+        .border-left-primary {
+            border-left: 4px solid #0d6efd !important;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(13, 110, 253, 0.15) !important;
+        }
+        
+        .border-left-success {
+            border-left: 4px solid #198754 !important;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(25, 135, 84, 0.15) !important;
+        }
+        
+        .border-left-info {
+            border-left: 4px solid #0dcaf0 !important;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(13, 202, 240, 0.15) !important;
+        }
+        
+        .border-left-warning {
+            border-left: 4px solid #ffc107 !important;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(255, 193, 7, 0.15) !important;
+        }
+        
+        .border-left-primary::before { background-color: #0d6efd; }
+        .border-left-success::before { background-color: #198754; }
+        .border-left-info::before { background-color: #0dcaf0; }
+        .border-left-warning::before { background-color: #ffc107; }
+        
+        .active-card .card-icon {
+            animation: pulse 2s infinite;
+        }
+        
+        .border-left-primary .card-icon { animation: pulse-primary 2s infinite; }
+        .border-left-success .card-icon { animation: pulse-success 2s infinite; }
+        .border-left-info .card-icon { animation: pulse-info 2s infinite; }
+        .border-left-warning .card-icon { animation: pulse-warning 2s infinite; }
+        
+        @keyframes pulse-primary {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(13, 110, 253, 0.3); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes pulse-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(25, 135, 84, 0.3); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes pulse-info {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(13, 202, 240, 0.3); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes pulse-warning {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(255, 193, 7, 0.3); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -540,7 +617,7 @@ try {
                     <div class="row mb-4">
                         <!-- Elections Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
+                            <div class="card border-0 shadow-sm h-100 <?php echo ($dashboard_stats['total_elections'] > 0) ? 'border-left-primary active-card' : ''; ?>">
                                 <div class="card-body">
                                     <h5 class="card-title text-muted"> <i class="bi bi-check2-circle profile-icon icon"></i>&nbsp;Elections</h5>
                                     <div class="d-flex align-items-center">
@@ -558,7 +635,7 @@ try {
                         
                         <!-- Categories Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
+                            <div class="card border-0 shadow-sm h-100 <?php echo ($dashboard_stats['total_active_categories'] > 0) ? 'border-left-success active-card' : ''; ?>">
                                 <div class="card-body">
                                     <h5 class="card-title text-muted">  <i class="bi bi-list-task action-icon icon"></i>&nbsp;Categories</h5>
                                     <div class="d-flex align-items-center">
@@ -576,7 +653,7 @@ try {
                         
                         <!-- Voters Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
+                            <div class="card border-0 shadow-sm h-100 <?php echo ($dashboard_stats['total_voters'] > 0) ? 'border-left-info active-card' : ''; ?>">
                                 <div class="card-body">
                                     <h5 class="card-title text-muted"> <i class="bi bi-people department-icon icon"></i>&nbsp;Voters</h5>
                                     <div class="d-flex align-items-center">
@@ -594,7 +671,7 @@ try {
                         
                         <!-- Participation Card -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
+                            <div class="card border-0 shadow-sm h-100 <?php echo ($dashboard_stats['total_voted'] > 0) ? 'border-left-warning active-card' : ''; ?>">
                                 <div class="card-body">
                                     <h5 class="card-title text-muted"><i class="bi bi-hand-thumbs-up role-icon icon"></i>&nbsp;Participation</h5>
                                     <div class="d-flex align-items-center">
