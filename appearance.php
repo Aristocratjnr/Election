@@ -33,19 +33,36 @@ $ui_settings = [
     'notifications' => 'on'
 ];
 
-// Fetch admin UI preferences
-$stmt = $conn->prepare("SELECT ui_preferences FROM admins WHERE adminID = ?");
-$stmt->bind_param("i", $admin_id);
-$stmt->execute();
-$result = $stmt->get_result();
+// Check if ui_preferences column exists in the admins table
+$column_exists = false;
+$check_column = $conn->query("SHOW COLUMNS FROM admins LIKE 'ui_preferences'");
+if ($check_column && $check_column->num_rows > 0) {
+    $column_exists = true;
+    
+    // Fetch admin UI preferences
+    $stmt = $conn->prepare("SELECT ui_preferences FROM admins WHERE adminID = ?");
+    $stmt->bind_param("i", $admin_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-if ($result->num_rows > 0) {
-    $admin_data = $result->fetch_assoc();
-    if (!empty($admin_data['ui_preferences'])) {
-        $saved_preferences = json_decode($admin_data['ui_preferences'], true);
-        if (is_array($saved_preferences)) {
-            $ui_settings = array_merge($ui_settings, $saved_preferences);
+    if ($result->num_rows > 0) {
+        $admin_data = $result->fetch_assoc();
+        if (!empty($admin_data['ui_preferences'])) {
+            $saved_preferences = json_decode($admin_data['ui_preferences'], true);
+            if (is_array($saved_preferences)) {
+                $ui_settings = array_merge($ui_settings, $saved_preferences);
+            }
         }
+    }
+} else {
+    // Create ui_preferences column
+    try {
+        $alter_table = $conn->query("ALTER TABLE admins ADD COLUMN ui_preferences JSON NULL");
+        if ($alter_table) {
+            $success_message = "UI preferences system initialized successfully.";
+        }
+    } catch (Exception $e) {
+        $error_message = "Could not create UI preferences column: " . $e->getMessage();
     }
 }
 
@@ -69,18 +86,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_appearance'])) 
     ];
     
     // Save to database as JSON
-    $preferences_json = json_encode($new_settings);
-    $update_stmt = $conn->prepare("UPDATE admins SET ui_preferences = ? WHERE adminID = ?");
-    $update_stmt->bind_param("si", $preferences_json, $admin_id);
-    
-    if ($update_stmt->execute()) {
-        $success_message = "Appearance settings updated successfully.";
-        $ui_settings = $new_settings; // Update current settings
+    if ($column_exists) {
+        $preferences_json = json_encode($new_settings);
+        $update_stmt = $conn->prepare("UPDATE admins SET ui_preferences = ? WHERE adminID = ?");
+        $update_stmt->bind_param("si", $preferences_json, $admin_id);
         
-        // Set cookie for theme preference (optional)
-        setcookie('admin_theme', $theme, time() + (86400 * 30), "/", "", true, true);
+        if ($update_stmt->execute()) {
+            $success_message = "Appearance settings updated successfully.";
+            $ui_settings = $new_settings; // Update current settings
+            
+            // Set cookie for theme preference (optional)
+            setcookie('admin_theme', $theme, time() + (86400 * 30), "/", "", true, true);
+        } else {
+            $error_message = "Failed to update appearance settings: " . $conn->error;
+        }
     } else {
-        $error_message = "Failed to update appearance settings: " . $conn->error;
+        $error_message = "Cannot save settings. UI preferences system is not initialized.";
     }
 }
 
@@ -97,18 +118,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_defaults'])) {
     ];
     
     // Save defaults to database
-    $preferences_json = json_encode($default_settings);
-    $update_stmt = $conn->prepare("UPDATE admins SET ui_preferences = ? WHERE adminID = ?");
-    $update_stmt->bind_param("si", $preferences_json, $admin_id);
-    
-    if ($update_stmt->execute()) {
-        $success_message = "Appearance settings reset to defaults.";
-        $ui_settings = $default_settings; // Update current settings
+    if ($column_exists) {
+        $preferences_json = json_encode($default_settings);
+        $update_stmt = $conn->prepare("UPDATE admins SET ui_preferences = ? WHERE adminID = ?");
+        $update_stmt->bind_param("si", $preferences_json, $admin_id);
         
-        // Reset theme cookie
-        setcookie('admin_theme', 'light', time() + (86400 * 30), "/", "", true, true);
+        if ($update_stmt->execute()) {
+            $success_message = "Appearance settings reset to defaults.";
+            $ui_settings = $default_settings; // Update current settings
+            
+            // Reset theme cookie
+            setcookie('admin_theme', 'light', time() + (86400 * 30), "/", "", true, true);
+        } else {
+            $error_message = "Failed to reset appearance settings: " . $conn->error;
+        }
     } else {
-        $error_message = "Failed to reset appearance settings: " . $conn->error;
+        $error_message = "Cannot reset settings. UI preferences system is not initialized.";
+        // Use default settings anyway for the current view
+        $ui_settings = $default_settings;
     }
 }
 

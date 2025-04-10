@@ -208,10 +208,7 @@ if ($electionID) {
             overflow: hidden;
         }
 
-        .card:hover {
-            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.18);
-        }
-
+       
         .card-header {
             background-color: white;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -295,10 +292,7 @@ if ($electionID) {
             transition: var(--transition);
         }
 
-        .action-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
-        }
+        
 
         .btn-primary {
             background-color: var(--primary-color);
@@ -306,25 +300,14 @@ if ($electionID) {
             transition: var(--transition);
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            border-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
-        }
-
+       
         .btn-outline-primary {
             color: var(--primary-color);
             border-color: var(--primary-color);
             transition: var(--transition);
         }
 
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
-        }
+       
 
         .btn-outline-danger {
             color: var(--danger-color);
@@ -537,10 +520,7 @@ if ($electionID) {
             transition: all 0.3s ease;
         }
 
-        .badge-count:hover {
-            background-color: rgba(13, 110, 253, 0.15);
-            transform: translateY(-2px);
-        }
+        
 
         .badge-count i {
             margin-right: 0.5rem;
@@ -666,16 +646,7 @@ if ($electionID) {
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
-        /* Enhanced table hover effect */
-        .table tr {
-            transition: all 0.2s ease;
-        }
-        
-        .table tbody tr:hover {
-            background-color: rgba(13, 110, 253, 0.03);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
+       
     </style>
 </head>
 <body>

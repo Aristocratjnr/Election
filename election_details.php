@@ -502,47 +502,7 @@ try {
                         </div>
                     </div>
                     
-                    <!-- Quick Actions -->
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <div class="card bg-primary text-white hover-effect">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-pencil-square display-6 mb-3"></i>
-                                    <h5 class="card-title">Edit Election</h5>
-                                    <p class="card-text">Update election details and settings</p>
-                                    <a href="edit_election.php?id=<?php echo $election_id; ?>" class="btn btn-light btn-sm">
-                                        <i class="bi bi-arrow-right me-1"></i> Go to Editor
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="card bg-success text-white hover-effect">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-graph-up-arrow display-6 mb-3"></i>
-                                    <h5 class="card-title">View Results</h5>
-                                    <p class="card-text">See live voting results and analytics</p>
-                                    <a href="results.php?election=<?php echo $election_id; ?>" class="btn btn-light btn-sm">
-                                        <i class="bi bi-arrow-right me-1"></i> View Results
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="card bg-warning text-white hover-effect">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-send-fill display-6 mb-3"></i>
-                                    <h5 class="card-title">Send Reminders</h5>
-                                    <p class="card-text">Notify voters who haven't participated yet</p>
-                                    <a href="send_reminders.php?election=<?php echo $election_id; ?>" class="btn btn-light btn-sm">
-                                        <i class="bi bi-arrow-right me-1"></i> Send Now
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </main>
             </div>
         </div>

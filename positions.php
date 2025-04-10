@@ -223,10 +223,7 @@ $positions = $conn->query("
             transition: transform 0.2s, box-shadow 0.2s;
         }
         
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.15);
-        }
+        
         
         .card-header {
             background-color: white;
@@ -253,12 +250,7 @@ $positions = $conn->query("
             transition: all 0.2s;
         }
         
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(78, 115, 223, 0.25);
-        }
+       
         
         .btn-secondary {
             border-radius: 0.5rem;
@@ -266,10 +258,7 @@ $positions = $conn->query("
             transition: all 0.2s;
         }
         
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(133, 135, 150, 0.25);
-        }
+       
         
         .table {
             color: var(--text-primary);
@@ -281,13 +270,7 @@ $positions = $conn->query("
             background-color: #f8f9fc;
         }
         
-        .table tr {
-            transition: background-color 0.2s;
-        }
-        
-        .table tr:hover {
-            background-color: rgba(78, 115, 223, 0.05);
-        }
+       
         
         .badge-status {
             font-size: 0.85em;
@@ -394,9 +377,7 @@ $positions = $conn->query("
             transition: color 0.2s;
         }
         
-        .breadcrumb-item a:hover {
-            color: var(--primary-dark);
-        }
+       
         
         .card-stats {
             display: flex;
@@ -409,10 +390,7 @@ $positions = $conn->query("
             transition: transform 0.2s, box-shadow 0.2s;
         }
         
-        .card-stats:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.15);
-        }
+        
         
         .card-stats-icon {
             font-size: 2rem;
@@ -422,10 +400,7 @@ $positions = $conn->query("
             color: var(--primary-color);
             transition: transform 0.2s;
         }
-        
-        .card-stats:hover .card-stats-icon {
-            transform: scale(1.1);
-        }
+      
         
         .card-stats-info {
             text-align: right;
