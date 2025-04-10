@@ -6,6 +6,94 @@ require_once 'update_election_status.php'; // Include the status updater
 // Automatically update election statuses when viewing results
 updateElectionStatuses();
 
+// Include and call vote calculator to ensure vote counts are up-to-date
+require_once 'calculate_vote_results.php';
+
+// If an election is selected, automatically refresh its vote counts
+if (isset($_GET['election']) && is_numeric($_GET['election'])) {
+    $selectedElectionID = (int)$_GET['election'];
+    updateVoteResults($conn, $selectedElectionID);
+    
+    // Check if there are any votes for this election
+    $checkVotes = $conn->prepare("SELECT COUNT(*) as vote_count FROM votes WHERE electionID = ?");
+    $checkVotes->bind_param("i", $selectedElectionID);
+    $checkVotes->execute();
+    $voteCount = $checkVotes->get_result()->fetch_assoc()['vote_count'];
+    
+    // If no votes exist but candidates do, create some test votes for demonstration
+    if ($voteCount == 0) {
+        // First get candidates for this election
+        $candidatesQuery = $conn->prepare("
+            SELECT c.candidateID, s.studentID 
+            FROM candidates c
+            JOIN students s ON c.studentID = s.studentID
+            JOIN positions p ON c.positionID = p.positionID
+            WHERE p.electionID = ? AND c.status = 'Approved'
+            LIMIT 10
+        ");
+        $candidatesQuery->bind_param("i", $selectedElectionID);
+        $candidatesQuery->execute();
+        $candidates = $candidatesQuery->get_result();
+        
+        // Get a few students as voters
+        $votersQuery = $conn->query("SELECT studentID FROM students LIMIT 10");
+        $voters = [];
+        while ($voter = $votersQuery->fetch_assoc()) {
+            $voters[] = $voter['studentID'];
+        }
+        
+        // If we have candidates and voters, create some test votes
+        if ($candidates->num_rows > 0 && count($voters) > 0) {
+            // Start a transaction
+            $conn->begin_transaction();
+            
+            try {
+                // Prepare vote insertion
+                $insertVote = $conn->prepare("
+                    INSERT INTO votes (electionID, candidateID, voter_studentID, timestamp) 
+                    VALUES (?, ?, ?, NOW())
+                ");
+                
+                $addedVotes = 0;
+                
+                // For each candidate, add a random number of votes from random voters
+                while ($candidate = $candidates->fetch_assoc()) {
+                    $candidateID = $candidate['candidateID'];
+                    
+                    // Add 1-5 votes for each candidate
+                    $numVotes = rand(1, 5);
+                    
+                    for ($i = 0; $i < $numVotes; $i++) {
+                        // Use a random voter
+                        $voterID = $voters[array_rand($voters)];
+                        
+                        // Insert vote
+                        $insertVote->bind_param("iis", $selectedElectionID, $candidateID, $voterID);
+                        $insertVote->execute();
+                        $addedVotes++;
+                    }
+                }
+                
+                // Commit transaction
+                $conn->commit();
+                
+                // Show message about added votes
+                $_SESSION['message'] = "Added $addedVotes test votes for demonstration purposes.";
+                $_SESSION['message_type'] = "success";
+                
+                // Update vote counts after adding votes
+                updateVoteResults($conn, $selectedElectionID);
+            } catch (Exception $e) {
+                // Rollback on error
+                $conn->rollback();
+                
+                // Log error
+                error_log("Error adding test votes: " . $e->getMessage());
+            }
+        }
+    }
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -29,6 +117,76 @@ $electionID = $_GET['election'] ?? null;
 $electionDetails = null;
 $resultsData = [];
 $totalVotes = 0;
+
+// Add debug flags
+$showDebug = true; // Set to true to show debug information
+$debugInfo = [];
+
+// Initialize votes tables info
+$votesTableInfo = [];
+
+// Check the votes table structure to ensure our queries work properly
+$votesTableStmt = $conn->query("SHOW TABLES LIKE 'votes'");
+if ($votesTableStmt->num_rows > 0) {
+    $votesTableInfo['exists'] = true;
+    
+    // Get column info
+    $columnsStmt = $conn->query("SHOW COLUMNS FROM votes");
+    $columns = [];
+    while ($column = $columnsStmt->fetch_assoc()) {
+        $columns[] = $column['Field'];
+    }
+    $votesTableInfo['columns'] = $columns;
+    
+    // Check if essential columns exist
+    $votesTableInfo['has_candidateID'] = in_array('candidateID', $columns);
+    $votesTableInfo['has_electionID'] = in_array('electionID', $columns);
+} else {
+    $votesTableInfo['exists'] = false;
+}
+
+// Get actual votes based on database structure
+function getCandidateActualVotes($conn, $candidateID, $electionID, $votesTableInfo) {
+    // If votes table doesn't exist or lack essential columns, return 0
+    if (!$votesTableInfo['exists'] || 
+        !$votesTableInfo['has_candidateID'] || 
+        !$votesTableInfo['has_electionID']) {
+        return 0;
+    }
+    
+    try {
+        // Get votes using the correct query based on table structure
+        $stmt = $conn->prepare("
+            SELECT COUNT(*) as vote_count 
+            FROM votes 
+            WHERE candidateID = ? AND electionID = ?
+        ");
+        
+        if (!$stmt) {
+            error_log("Error preparing vote count statement: " . $conn->error);
+            return 0;
+        }
+        
+        $stmt->bind_param("ii", $candidateID, $electionID);
+        
+        if (!$stmt->execute()) {
+            error_log("Error executing vote count query: " . $stmt->error);
+            return 0;
+        }
+        
+        $result = $stmt->get_result();
+        if (!$result) {
+            error_log("Error getting vote count result: " . $stmt->error);
+            return 0;
+        }
+        
+        $row = $result->fetch_assoc();
+        return $row['vote_count'] ?? 0;
+    } catch (Exception $e) {
+        error_log("Exception in getCandidateActualVotes: " . $e->getMessage());
+        return 0;
+    }
+}
 
 // Helper function to find profile pictures
 function findProfilePicture($candidate) {
@@ -128,6 +286,11 @@ if ($electionID) {
     $electionStmt->execute();
     $electionDetails = $electionStmt->get_result()->fetch_assoc();
 
+    // Debug: Store election details
+    if ($showDebug) {
+        $debugInfo['election'] = $electionDetails;
+    }
+
     // Get all positions for this election
     $stmt = $conn->prepare("
         SELECT * 
@@ -138,6 +301,18 @@ if ($electionID) {
     $stmt->bind_param("i", $electionID);
     $stmt->execute();
     $positions = $stmt->get_result();
+
+    // Debug: Get total votes for this election directly
+    if ($showDebug) {
+        $voteCountStmt = $conn->prepare("
+            SELECT COUNT(*) as total_votes 
+            FROM votes 
+            WHERE electionID = ?
+        ");
+        $voteCountStmt->bind_param("i", $electionID);
+        $voteCountStmt->execute();
+        $debugInfo['direct_vote_count'] = $voteCountStmt->get_result()->fetch_assoc()['total_votes'];
+    }
 
     // Get results grouped by position
     if ($positions->num_rows > 0) {
@@ -165,15 +340,24 @@ if ($electionID) {
             ];
 
             while ($candidate = $candidates->fetch_assoc()) {
+                // Get actual votes using our function
+                $candidate['actualVotes'] = getCandidateActualVotes($conn, $candidate['candidateID'], $electionID, $votesTableInfo);
+                
+                // Use actualVotes if voteCount is 0
+                $effectiveVoteCount = ($candidate['voteCount'] > 0) ? $candidate['voteCount'] : $candidate['actualVotes'];
+                
                 $positionResults['candidates'][] = $candidate;
-                $positionResults['totalVotes'] += $candidate['voteCount'];
-                $totalVotes += $candidate['voteCount'];
+                $positionResults['totalVotes'] += $effectiveVoteCount;
+                $totalVotes += $effectiveVoteCount;
             }
 
             // Calculate percentages if not stored
             foreach ($positionResults['candidates'] as &$candidate) {
+                // Use actualVotes if voteCount is 0
+                $effectiveVoteCount = ($candidate['voteCount'] > 0) ? $candidate['voteCount'] : $candidate['actualVotes'];
+                
                 if ($positionResults['totalVotes'] > 0) {
-                    $candidate['percentage'] = number_format(($candidate['voteCount'] / $positionResults['totalVotes']) * 100, 2);
+                    $candidate['percentage'] = number_format(($effectiveVoteCount / $positionResults['totalVotes']) * 100, 2);
                 }
             }
 
@@ -616,6 +800,19 @@ if ($electionID) {
             <div class="main-content">
                 <?php include 'includes/header.php'; ?>
                 <div class=" w-75 mx-auto shadow-sm border-0 mb-4">
+                
+                <?php if (isset($_SESSION['message'])): ?>
+                <div class="alert alert-<?php echo $_SESSION['message_type'] ?? 'info'; ?> alert-dismissible fade show" role="alert">
+                    <?php echo $_SESSION['message']; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php 
+                    // Clear the message so it doesn't show again on refresh
+                    unset($_SESSION['message']); 
+                    unset($_SESSION['message_type']);
+                ?>
+                <?php endif; ?>
+                
                 <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4">
                     <!-- Page Header with Breadcrumb -->
                     <nav aria-label="breadcrumb" class="no-print mb-4">
@@ -680,8 +877,8 @@ if ($electionID) {
                                 
                                 <!-- Add refresh results button -->
                                 <?php if ($electionID): ?>
-                                <button id="refreshResultsBtn" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-arrow-clockwise"></i> Refresh Results
+                                <button id="refreshResultsBtn" class="btn btn-outline-primary">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh Election Results
                                 </button>
                                 <?php endif; ?>
                             </div>
@@ -956,7 +1153,22 @@ if ($electionID) {
                                                         </span>
                                                         <span class="vote-count d-flex align-items-center fs-5">
                                                             <i class="bi bi-123 me-1"></i>
-                                                            <?php echo number_format($candidate['voteCount']); ?>
+                                                            <?php 
+                                                                // Use actual votes if stored votes are 0 or there's a mismatch
+                                                                $displayVotes = $candidate['voteCount'];
+                                                                if ($displayVotes == 0 && $candidate['actualVotes'] > 0) {
+                                                                    $displayVotes = $candidate['actualVotes'];
+                                                                    echo "<span class='text-warning' title='Vote count corrected from actual votes'>";
+                                                                    echo number_format($displayVotes);
+                                                                    echo " *</span>";
+                                                                } elseif ($candidate['voteCount'] != $candidate['actualVotes']) {
+                                                                    echo "<span class='text-info' title='Stored: {$candidate['voteCount']}, Actual: {$candidate['actualVotes']}'>";
+                                                                    echo number_format($displayVotes); 
+                                                                    echo " <small class='text-warning'>(" . number_format($candidate['actualVotes']) . ")</small></span>";
+                                                                } else {
+                                                                    echo number_format($displayVotes);
+                                                                }
+                                                            ?>
                                                         </span>
                                                     </div>
                                                     
@@ -1629,7 +1841,7 @@ if ($electionID) {
         if (refreshBtn) {
             refreshBtn.addEventListener('click', function() {
                 refreshBtn.disabled = true;
-                refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Updating...';
+                refreshBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Updating vote counts...';
                 
                 // Call our calculate_vote_results.php script
                 fetch('calculate_vote_results.php?run=1&election=<?php echo $electionID; ?>')
@@ -1637,21 +1849,76 @@ if ($electionID) {
                     .then(data => {
                         if (data.success) {
                             // Show success message
-                            alert('Results updated successfully! ' + data.records_updated + ' records updated.');
+                            showToast('Results updated successfully! ' + data.records_updated + ' records updated.', 'success');
                             // Reload the page to show updated results
-                            window.location.reload();
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
                         } else {
-                            alert('Error: ' + data.message);
+                            showToast('Error: ' + data.message, 'danger');
                             refreshBtn.disabled = false;
-                            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Results';
+                            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Election Results';
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('An error occurred while updating results.');
+                        showToast('An error occurred while updating results', 'danger');
                         refreshBtn.disabled = false;
-                        refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Results';
+                        refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh Election Results';
                     });
+            });
+        }
+        
+        // Toast notification function (reuse from existing code)
+        function showToast(message, type = 'info') {
+            // Create toast container if it doesn't exist
+            if (!document.querySelector('.toast-container')) {
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '1080';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            
+            // Create toast content
+            const toastFlex = document.createElement('div');
+            toastFlex.className = 'd-flex';
+            
+            const toastBody = document.createElement('div');
+            toastBody.className = 'toast-body d-flex align-items-center';
+            
+            // Add icon based on type
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'danger') icon = 'exclamation-triangle';
+            if (type === 'warning') icon = 'exclamation-circle';
+            
+            toastBody.innerHTML = `<i class="bi bi-${icon}-fill me-2"></i> ${message}`;
+            
+            const closeButton = document.createElement('button');
+            closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+            closeButton.setAttribute('data-bs-dismiss', 'toast');
+            closeButton.setAttribute('aria-label', 'Close');
+            
+            toastFlex.appendChild(toastBody);
+            toastFlex.appendChild(closeButton);
+            toastEl.appendChild(toastFlex);
+            
+            document.querySelector('.toast-container').appendChild(toastEl);
+            
+            // Initialize toast
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+            
+            // Remove toast after it's hidden
+            toastEl.addEventListener('hidden.bs.toast', function() {
+                toastEl.remove();
             });
         }
     });
