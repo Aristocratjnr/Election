@@ -16,7 +16,13 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 }
 
 // Get all elections
-$elections = $conn->query("SELECT * FROM elections ORDER BY startDate DESC");
+$electionsResult = $conn->query("SELECT * FROM elections ORDER BY startDate DESC");
+$elections = [];
+
+// Store all elections in an array for reuse
+while ($election = $electionsResult->fetch_assoc()) {
+    $elections[] = $election;
+}
 
 // Initialize variables
 $electionID = $_GET['election'] ?? null;
@@ -684,12 +690,12 @@ if ($electionID) {
                                 <div class="flex-grow-1 min-width-200">
                                     <select name="election" class="form-select" onchange="this.form.submit()">
                                         <option value="">Select an Election</option>
-                                        <?php while ($election = $elections->fetch_assoc()): ?>
+                                        <?php foreach ($elections as $election): ?>
                                             <option value="<?php echo $election['electionID']; ?>" <?php echo ($electionID == $election['electionID']) ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($election['name']); ?> 
                                                 (<?php echo $election['status']; ?>)
                                             </option>
-                                        <?php endwhile; ?>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
                                 
@@ -726,13 +732,13 @@ if ($electionID) {
                                         </span>
                                         <select class="form-select border-start-0" name="election" onchange="this.form.submit()">
                                             <option value="">-- Select Election --</option>
-                                            <?php while ($election = $elections->fetch_assoc()): ?>
+                                            <?php foreach ($elections as $election): ?>
                                             <option value="<?php echo $election['electionID']; ?>" 
                                                 <?php echo $electionID == $election['electionID'] ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($election['name']); ?>
                                                 (<?php echo date('M Y', strtotime($election['startDate'])); ?>)
                                             </option>
-                                            <?php endwhile; ?>
+                                            <?php endforeach; ?>
                                         </select>
                                         <button class="btn btn-primary d-flex align-items-center" type="submit">
                                             <i class="bi bi-filter-square-fill me-2"></i> Filter

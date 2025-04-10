@@ -33,7 +33,7 @@ if ($electionID) {
     // Get all votes for this election
     $votesQuery = "
         SELECT v.voteID, v.timestamp, 
-               s.studentID, s.name as voterName, s.department as voterDepartment,
+               s.studentID, s.name as voterName, s.department as voterDepartment, s.profilePicture as voterPhoto,
                c.candidateID, c.position,
                st.name as candidateName, st.profilePicture as candidatePhoto
         FROM votes v
@@ -135,9 +135,7 @@ if ($electionID) {
             transition: all 0.3s ease;
         }
         
-        .card:hover .card-icon {
-            transform: scale(1.1);
-        }
+       
         
         .bg-primary-light {
             background-color: rgba(13, 110, 253, 0.15);
@@ -233,11 +231,7 @@ if ($electionID) {
             box-shadow: 0 2px 5px rgba(0,0,0,0.03);
         }
         
-        .vote-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-left-width: 6px;
-        }
+     
         
         .vote-count-badge {
             background: linear-gradient(45deg, #0d6efd, #6610f2);
@@ -334,10 +328,7 @@ if ($electionID) {
             transition: all 0.3s ease;
         }
         
-        .list-group-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(3px);
-        }
+       
         
         .form-check-input {
             width: 1.25rem;
@@ -376,11 +367,7 @@ if ($electionID) {
             transition: all 0.3s ease;
         }
         
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
-            background: linear-gradient(45deg, #157347, #1aa179);
-        }
+      
     </style>
 </head>
 <body>
@@ -974,13 +961,14 @@ if ($electionID) {
                                                         <div class="d-flex align-items-center">
                                                             <div class="flex-shrink-0">
                                                                 <?php 
-                                                                // Get voter photo (would need to be implemented in your system)
-                                                                $voterPhoto = 'default-user.jpg'; // Placeholder
+                                                                // Get voter photo from the database, fallback to default if empty
+                                                                $voterPhoto = !empty($vote['voterPhoto']) ? $vote['voterPhoto'] : 'default-user.jpg';
                                                                 ?>
                                                                 <div class="position-relative">
                                                                     <img src="assets/img/profile/students/<?php echo $voterPhoto; ?>" 
                                                                          class="user-avatar" 
-                                                                         alt="<?php echo htmlspecialchars($vote['voterName']); ?>">
+                                                                         alt="<?php echo htmlspecialchars($vote['voterName']); ?>"
+                                                                         onerror="this.src='assets/img/aristo.png';">
                                                                     <span class="position-absolute bottom-0 end-0 bg-success rounded-circle p-1">
                                                                         <i class="bi bi-check-lg text-white"></i>
                                                                     </span>
