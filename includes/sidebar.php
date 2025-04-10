@@ -60,6 +60,12 @@ if (!empty($profile_pic)) {
   --sidebar-shadow: rgba(0, 0, 0, 0.03);
   --active-item-bg: rgba(59, 130, 246, 0.08);
   --active-item-border: #3b82f6;
+  --logout-bg: #ffffff;
+  --logout-border: #e9ecef;
+  --logout-hover-bg: #f8f9fa;
+  --version-color: #adb5bd;
+  --info-color: #6c757d;
+  --info-icon-color: #adb5bd;
 }
 
 /* Dark Mode Variables */
@@ -83,6 +89,12 @@ if (!empty($profile_pic)) {
   --sidebar-shadow: rgba(0, 0, 0, 0.2);
   --active-item-bg: rgba(110, 168, 254, 0.15);
   --active-item-border: #6ea8fe;
+  --logout-bg: #343a40;
+  --logout-border: #495057;
+  --logout-hover-bg: #495057;
+  --version-color: #6c757d;
+  --info-color: #adb5bd;
+  --info-icon-color: #6c757d;
 }
 
 .sidebar {
@@ -401,22 +413,22 @@ if (!empty($profile_pic)) {
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
-  color: #6c757d;
+  color: var(--info-color);
 }
 
 .info-item i {
   margin-right: 0.5rem;
   font-size: 1rem;
-  color: #adb5bd;
+  color: var(--info-icon-color);
 }
 
 .logout-btn {
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  background: white;
+  background: var(--logout-bg);
   color: var(--admin-color);
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--logout-border);
   border-radius: 4px;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -424,9 +436,9 @@ if (!empty($profile_pic)) {
 }
 
 .logout-btn:hover {
-  background: #f8f9fa;
+  background: var(--logout-hover-bg);
   color: var(--admin-color);
-  border-color: #dee2e6;
+  border-color: var(--sidebar-border);
 }
 
 .logout-btn i {
@@ -435,7 +447,7 @@ if (!empty($profile_pic)) {
 
 .version-info {
   text-align: center;
-  color: #adb5bd;
+  color: var(--version-color);
   font-size: 0.7rem;
 }
 
@@ -465,7 +477,7 @@ if (!empty($profile_pic)) {
   
   .sidebar.show {
     transform: translateX(0);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 4px 0 20px var(--sidebar-shadow);
   }
   
   .mobile-header {
@@ -475,6 +487,94 @@ if (!empty($profile_pic)) {
   .profile-card {
     margin-top: 70px; /* Extra space for mobile header */
   }
+}
+</style>
+
+<!-- Add additional dark mode specific styles outside the main style block -->
+<style>
+/* Additional dark mode fixes */
+[data-bs-theme="dark"] .nav-parent > .nav-link, 
+[data-bs-theme="dark"] .submenu-item a {
+  color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .submenu-item a {
+  color: var(--sidebar-text-light);
+}
+
+[data-bs-theme="dark"] .submenu-item.active a,
+[data-bs-theme="dark"] .submenu-item a:hover {
+  color: var(--sidebar-accent);
+}
+
+[data-bs-theme="dark"] .mobile-header {
+  background-color: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .mobile-header .logo {
+  color: var(--sidebar-accent);
+}
+
+[data-bs-theme="dark"] .main-content {
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+}
+
+/* Fix the main content area in dark mode */
+.main-content {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .main-content h1,
+[data-bs-theme="dark"] .main-content h2,
+[data-bs-theme="dark"] .main-content h3,
+[data-bs-theme="dark"] .main-content h4,
+[data-bs-theme="dark"] .main-content h5,
+[data-bs-theme="dark"] .main-content h6 {
+  color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .main-content .bg-white {
+  background-color: var(--sidebar-bg) !important;
+}
+
+[data-bs-theme="dark"] .main-content .border-bottom {
+  border-color: var(--sidebar-border) !important;
+}
+
+[data-bs-theme="dark"] .main-content .text-muted {
+  color: var(--sidebar-text-light) !important;
+}
+
+/* Fix any possible color issues with sidebar elements */
+[data-bs-theme="dark"] .sidebar {
+  background-color: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .profile-card {
+  background-color: var(--profile-card-bg);
+  border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .profile-name {
+  color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .profile-role {
+  color: var(--sidebar-text-light);
+  background-color: var(--sidebar-hover);
+}
+
+/* Ensure submenu backgrounds are consistent */
+[data-bs-theme="dark"] .submenu {
+  background-color: var(--sidebar-bg);
+}
+
+/* Fix any elements that might have hardcoded colors */
+[data-bs-theme="dark"] .nav-arrow {
+  color: var(--sidebar-text-light);
 }
 </style>
 
@@ -781,10 +881,53 @@ document.addEventListener('DOMContentLoaded', function() {
   const currentTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-bs-theme', currentTheme);
   
+  // Apply initial theme styles
+  updateThemeSpecificElements(currentTheme);
+  
   // Listen for theme changes
   document.addEventListener('themeChanged', function(e) {
-    // The CSS variables will handle most style changes automatically
+    // Update theme-specific elements when theme changes
+    updateThemeSpecificElements(e.detail.theme);
     console.log('Theme changed to:', e.detail.theme);
   });
+  
+  // Function to update theme-specific elements that might not be covered by CSS variables
+  function updateThemeSpecificElements(theme) {
+    // Update any elements that need manual adjustment
+    const isDark = theme === 'dark';
+    
+    // Update background colors for elements that might have hardcoded colors
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      if (isDark) {
+        // Remove any bg-white or bg-light classes on main content
+        mainContent.classList.remove('bg-white', 'bg-light');
+      }
+    }
+    
+    // Find all bg-white elements in the page and update them for dark mode
+    const bgWhiteElements = document.querySelectorAll('.bg-white');
+    bgWhiteElements.forEach(el => {
+      if (isDark) {
+        el.classList.remove('bg-white');
+        el.classList.add('bg-dark-subtle');
+      } else {
+        el.classList.remove('bg-dark-subtle');
+        el.classList.add('bg-white');
+      }
+    });
+    
+    // Adjust border colors
+    const borderElements = document.querySelectorAll('.border, .border-top, .border-bottom, .border-start, .border-end');
+    borderElements.forEach(el => {
+      if (isDark) {
+        // Add a dark border class or adjust inline style if needed
+        el.style.borderColor = 'var(--sidebar-border)';
+      } else {
+        // Reset to default
+        el.style.borderColor = '';
+      }
+    });
+  }
 });
 </script>

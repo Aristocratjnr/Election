@@ -13,6 +13,24 @@ $electionsQuery = $conn->prepare("SELECT electionID, name, status FROM elections
 $electionsQuery->execute();
 $elections = $electionsQuery->get_result();
 
+// Check if category_id parameter is set from election_details.php
+$selectedCategoryID = null;
+$selectedElectionID = null;
+
+if (isset($_GET['category_id'])) {
+    $selectedCategoryID = $_GET['category_id'];
+    
+    // Get the election ID for this category to pre-select in the dropdown
+    $categoryQuery = $conn->prepare("SELECT electionID FROM categories WHERE categoryID = ?");
+    $categoryQuery->bind_param("i", $selectedCategoryID);
+    $categoryQuery->execute();
+    $categoryResult = $categoryQuery->get_result();
+    
+    if ($categoryRow = $categoryResult->fetch_assoc()) {
+        $selectedElectionID = $categoryRow['electionID'];
+    }
+}
+
 // Total categories count for dashboard
 $totalCategoriesQuery = $conn->prepare("SELECT COUNT(*) as total FROM categories");
 $totalCategoriesQuery->execute();
@@ -204,6 +222,12 @@ $pageTitle = "Election Categories"; // Used in header.php
             animation: pulse 2s infinite;
             display: inline-block;
         }
+        
+        /* Highlighted row for selected category */
+        .bg-light-success {
+            background-color: rgba(28, 200, 138, 0.1) !important;
+            border-left: 3px solid var(--success-color);
+        }
     </style>
 </head>
 <body>
@@ -261,7 +285,7 @@ $pageTitle = "Election Categories"; // Used in header.php
                                                     $statusBadge = " <span class='badge bg-".$statusColor." rounded-pill'>".$election['status']."</span>";
                                                 }
                                             ?>
-                                                <option value="<?= $election['electionID'] ?>">
+                                                <option value="<?= $election['electionID'] ?>" <?= $election['electionID'] == $selectedElectionID ? 'selected' : '' ?>>
                                                     <?= htmlspecialchars($election['name']) ?><?= $statusBadge ?>
                                                 </option>
                                             <?php endwhile; ?>
@@ -535,8 +559,19 @@ $pageTitle = "Election Categories"; // Used in header.php
             }
         });
         
-        // Load all categories initially
-        loadCategories();
+        // Check if a specific category is requested
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryId = urlParams.get('category_id');
+        const electionId = <?php echo $selectedElectionID ? "'" . $selectedElectionID . "'" : 'null'; ?>;
+        
+        // If we have a selected election ID from a category_id parameter, use that
+        if (electionId) {
+            $('#electionSelect').val(electionId);
+            loadCategories(electionId, categoryId);
+        } else {
+            // Otherwise load all categories initially
+            loadCategories(null, categoryId);
+        }
         
         // Election filter change event
         $('#electionSelect').change(function() {
@@ -765,7 +800,7 @@ $pageTitle = "Election Categories"; // Used in header.php
     });
     
     // Function to load categories
-    function loadCategories(electionId = '') {
+    function loadCategories(electionId = '', selectedCategoryId = null) {
         // Show loading state
         $('#categoriesTable').addClass('d-none');
         $('#emptyState').addClass('d-none');
@@ -807,6 +842,13 @@ $pageTitle = "Election Categories"; // Used in header.php
                             
                             // Format the category name with description tooltip if available
                             let categoryName = category.category_name || category.name;
+                            let rowClass = '';
+                            
+                            // Highlight the selected category if it matches the requested one
+                            if (selectedCategoryId && category.categoryID == selectedCategoryId) {
+                                rowClass = 'bg-light-success';
+                            }
+                            
                             if (category.description) {
                                 categoryName = `<div class="d-flex align-items-center">
                                     <span>${categoryName}</span>
@@ -882,6 +924,27 @@ $pageTitle = "Election Categories"; // Used in header.php
                     
                     // Redraw the table with new data
                     categoriesTable.draw();
+                    
+                    // If a specific category was requested, highlight and scroll to it
+                    if (selectedCategoryId) {
+                        setTimeout(() => {
+                            const $rows = $('#categoriesTableBody tr');
+                            $rows.each(function() {
+                                const $row = $(this);
+                                const rowData = $row.find('button.edit-category').data('id');
+                                
+                                if (rowData == selectedCategoryId) {
+                                    $row.addClass('bg-light-success');
+                                    // Scroll the row into view
+                                    $row[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    
+                                    // Show a toast notification
+                                    const categoryName = $row.find('td:nth-child(2)').text().trim();
+                                    showToast('Category Selected', `Viewing details for category: ${categoryName}`, 'info');
+                                }
+                            });
+                        }, 300);
+                    }
                     
                     // Re-initialize tooltips after table is redrawn
                     setTimeout(() => {

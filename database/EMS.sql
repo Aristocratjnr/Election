@@ -299,6 +299,35 @@ CREATE TABLE `votes` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `system_settings`
+--
+
+CREATE TABLE `system_settings` (
+  `id` int(11) NOT NULL,
+  `site_name` varchar(255) NOT NULL DEFAULT 'Election System',
+  `admin_email` varchar(255) DEFAULT NULL,
+  `max_candidates` int(11) NOT NULL DEFAULT 10,
+  `default_positions` int(11) NOT NULL DEFAULT 5,
+  `results_public` enum('after_end','while_active','admin_only') NOT NULL DEFAULT 'after_end',
+  `voter_registration` enum('enabled','admin_only','disabled') NOT NULL DEFAULT 'enabled',
+  `maintenance_mode` enum('enabled','disabled') NOT NULL DEFAULT 'disabled',
+  `email_notifications` enum('enabled','disabled') NOT NULL DEFAULT 'enabled',
+  `pagination_limit` int(11) NOT NULL DEFAULT 20,
+  `date_format` varchar(20) NOT NULL DEFAULT 'd-m-Y',
+  `time_format` varchar(20) NOT NULL DEFAULT 'H:i',
+  `last_updated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `system_settings`
+--
+
+INSERT INTO `system_settings` (`id`, `site_name`, `admin_email`, `max_candidates`, `default_positions`, `results_public`, `voter_registration`, `maintenance_mode`, `email_notifications`, `pagination_limit`, `date_format`, `time_format`) VALUES
+(1, 'Election System', '', 10, 5, 'after_end', 'enabled', 'disabled', 'enabled', 20, 'd-m-Y', 'H:i');
+
+-- --------------------------------------------------------
+
+--
 -- Structure for view `election_votes`
 --
 DROP TABLE IF EXISTS `election_votes`;
@@ -393,6 +422,12 @@ ALTER TABLE `votes`
   ADD KEY `studentID` (`studentID`);
 
 --
+-- Indexes for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -461,6 +496,12 @@ ALTER TABLE `students`
 --
 ALTER TABLE `votes`
   MODIFY `voteID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+
+--
+-- AUTO_INCREMENT for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables

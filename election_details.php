@@ -482,7 +482,7 @@ try {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <a href="category_details.php?id=<?php echo $category['categoryID']; ?>" 
+                                                    <a href="categories.php?category_id=<?php echo $category['categoryID']; ?>" 
                                                        class="btn btn-sm btn-outline-primary">
                                                         <i class="bi bi-eye me-1"></i> View
                                                     </a>
