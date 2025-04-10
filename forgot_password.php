@@ -109,6 +109,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .invalid-feedback { display: block; color: #ff3e1d; font-size: 0.875em; margin-top: 0.25rem; }
         .is-invalid { border-color: #ff3e1d !important; }
         .btn-reset { background: #7367f0; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0; }
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+        }
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            border: 3px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: button-loading-spinner 1s ease infinite;
+        }
+        @keyframes button-loading-spinner {
+            from {
+                transform: rotate(0turn);
+            }
+            to {
+                transform: rotate(1turn);
+            }
+        }
     </style>
 </head>
 <body>
@@ -138,7 +165,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="email" class="form-label">Email</label>
                                 <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email" autofocus />
                             </div>
-                            <button type="submit" class="btn btn-primary d-grid w-100">Send Reset Link</button>
+                            <button type="submit" id="submitBtn" class="btn btn-primary d-grid w-100">
+                                <span id="buttonText">Send Reset Link</span>
+                            </button>
                         </form>
                         <div class="text-center">
                             <a href="login.php" class="d-flex justify-content-center">
@@ -186,6 +215,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return;
         }
         
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        const buttonText = document.getElementById('buttonText');
+        submitBtn.classList.add('btn-loading');
+        buttonText.style.visibility = 'hidden';
+        submitBtn.disabled = true;
+        
+        // Submit the form
         this.submit();
     });
 
