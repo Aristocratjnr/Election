@@ -681,10 +681,12 @@ if (!empty($profile_pic)) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Mobile toggle functionality
-  const mobileToggle = document.querySelector('.mobile-toggle');
+  const mobileToggle = document.querySelector('.mobile-header .mobile-toggle');
+  const headerToggle = document.getElementById('sidebarToggle'); // Get header toggle button if it exists
   const sidebar = document.getElementById('sidebar');
   const overlay = document.querySelector('.sidebar-overlay');
   
+  // Mobile header toggle button
   if (mobileToggle) {
     mobileToggle.addEventListener('click', function() {
       sidebar.classList.toggle('show');
@@ -692,11 +694,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Header toggle button (if it exists from header.php)
+  if (headerToggle) {
+    headerToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('show');
+      overlay.classList.toggle('active');
+    });
+  }
+  
   // Close sidebar when clicking overlay
-  overlay.addEventListener('click', function() {
-    sidebar.classList.remove('show');
-    overlay.classList.remove('active');
-  });
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('show');
+      overlay.classList.remove('active');
+    });
+  }
   
   // Auto-expand active submenus
   document.querySelectorAll('.nav-item.active').forEach(item => {

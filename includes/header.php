@@ -68,11 +68,7 @@ if (empty($userData)) {
             <nav class="header-nav ms-auto">
                 <ul class="d-flex align-items-center list-unstyled mb-0">
                     <!-- Mobile Search Toggle -->
-                    <li class="nav-item d-lg-none me-2">
-                        <button class="btn btn-link search-toggle">
-                            <i class="bi bi-search fs-5"></i>
-                        </button>
-                    </li>
+                    <!-- Removing search icon from mobile view -->
                     
                     <!-- Theme Toggle Button -->
                     <li class="nav-item mx-1">
@@ -147,6 +143,7 @@ if (empty($userData)) {
                                          height="48"
                                          onerror="this.src='<?php echo $defaultProfilePicture; ?>'">
                                     <div>
+                                        <h6 class="mb-1"><?php echo htmlspecialchars($userData['name'] ?? 'Student'); ?></h6>
                                         <i class="bi bi-buildings department-icon icon"></i>&nbsp;<small class="text-muted"><?php echo htmlspecialchars($userData['department'] ?? 'Member'); ?></small>
                                     </div>
                                 </div>
