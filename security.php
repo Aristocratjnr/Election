@@ -118,6 +118,22 @@ $log_stmt->bind_param("i", $admin_id);
 $log_stmt->execute();
 $activity_logs = $log_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+// Get admin last password change date if available
+$last_password_change = null;
+$pw_log_stmt = $conn->prepare("SELECT timestamp FROM admin_activity_log WHERE adminID = ? AND activity = 'Password changed' ORDER BY timestamp DESC LIMIT 1");
+$pw_log_stmt->bind_param("i", $admin_id);
+$pw_log_stmt->execute();
+$pw_result = $pw_log_stmt->get_result();
+if ($pw_result->num_rows > 0) {
+    $last_password_change = $pw_result->fetch_assoc()['timestamp'];
+} else {
+    // If no password change log exists, use admin creation date
+    $last_password_change = $admin_data['created_at'];
+}
+
+// Get email verification status from admin data
+$email_verified = !empty($admin_data['email']) ? true : false;
+
 // Page title
 $page_title = "Account Security";
 include 'includes/header.php';
@@ -552,7 +568,7 @@ include 'includes/header.php';
                                                     <h5 class="fw-semibold mb-1">Active Sessions</h5>
                                                     <p class="text-muted small mb-0">Manage your logged-in devices</p>
                                                 </div>
-                                                <button class="btn btn-sm btn-outline-danger">
+                                                <button class="btn btn-sm btn-outline-danger" id="revokeAllBtn">
                                                     <i class="bi bi-x-circle me-1"></i>
                                                     Revoke All
                                                 </button>
@@ -566,7 +582,7 @@ include 'includes/header.php';
                                                         </div>
                                                         <div class="flex-grow-1">
                                                             <div class="d-flex justify-content-between align-items-center">
-                                                                <h6 class="mb-0 fw-medium">Current Session (Windows)</h6>
+                                                                <h6 class="mb-0 fw-medium">Current Session (<?php echo php_uname('s'); ?>)</h6>
                                                                 <span class="badge bg-success bg-opacity-10 text-success">Active</span>
                                                             </div>
                                                             <small class="text-muted">
@@ -576,38 +592,13 @@ include 'includes/header.php';
                                                             <div class="mt-1">
                                                                 <small class="text-muted">
                                                                     <i class="bi bi-clock me-1"></i>
-                                                                    <?php echo date('M j, Y g:i a'); ?>
+                                                                    <?php 
+                                                                        // Use actual session start time if available, otherwise use current time
+                                                                        echo isset($_SESSION['login_time']) ? date('M j, Y g:i a', strtotime($_SESSION['login_time'])) : date('M j, Y g:i a'); 
+                                                                    ?>
                                                                 </small>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <!-- Sample inactive session -->
-                                                <div class="list-group-item list-group-item-action rounded-3">
-                                                    <div class="d-flex gap-3 align-items-center">
-                                                        <div class="bg-secondary bg-opacity-10 p-3 rounded-2">
-                                                            <i class="bi bi-phone text-secondary fs-4"></i>
-                                                        </div>
-                                                        <div class="flex-grow-1">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <h6 class="mb-0 fw-medium">iPhone (Safari)</h6>
-                                                                <span class="badge bg-secondary bg-opacity-10 text-secondary">Expired</span>
-                                                            </div>
-                                                            <small class="text-muted">
-                                                                <i class="bi bi-globe2 me-1"></i>
-                                                                192.168.1.100
-                                                            </small>
-                                                            <div class="mt-1">
-                                                                <small class="text-muted">
-                                                                    <i class="bi bi-clock me-1"></i>
-                                                                    <?php echo date('M j, Y g:i a', strtotime('-2 days')); ?>
-                                                                </small>
-                                                            </div>
-                                                        </div>
-                                                        <button class="btn btn-sm btn-outline-danger">
-                                                            <i class="bi bi-x-lg"></i>
-                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -697,13 +688,15 @@ include 'includes/header.php';
                                     
                                     <div class="d-flex align-items-center mb-4">
                                         <div class="flex-shrink-0">
-                                            <div class="security-icon security-icon-success">
+                                            <div class="security-icon security-icon-<?php echo $email_verified ? 'success' : 'warning'; ?>">
                                                 <i class="bi bi-envelope-check fs-5"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1 ms-3">
                                             <h6 class="mb-1 fw-medium">Email Verified</h6>
-                                            <span class="badge bg-success bg-opacity-10 text-success">Verified</span>
+                                            <span class="badge bg-<?php echo $email_verified ? 'success' : 'warning'; ?> bg-opacity-10 text-<?php echo $email_verified ? 'success' : 'warning'; ?>">
+                                                <?php echo $email_verified ? 'Verified' : 'Not Verified'; ?>
+                                            </span>
                                         </div>
                                     </div>
                                     
@@ -716,7 +709,9 @@ include 'includes/header.php';
                                         <div class="flex-grow-1 ms-3">
                                             <h6 class="mb-1 fw-medium">Last Password Change</h6>
                                             <small class="text-muted">
-                                                <?php echo date('M j, Y', strtotime('-30 days')); ?>
+                                                <?php 
+                                                    echo $last_password_change ? date('M j, Y', strtotime($last_password_change)) : 'Never changed';
+                                                ?>
                                             </small>
                                         </div>
                                     </div>
@@ -764,6 +759,13 @@ include 'includes/header.php';
                     this.classList.remove('active');
                 }
             });
+        });
+        
+        // Session management
+        document.getElementById('revokeAllBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to revoke all sessions? You will be logged out.')) {
+                window.location.href = 'logout.php?revoke_all=true';
+            }
         });
         
         // Password strength meter with more detailed feedback
