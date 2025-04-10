@@ -33,6 +33,21 @@ $ui_settings = [
     'notifications' => 'on'
 ];
 
+// Default system settings
+$system_settings = [
+    'site_name' => 'Election System',
+    'admin_email' => '',
+    'maintenance_mode' => 'disabled',
+    'email_notifications' => 'enabled',
+    'max_candidates' => 10,
+    'default_positions' => 5,
+    'results_public' => 'after_end',
+    'voter_registration' => 'enabled',
+    'pagination_limit' => 20,
+    'date_format' => 'd-m-Y',
+    'time_format' => 'H:i'
+];
+
 // Check if ui_preferences column exists in the admins table
 $column_exists = false;
 $check_column = $conn->query("SHOW COLUMNS FROM admins LIKE 'ui_preferences'");

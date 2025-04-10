@@ -133,7 +133,7 @@ try {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -381,6 +381,174 @@ try {
             background-color: #f8f9fa;
             padding: 0.75rem 1.5rem;
         }
+        
+        /* Dark mode styles */
+        [data-bs-theme="dark"] {
+            --notification-primary: #7367f0;
+            --notification-success: #28c76f;
+            --notification-info: #00cfe8;
+            --notification-warning: #ff9f43;
+            --notification-secondary: #82868b;
+            --notification-danger: #ea5455;
+        }
+        
+        [data-bs-theme="dark"] .card {
+            background-color: #2b3035;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-bs-theme="dark"] .card-header {
+            background-color: #343a40 !important;
+            border-bottom-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        [data-bs-theme="dark"] .card-footer {
+            background-color: #343a40;
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        [data-bs-theme="dark"] .notification-item {
+            background-color: #2b3035;
+            border-color: #2b3035;
+        }
+        
+        [data-bs-theme="dark"] .notification-item:hover {
+            background-color: #343a40;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-bs-theme="dark"] .notification-item.unread {
+            background-color: rgba(115, 103, 240, 0.1);
+            border-left-color: var(--notification-primary);
+        }
+        
+        [data-bs-theme="dark"] .notification-time,
+        [data-bs-theme="dark"] .text-muted {
+            color: #adb5bd !important;
+        }
+        
+        [data-bs-theme="dark"] .empty-state {
+            color: #adb5bd;
+        }
+        
+        [data-bs-theme="dark"] .empty-state i {
+            color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .bg-white {
+            background-color: #343a40 !important;
+        }
+        
+        [data-bs-theme="dark"] .btn-outline-primary {
+            color: #7367f0;
+            border-color: #7367f0;
+        }
+        
+        [data-bs-theme="dark"] .btn-outline-primary:hover {
+            background-color: #7367f0;
+            color: #fff;
+        }
+        
+        [data-bs-theme="dark"] .list-group-item {
+            background-color: #2b3035;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        [data-bs-theme="dark"] .notification-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        [data-bs-theme="dark"] .toast {
+            background-color: #343a40;
+            color: #e9ecef;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .toast-header {
+            background-color: #2b3035;
+            color: #e9ecef;
+            border-bottom-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Additional dark mode fixes */
+        [data-bs-theme="dark"] .list-group-item-action {
+            color: #e9ecef;
+        }
+        
+        [data-bs-theme="dark"] .list-group-item-action:hover {
+            background-color: #343a40;
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .notification-item h6 {
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .notification-item p {
+            color: #adb5bd !important;
+        }
+        
+        [data-bs-theme="dark"] .category-badge {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .btn-sm.btn-outline-primary {
+            color: #a499f9;
+            border-color: #7367f0;
+        }
+        
+        [data-bs-theme="dark"] .btn-sm.btn-primary {
+            background-color: #7367f0;
+            border-color: #7367f0;
+        }
+        
+        [data-bs-theme="dark"] .notification-icon {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Dark mode icon colors */
+        [data-bs-theme="dark"] .bg-primary-light {
+            background-color: rgba(115, 103, 240, 0.2);
+        }
+        
+        [data-bs-theme="dark"] .bg-success-light {
+            background-color: rgba(40, 199, 111, 0.2);
+        }
+        
+        [data-bs-theme="dark"] .bg-info-light {
+            background-color: rgba(0, 207, 232, 0.2);
+        }
+        
+        [data-bs-theme="dark"] .bg-warning-light {
+            background-color: rgba(255, 159, 67, 0.2);
+        }
+        
+        [data-bs-theme="dark"] .bg-secondary-light {
+            background-color: rgba(130, 134, 139, 0.2);
+        }
+        
+        [data-bs-theme="dark"] .bg-danger-light {
+            background-color: rgba(234, 84, 85, 0.2);
+        }
+        
+        /* Fix for specific Bootstrap elements in dark mode */
+        [data-bs-theme="dark"] .badge.bg-danger {
+            background-color: #ea5455 !important;
+        }
+        
+        [data-bs-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        
+        [data-bs-theme="dark"] .card-footer small.text-muted {
+            color: #adb5bd !important;
+        }
+        
+        [data-bs-theme="dark"] .btn-light {
+            background-color: #444;
+            border-color: #555;
+            color: #eee;
+        }
     </style>
 </head>
 <body>
@@ -414,10 +582,19 @@ try {
                                 <p class="text-muted">
                                     <i class="bi bi-info-circle me-1"></i>When you get notifications, they'll appear here
                                 </p>
-                                <button class="btn btn-sm btn-outline-primary mt-2">
+                                <button class="btn btn-sm btn-outline-primary mt-2" id="refresh-empty">
                                     <i class="bi bi-arrow-repeat me-1"></i> Check again
                                 </button>
                             </div>
+                            <script>
+                                document.getElementById('refresh-empty').addEventListener('click', function() {
+                                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Checking...';
+                                    this.disabled = true;
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 500);
+                                });
+                            </script>
                         <?php else: ?>
                             <div class="notification-container">
                                 <div class="list-group list-group-flush">
@@ -499,6 +676,49 @@ try {
     
     <script>
     $(document).ready(function() {
+        // Apply theme from localStorage
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', currentTheme);
+        
+        // Listen for theme change events from header
+        document.addEventListener('themeChanged', function(e) {
+            document.documentElement.setAttribute('data-bs-theme', e.detail.theme);
+        });
+        
+        // Update class for dark mode compatibility
+        function updateDarkModeClasses() {
+            const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            // Update card header class
+            const cardHeader = document.querySelector('.card-header.bg-white');
+            if (cardHeader) {
+                if (isDarkMode) {
+                    cardHeader.classList.remove('bg-white');
+                    cardHeader.classList.add('bg-dark-subtle');
+                } else {
+                    cardHeader.classList.add('bg-white');
+                    cardHeader.classList.remove('bg-dark-subtle');
+                }
+            }
+            
+            // Update any other elements that need special handling
+            const listItems = document.querySelectorAll('.list-group-item');
+            listItems.forEach(item => {
+                if (isDarkMode) {
+                    item.classList.add('text-white-50');
+                } else {
+                    item.classList.remove('text-white-50');
+                }
+            });
+        }
+        
+        // Run initially
+        updateDarkModeClasses();
+        
+        // Run when theme changes
+        document.addEventListener('themeChanged', function() {
+            updateDarkModeClasses();
+        });
+        
         // Refresh notifications
         $('#refresh-notifications').click(function() {
             const $btn = $(this);
@@ -531,7 +751,7 @@ try {
                         data.notifications.forEach(function(notification) {
                             const notificationHtml = `
                                 <a href="${notification.action_url || '#'}" 
-                                   class="list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'}">
+                                   class="list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'} ${document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'text-white-50' : ''}">
                                     ${!notification.is_read ? `<span class="notification-badge ${notification.badge_class}"></span>` : ''}
                                     <div class="d-flex align-items-start">
                                         <div class="notification-icon ${notification.bg_class}">
@@ -574,6 +794,9 @@ try {
                             `;
                             $('.list-group').append(notificationHtml);
                         });
+                        
+                        // Apply dark mode to new elements if needed
+                        updateDarkModeClasses();
                         
                         if (!data.has_more) {
                             $btn.removeClass('btn-outline-primary').addClass('btn-light');
@@ -640,19 +863,20 @@ try {
         
         // Show toast notification
         function showToastNotification(notification) {
+            const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
             const toastHtml = `
-                <div class="toast show" role="alert">
-                    <div class="toast-header">
+                <div class="toast show ${isDarkMode ? 'bg-dark text-white' : ''}" role="alert">
+                    <div class="toast-header ${isDarkMode ? 'bg-dark text-white border-secondary' : ''}">
                         <i class="bi ${notification.icon || 'bi-bell-fill'}"></i>
                         <strong class="me-auto">New Notification</strong>
                         <small>Just now</small>
-                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                        <button type="button" class="btn-close ${isDarkMode ? 'btn-close-white' : ''}" data-bs-dismiss="toast"></button>
                     </div>
                     <div class="toast-body">
                         <h6 class="mb-1">${notification.title}</h6>
-                        <p class="mb-0">${notification.message}</p>
+                        <p class="mb-0 ${isDarkMode ? 'text-light' : ''}">${notification.message}</p>
                         ${notification.action_url ? `
-                            <div class="mt-2 pt-2 border-top">
+                            <div class="mt-2 pt-2 border-top ${isDarkMode ? 'border-secondary' : ''}">
                                 <a href="${notification.action_url}" class="btn btn-sm btn-primary">
                                     <i class="bi bi-eye"></i> View Details
                                 </a>

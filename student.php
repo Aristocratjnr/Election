@@ -329,6 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        /* Light mode variables (default) */
         :root {
             --primary: #4361ee;
             --primary-light: rgba(67, 97, 238, 0.08);
@@ -343,6 +344,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             --text-muted: #6b7280;
             --border: #e5e7eb;
             --bg: #f3f4f6;
+            --header-bg: #ffffff;
+            --shadow-color: rgba(0,0,0,0.05);
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            
+            /* Default Bootstrap theme for light mode */
+            color-scheme: light;
+        }
+        
+        /* Dark mode variables */
+        [data-bs-theme="dark"] {
+            --primary: #6ea8fe;
+            --primary-light: rgba(110, 168, 254, 0.15);
+            --primary-dark: #3a56d4;
+            --success: #75b798;
+            --success-light: rgba(117, 183, 152, 0.15);
+            --surface: #2b3035;
+            --surface-hover: #343a40;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            --card-hover-shadow: 0 15px 35px rgba(110, 168, 254, 0.25);
+            --text: #f8f9fa;
+            --text-muted: #adb5bd;
+            --border: #495057;
+            --bg: #212529;
+            --header-bg: #343a40;
+            --shadow-color: rgba(0,0,0,0.2);
+            --danger: #ea868f;
+            --warning: #ffda6a;
+            --info: #6edff6;
+            
+            /* Default Bootstrap theme for dark mode */
+            color-scheme: dark;
         }
         
         body {
@@ -350,6 +384,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: var(--text);
             line-height: 1.5;
+        }
+        
+        /* Header dark mode styles */
+        #header {
+            background-color: var(--header-bg);
+            transition: background-color 0.3s ease;
+        }
+
+        [data-bs-theme="dark"] #header {
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        [data-bs-theme="dark"] #header .nav-link,
+        [data-bs-theme="dark"] #header .dropdown-toggle {
+            color: var(--text);
+        }
+
+        /* Logo dark mode visibility */
+        [data-bs-theme="dark"] .logo span {
+            color: var(--text);
+        }
+
+        /* Live results text in dark mode */
+        [data-bs-theme="dark"] .nav-link span {
+            color: var(--text) !important;
+        }
+
+        /* Button icons in dark mode */
+        [data-bs-theme="dark"] .btn-link i {
+            color: var(--text);
+        }
+
+        /* Mobile toggle button */
+        [data-bs-theme="dark"] .toggle-sidebar-btn {
+            color: var(--text);
+        }
+
+        /* Search toggle */
+        [data-bs-theme="dark"] .search-toggle {
+            color: var(--text);
+        }
+
+        /* Dropdown menu in dark mode */
+        [data-bs-theme="dark"] .dropdown-menu {
+            background-color: var(--surface);
+            border-color: var(--border);
+        }
+
+        [data-bs-theme="dark"] .dropdown-item {
+            color: var(--text);
+        }
+
+        [data-bs-theme="dark"] .dropdown-item:hover,
+        [data-bs-theme="dark"] .dropdown-item:focus {
+            background-color: var(--surface-hover);
         }
         
         .voting-card {
@@ -369,10 +459,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             max-height: 250px; /* Set a maximum height for the cards */
             padding: 0.5rem;
             margin-bottom: 0.5rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px var(--shadow-color);
+            background-color: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
         }
-        
-        
         
         .candidate-card.selected {
             border: 2px solid var(--primary);
@@ -439,10 +530,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             text-transform: uppercase;
         }
         
+        /* Position section improvements for dark mode */
         .position-section {
             margin-bottom: 3rem;
             padding-bottom: 2rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid var(--border);
+            transition: border-color 0.3s ease;
         }
         
         .position-badge {
@@ -463,23 +556,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             border: none;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+            box-shadow: 0 4px 12px var(--shadow-color);
             margin-top: 1rem;
             width: 100%;
             text-align: center;
+            color: white;
         }
         
         
         
         .election-timer {
-            background: linear-gradient(135deg, #4c6fff 0%, #6e41e2 100%);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border-radius: 14px;
             padding: 20px;
             margin-bottom: 30px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.15);
+            box-shadow: 0 10px 30px var(--shadow-color);
         }
         
         .election-timer::after {
@@ -516,12 +610,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
         
         .student-info {
-            background: linear-gradient(to right, #f8fafc, #f1f5f9);
+            background: var(--surface);
             border-radius: 12px;
             overflow: hidden;
             padding: 18px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         
         .student-avatar {
@@ -529,8 +624,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             height: 70px;
             border-radius: 12px;
             object-fit: cover;
-            border: 3px solid white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 3px solid var(--surface);
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: border-color 0.3s ease;
         }
         
         .student-details h5 {
@@ -541,7 +637,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         .alert {
             border-radius: 12px;
             border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
         
         .alert-success {
@@ -674,11 +770,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
 
         .vote-stats {
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            background: var(--surface-hover);
             border-radius: 6px;
             padding: 0.4rem 0.8rem;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: inset 0 1px 3px var(--shadow-color);
+            border: 1px solid var(--border);
             transition: all 0.3s ease;
             margin-bottom: 0.3rem;
             display: flex;
@@ -713,24 +809,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             width: 60px;
             height: 60px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #f5f7fa, #eef2f7);
+            background: var(--surface-hover);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--primary);
             font-size: 1.5rem;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 3px solid var(--surface);
+            box-shadow: 0 4px 10px var(--shadow-color);
             margin-right: 0.8rem;
             flex-shrink: 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
         .progress {
             height: 6px;
             border-radius: 3px;
-            background-color: #f5f7fa;
+            background-color: var(--surface-hover);
             overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 1px 3px var(--shadow-color);
             margin-top: 0.5rem;
         }
 
@@ -759,10 +856,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(67, 97, 238, 0.05));
-            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
+            background: var(--primary-light);
+            box-shadow: 0 2px 8px var(--shadow-color);
             position: relative;
-            z-index: 1;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .rank-badge i {
@@ -770,15 +867,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
 
         @keyframes pulsate {
-            0% {
-                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(67, 97, 238, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
-            }
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         @keyframes wave {
@@ -1093,6 +1184,573 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
         }
+
+        /* Modal and UI Component Dark Mode Support */
+        .modal-content {
+            background-color: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .modal-header, .modal-footer {
+            border-color: var(--border);
+            transition: border-color 0.3s ease;
+        }
+
+        /* Form controls */
+        .form-control {
+            background-color: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: var(--surface);
+            color: var(--text);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem var(--primary-light);
+        }
+
+        /* Buttons */
+        .btn-outline-secondary {
+            color: var(--text-muted);
+            border-color: var(--border);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--surface-hover);
+            color: var(--text);
+            border-color: var(--text-muted);
+        }
+
+        /* Make sure selection labels are visible in dark mode */
+        .form-check-label {
+            color: var(--text);
+            transition: color 0.3s ease;
+        }
+
+        /* Ensure badges have proper dark mode colors */
+        .badge {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Update manifesto button styling for dark mode */
+        .manifesto-btn {
+            color: var(--primary);
+            background-color: var(--primary-light);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .manifesto-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Position container and headings */
+        .position-container {
+            border-bottom: 1px solid var(--border);
+            transition: border-color 0.3s ease;
+        }
+
+        .position-title {
+            color: var(--text);
+            transition: color 0.3s ease;
+        }
+
+        .candidates-row {
+            transition: background-color 0.3s ease;
+        }
+
+        /* Ensure tooltips are visible in dark mode */
+        .tooltip .tooltip-inner {
+            background-color: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+
+        .bs-tooltip-auto[x-placement^=top] .arrow::before, 
+        .bs-tooltip-top .arrow::before {
+            border-top-color: var(--border);
+        }
+
+        /* Alerts for error messages */
+        .alert-danger {
+            background-color: rgba(var(--danger-rgb, 220, 53, 69), 0.1);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-warning {
+            background-color: rgba(var(--warning-rgb, 255, 193, 7), 0.1);
+            color: var(--warning);
+            border-left: 4px solid var(--warning);
+        }
+
+        /* Card and section backgrounds */
+        .card {
+            background-color: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card-header, .card-footer {
+            background-color: var(--surface-hover);
+            border-color: var(--border);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Update modal header background colors */
+        .modal-header.bg-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+        }
+
+        .modal-header.bg-success {
+            background: linear-gradient(135deg, var(--success), var(--success-dark, #198754)) !important;
+        }
+
+        .modal-header.bg-warning {
+            background: linear-gradient(135deg, var(--warning), var(--warning-dark, #f59e0b)) !important;
+        }
+
+        .modal-header.bg-danger {
+            background: linear-gradient(135deg, var(--danger), var(--danger-dark, #dc3545)) !important;
+        }
+
+        /* Gradient buttons */
+        .gradient-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .gradient-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        /* Carousel adjustments for dark mode */
+        .carousel-item {
+            background-color: var(--surface);
+            color: var(--text);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .carousel-control-prev-icon, 
+        .carousel-control-next-icon {
+            filter: none;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            padding: 10px;
+        }
+
+        /* Ensure carousel text is visible in dark mode */
+        .carousel-item .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .carousel-item h5 {
+            color: var(--text);
+            transition: color 0.3s ease;
+        }
+
+        /* Fix welcome illustration */
+        .welcome-illustration {
+            border: 1px solid var(--border);
+            background-color: var(--surface-hover);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Add styles for the vote portal and voting form container */
+        .voting-portal, .voting-form-container {
+            background-color: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Make sure position headings are visible in dark mode */
+        .position-title {
+            color: var(--text);
+            transition: color 0.3s ease;
+        }
+
+        /* Fix main container background to adapt to dark mode */
+        .container {
+            background-color: var(--bg);
+            color: var(--text);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Fix header background color for specific sections */
+        .section-header {
+            background-color: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Update manifesto link buttons */
+        .manifesto-link {
+            color: var(--primary);
+            transition: color 0.3s ease;
+        }
+
+        .manifesto-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Update checkboxes for dark mode */
+        .form-check-input {
+            background-color: var(--surface-hover);
+            border-color: var(--border);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Dashboard cards and statistics for dark mode */
+        .dashboard-card {
+            background-color: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .dashboard-card .card-title {
+            color: var(--text);
+        }
+
+        .dashboard-card .card-text {
+            color: var(--text-secondary);
+        }
+
+        /* Statistics counter styles */
+        .stats-counter {
+            color: var(--primary);
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+        }
+
+        /* Alert messages for dark mode */
+        .alert {
+            border-color: var(--border);
+        }
+
+        .alert-info {
+            background-color: rgba(var(--info-rgb), 0.2);
+            color: var(--info);
+        }
+
+        .alert-success {
+            background-color: rgba(var(--success-rgb), 0.2);
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background-color: rgba(var(--warning-rgb), 0.2);
+            color: var(--warning);
+        }
+
+        .alert-danger {
+            background-color: rgba(var(--danger-rgb), 0.2);
+            color: var(--danger);
+        }
+
+        /* Table styles for results and voting interfaces */
+        table.candidate-table {
+            border-color: var(--border);
+            background-color: var(--surface);
+            color: var(--text);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        table.candidate-table th {
+            background-color: var(--surface-variant);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        table.candidate-table td {
+            border-color: var(--border);
+        }
+
+        /* Candidate card styles */
+        .candidate-card {
+            background-color: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .candidate-card:hover {
+            background-color: var(--surface-variant);
+        }
+
+        .candidate-name {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Pagination styles */
+        .pagination .page-link {
+            background-color: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: var(--on-primary);
+        }
+
+        .pagination .page-link:hover {
+            background-color: var(--surface-variant);
+            color: var(--primary);
+        }
+
+        .live-results-text {
+            color: var(--text);
+        }
+
+        [data-bs-theme="light"] .live-results-text {
+            color: #2b3445;
+        }
+
+        .card-header.bg-white {
+            background-color: var(--surface) !important;
+            color: var(--text);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Fix voting portal card header in dark mode */
+        [data-bs-theme="dark"] .card-header.bg-white,
+        [data-bs-theme="dark"] .bg-white {
+            background-color: var(--surface) !important;
+            color: var(--text);
+        }
+
+        /* Ensure the voting portal section changes color in dark mode */
+        [data-bs-theme="dark"] #header ~ main .voting-card .card-header {
+            background-color: var(--surface) !important;
+            color: var(--text);
+        }
+
+        /* Fix text colors in dark mode for voting portal */
+        [data-bs-theme="dark"] h2,
+        [data-bs-theme="dark"] h3,
+        [data-bs-theme="dark"] h4,
+        [data-bs-theme="dark"] h5,
+        [data-bs-theme="dark"] p:not(.text-muted) {
+            color: var(--text);
+        }
+
+        /* Fix any hardcoded white backgrounds */
+        [data-bs-theme="dark"] .bg-white,
+        [data-bs-theme="dark"] [class*="bg-light"],
+        [data-bs-theme="dark"] .bg-gradient-light {
+            background-color: var(--surface) !important;
+        }
+
+        /* Dark mode fixes for student.php */
+        [data-bs-theme="dark"] .voting-card {
+            background-color: var(--surface);
+        }
+
+        [data-bs-theme="dark"] .student-info {
+            background-color: var(--surface);
+            border-color: var(--border);
+        }
+
+        [data-bs-theme="dark"] .candidate-card {
+            background-color: var(--surface);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-bs-theme="dark"] .candidate-card.selected {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        [data-bs-theme="dark"] .bg-light {
+            background-color: var(--surface) !important;
+        }
+
+        [data-bs-theme="dark"] .sticky-bottom {
+            background-color: var(--surface);
+            border-color: var(--border);
+        }
+
+        /* Ensure proper contrast for candidate details */
+        [data-bs-theme="dark"] .candidate-name {
+            color: var(--text);
+        }
+
+        [data-bs-theme="dark"] .badge.bg-primary.bg-opacity-10 {
+            background-color: rgba(110, 168, 254, 0.2) !important;
+            color: var(--primary);
+        }
+
+        /* Fix the department badge color in dark mode */
+        [data-bs-theme="dark"] .department-badge {
+            background-color: var(--surface);
+            color: var(--primary);
+            border-color: var(--primary-light);
+        }
+
+        /* Fix election timer in dark mode */
+        [data-bs-theme="dark"] .election-timer {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Fix alert backgrounds in dark mode */
+        [data-bs-theme="dark"] .alert-light {
+            background-color: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        /* Fix any bg-light sections within candidate cards */
+        [data-bs-theme="dark"] .candidate-card .bg-light {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* Fix the candidate tagline background */
+        [data-bs-theme="dark"] .candidate-tagline.bg-light {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+            color: var(--text);
+        }
+
+        /* Fix card and section backgrounds */
+        [data-bs-theme="dark"] .card {
+            background-color: var(--surface);
+            border-color: var(--border);
+        }
+
+        /* Fix voting status badge colors */
+        [data-bs-theme="dark"] .voting-status.voting-active {
+            background-color: rgba(110, 168, 254, 0.2);
+        }
+
+        [data-bs-theme="dark"] .voting-status.voting-inactive {
+            background-color: rgba(173, 181, 189, 0.2);
+        }
+
+        /* Dark mode improvements */
+        [data-bs-theme="dark"] .voting-card,
+        [data-bs-theme="dark"] .card-header,
+        [data-bs-theme="dark"] .card-body,
+        [data-bs-theme="dark"] .card-footer,
+        [data-bs-theme="dark"] .sticky-bottom,
+        [data-bs-theme="dark"] .bg-white {
+            background-color: var(--surface) !important;
+            color: var(--text) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-bs-theme="dark"] .student-info {
+            background-color: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-bs-theme="dark"] .candidate-card {
+            background-color: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-bs-theme="dark"] .candidate-card .bg-light,
+        [data-bs-theme="dark"] .alert-light,
+        [data-bs-theme="dark"] .candidate-tagline.bg-light {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+            color: var(--text) !important;
+        }
+
+        [data-bs-theme="dark"] h2, 
+        [data-bs-theme="dark"] h3, 
+        [data-bs-theme="dark"] h4, 
+        [data-bs-theme="dark"] h5, 
+        [data-bs-theme="dark"] h6 {
+            color: var(--text) !important;
+        }
+
+        /* Specific fix for voting portal text */
+        [data-bs-theme="dark"] .voting-card .card-header h2 {
+            color: var(--text) !important;
+        }
+
+        [data-bs-theme="dark"] .voting-status {
+            color: var(--text) !important;
+        }
+
+        [data-bs-theme="dark"] .card-header {
+            background-color: var(--surface) !important;
+            border-color: var(--border);
+        }
+
+        [data-bs-theme="dark"] .voting-status.voting-active {
+            background-color: rgba(var(--primary-rgb, 67, 97, 238), 0.2) !important;
+            color: var(--primary) !important;
+        }
+
+        [data-bs-theme="dark"] .election-timer {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Override any inline styles that might be causing issues */
+        [data-bs-theme="dark"] [style*="background-color: white"],
+        [data-bs-theme="dark"] [style*="background-color: #fff"],
+        [data-bs-theme="dark"] [style*="background-color:#fff"],
+        [data-bs-theme="dark"] [style*="background-color:#ffffff"],
+        [data-bs-theme="dark"] [style*="background-color: #ffffff"],
+        [data-bs-theme="dark"] [style*="background:white"],
+        [data-bs-theme="dark"] [style*="background: white"],
+        [data-bs-theme="dark"] [style*="background:#fff"],
+        [data-bs-theme="dark"] [style*="background: #fff"] {
+            background-color: var(--surface) !important;
+        }
+
+        /* High specificity overrides for dark mode */
+        html[data-bs-theme="dark"] .bg-light,
+        html[data-bs-theme="dark"] .bg-white,
+        html[data-bs-theme="dark"] [class*="bg-light"],
+        html[data-bs-theme="dark"] [class*="bg-white"] {
+            background-color: var(--surface) !important;
+            color: var(--text) !important;
+        }
+
+        html[data-bs-theme="dark"] .candidate-card,
+        html[data-bs-theme="dark"] .candidate-card div,
+        html[data-bs-theme="dark"] .voting-card,
+        html[data-bs-theme="dark"] .voting-card .card-header {
+            background-color: var(--surface) !important;
+            color: var(--text) !important;
+        }
+
+        html[data-bs-theme="dark"] .candidate-tagline {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+        }
+
+        html[data-bs-theme="dark"] .sticky-bottom {
+            background-color: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+    </style>
+</head>
+<body>
     </style>
 </head>
 <body>
@@ -1103,7 +1761,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-10 col-sm-12">
                 <div class="voting-card mb-4">
-                    <div class="card-header bg-white py-4 px-4 border-0">
+                    <div class="card-header py-4 px-4 border-0">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                             <div class="mb-3 mb-md-0">
                                 <h2 class="mb-1 fw-bold"><i class="bi bi-card-checklist role-icon icon"></i>&nbsp;Voting Portal</h2>
@@ -1392,7 +2050,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     <div class="row g-4">
                         <?php foreach ($position['candidates'] as $candidate): ?>
                             <div class="col-md-6 col-lg-4 col-xl-3">
-                                <div class="candidate-card h-100 shadow-sm rounded-3 overflow-hidden position-relative bg-white"
+                                <div class="candidate-card h-100 shadow-sm rounded-3 overflow-hidden position-relative"
                                      onclick="selectCandidate(this, <?= $position['positionID'] ?>, <?= $candidate['candidateID'] ?>, <?= $position['maxVotes'] ?>)">
                                     <div class="bg-light p-3 text-center position-relative">
                                         <div class="avatar-container mx-auto mb-3 position-relative">
@@ -1422,7 +2080,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         </div>
                                     </div>
                                 
-                                    <div class="p-3 text-center">
+                                    <div class="p-3 text-center position-relative">
                                         <h5 class="candidate-name mb-1"><?= htmlspecialchars($candidate['name']) ?></h5>
                                         <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
                                             <?= htmlspecialchars($candidate['department']) ?>
@@ -1449,7 +2107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             <?php endif; ?>
         <?php endforeach; ?>
         
-        <div class="sticky-bottom bg-white py-4 border-top mt-5 shadow-sm">
+        <div class="sticky-bottom py-4 border-top mt-5 shadow-sm">
             <div class="container">
                 <div class="text-center">
                     <button type="button" id="voteBtn" class="btn btn-primary btn-lg px-5 py-3 vote-submit-btn shadow">
@@ -1625,288 +2283,177 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Track selected candidates per position
-    const positionSelections = {};
-    
-    // Enhanced candidate selection with animation
-    window.selectCandidate = function(element, positionID, candidateId, maxVotes) {
-        // Initialize position if not exists
-        if (!positionSelections[positionID]) {
-            positionSelections[positionID] = [];
-        }
-        
-        const currentPosition = positionSelections[positionID];
-        const checkbox = element.querySelector('input[type="checkbox"]');
-        
-        // Toggle selection
-        if (checkbox.checked) {
-            // Deselect
-            checkbox.checked = false;
-            element.classList.remove('selected');
-            positionSelections[positionID] = currentPosition.filter(id => id !== candidateId);
-        } else {
-            // Check if max votes reached
-            if (currentPosition.length >= maxVotes) {
-                alert(`You can only select up to ${maxVotes} candidate(s) for this position.`);
-                return;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme from localStorage
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', currentTheme);
+            
+            // Apply dark mode to header on load if needed
+            if (currentTheme === 'dark') {
+                const header = document.getElementById('header');
+                if (header) {
+                    header.classList.remove('bg-white');
+                    header.classList.add('bg-dark');
+                }
             }
             
-            // Select
-            checkbox.checked = true;
-            element.classList.add('selected');
-            positionSelections[positionID].push(candidateId);
-        }
-        
-        // Add visual feedback
-        element.style.animation = 'select-pulse 0.5s ease';
-        setTimeout(() => element.style.animation = '', 500);
-        
-        // Update UI
-        updateSelectionCount(positionID);
-        updateSubmitButtonState();
-    };
-    
-    // Update selection counter display
-    function updateSelectionCount(positionID) {
-        const counter = document.querySelector(`.selection-counter[data-position="${positionID}"]`);
-        if (counter) {
-            const count = positionSelections[positionID]?.length || 0;
-            counter.textContent = `${count} selected`;
-        }
-    }
-    
-    // Enable/disable submit button
-    function updateSubmitButtonState() {
-        const submitBtn = document.getElementById('voteBtn');
-        if (!submitBtn) return;
-        
-        const allPositions = document.querySelectorAll('.position-section');
-        let allPositionsSelected = true;
-        
-        allPositions.forEach(posSection => {
-            const positionId = posSection.querySelector('.position-checkbox')?.name?.match(/position_(\d+)/)?.[1];
-            if (positionId && (!positionSelections[positionId] || positionSelections[positionId].length === 0)) {
-                allPositionsSelected = false;
-            }
-        });
-        
-        if (allPositionsSelected) {
-            submitBtn.removeAttribute('disabled');
-            submitBtn.classList.remove('btn-secondary');
-            submitBtn.classList.add('btn-primary');
-        } else {
-            submitBtn.setAttribute('disabled', 'disabled');
-            submitBtn.classList.remove('btn-primary');
-            submitBtn.classList.add('btn-secondary');
-        }
-    }
-    
-    // Vote button click handler - opens confirmation modal
-    const voteBtn = document.getElementById('voteBtn');
-    if (voteBtn) {
-        voteBtn.addEventListener('click', function() {
-            // Check if all positions have selections
-            const allPositions = document.querySelectorAll('.position-section');
-            let missingSelections = false;
-            let positionsWithoutSelection = [];
-            
-            allPositions.forEach(posSection => {
-                const positionTitle = posSection.querySelector('h3').textContent;
-                const positionId = posSection.querySelector('.position-checkbox')?.name?.match(/position_(\d+)/)?.[1];
+            // Listen for theme change events from header
+            document.addEventListener('themeChanged', function(e) {
+                document.documentElement.setAttribute('data-bs-theme', e.detail.theme);
                 
-                if (positionId && (!positionSelections[positionId] || positionSelections[positionId].length === 0)) {
-                    missingSelections = true;
-                    positionsWithoutSelection.push(positionTitle);
+                // Update any theme-specific elements that might not automatically update
+                const header = document.getElementById('header');
+                if (header) {
+                    if (e.detail.theme === 'dark') {
+                        header.classList.remove('bg-white');
+                        header.classList.add('bg-dark');
+                    } else {
+                        header.classList.remove('bg-dark');
+                        header.classList.add('bg-white');
+                    }
                 }
             });
             
-            if (missingSelections) {
-                alert(`Please make selections for all positions:\n• ${positionsWithoutSelection.join('\n• ')}`);
-                return;
-            }
-            
-            // Build vote summary for the modal
-            buildVoteSummary();
-            
-            // Show confirmation modal
-            const voteModal = new bootstrap.Modal(document.getElementById('voteConfirmationModal'));
-            voteModal.show();
-        });
-    }
-    
-    // Build the vote summary for the confirmation modal
-    function buildVoteSummary() {
-        const summaryContainer = document.getElementById('voteReviewSummary');
-        summaryContainer.innerHTML = '';
-        
-        const allPositions = document.querySelectorAll('.position-section');
-        
-        allPositions.forEach(posSection => {
-            const positionTitle = posSection.querySelector('h3').textContent;
-            const positionId = posSection.querySelector('.position-checkbox')?.name?.match(/position_(\d+)/)?.[1];
-            
-            if (!positionId) return;
-            
-            const positionDiv = document.createElement('div');
-            positionDiv.className = 'mb-3 p-3 border rounded';
-            
-            const positionHeading = document.createElement('h6');
-            positionHeading.className = 'border-bottom pb-2 mb-2';
-            positionHeading.innerHTML = `<i class="bi bi-star-fill text-warning me-2"></i>${positionTitle}`;
-            
-            positionDiv.appendChild(positionHeading);
-            
-            // Get selected candidates for this position
-            const selectedCandidateIds = positionSelections[positionId] || [];
-            const selectedCandidateEls = posSection.querySelectorAll('.candidate-card.selected');
-            
-            const candidatesList = document.createElement('ul');
-            candidatesList.className = 'list-group list-group-flush';
-            
-            selectedCandidateEls.forEach(candidateEl => {
-                const candidateName = candidateEl.querySelector('.candidate-name').textContent;
-                const candidateDept = candidateEl.querySelector('.badge').textContent;
-                
-                const listItem = document.createElement('li');
-                listItem.className = 'list-group-item bg-light';
-                listItem.innerHTML = `
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                        <div>
-                            <strong>${candidateName}</strong>
-                            <small class="d-block text-muted">${candidateDept}</small>
-                        </div>
-                    </div>
-                `;
-                
-                candidatesList.appendChild(listItem);
+            // Set checkbox state when candidate card is clicked
+            document.querySelectorAll('.candidate-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Only process click on the card itself, not on its children
+                    if (e.target.closest('.manifesto-btn') || e.target.closest('a') || e.target.tagName === 'INPUT') {
+                        return;
+                    }
+                    
+                    // Find the checkbox
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    const isMultiple = checkbox.getAttribute('data-multiple') === 'true';
+                    const positionId = checkbox.getAttribute('data-position');
+                    
+                    // If it's not a multiple selection position, uncheck all other checkboxes in this group
+                    if (!isMultiple) {
+                        document.querySelectorAll(`input[data-position="${positionId}"]`).forEach(cb => {
+                            if (cb !== checkbox) {
+                                cb.checked = false;
+                                cb.closest('.candidate-card').classList.remove('selected');
+                            }
+                        });
+                    }
+                    
+                    // Toggle checkbox
+                    checkbox.checked = !checkbox.checked;
+                    
+                    // Toggle selected class
+                    this.classList.toggle('selected', checkbox.checked);
+                    
+                    // Enforce max votes if needed
+                    if (isMultiple) {
+                        const maxVotes = parseInt(checkbox.getAttribute('data-max-votes'));
+                        const checkedBoxes = document.querySelectorAll(`input[data-position="${positionId}"]:checked`).length;
+                        
+                        if (checkedBoxes > maxVotes) {
+                            checkbox.checked = false;
+                            this.classList.remove('selected');
+                            
+                            // Show warning
+                            const alertMessage = `You can only select up to ${maxVotes} candidate(s) for this position.`;
+                            
+                            // Create bootstrap alert
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-warning alert-dismissible fade show mt-3';
+                            alertDiv.setAttribute('role', 'alert');
+                            alertDiv.innerHTML = `
+                                <i class="bi bi-exclamation-triangle-fill"></i> ${alertMessage}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            `;
+                            
+                            // Find the position container and insert alert
+                            const positionContainer = this.closest('.position-container');
+                            if (positionContainer) {
+                                if (positionContainer.querySelector('.alert')) {
+                                    positionContainer.querySelector('.alert').remove();
+                                }
+                                positionContainer.querySelector('.candidates-row').before(alertDiv);
+                                
+                                // Auto dismiss after 3 seconds
+                                setTimeout(() => {
+                                    if (alertDiv.parentNode) {
+                                        const bsAlert = new bootstrap.Alert(alertDiv);
+                                        bsAlert.close();
+                                    }
+                                }, 3000);
+                            }
+                        }
+                    }
+                });
             });
             
-            positionDiv.appendChild(candidatesList);
-            summaryContainer.appendChild(positionDiv);
-        });
-    }
-    
-    // Initialize tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-    
-    // Add CSS animations
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes select-pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
-            50% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(67, 97, 238, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
-        }
-        .candidate-card {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .candidate-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .candidate-card.selected {
-            border: 2px solid #4361ee !important;
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Show welcome tips modal on first visit
-    <?php if ($currentElection && !$hasVoted): ?>
-        if (!sessionStorage.getItem('welcomeShown')) {
-            const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeTipsModal'));
-            welcomeModal.show();
-            sessionStorage.setItem('welcomeShown', 'true');
-        }
-    <?php endif; ?>
-    
-    // Handle showing artwork modal
-    document.querySelector('.welcome-illustration')?.addEventListener('click', function() {
-        const artworkModal = new bootstrap.Modal(document.getElementById('artworkModal'));
-        artworkModal.show();
-    });
-    
-    // Handle final vote submission
-    const finalSubmitBtn = document.getElementById('finalSubmitBtn');
-    if (finalSubmitBtn) {
-        finalSubmitBtn.addEventListener('click', function() {
-            // Show loading state
-            this.disabled = true;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
+            // Handle manifesto button click to open modal
+            document.querySelectorAll('.manifesto-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const candidateName = this.getAttribute('data-name');
+                    const candidateManifesto = this.getAttribute('data-manifesto');
+                    
+                    // Update modal content
+                    const modal = document.getElementById('manifestoModal');
+                    modal.querySelector('.modal-title').textContent = `${candidateName}'s Manifesto`;
+                    modal.querySelector('.modal-body').innerHTML = `<p>${candidateManifesto || 'No manifesto available.'}</p>`;
+                    
+                    // Show modal
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
+                });
+            });
             
-            // Add the hidden field for submission
-            const submitField = document.createElement('input');
-            submitField.type = 'hidden';
-            submitField.name = 'submit_vote';
-            submitField.value = '1';
-            document.getElementById('votingForm').appendChild(submitField);
-            
-            // Submit the form
-            document.getElementById('votingForm').submit();
+            // Vote form validation
+            const voteForm = document.getElementById('voteForm');
+            if (voteForm) {
+                voteForm.addEventListener('submit', function(e) {
+                    // Check if at least one candidate is selected for each position
+                    const positionContainers = document.querySelectorAll('.position-container');
+                    let isValid = true;
+                    
+                    positionContainers.forEach(container => {
+                        const positionId = container.getAttribute('data-position-id');
+                        const selectedCandidates = container.querySelectorAll(`input[data-position="${positionId}"]:checked`).length;
+                        
+                        if (selectedCandidates === 0) {
+                            isValid = false;
+                            
+                            // Add error message
+                            if (!container.querySelector('.alert')) {
+                                const alertDiv = document.createElement('div');
+                                alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                                alertDiv.setAttribute('role', 'alert');
+                                alertDiv.innerHTML = `
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Please select at least one candidate for this position.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                `;
+                                
+                                container.querySelector('.candidates-row').before(alertDiv);
+                            }
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        // Scroll to the first error
+                        const firstError = document.querySelector('.alert-danger');
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    } else {
+                        // Show loading state
+                        const submitBtn = voteForm.querySelector('button[type="submit"]');
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+                    }
+                });
+            }
         });
-    }
-    
-    // Add responsive CSS for modals
-    const responsiveStyle = document.createElement('style');
-    responsiveStyle.textContent = `
-        @media (max-width: 767.98px) {
-            .modal-fullscreen-md-down {
-                max-width: 100%;
-                margin: 0;
-            }
-            .modal-fullscreen-md-down .modal-content {
-                height: 100vh;
-                border: 0;
-                border-radius: 0;
-            }
-            .carousel-item img {
-                max-height: 200px !important;
-            }
-            #voteReviewSummary {
-                max-height: 50vh;
-                overflow-y: auto;
-            }
-        }
-        
-        @media (max-width: 575.98px) {
-            .modal-fullscreen-sm-down {
-                max-width: 100%;
-                margin: 0;
-            }
-            .modal-fullscreen-sm-down .modal-content {
-                height: 100vh;
-                border: 0;
-                border-radius: 0;
-            }
-        }
-        
-        /* Enhanced modal styles */
-        .modal-content {
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .welcome-modal .modal-body {
-            padding: 1.5rem;
-        }
-        
-        /* Improved list styles in vote confirmation */
-        #voteReviewSummary .list-group-item {
-            transition: all 0.2s ease;
-        }
-        
-        #voteReviewSummary .list-group-item:hover {
-            background-color: #f0f7ff;
-        }
-    `;
-    document.head.appendChild(responsiveStyle);
-});
-</script>
+    </script>
 </body>
 </html>

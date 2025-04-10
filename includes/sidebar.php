@@ -39,6 +39,7 @@ if (!empty($profile_pic)) {
 
 /* ===== Premium Sidebar Styles ===== */
 :root {
+  /* Light mode variables (default) */
   --sidebar-width: 280px;
   --sidebar-bg: #fdfdfd;
   --sidebar-accent: #1e3a8a;
@@ -52,6 +53,36 @@ if (!empty($profile_pic)) {
   --success-badge: #16a34a;
   --primary-badge: #1e40af;
   --notification-badge: #be123c;
+  --profile-card-bg: rgba(255, 255, 255, 0.2);
+  --avatar-gradient-start: #4361ee;
+  --avatar-gradient-end: #3a0ca3;
+  --avatar-text: #ffffff;
+  --sidebar-shadow: rgba(0, 0, 0, 0.03);
+  --active-item-bg: rgba(59, 130, 246, 0.08);
+  --active-item-border: #3b82f6;
+}
+
+/* Dark Mode Variables */
+[data-bs-theme="dark"] {
+  --sidebar-bg: #212529;
+  --sidebar-accent: #6ea8fe;
+  --sidebar-text: #f8f9fa;
+  --sidebar-text-light: #adb5bd;
+  --sidebar-border: #495057;
+  --sidebar-hover: #343a40;
+  --admin-color: #ea868f;
+  --voter-color: #75b798;
+  --highlight-color: #6ea8fe;
+  --success-badge: #75b798;
+  --primary-badge: #6ea8fe;
+  --notification-badge: #ea868f;
+  --profile-card-bg: rgba(33, 37, 41, 0.5);
+  --avatar-gradient-start: #6ea8fe;
+  --avatar-gradient-end: #0d6efd;
+  --avatar-text: #ffffff;
+  --sidebar-shadow: rgba(0, 0, 0, 0.2);
+  --active-item-bg: rgba(110, 168, 254, 0.15);
+  --active-item-border: #6ea8fe;
 }
 
 .sidebar {
@@ -61,12 +92,13 @@ if (!empty($profile_pic)) {
   left: 0;
   top: 0;
   background: var(--sidebar-bg);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 4px 0 20px var(--sidebar-shadow);
   display: flex;
   flex-direction: column;
   z-index: 1000;
   border-right: 1px solid var(--sidebar-border);
   padding-top: 60px; /* Space for the header */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Mobile Header */
@@ -82,6 +114,7 @@ if (!empty($profile_pic)) {
   right: 0;
   z-index: 100;
   background: var(--sidebar-bg);
+  transition: background-color 0.3s ease;
 }
 
 .mobile-header .logo {
@@ -106,8 +139,9 @@ if (!empty($profile_pic)) {
   border-bottom: 1px solid var(--sidebar-border);
   position: relative;
   margin: 20px 15px 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--profile-card-bg);
   border-radius: 8px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .profile-avatar {
@@ -116,10 +150,11 @@ if (!empty($profile_pic)) {
   border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #4361ee, #3a0ca3);
+  background: linear-gradient(135deg, var(--avatar-gradient-start), var(--avatar-gradient-end));
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.3s ease;
 }
 
 .profile-avatar img {
@@ -129,7 +164,7 @@ if (!empty($profile_pic)) {
 }
 
 .avatar-fallback {
-  color: white;
+  color: var(--avatar-text);
   font-weight: 600;
   font-size: 1.25rem;
 }
@@ -147,6 +182,7 @@ if (!empty($profile_pic)) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.3s ease;
 }
 
 .profile-meta {
@@ -162,6 +198,7 @@ if (!empty($profile_pic)) {
   background: var(--sidebar-hover);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
 .profile-status {
@@ -169,6 +206,7 @@ if (!empty($profile_pic)) {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  transition: color 0.3s ease;
 }
 
 .profile-status.admin {
@@ -248,9 +286,17 @@ if (!empty($profile_pic)) {
   text-align: center;
 }
 
+.nav-link.active {
+  color: var(--sidebar-accent);
+  background: var(--active-item-bg);
+  font-weight: 500;
+  border-left: 3px solid var(--active-item-border);
+  padding-left: calc(1.5rem - 3px); /* Adjust for border */
+}
+
 .nav-item.active .nav-link {
   color: var(--sidebar-accent);
-  background: rgba(67, 97, 238, 0.05);
+  background: var(--active-item-bg);
   font-weight: 500;
 }
 
@@ -261,7 +307,7 @@ if (!empty($profile_pic)) {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: var(--sidebar-accent);
+  background: var(--active-item-border);
   border-radius: 0 3px 3px 0;
 }
 
@@ -328,10 +374,23 @@ if (!empty($profile_pic)) {
 
 /* Sidebar Footer */
 .sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid var(--sidebar-border);
+  padding: 1rem 1.5rem;
   font-size: 0.8rem;
-  background: #f8f9fa;
+  color: var(--sidebar-text-light);
+  border-top: 1px solid var(--sidebar-border);
+  margin-top: auto;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar-footer-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-footer-text i {
+  font-size: 0.9rem;
+  color: var(--sidebar-accent);
 }
 
 .system-info {
@@ -592,24 +651,26 @@ if (!empty($profile_pic)) {
 
   <!-- Sidebar Footer -->
   <div class="sidebar-footer">
-    <div class="system-info">
-      <div class="info-item last-login">
-        <i class="bi bi-clock-history"></i>
-        <span id="lastLoginTime">
-          Last login: <?= $last_login ? date('M j, Y g:i a', strtotime($last_login)) : 'Never' ?>
+    <span class="sidebar-footer-text">
+        <i class="bi bi-clock"></i>
+        Last login: <span id="lastLoginTime">
+            <?php 
+                if ($last_login) {
+                    echo date('M d, Y H:i', strtotime($last_login));
+                } else {
+                    echo 'Just now';
+                }
+            ?>
         </span>
-      </div>
-      <div class="info-item">
-        <i class="bi bi-shield-check"></i>
-        <span>Secure Admin Session</span>
-      </div>
-    </div>
-    <a href="logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?');">
-      <i class="bi bi-box-arrow-left"></i>
+    </span>
+    
+    <a href="controllers/app.php?action=logout" class="logout-btn mt-3" onclick="return confirm('Are you sure you want to logout?');">
+      <i class="bi bi-box-arrow-right"></i>
       <span>Logout</span>
     </a>
-    <div class="version-info">
-      Admin Console v2.1.0 · <?= date('Y') ?>
+    
+    <div class="version-info mt-2">
+      <span>Admin Console, v1.0</span>
     </div>
   </div>
 </aside>
@@ -673,21 +734,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Update last login time display
+  // Function to update last login time
   function updateLastLoginTime() {
-    const now = new Date();
-    const options = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    };
-    document.getElementById('lastLoginTime').textContent = 'Last login: ' + now.toLocaleDateString('en-US', options);
+    const lastLoginElement = document.getElementById('lastLoginTime');
+    if (!lastLoginElement) return;
+    
+    // If it's a PHP timestamp, format it as "X minutes/hours ago"
+    const loginTime = '<?php echo $last_login ? date('c', strtotime($last_login)) : ''; ?>';
+    if (loginTime) {
+        const loginDate = new Date(loginTime);
+        const now = new Date();
+        const diffMs = now - loginDate;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) {
+            lastLoginElement.textContent = 'Just now';
+        } else if (diffMins < 60) {
+            lastLoginElement.textContent = diffMins + ' minute' + (diffMins > 1 ? 's' : '') + ' ago';
+        } else if (diffMins < 1440) {
+            const hours = Math.floor(diffMins / 60);
+            lastLoginElement.textContent = hours + ' hour' + (hours > 1 ? 's' : '') + ' ago';
+        } else {
+            const days = Math.floor(diffMins / 1440);
+            lastLoginElement.textContent = days + ' day' + (days > 1 ? 's' : '') + ' ago';
+        }
+    }
   }
+  
+  // Call once and set up interval
   updateLastLoginTime();
-  setInterval(updateLastLoginTime, 1000);
+  setInterval(updateLastLoginTime, 60000); // Update every minute
+  
+  // Initialize theme from localStorage
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-bs-theme', currentTheme);
+  
+  // Listen for theme changes
+  document.addEventListener('themeChanged', function(e) {
+    // The CSS variables will handle most style changes automatically
+    console.log('Theme changed to:', e.detail.theme);
+  });
 });
 </script>

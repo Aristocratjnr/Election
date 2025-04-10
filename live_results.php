@@ -160,6 +160,23 @@ try {
             --bg: #f3f4f6;
         }
         
+        /* Dark mode variables */
+        [data-bs-theme="dark"] {
+            --primary: #6ea8fe;
+            --primary-light: rgba(110, 168, 254, 0.08);
+            --primary-dark: #4361ee;
+            --success: #75b798;
+            --success-light: rgba(117, 183, 152, 0.1);
+            --surface: #2b3035;
+            --surface-hover: #343a40;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            --card-hover-shadow: 0 15px 35px rgba(110, 168, 254, 0.2);
+            --text: #f8f9fa;
+            --text-muted: #adb5bd;
+            --border: #495057;
+            --bg: #212529;
+        }
+        
         body {
             background-color: var(--bg);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -197,7 +214,7 @@ try {
             align-items: center;
             padding: 1.5rem;
             border-radius: 16px;
-            background-color: white;
+            background-color: var(--surface);
             border: 1px solid var(--border);
             margin-bottom: 1.5rem;
             transition: all 0.3s ease;
@@ -305,7 +322,7 @@ try {
         }
         
         .stats-card {
-            background: white;
+            background: var(--surface);
             border-radius: 12px;
             padding: 1.5rem;
             border: 1px solid var(--border);
@@ -543,6 +560,65 @@ try {
                 height: 40px;
             }
         }
+        
+        .alert.bg-light {
+            background-color: var(--surface) !important;
+            color: var(--text);
+        }
+        
+        .card-header {
+            background-color: var(--surface) !important;
+            color: var(--text);
+        }
+
+        [data-bs-theme="dark"] .bg-white {
+            background-color: var(--surface) !important;
+        }
+
+        [data-bs-theme="dark"] .avatar.bg-primary {
+            background-color: rgba(110, 168, 254, 0.2) !important;
+        }
+
+        [data-bs-theme="dark"] .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        [data-bs-theme="dark"] .position-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        [data-bs-theme="dark"] .btn-outline-primary {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        [data-bs-theme="dark"] .btn-outline-primary:hover {
+            background-color: var(--primary-dark);
+            color: #ffffff;
+        }
+
+        [data-bs-theme="dark"] .counter-circle.bg-secondary {
+            background-color: rgba(173, 181, 189, 0.2) !important;
+        }
+
+        /* Fix refresh indicator in dark mode */
+        [data-bs-theme="dark"] .refresh-indicator {
+            background-color: rgba(110, 168, 254, 0.9) !important;
+            color: #ffffff !important;
+        }
+
+        /* Fix alert backgrounds */
+        [data-bs-theme="dark"] .alert-success {
+            background-color: rgba(117, 183, 152, 0.2);
+            color: #d1e7dd;
+            border-color: rgba(117, 183, 152, 0.4);
+        }
+
+        [data-bs-theme="dark"] .alert-danger {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #f8d7da;
+            border-color: rgba(220, 53, 69, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -742,11 +818,6 @@ try {
                                                             <i class="bi bi-briefcase me-1"></i>
                                                             <?= htmlspecialchars($position['title']) ?>
                                                         </p>
-                                                        <p class="candidate-department d-md-none d-block mb-2">
-                                                            <i class="bi bi-building me-1"></i>
-                                                            <span class="fw-medium"><?= htmlspecialchars($candidate['department']) ?></span>
-                                                        </p>
-                                                        
                                                         <div class="d-flex align-items-center">
                                                             <div class="vote-count">
                                                                 <i class="bi bi-check2-circle me-1"></i>
@@ -806,6 +877,22 @@ try {
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Theme handling script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get stored theme or default to light
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Apply theme on page load
+        document.documentElement.setAttribute('data-bs-theme', currentTheme);
+        
+        // Listen for theme change events from header
+        document.addEventListener('themeChanged', function(e) {
+            document.documentElement.setAttribute('data-bs-theme', e.detail.theme);
+        });
+    });
+    </script>
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {

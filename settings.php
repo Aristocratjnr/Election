@@ -345,6 +345,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
             font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
         
+        /* Dark Mode Variables */
+        [data-bs-theme="dark"] {
+            --primary-color: #6ea8fe;
+            --primary-hover: #5a96fd;
+            --danger-color: #ea868f;
+            --warning-color: #ffda6a;
+            --success-color: #75b798;
+            --light-bg: #343a40;
+            --box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        [data-bs-theme="dark"] body {
+            background-color: #212529;
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .settings-card {
+            background-color: #2b3035;
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .settings-card-header {
+            background-color: #2b3035;
+            border-color: #495057;
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .input-group-text {
+            background-color: #343a40;
+            border-color: #495057;
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .form-label,
+        [data-bs-theme="dark"] .form-check-label {
+            color: #adb5bd;
+        }
+        
+        [data-bs-theme="dark"] .action-card-item:hover {
+            background-color: #343a40;
+        }
+        
+        [data-bs-theme="dark"] .action-text p,
+        [data-bs-theme="dark"] .text-muted {
+            color: #adb5bd !important;
+        }
+        
+        [data-bs-theme="dark"] .modal-content {
+            background-color: #2b3035;
+            border-color: #495057;
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .modal-header,
+        [data-bs-theme="dark"] .modal-footer {
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .btn-light {
+            background-color: #343a40;
+            border-color: #495057;
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .card-body {
+            background-color: #2b3035;
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .dropdown-menu {
+            background-color: #2b3035;
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .dropdown-item {
+            color: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] .dropdown-item:hover {
+            background-color: #343a40;
+        }
+        
+        [data-bs-theme="dark"] .page-header {
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] hr {
+            border-color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .alert-success {
+            background-color: rgba(117, 183, 152, 0.15);
+            color: #75b798;
+            border-color: rgba(117, 183, 152, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .alert-danger {
+            background-color: rgba(234, 134, 143, 0.15);
+            color: #ea868f;
+            border-color: rgba(234, 134, 143, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .alert-warning {
+            background-color: rgba(255, 218, 106, 0.15);
+            color: #ffda6a;
+            border-color: rgba(255, 218, 106, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .qr-code-container {
+            background-color: #343a40;
+            border: 1px solid #495057;
+        }
+        
         .settings-container {
             max-width: 680px;
             margin: 0 auto;
@@ -600,6 +714,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
             display: inline-block;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             margin-bottom: 15px;
+        }
+
+        [data-bs-theme="dark"] .breadcrumb-item a {
+            color: var(--primary-color);
+        }
+
+        [data-bs-theme="dark"] .breadcrumb-item.active {
+            color: #adb5bd;
+        }
+
+        [data-bs-theme="dark"] .profile-picture {
+            border-color: #343a40;
+        }
+
+        [data-bs-theme="dark"] .profile-picture-container {
+            background-color: #343a40;
+        }
+
+        [data-bs-theme="dark"] .password-strength {
+            background-color: #343a40;
+        }
+
+        [data-bs-theme="dark"] .form-check-input {
+            background-color: #343a40;
+            border-color: #495057;
+        }
+
+        [data-bs-theme="dark"] .btn-outline-secondary {
+            color: #adb5bd;
+            border-color: #495057;
+        }
+
+        [data-bs-theme="dark"] .btn-outline-warning,
+        [data-bs-theme="dark"] .btn-outline-danger {
+            color: inherit;
+        }
+
+        [data-bs-theme="dark"] .password-toggle {
+            background-color: #343a40;
+            color: #adb5bd;
+        }
+
+        [data-bs-theme="dark"] .deactivate-modal .modal-header,
+        [data-bs-theme="dark"] .delete-modal .modal-header {
+            color: white;
+        }
+
+        [data-bs-theme="dark"] header {
+            background-color: #343a40 !important;
+            border-color: #495057 !important;
+        }
+
+        /* Fix Bootstrap styles in dark mode */
+        [data-bs-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        /* Fix for badge colors in dark mode */
+        [data-bs-theme="dark"] .badge.bg-danger {
+            background-color: var(--danger-color) !important;
+        }
+
+        /* Fix container background */
+        [data-bs-theme="dark"] .container {
+            background-color: #212529;
         }
     </style>
 </head>
@@ -1111,6 +1290,17 @@ document.addEventListener('DOMContentLoaded', function() {
             alertInstance.close();
         }, 2000); // 2000 milliseconds = 2 seconds
     }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply stored theme on page load
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-bs-theme', currentTheme);
+    
+    // Listen for theme change events from header
+    document.addEventListener('themeChanged', function(e) {
+        document.documentElement.setAttribute('data-bs-theme', e.detail.theme);
+    });
 });
     </script>
 </body>
