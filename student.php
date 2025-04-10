@@ -962,6 +962,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             border-radius: 16px;
             overflow: hidden;
             border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .welcome-header {
@@ -975,39 +976,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         .welcome-header::after {
             content: '';
             position: absolute;
-            bottom: -20px;
+            bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
             clip-path: polygon(0% 0%, 100% 0%, 50% 50%);
         }
 
         .welcome-body {
-            padding: 2rem;
+            padding: 2rem 1.5rem;
         }
 
         .tip-card {
             border-radius: 12px;
             border: 1px solid var(--border);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
             transition: all 0.3s ease;
             background-color: white;
+            display: flex;
+            align-items: flex-start;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
 
-        
+        .tip-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
 
         .tip-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+
+        .tip-content {
+            flex: 1;
         }
 
         .tip-icon.blue {
@@ -1035,6 +1047,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             height: auto;
             margin: 0 auto;
             display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .welcome-illustration:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-get-started {
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            color: white;
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-get-started:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+            background: linear-gradient(135deg, #3a56d4 0%, #2e44c2 100%);
+            color: white;
+        }
+
+        @media (max-width: 767.98px) {
+            .welcome-body {
+                padding: 1.5rem 1rem;
+            }
+            
+            .tip-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .tip-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+                margin-right: 0.75rem;
+            }
+            
+            .welcome-header::after {
+                bottom: -10px;
+                width: 20px;
+                height: 20px;
+            }
+            
+            .tip-card h5 {
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .tip-card p {
+                font-size: 0.875rem;
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .welcome-modal {
+                border-radius: 12px;
+            }
+            
+            .welcome-header {
+                padding: 1.25rem 1rem;
+            }
+            
+            .welcome-body {
+                padding: 1.25rem 0.75rem;
+            }
+            
+            .btn-get-started {
+                width: 100%;
+            }
         }
 
         .gradient-btn {
@@ -2138,51 +2225,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     <p class="mb-0">Here are some tips to help you vote successfully</p>
                 </div>
                 <div class="welcome-body">
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-6">
                             <div class="tip-card">
                                 <div class="tip-icon blue">
-                                    <i class="bi bi-check-circle-fill"></i>
+                                    <i class="bi bi-check-circle"></i>
                                 </div>
-                                <h5>Select Carefully</h5>
-                                <p class="text-muted">Review all candidates before making your selection. You can only vote once per position.</p>
+                                <div class="tip-content">
+                                    <h5>Select Carefully</h5>
+                                    <p class="text-muted mb-0">Review all candidates before making your selection. You can only vote once per position.</p>
+                                </div>
                             </div>
                             
                             <div class="tip-card">
                                 <div class="tip-icon green">
-                                    <i class="bi bi-shield-lock-fill"></i>
+                                    <i class="bi bi-shield-lock"></i>
                                 </div>
-                                <h5>Secure & Anonymous</h5>
-                                <p class="text-muted">Your vote is completely anonymous and securely encrypted. No one can see how you voted.</p>
+                                <div class="tip-content">
+                                    <h5>Secure & Anonymous</h5>
+                                    <p class="text-muted mb-0">Your vote is completely anonymous and securely encrypted. No one can see how you voted.</p>
+                                </div>
                             </div>
                         </div>
                         
                         <div class="col-md-6">
                             <div class="tip-card">
                                 <div class="tip-icon purple">
-                                    <i class="bi bi-clock-fill"></i>
+                                    <i class="bi bi-clock"></i>
                                 </div>
-                                <h5>Time Limit</h5>
-                                <p class="text-muted">The election ends soon! Make sure to submit your vote before the countdown timer reaches zero.</p>
+                                <div class="tip-content">
+                                    <h5>Time Limit</h5>
+                                    <p class="text-muted mb-0">The election ends soon! Make sure to submit your vote before the countdown timer reaches zero.</p>
+                                </div>
                             </div>
                             
                             <div class="tip-card">
                                 <div class="tip-icon orange">
-                                    <i class="bi bi-arrow-left-right"></i>
+                                    <i class="bi bi-exclamation-triangle"></i>
                                 </div>
-                                <h5>No Going Back</h5>
-                                <p class="text-muted">Once you submit your vote, you cannot change it. Double-check your selections before submitting.</p>
+                                <div class="tip-content">
+                                    <h5>No Going Back</h5>
+                                    <p class="text-muted mb-0">Once you submit your vote, you cannot change it. Double-check your selections before submitting.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="text-center mt-4">
-                        <img src="https://cdn-icons-png.flaticon.com/512/3132/3132736.png" alt="Voting Illustration" class="welcome-illustration" style="max-height: 150px;">
+                        <img src="assets/img/voting-illustration.svg" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3132/3132736.png'" alt="Voting Illustration" class="welcome-illustration" style="max-height: 150px;">
                     </div>
                     
                     <div class="text-center mt-4">
-                        <button type="button" class="btn gradient-btn" data-bs-dismiss="modal">
-                            <i class="bi bi-check-circle me-2"></i> Got it, let's vote!
+                        <button type="button" class="btn btn-get-started" data-bs-dismiss="modal">
+                            <i class="bi bi-arrow-right-circle me-2"></i> Got it, let's vote!
                         </button>
                     </div>
                 </div>
