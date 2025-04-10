@@ -186,8 +186,9 @@ if (empty($userData)) {
                             
                             <li>
                                 <a class="dropdown-item d-flex align-items-center px-3 py-2 text-danger" 
-                                   href="controllers/app.php?action=logout"
-                                   onclick="return confirm('Are you sure you want to sign out?');">
+                                   href="#"
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#logoutModal">
                                     <i class="bi bi-box-arrow-right me-3 fs-5"></i>
                                     <div>
                                         <span>Sign Out</span>
@@ -473,3 +474,26 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: color 0.3s ease;
 }
 </style>
+
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" id="logoutModalLabel">Sign Out</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <i class="bi bi-box-arrow-right text-danger fs-1 mb-3"></i>
+          <h5>Are you sure you want to sign out?</h5>
+          <p class="text-muted">You will need to sign in again to access your account.</p>
+        </div>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+        <a href="controllers/app.php?action=logout" class="btn btn-danger px-4">Sign Out</a>
+      </div>
+    </div>
+  </div>
+</div>

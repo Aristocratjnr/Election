@@ -764,7 +764,7 @@ if (!empty($profile_pic)) {
         </span>
     </span>
     
-    <a href="controllers/app.php?action=logout" class="logout-btn mt-3" onclick="return confirm('Are you sure you want to logout?');">
+    <a href="#" class="logout-btn mt-3" id="logoutBtn">
       <i class="bi bi-box-arrow-right"></i>
       <span>Logout</span>
     </a>
@@ -774,6 +774,37 @@ if (!empty($profile_pic)) {
     </div>
   </div>
 </aside>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="logoutModalLabel">
+          <i class="bi bi-box-arrow-right me-2"></i> Confirm Logout
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex align-items-center mb-3">
+          <i class="bi bi-question-circle-fill text-danger me-3" style="font-size: 2rem;"></i>
+          <div>
+            <p class="mb-1">Are you sure you want to log out of your account?</p>
+            <p class="text-muted mb-0">You will need to log in again to access the admin panel.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <a href="controllers/app.php?action=logout" class="btn btn-danger">
+          <i class="bi bi-box-arrow-right me-1"></i> Yes, Log Out
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Sidebar Overlay for Mobile -->
 <div class="sidebar-overlay"></div>
@@ -927,6 +958,20 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset to default
         el.style.borderColor = '';
       }
+    });
+  }
+});
+</script>
+<!-- Additional script for logout modal -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Logout button functionality
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+      logoutModal.show();
     });
   }
 });
