@@ -242,19 +242,14 @@ try {
             overflow: hidden;
         }
         
-        .candidate-result:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--card-hover-shadow);
-            border-color: rgba(67, 97, 238, 0.3);
-        }
         
         .candidate-result.leading {
             border-left: 4px solid var(--success);
         }
         
         .avatar-container {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             margin-right: 1.5rem;
             position: relative;
             flex-shrink: 0;
@@ -826,7 +821,7 @@ try {
                                                                 <i class="bi bi-person fs-2"></i>
                                                             </div>
                                                         <?php endif; ?>
-                                                        <span class="department-badge"><i class="bi bi-building me-1"></i><?= htmlspecialchars($candidate['department']) ?></span>
+                                                        <span class="department-badge"><i class="bi bi-buildings-fill"></i><?= htmlspecialchars($candidate['department']) ?></span>
                                                     </div>
                                                     
                                                     <div class="candidate-info">

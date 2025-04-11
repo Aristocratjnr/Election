@@ -1,12 +1,10 @@
 <?php
 require_once 'includes/auth_check.php';
 require_once 'configs/dbconnection.php';
-require_once 'update_election_status.php'; // Include the status updater
+require_once 'update_election_status.php'; 
 
-// Automatically update election statuses when viewing results
 updateElectionStatuses();
 
-// Include and call vote calculator to ensure vote counts are up-to-date
 require_once 'calculate_vote_results.php';
 
 // If an election is selected, automatically refresh its vote counts
