@@ -73,10 +73,7 @@ $pageTitle = "Election Categories"; // Used in header.php
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
+        
 
         .election-selector {
             background-color: #f8f9fa;
@@ -99,10 +96,7 @@ $pageTitle = "Election Categories"; // Used in header.php
             padding: 0.75rem 1rem;
         }
 
-        .category-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(5px);
-        }
+        
 
         .btn-action {
             border-radius: 50%;
@@ -114,9 +108,7 @@ $pageTitle = "Election Categories"; // Used in header.php
             transition: all 0.3s ease;
         }
 
-        .btn-action:hover {
-            transform: scale(1.1);
-        }
+        
 
         .empty-state {
             text-align: center;
@@ -235,10 +227,10 @@ $pageTitle = "Election Categories"; // Used in header.php
         <div class="row">
             <!-- Include Sidebar -->
             <?php include 'includes/sidebar.php'; ?>
-            
             <div class="main-content">
                 <!-- Include Header -->
-                <?php include 'includes/header.php'; ?>
+                <?php include 'includes/header.php'; ?><br>
+            
                 
                 <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4"><br>
                     <!-- Page Header -->

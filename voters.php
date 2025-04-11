@@ -34,12 +34,13 @@ if ($electionID) {
     $votesQuery = "
         SELECT v.voteID, v.timestamp, 
                s.studentID, s.name as voterName, s.department as voterDepartment, s.profilePicture as voterPhoto,
-               c.candidateID, c.position,
+               c.candidateID, p.title as position,
                st.name as candidateName, st.profilePicture as candidatePhoto
         FROM votes v
         JOIN students s ON v.studentID = s.studentID
         JOIN candidates c ON v.candidateID = c.candidateID
         JOIN students st ON c.studentID = st.studentID
+        JOIN positions p ON c.positionID = p.positionID
         WHERE v.electionID = ?
         ORDER BY v.timestamp DESC
     ";
@@ -979,7 +980,7 @@ if ($electionID) {
                                                                     <?php echo htmlspecialchars($vote['voterName']); ?>
                                                                 </h6>
                                                                 <div class="d-flex align-items-center text-muted small">
-                                                                    <i class="bi bi-building me-1"></i>
+                                                                    <i class="bi bi-buildings department-icon icon"></i>
                                                                     <?php echo htmlspecialchars($vote['voterDepartment']); ?> 
                                                                     <span class="mx-1">•</span>
                                                                     <i class="bi bi-clock me-1"></i>
