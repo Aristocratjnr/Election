@@ -117,7 +117,7 @@ $resultsData = [];
 $totalVotes = 0;
 
 // Add debug flags
-$showDebug = true; // Set to true to show debug information
+$showDebug = true; 
 $debugInfo = [];
 
 // Initialize votes tables info
@@ -188,23 +188,27 @@ function getCandidateActualVotes($conn, $candidateID, $electionID, $votesTableIn
 
 // Helper function to find profile pictures
 function findProfilePicture($candidate) {
+    if (!is_array($candidate)) {
+        return '';
+    }
+    
     $possiblePaths = [];
     $checkedPaths = []; // For debugging
     
     // Check student profile picture
-    if (!empty($candidate['profilePicture'])) {
+    if (isset($candidate['profilePicture']) && !empty($candidate['profilePicture'])) {
         $possiblePaths[] = 'assets/img/profile/students/' . $candidate['profilePicture'];
         $possiblePaths[] = 'assets/img/' . $candidate['profilePicture'];
     }
     
     // Check candidate photo if it exists
-    if (!empty($candidate['candidatePhoto'])) {
+    if (isset($candidate['candidatePhoto']) && !empty($candidate['candidatePhoto'])) {
         $possiblePaths[] = 'assets/img/candidates/' . $candidate['candidatePhoto'];
         $possiblePaths[] = 'assets/img/' . $candidate['candidatePhoto'];
     }
     
     // Check by student ID (common naming pattern)
-    if (!empty($candidate['studentID'])) {
+    if (isset($candidate['studentID']) && !empty($candidate['studentID'])) {
         $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '.jpg';
         $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '.png';
         $possiblePaths[] = 'assets/img/profile/students/' . $candidate['studentID'] . '.jpeg';
@@ -225,7 +229,7 @@ function findProfilePicture($candidate) {
     }
     
     // Add the name-based files
-    if (!empty($candidate['name'])) {
+    if (isset($candidate['name']) && !empty($candidate['name'])) {
         // Convert spaces to underscores and lowercase
         $nameFile = strtolower(str_replace(' ', '_', $candidate['name']));
         $possiblePaths[] = "assets/img/profile/students/{$nameFile}.jpg";
@@ -251,9 +255,13 @@ function findProfilePicture($candidate) {
             if (!isset($_SESSION['debug_picture_paths'])) {
                 $_SESSION['debug_picture_paths'] = [];
             }
-            $_SESSION['debug_picture_paths'][$candidate['studentID']] = [
-                'studentID' => $candidate['studentID'],
-                'name' => $candidate['name'],
+            
+            $studentID = isset($candidate['studentID']) ? $candidate['studentID'] : 'unknown';
+            $name = isset($candidate['name']) ? $candidate['name'] : 'Unknown';
+            
+            $_SESSION['debug_picture_paths'][$studentID] = [
+                'studentID' => $studentID,
+                'name' => $name,
                 'found' => $path,
                 'checked' => $checkedPaths
             ];
@@ -266,9 +274,13 @@ function findProfilePicture($candidate) {
     if (!isset($_SESSION['debug_picture_paths'])) {
         $_SESSION['debug_picture_paths'] = [];
     }
-    $_SESSION['debug_picture_paths'][$candidate['studentID']] = [
-        'studentID' => $candidate['studentID'],
-        'name' => $candidate['name'],
+    
+    $studentID = isset($candidate['studentID']) ? $candidate['studentID'] : 'unknown';
+    $name = isset($candidate['name']) ? $candidate['name'] : 'Unknown';
+    
+    $_SESSION['debug_picture_paths'][$studentID] = [
+        'studentID' => $studentID,
+        'name' => $name,
         'found' => false,
         'checked' => $checkedPaths
     ];
@@ -317,18 +329,22 @@ if ($electionID) {
         while ($position = $positions->fetch_assoc()) {
             $positionID = $position['positionID'];
             
-            // Get candidates and their results for this position
-            $candidates = $conn->query("
-                SELECT c.candidateID, c.studentID, c.position, c.manifesto, c.photo as candidatePhoto,
-                       s.name, s.profilePicture, s.email, s.department,
-                       COALESCE(r.voteCount, 0) as voteCount,
-                       COALESCE(r.percentage, 0) as percentage
+            // Get candidates and their results for this position - use prepared statement for security
+            $candidatesStmt = $conn->prepare("
+                SELECT c.candidateID, c.studentID, p.title as position, c.manifesto, c.photo as candidatePhoto,
+                      s.name, s.profilePicture, s.email, s.department,
+                      COALESCE(r.voteCount, 0) as voteCount,
+                      COALESCE(r.percentage, 0) as percentage
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
-                LEFT JOIN results r ON c.candidateID = r.candidateID AND r.electionID = $electionID
-                WHERE c.position = '{$position['title']}' AND c.status = 'Approved'
+                JOIN positions p ON c.positionID = p.positionID
+                LEFT JOIN results r ON c.candidateID = r.candidateID AND r.electionID = ?
+                WHERE p.title = ? AND c.status = 'Approved'
                 ORDER BY voteCount DESC
             ");
+            $candidatesStmt->bind_param("is", $electionID, $position['title']);
+            $candidatesStmt->execute();
+            $candidates = $candidatesStmt->get_result();
 
             $positionResults = [
                 'title' => $position['title'],
@@ -337,25 +353,33 @@ if ($electionID) {
                 'totalVotes' => 0
             ];
 
-            while ($candidate = $candidates->fetch_assoc()) {
-                // Get actual votes using our function
-                $candidate['actualVotes'] = getCandidateActualVotes($conn, $candidate['candidateID'], $electionID, $votesTableInfo);
-                
-                // Use actualVotes if voteCount is 0
-                $effectiveVoteCount = ($candidate['voteCount'] > 0) ? $candidate['voteCount'] : $candidate['actualVotes'];
-                
-                $positionResults['candidates'][] = $candidate;
-                $positionResults['totalVotes'] += $effectiveVoteCount;
-                $totalVotes += $effectiveVoteCount;
+            // Ensure candidates exist before trying to loop
+            if ($candidates && $candidates->num_rows > 0) {
+                while ($candidate = $candidates->fetch_assoc()) {
+                    // Only process and add valid candidate records
+                    if (is_array($candidate) && isset($candidate['candidateID'])) {
+                        // Get actual votes using our function
+                        $candidate['actualVotes'] = getCandidateActualVotes($conn, $candidate['candidateID'], $electionID, $votesTableInfo);
+                        
+                        // Use actualVotes if voteCount is 0
+                        $effectiveVoteCount = ($candidate['voteCount'] > 0) ? $candidate['voteCount'] : $candidate['actualVotes'];
+                        
+                        $positionResults['candidates'][] = $candidate;
+                        $positionResults['totalVotes'] += $effectiveVoteCount;
+                        $totalVotes += $effectiveVoteCount;
+                    }
+                }
             }
 
-            // Calculate percentages if not stored
-            foreach ($positionResults['candidates'] as &$candidate) {
-                // Use actualVotes if voteCount is 0
-                $effectiveVoteCount = ($candidate['voteCount'] > 0) ? $candidate['voteCount'] : $candidate['actualVotes'];
-                
-                if ($positionResults['totalVotes'] > 0) {
-                    $candidate['percentage'] = number_format(($effectiveVoteCount / $positionResults['totalVotes']) * 100, 2);
+            // Only calculate percentages if we have candidates and votes
+            if (!empty($positionResults['candidates']) && $positionResults['totalVotes'] > 0) {
+                foreach ($positionResults['candidates'] as &$candidate) {
+                    // Use actualVotes if voteCount is 0
+                    $effectiveVoteCount = ($candidate['voteCount'] > 0) ? $candidate['voteCount'] : $candidate['actualVotes'];
+                    
+                    if ($positionResults['totalVotes'] > 0) {
+                        $candidate['percentage'] = number_format(($effectiveVoteCount / $positionResults['totalVotes']) * 100, 2);
+                    }
                 }
             }
 
@@ -617,9 +641,7 @@ if ($electionID) {
             transition: transform 0.3s;
             margin-bottom: 2rem;
         }
-        .results-card:hover {
-            transform: translateY(-5px);
-        }
+        
         
         /* Empty State */
         .empty-state {
@@ -737,10 +759,7 @@ if ($electionID) {
         .profile-modal-img {
             transition: transform 0.3s, box-shadow 0.3s;
         }
-        .profile-modal-img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
-        }
+       
         
         /* Candidate Profile Info Styles */
         .candidate-info p {
@@ -748,11 +767,7 @@ if ($electionID) {
             padding: 0.25rem;
             border-radius: 4px;
         }
-        .candidate-info p:hover {
-            background-color: rgba(13, 110, 253, 0.05);
-            transform: translateX(3px);
-        }
-        
+       
         /* List Group Styles in Profile Modal */
         .list-group-item {
             transition: all 0.2s;
@@ -785,10 +800,7 @@ if ($electionID) {
             opacity: 1;
         }
         
-        /* View Profile Button Hover Effect */
-        .btn-outline-primary.w-100:hover {
-            box-shadow: 0 0.25rem 0.75rem rgba(78, 115, 223, 0.3);
-        }
+        
     </style>
 </head>
 <body>
@@ -796,7 +808,7 @@ if ($electionID) {
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <div class="main-content">
-                <?php include 'includes/header.php'; ?>
+                <?php include 'includes/header.php'; ?><br><br>
                 <div class=" w-75 mx-auto shadow-sm border-0 mb-4">
                 
                 <?php if (isset($_SESSION['message'])): ?>
@@ -1039,130 +1051,73 @@ if ($electionID) {
                             <div class="card-body p-4">
                                 <div class="row g-4">
                                     <?php 
-                                    $maxVotes = !empty($position['candidates']) ? max(array_column($position['candidates'], 'voteCount')) : 0;
+                                    $voteCountsArray = !empty($position['candidates']) ? array_column($position['candidates'], 'voteCount') : [0];
+                                    $maxVotes = !empty($voteCountsArray) ? max($voteCountsArray) : 0;
                                     foreach ($position['candidates'] as $candidate): 
                                         $isWinner = ($candidate['voteCount'] == $maxVotes && $maxVotes > 0);
                                     ?>
+                                    <!-- Simplified Candidate Card -->
                                     <div class="col-md-6 col-lg-4">
-                                        <div class="card border-0 shadow-sm h-100 position-relative <?php echo $isWinner ? 'border border-warning border-3' : ''; ?>">
-                                            <?php if ($isWinner): ?>
+                                        <div class="card border-0 shadow-sm h-100 position-relative <?php echo isset($isWinner) && $isWinner ? 'border border-warning border-3' : ''; ?>">
+                                            <?php if (isset($isWinner) && $isWinner): ?>
                                             <span class="winner-badge" title="Winner">
                                                 <i class="bi bi-trophy-fill"></i>
                                             </span>
                                             <?php endif; ?>
-                                            <div class="card-body text-center candidate-details p-4">
-                                                <div class="position-relative mb-4">
+                                            <div class="card-body text-center candidate-details p-3">
+                                                <!-- Profile Photo -->
+                                                <div class="position-relative mb-3">
                                                     <?php 
                                                     // Check both profile picture sources
-                                                    $profilePic = findProfilePicture($candidate);
+                                                    $profilePic = isset($candidate) && is_array($candidate) ? findProfilePicture($candidate) : '';
                                                     
                                                     if (!empty($profilePic)): 
                                                     ?>
                                                     <img src="<?php echo $profilePic; ?>" 
                                                         class="candidate-photo" 
-                                                        alt="<?php echo htmlspecialchars($candidate['name']); ?>"
+                                                        alt="<?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Candidate'; ?>"
                                                         data-bs-toggle="modal" 
-                                                        data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>"
-                                                        style="cursor: pointer;"
+                                                        data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>"
+                                                        style="cursor: pointer; width: 80px; height: 80px;"
                                                         onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
                                                     <?php else: ?>
                                                     <div class="candidate-photo bg-light d-flex align-items-center justify-content-center"
                                                          data-bs-toggle="modal" 
-                                                         data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>"
-                                                         style="cursor: pointer;">
-                                                        <i class="bi bi-person-circle text-muted" style="font-size: 2.5rem;"></i>
+                                                         data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>"
+                                                         style="cursor: pointer; width: 80px; height: 80px;">
+                                                        <i class="bi bi-person-circle text-muted" style="font-size: 2rem;"></i>
                                                     </div>
                                                     <?php endif; ?>
                                                 </div>
                                                 
-                                                <h5 class="mb-2 fw-bold d-flex align-items-center justify-content-center">
-                                                    <i class="bi bi-person-vcard-fill me-2 text-primary"></i>
+                                                <!-- Candidate Name -->
+                                                <h5 class="mb-2 fw-bold">
                                                     <a href="#" class="text-decoration-none text-dark" 
                                                        data-bs-toggle="modal" 
-                                                       data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>">
-                                                        <?php echo htmlspecialchars($candidate['name']); ?>
+                                                       data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>">
+                                                        <?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Unknown Candidate'; ?>
                                                     </a>
                                                 </h5>
                                                 
-                                                <div class="candidate-info mb-3">
-                                                    <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-person-badge me-1"></i> 
-                                                        ID: <?php echo htmlspecialchars($candidate['studentID']); ?>
-                                                    </p>
-                                                    <?php if (!empty($candidate['department'])): ?>
-                                                    <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-building me-1"></i> 
-                                                        <?php echo htmlspecialchars($candidate['department']); ?>
-                                                    </p>
-                                                    <?php endif; ?>
-                                                    
-                                                    <?php if (!empty($candidate['email'])): ?>
-                                                    <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-envelope me-1"></i> 
-                                                        <?php echo htmlspecialchars($candidate['email']); ?>
-                                                    </p>
-                                                    <?php endif; ?>
-                                                    
-                                                    <?php if (!empty($candidate['profilePicture']) || !empty($candidate['candidatePhoto'])): ?>
-                                                    <p class="mb-1 text-muted small">
-                                                        <i class="bi bi-image me-1"></i> 
-                                                        <?php if (!empty($candidate['profilePicture'])): ?>
-                                                        Student Pic: <?php echo htmlspecialchars($candidate['profilePicture']); ?><br>
-                                                        <?php endif; ?>
-                                                        <?php if (!empty($candidate['candidatePhoto'])): ?>
-                                                        Candidate Pic: <?php echo htmlspecialchars($candidate['candidatePhoto']); ?><br>
-                                                        <?php endif; ?>
-                                                        <?php if (!empty($profilePic)): ?>
-                                                        <span class="badge bg-success">Found image: <?php echo basename($profilePic); ?></span>
-                                                        <?php else: ?>
-                                                        <span class="badge bg-danger">No image found</span>
-                                                        <?php endif; ?>
-                                                    </p>
-                                                    <?php endif; ?>
-                                                    
-                                                    <?php 
-                                                    // Display all known files in the students directory
-                                                    $existingFiles = glob("assets/img/profile/students/*");
-                                                    $matchingFiles = [];
-                                                    
-                                                    if (!empty($candidate['studentID'])) {
-                                                        $studentID = $candidate['studentID'];
-                                                        foreach ($existingFiles as $file) {
-                                                            if (strpos(basename($file), $studentID) !== false) {
-                                                                $matchingFiles[] = basename($file);
-                                                            }
-                                                        }
-                                                    }
-                                                    
-                                                    if (!empty($matchingFiles)):
-                                                    ?>
-                                                    <p class="mt-2 text-success small">
-                                                        <i class="bi bi-check-circle me-1"></i>
-                                                        Matching files: <?php echo implode(", ", $matchingFiles); ?>
-                                                    </p>
-                                                    <?php endif; ?>
-                                                </div>
+                                                <!-- Department - Only show if exists -->
+                                                <?php if (isset($candidate['department']) && !empty($candidate['department'])): ?>
+                                                <p class="mb-2 text-muted small">
+                                                    <i class="bi bi-building me-1"></i> 
+                                                    <?php echo htmlspecialchars($candidate['department']); ?>
+                                                </p>
+                                                <?php endif; ?>
                                                 
-                                                <div class="bg-light rounded p-3 mb-3">
-                                                    <div class="d-flex justify-content-between mb-2">
-                                                        <span class="text-muted d-flex align-items-center">
-                                                            <i class="bi bi-check2-circle me-2 text-success"></i>
-                                                            Votes
-                                                        </span>
-                                                        <span class="vote-count d-flex align-items-center fs-5">
-                                                            <i class="bi bi-123 me-1"></i>
+                                                <!-- Vote Results -->
+                                                <div class="bg-light rounded p-2 mb-2">
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span class="text-muted small">Votes</span>
+                                                        <span class="vote-count fw-bold">
                                                             <?php 
-                                                                // Use actual votes if stored votes are 0 or there's a mismatch
-                                                                $displayVotes = $candidate['voteCount'];
-                                                                if ($displayVotes == 0 && $candidate['actualVotes'] > 0) {
-                                                                    $displayVotes = $candidate['actualVotes'];
-                                                                    echo "<span class='text-warning' title='Vote count corrected from actual votes'>";
-                                                                    echo number_format($displayVotes);
-                                                                    echo " *</span>";
-                                                                } elseif ($candidate['voteCount'] != $candidate['actualVotes']) {
-                                                                    echo "<span class='text-info' title='Stored: {$candidate['voteCount']}, Actual: {$candidate['actualVotes']}'>";
-                                                                    echo number_format($displayVotes); 
-                                                                    echo " <small class='text-warning'>(" . number_format($candidate['actualVotes']) . ")</small></span>";
+                                                                $displayVotes = isset($candidate['voteCount']) ? $candidate['voteCount'] : 0;
+                                                                $actualVotes = isset($candidate['actualVotes']) ? $candidate['actualVotes'] : 0;
+                                                                
+                                                                if ($displayVotes == 0 && $actualVotes > 0) {
+                                                                    echo number_format($actualVotes) . " *";
                                                                 } else {
                                                                     echo number_format($displayVotes);
                                                                 }
@@ -1170,182 +1125,105 @@ if ($electionID) {
                                                         </span>
                                                     </div>
                                                     
-                                                    <div class="progress-bar-custom mb-2">
+                                                    <div class="progress-bar-custom mb-1" style="height: 6px;">
                                                         <div class="progress-custom" 
-                                                            style="width: <?php echo $candidate['percentage']; ?>%">
+                                                            style="width: <?php echo isset($candidate['percentage']) ? $candidate['percentage'] : '0'; ?>%">
                                                         </div>
                                                     </div>
                                                     
                                                     <div class="d-flex justify-content-between">
-                                                        <span class="text-muted d-flex align-items-center">
-                                                            <i class="bi bi-percent me-1"></i>
-                                                            Percentage
-                                                        </span>
-                                                        <span class="percentage d-flex align-items-center fs-5">
-                                                            <i class="bi bi-graph-up-arrow me-1"></i>
-                                                            <?php echo $candidate['percentage']; ?>%
+                                                        <span class="text-muted small">Percentage</span>
+                                                        <span class="percentage fw-bold text-success">
+                                                            <?php echo isset($candidate['percentage']) ? $candidate['percentage'] : '0'; ?>%
                                                         </span>
                                                     </div>
                                                 </div>
                                                 
-                                                <?php if (!empty($candidate['manifesto'])): ?>
-                                                <div class="manifesto-preview mb-3 text-start">
-                                                    <h6 class="fw-bold text-primary mb-2">
-                                                        <i class="bi bi-file-text me-1"></i> Manifesto:
-                                                    </h6>
-                                                    <p class="small text-muted">
-                                                        <?php echo nl2br(htmlspecialchars(substr($candidate['manifesto'], 0, 100))); ?>
-                                                        <?php echo (strlen($candidate['manifesto']) > 100) ? '...' : ''; ?>
-                                                    </p>
-                                                    <button class="btn btn-sm btn-outline-primary mt-1" 
-                                                           data-bs-toggle="modal" 
-                                                           data-bs-target="#manifestoModal<?php echo $candidate['candidateID']; ?>">
-                                                        <i class="bi bi-eye me-1"></i> View Full
-                                                    </button>
+                                                <!-- View Profile Button -->
+                                                <button class="btn btn-sm btn-outline-primary w-100" 
+                                                       data-bs-toggle="modal" 
+                                                       data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>">
+                                                    <i class="bi bi-person-lines-fill me-1"></i> View Profile
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Profile Modal -->
+                                    <div class="modal fade" id="profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>" tabindex="-1">
+                                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title">
+                                                        <i class="bi bi-person-badge-fill me-2"></i>
+                                                        Candidate Profile
+                                                    </h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                                
-                                                <!-- Manifesto Modal -->
-                                                <div class="modal fade" id="manifestoModal<?php echo $candidate['candidateID']; ?>" tabindex="-1">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">
-                                                                    <i class="bi bi-file-text-fill me-2 text-primary"></i>
-                                                                    <?php echo htmlspecialchars($candidate['name']); ?>'s Manifesto
-                                                                </h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="col-md-4 text-center mb-4 mb-md-0">
+                                                            <?php 
+                                                            $profilePic = isset($candidate) ? findProfilePicture($candidate) : '';
+                                                                    
+                                                            if (!empty($profilePic)): 
+                                                            ?>
+                                                            <img src="<?php echo $profilePic; ?>" 
+                                                                class="img-fluid rounded-circle profile-modal-img mb-3" 
+                                                                style="width: 180px; height: 180px; object-fit: cover; border: 5px solid #eee;"
+                                                                alt="<?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Unknown Candidate'; ?>"
+                                                                onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
+                                                            <?php else: ?>
+                                                            <div class="profile-modal-img mx-auto mb-3 bg-light rounded-circle d-flex align-items-center justify-content-center"
+                                                                 style="width: 180px; height: 180px; border: 5px solid #eee;">
+                                                                <i class="bi bi-person-circle text-muted" style="font-size: 5rem;"></i>
                                                             </div>
-                                                            <div class="modal-body">
-                                                                <div class="candidate-modal-info mb-3 pb-3 border-bottom">
-                                                                    <div class="d-flex align-items-center">
-                                                                        <?php 
-                                                                        $profilePic = findProfilePicture($candidate);
-                                                                                
-                                                                        if (!empty($profilePic)): 
-                                                                        ?>
-                                                                        <img src="<?php echo $profilePic; ?>" 
-                                                                            class="user-avatar me-3" 
-                                                                            alt="<?php echo htmlspecialchars($candidate['name']); ?>"
-                                                                            onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
-                                                                        <?php else: ?>
-                                                                        <div class="initials-avatar me-3">
-                                                                            <?php echo strtoupper(substr($candidate['name'], 0, 1)); ?>
-                                                                        </div>
-                                                                        <?php endif; ?>
-                                                                        <div>
-                                                                            <h6 class="mb-0 fw-bold"><?php echo htmlspecialchars($candidate['name']); ?></h6>
-                                                                            <p class="mb-0 text-muted small">
-                                                                                <i class="bi bi-award me-1"></i> 
-                                                                                Candidate for <?php echo htmlspecialchars($position['title']); ?>
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="manifesto-content">
-                                                                    <?php echo nl2br(htmlspecialchars($candidate['manifesto'])); ?>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <?php endif; ?>
-                                                
-                                                <?php if ($isWinner): ?>
-                                                <div class="mt-3">
-                                                    <span class="badge bg-warning text-dark d-flex align-items-center justify-content-center mx-auto py-2 px-3">
-                                                        <i class="bi bi-trophy-fill me-2"></i>
-                                                        Winner
-                                                    </span>
-                                                </div>
-                                                <?php endif; ?>
-                                                
-                                                <!-- Profile Details Button -->
-                                                <div class="mt-3">
-                                                    <button class="btn btn-sm btn-outline-primary w-100" 
-                                                           data-bs-toggle="modal" 
-                                                           data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>">
-                                                        <i class="bi bi-person-lines-fill me-1"></i> View Profile (ID: <?php echo $candidate['studentID']; ?>)
-                                                    </button>
-                                                </div>
-                                                
-                                                <!-- Profile Modal -->
-                                                <div class="modal fade" id="profileModal<?php echo $candidate['candidateID']; ?>" tabindex="-1">
-                                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header bg-primary text-white">
-                                                                <h5 class="modal-title">
-                                                                    <i class="bi bi-person-badge-fill me-2"></i>
-                                                                    Candidate Profile
-                                                                </h5>
-                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="row">
-                                                                    <div class="col-md-4 text-center mb-4 mb-md-0">
-                                                                        <?php 
-                                                                        $profilePic = findProfilePicture($candidate);
-                                                                                
-                                                                        if (!empty($profilePic)): 
-                                                                        ?>
-                                                                        <img src="<?php echo $profilePic; ?>" 
-                                                                            class="img-fluid rounded-circle profile-modal-img mb-3" 
-                                                                            style="width: 180px; height: 180px; object-fit: cover; border: 5px solid #eee;"
-                                                                            alt="<?php echo htmlspecialchars($candidate['name']); ?>"
-                                                                            onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
-                                                                        <?php else: ?>
-                                                                        <div class="profile-modal-img mx-auto mb-3 bg-light rounded-circle d-flex align-items-center justify-content-center"
-                                                                             style="width: 180px; height: 180px; border: 5px solid #eee;">
-                                                                            <i class="bi bi-person-circle text-muted" style="font-size: 5rem;"></i>
-                                                                        </div>
-                                                                        <?php endif; ?>
-                                                                        
-                                                                        <h4 class="fw-bold"><?php echo htmlspecialchars($candidate['name']); ?></h4>
-                                                                        
-                                                                        <div class="d-flex justify-content-center mt-2 mb-3">
-                                                                            <span class="badge bg-primary px-3 py-2 rounded-pill">
-                                                                                <i class="bi bi-award-fill me-1"></i>
-                                                                                <?php echo htmlspecialchars($position['title']); ?> Candidate
-                                                                            </span>
-                                                                        </div>
-                                                                        
-                                                                        <?php if ($isWinner): ?>
-                                                                        <div class="winner-badge-modal mt-2">
-                                                                            <span class="badge bg-warning text-dark d-inline-flex align-items-center justify-content-center py-2 px-4">
-                                                                                <i class="bi bi-trophy-fill me-2"></i>
-                                                                                Winner
-                                                                            </span>
-                                                                        </div>
-                                                                        <?php endif; ?>
-                                                                        
-                                                                        <?php if (!empty($candidate['email'])): ?>
-                                                                        <li class="list-group-item px-0 py-2 d-flex align-items-center">
-                                                                            <div class="card-icon bg-purple-light me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
-                                                                                <i class="bi bi-envelope"></i>
-                                                                            </div>
-                                                                            <div>
-                                                                                <span class="text-muted small">Email</span>
-                                                                                <p class="mb-0 fw-medium"><?php echo htmlspecialchars($candidate['email']); ?></p>
-                                                                            </div>
-                                                                        </li>
-                                                                        <?php endif; ?>
-                                                                        
-                                                                        <li class="list-group-item px-0 py-2 d-flex align-items-center">
-                                                                            <div class="card-icon bg-secondary-light me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
-                                                                                <i class="bi bi-person-vcard"></i>
-                                                                            </div>
-                                                                            <div>
-                                                                                <span class="text-muted small">Student ID</span>
-                                                                                <p class="mb-0 fw-medium"><?php echo htmlspecialchars($candidate['studentID']); ?></p>
-                                                                            </div>
-                                                                        </li>
-                                                                    </ul>
-                                                                </div>
+                                                            <?php endif; ?>
+                                                            
+                                                            <h4 class="fw-bold"><?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Unknown Candidate'; ?></h4>
+                                                            
+                                                            <div class="d-flex justify-content-center mt-2 mb-3">
+                                                                <span class="badge bg-primary px-3 py-2 rounded-pill">
+                                                                    <i class="bi bi-award-fill me-1"></i>
+                                                                    <?php echo isset($position['title']) ? htmlspecialchars($position['title']) : 'Position'; ?> Candidate
+                                                                </span>
                                                             </div>
                                                             
-                                                            <?php if (!empty($candidate['manifesto'])): ?>
+                                                            <?php if (isset($candidate) && isset($isWinner) && $isWinner): ?>
+                                                            <div class="winner-badge-modal mt-2">
+                                                                <span class="badge bg-warning text-dark d-inline-flex align-items-center justify-content-center py-2 px-4">
+                                                                    <i class="bi bi-trophy-fill me-2"></i>
+                                                                    Winner
+                                                                </span>
+                                                            </div>
+                                                            <?php endif; ?>
+                                                            
+                                                            <ul class="list-unstyled mt-3">
+                                                                <?php if (isset($candidate['email']) && !empty($candidate['email'])): ?>
+                                                                <li class="list-group-item px-0 py-2 d-flex align-items-center">
+                                                                    <div class="card-icon bg-purple-light me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                                        <i class="bi bi-envelope"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="text-muted small">Email</span>
+                                                                        <p class="mb-0 fw-medium"><?php echo htmlspecialchars($candidate['email']); ?></p>
+                                                                    </div>
+                                                                </li>
+                                                                <?php endif; ?>
+                                                                
+                                                                <li class="list-group-item px-0 py-2 d-flex align-items-center">
+                                                                    <div class="card-icon bg-secondary-light me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                                        <i class="bi bi-person-vcard"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="text-muted small">Student ID</span>
+                                                                        <p class="mb-0 fw-medium"><?php echo isset($candidate['studentID']) ? htmlspecialchars($candidate['studentID']) : 'N/A'; ?></p>
+                                                                    </div>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                        
+                                                        <div class="col-md-8">
+                                                            <?php if (isset($candidate['manifesto']) && !empty($candidate['manifesto'])): ?>
                                                             <div class="card border-0 shadow-sm">
                                                                 <div class="card-header bg-light">
                                                                     <h5 class="mb-0">
@@ -1358,6 +1236,11 @@ if ($electionID) {
                                                                         <?php echo nl2br(htmlspecialchars($candidate['manifesto'])); ?>
                                                                     </div>
                                                                 </div>
+                                                            </div>
+                                                            <?php else: ?>
+                                                            <div class="alert alert-light text-center">
+                                                                <i class="bi bi-info-circle me-2"></i>
+                                                                No manifesto provided by this candidate.
                                                             </div>
                                                             <?php endif; ?>
                                                         </div>

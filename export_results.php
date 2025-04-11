@@ -27,13 +27,14 @@ $resultsData = [];
 
 while ($position = $positions->fetch_assoc()) {
     $candidates = $conn->query("
-        SELECT c.candidateID, c.studentID, c.position, s.name,
+        SELECT c.candidateID, c.studentID, p.title as position, s.name,
                COALESCE(r.voteCount, 0) as voteCount,
                COALESCE(r.percentage, 0) as percentage
         FROM candidates c
         JOIN students s ON c.studentID = s.studentID
+        JOIN positions p ON c.positionID = p.positionID
         LEFT JOIN results r ON c.candidateID = r.candidateID AND r.electionID = $electionID
-        WHERE c.position = '{$position['title']}' AND c.status = 'Approved'
+        WHERE p.title = '{$position['title']}' AND c.status = 'Approved'
         ORDER BY voteCount DESC
     ");
 

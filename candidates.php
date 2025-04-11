@@ -10,7 +10,7 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 
 require 'configs/dbconnection.php';
 
-// Get election ID from query parameter if available
+
 $electionID = $_GET['election'] ?? null;
 
 // Handle form submissions
@@ -814,7 +814,7 @@ if ($electionID) {
                                                                 <div class="d-flex align-items-center">
                                                                     <div>
                                                                         <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($candidate['studentName'] ?? '') ?></h6>
-                                                                        <small class="text-muted d-flex align-items-center">
+                                                                        <small class="text-muted d-flex justify-content-center">
                                                                             <i class="bi bi-person-badge me-1"></i>
                                                                             ID: <?= $candidate['studentID'] ?? '' ?>
                                                                         </small>
