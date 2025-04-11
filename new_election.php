@@ -70,17 +70,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f0f2f5;
         }
         
         .card {
             border: none;
             border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         
+       
+        
         .card-header {
-            background: linear-gradient(to right, #4e73df, #224abe);
+            background: linear-gradient(45deg, #4e73df, #224abe);
             color: white;
             border-radius: 1rem 1rem 0 0 !important;
             padding: 1.5rem;
@@ -90,35 +93,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 0.5rem;
             padding: 0.75rem;
             border: 1px solid #e0e0e0;
+            transition: all 0.3s;
         }
         
         .form-control:focus, .form-select:focus {
             border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+            transform: translateY(-2px);
         }
         
         .input-group-text {
-            border-radius: 0.5rem;
-            background-color: #f8f9fa;
+            border-radius: 0.5rem 0 0 0.5rem;
+            background-color: #eef1ff;
+            border-color: #e0e0e0;
+            color: #4e73df;
         }
         
         .btn-primary {
-            background: linear-gradient(to right, #4e73df, #224abe);
+            background: linear-gradient(45deg, #4e73df, #224abe);
             border: none;
             border-radius: 0.5rem;
             padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
         }
         
         .btn-primary:hover {
-            background: linear-gradient(to right, #224abe, #1a3a94);
-            transform: translateY(-1px);
+            background: linear-gradient(45deg, #224abe, #1a3a94);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(34, 74, 190, 0.4);
+        }
+        
+        .btn-light {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .btn-light:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
         }
         
         .section-title {
             position: relative;
-            padding-left: 1rem;
+            padding-left: 1.5rem;
             margin-bottom: 1.5rem;
             color: #4e73df;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
         }
         
         .section-title::before {
@@ -140,12 +168,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .alert {
             border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-text {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-text i {
+            margin-right: 0.5rem;
+            color: #4e73df;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-label i {
+            margin-right: 0.5rem;
+            color: #4e73df;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
         }
     </style>
 </head>
 <body>
     <?php include 'includes/sidebar.php'; ?>
-    <?php include 'includes/header.php'; ?>
+    <?php include 'includes/header.php'; ?><br><br>
     
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -166,22 +227,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="card-body p-4">
                         <?php if (!empty($errors)): ?>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <strong>Please correct the following errors:</strong>
-                                <ul class="mb-0 mt-2">
-                                    <?php foreach ($errors as $error): ?>
-                                        <li><?php echo $error; ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+                                    <div>
+                                        <strong>Please correct the following errors:</strong>
+                                        <ul class="mb-0 mt-2">
+                                            <?php foreach ($errors as $error): ?>
+                                                <li><?php echo $error; ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         <?php endif; ?>
                         
                         <form method="POST" class="needs-validation" novalidate>
-                            <h5 class="section-title">Basic Information</h5>
+                            <h5 class="section-title">
+                                <i class="bi bi-info-circle-fill me-2"></i>Basic Information
+                            </h5>
                             
                             <div class="mb-4">
-                                <label class="form-label required-field">Election Name</label>
+                                <label class="form-label required-field">
+                                    <i class="bi bi-tag-fill me-2"></i>Election Name
+                                </label>
                                 <div class="input-group">
                                     <span class="input-group-text">
                                         <i class="bi bi-pencil-fill"></i>
@@ -190,12 +259,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                            value="<?php echo $_POST['name'] ?? ''; ?>"
                                            placeholder="Enter election name">
                                 </div>
-                                <div class="form-text">Choose a descriptive name for the election</div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>Choose a descriptive name for the election
+                                </div>
                             </div>
                             
                             <div class="row mb-4">
                                 <div class="col-md-6">
-                                    <label class="form-label required-field">Start Date & Time</label>
+                                    <label class="form-label required-field">
+                                        <i class="bi bi-calendar-event-fill me-2"></i>Start Date & Time
+                                    </label>
                                     <div class="input-group">
                                         <span class="input-group-text">
                                             <i class="bi bi-calendar-plus-fill"></i>
@@ -203,10 +276,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <input type="datetime-local" class="form-control" name="startDate" required
                                                value="<?php echo $_POST['startDate'] ?? ''; ?>">
                                     </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-clock"></i>When voting will begin
+                                    </div>
                                 </div>
                                 
                                 <div class="col-md-6">
-                                    <label class="form-label required-field">End Date & Time</label>
+                                    <label class="form-label required-field">
+                                        <i class="bi bi-calendar-event-fill me-2"></i>End Date & Time
+                                    </label>
                                     <div class="input-group">
                                         <span class="input-group-text">
                                             <i class="bi bi-calendar-x-fill"></i>
@@ -214,45 +292,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <input type="datetime-local" class="form-control" name="endDate" required
                                                value="<?php echo $_POST['endDate'] ?? ''; ?>">
                                     </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-hourglass-split"></i>When voting will end
+                                    </div>
                                 </div>
                             </div>
                             
-                            <h5 class="section-title">Settings</h5>
+                            <h5 class="section-title">
+                                <i class="bi bi-gear-fill me-2"></i>Settings
+                            </h5>
                             
                             <div class="row mb-4">
                                 <div class="col-md-6">
-                                    <label class="form-label">Initial Status</label>
+                                    <label class="form-label">
+                                        <i class="bi bi-activity me-2"></i>Initial Status
+                                    </label>
                                     <div class="input-group">
                                         <span class="input-group-text">
                                             <i class="bi bi-toggle-on"></i>
                                         </span>
                                         <select class="form-select" name="status">
-                                            <option value="Scheduled" <?php echo ($_POST['status'] ?? '') === 'Scheduled' ? 'selected' : ''; ?>>Scheduled</option>
-                                            <option value="Ongoing" <?php echo ($_POST['status'] ?? '') === 'Ongoing' ? 'selected' : ''; ?>>Ongoing</option>
+                                            <option value="Scheduled" <?php echo ($_POST['status'] ?? '') === 'Scheduled' ? 'selected' : ''; ?>>
+                                                <i class="bi bi-clock-history"></i> Scheduled
+                                            </option>
+                                            <option value="Ongoing" <?php echo ($_POST['status'] ?? '') === 'Ongoing' ? 'selected' : ''; ?>>
+                                                <i class="bi bi-play-fill"></i> Ongoing
+                                            </option>
                                         </select>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle"></i>Current state of the election
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
-                                    <label class="form-label">Visibility</label>
+                                    <label class="form-label">
+                                        <i class="bi bi-people-fill me-2"></i>Visibility
+                                    </label>
                                     <div class="input-group">
                                         <span class="input-group-text">
                                             <i class="bi bi-eye-fill"></i>
                                         </span>
                                         <select class="form-select" name="visibility">
-                                            <option value="Public" <?php echo ($_POST['visibility'] ?? '') === 'Public' ? 'selected' : ''; ?>>Public</option>
-                                            <option value="Private" <?php echo ($_POST['visibility'] ?? '') === 'Private' ? 'selected' : ''; ?>>Private</option>
+                                            <option value="Public" <?php echo ($_POST['visibility'] ?? '') === 'Public' ? 'selected' : ''; ?>>
+                                                Public
+                                            </option>
+                                            <option value="Private" <?php echo ($_POST['visibility'] ?? '') === 'Private' ? 'selected' : ''; ?>>
+                                                Private
+                                            </option>
                                         </select>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-shield-lock"></i>Who can view this election
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="d-flex justify-content-between pt-3">
+                            <div class="d-flex justify-content-between pt-3 mt-4 border-top">
                                 <button type="button" class="btn btn-light" onclick="location.href='election.php'">
-                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                    <i class="bi bi-x-circle-fill me-2"></i> Cancel
                                 </button>
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-save me-1"></i> Create Election
+                                    <i class="bi bi-check-circle-fill me-2"></i> Create Election
                                 </button>
                             </div>
                         </form>
@@ -280,7 +381,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (endDate <= startDate) {
                 event.preventDefault();
-                alert('End date must be after start date');
+                const errorMessage = document.createElement('div');
+                errorMessage.classList.add('alert', 'alert-danger', 'mt-3', 'animate__animated', 'animate__shakeX');
+                errorMessage.innerHTML = '<i class="bi bi-exclamation-diamond-fill me-2"></i> End date must be after start date';
+                form.prepend(errorMessage);
+                
+                setTimeout(() => {
+                    errorMessage.remove();
+                }, 5000);
+                
                 return false;
             }
             
@@ -296,6 +405,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     closeButton.click();
                 }
             }, 5000);
+        });
+        
+        // Add hover effects to buttons
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
         });
     });
     </script>

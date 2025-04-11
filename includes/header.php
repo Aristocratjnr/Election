@@ -1,5 +1,5 @@
 <?php
-// Start session securely
+// Start session securely only if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_secure' => true,
@@ -50,16 +50,16 @@ if (empty($userData)) {
 ?>
 
 <!-- ======= Enhanced Header ======= -->
-<header id="header" class="header fixed-top d-flex align-items-center shadow-sm bg-white">
+<header id="header" class="header fixed-top d-flex align-items-center shadow-sm">
     <div class="container-fluid">
         <div class="d-flex align-items-center justify-content-between w-100">
             <!-- Logo and Mobile Toggle -->
             <div class="d-flex align-items-center">
                 <a href="index.php" class="logo d-flex align-items-center text-decoration-none">
                     <img src="assets/img/logo.png" alt="SmartVote Logo" class="d-md-none" width="40" height="40">
-                    <span class="d-none d-lg-block ps-2 fw-bold fs-4 text-secondary position-relative font-monospace">SmartVote</span>
+                    <span class="d-none d-lg-block ps-2 fw-bold fs-4 position-relative font-monospace">SmartVote</span>
                 </a>
-                <button class="toggle-sidebar-btn btn btn-link text-dark ms-2 d-lg-none" id="sidebarToggle">
+                <button class="toggle-sidebar-btn btn btn-link ms-2 d-lg-none" id="sidebarToggle">
                     <i class="bi bi-list fs-4"></i>
                 </button>
             </div>
@@ -68,11 +68,42 @@ if (empty($userData)) {
             <nav class="header-nav ms-auto">
                 <ul class="d-flex align-items-center list-unstyled mb-0">
                     <!-- Mobile Search Toggle -->
-                    <li class="nav-item d-lg-none me-2">
-                        <button class="btn btn-link text-dark search-toggle">
-                            <i class="bi bi-search fs-5"></i>
+                    <!-- Removing search icon from mobile view -->
+                    
+                    <!-- Theme Toggle Button -->
+                    <li class="nav-item mx-1">
+                        <button id="themeToggleBtn" class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3 btn btn-link"
+                           style="transition: all 0.3s ease;"
+                           onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
+                           onmouseout="this.style.backgroundColor='transparent';">
+                            <i class="bi bi-sun-fill theme-icon-light fs-5" style="color: var(--primary);"></i>
+                            <i class="bi bi-moon-fill theme-icon-dark fs-5 d-none" style="color: var(--primary);"></i>
                         </button>
                     </li>
+                    
+                   <!-- Live Results Tab - Improved UI -->
+<li class="nav-item mx-1">
+    <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
+       href="live_results.php"
+       style="transition: all 0.3s ease;"
+       onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
+       onmouseout="this.style.backgroundColor='transparent';">
+        
+        <!-- Animated Icon with Pulse Effect -->
+        <span class="position-relative">
+            <i class="bi bi-bar-chart-line-fill fs-5 me-2" style="color: var(--primary);"></i>
+            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                <span class="visually-hidden">Live updates</span>
+            </span>
+        </span>
+        
+        <!-- Text with subtle animation - using CSS variables instead of fixed color -->
+        <span class="d-none d-md-inline fw-medium live-results-text">
+            Live Results
+        </span>
+        
+    </a>
+</li>
                     
                     <!-- Notification Bell with Real-Time Updates -->
                     <li class="nav-item dropdown mx-2">
@@ -112,7 +143,7 @@ if (empty($userData)) {
                                          height="48"
                                          onerror="this.src='<?php echo $defaultProfilePicture; ?>'">
                                     <div>
-                                        <h6 class="mb-0"> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?php echo htmlspecialchars($userData['name'] ?? 'Student'); ?></h6>
+                                        <h6 class="mb-1"><?php echo htmlspecialchars($userData['name'] ?? 'Student'); ?></h6>
                                         <i class="bi bi-buildings department-icon icon"></i>&nbsp;<small class="text-muted"><?php echo htmlspecialchars($userData['department'] ?? 'Member'); ?></small>
                                     </div>
                                 </div>
@@ -155,8 +186,9 @@ if (empty($userData)) {
                             
                             <li>
                                 <a class="dropdown-item d-flex align-items-center px-3 py-2 text-danger" 
-                                   href="controllers/app.php?action=logout"
-                                   onclick="return confirm('Are you sure you want to sign out?');">
+                                   href="#"
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#logoutModal">
                                     <i class="bi bi-box-arrow-right me-3 fs-5"></i>
                                     <div>
                                         <span>Sign Out</span>
@@ -193,106 +225,275 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Notification system with refresh handling
-let lastNotificationCheck = 0;
-const NOTIFICATION_CACHE_TIME = 30000; // 30 seconds
-
-async function loadNotifications(refresh = false) {
-    try {
-        // Only refresh if cache expired or forced
-        const now = Date.now();
-        if (!refresh && (now - lastNotificationCheck) < NOTIFICATION_CACHE_TIME) {
-            return;
-        }
-        
-        lastNotificationCheck = now;
-        
-        const response = await fetch('notification_handler.php?offset=0');
-        if (!response.ok) throw new Error('Network error');
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            updateNotificationBadge(data.total);
-            renderNotifications(data.notifications);
-            setupAutoRefresh();
-        }
-    } catch (error) {
-        console.error('Notification error:', error);
-        // Retry after delay
-        setTimeout(() => loadNotifications(), 10000);
-    }
-}
-
-function updateNotificationBadge(count) {
-    const badge = document.getElementById('notificationBadge');
-    if (!badge) return;
+    // Theme Toggle Functionality
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const lightIcon = document.querySelector('.theme-icon-light');
+    const darkIcon = document.querySelector('.theme-icon-dark');
     
-    const countElement = badge.querySelector('.notification-count');
-    if (count > 0) {
-        countElement.textContent = count;
-        badge.style.display = 'block';
-        
-        // Add visual effect for new notifications
-        if (count > parseInt(countElement.dataset.prevCount || 0)) {
-            badge.classList.add('animate__animated', 'animate__tada');
-            setTimeout(() => {
-                badge.classList.remove('animate__animated', 'animate__tada');
-            }, 1000);
-        }
+    // Get stored theme or default to light
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    
+    // Apply theme on page load
+    document.documentElement.setAttribute('data-bs-theme', currentTheme);
+    
+    // Update header background color based on theme
+    updateHeaderStyles(currentTheme);
+    
+    // Update the toggle button icon based on current theme
+    if (currentTheme === 'dark') {
+        lightIcon.classList.add('d-none');
+        darkIcon.classList.remove('d-none');
     } else {
-        badge.style.display = 'none';
+        darkIcon.classList.add('d-none');
+        lightIcon.classList.remove('d-none');
     }
-    countElement.dataset.prevCount = count;
-}
-
-function renderNotifications(notifications) {
-    const container = document.getElementById('notificationsContainer');
-    if (!container) return;
     
-    container.innerHTML = notifications.map(notif => `
-        <div class="notification-item ${notif.bg_class} p-3 mb-2 rounded">
-            <div class="d-flex align-items-center">
-                <i class="bi ${notif.icon} ${notif.badge_class} p-2 rounded-circle me-3"></i>
-                <div class="flex-grow-1">
-                    <h6 class="mb-1">${notif.title || 'New Notification'}</h6>
-                    <p class="mb-0 small">${notif.message}</p>
+    // Toggle theme when button is clicked
+    themeToggleBtn.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // Update theme
+        document.documentElement.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // Update header styles based on new theme
+        updateHeaderStyles(newTheme);
+        
+        // Toggle icon visibility
+        lightIcon.classList.toggle('d-none');
+        darkIcon.classList.toggle('d-none');
+        
+        // Custom event for other scripts to update their UI
+        document.dispatchEvent(new CustomEvent('themeChanged', { 
+            detail: { theme: newTheme }
+        }));
+    });
+    
+    // Function to update header styles based on theme
+    function updateHeaderStyles(theme) {
+        const header = document.getElementById('header');
+        if (!header) return;
+        
+        if (theme === 'dark') {
+            header.classList.remove('bg-white');
+            header.classList.add('bg-dark');
+            
+            // Ensure all header elements use the correct color
+            header.querySelectorAll('.nav-link, .logo span, .nav-profile span, .btn-link').forEach(el => {
+                el.style.color = 'var(--text)';
+            });
+            
+            // Fix logo color
+            const logoSpan = header.querySelector('.logo span');
+            if (logoSpan) logoSpan.style.color = 'var(--text)';
+            
+            // Fix live results text
+            const liveResultsText = header.querySelector('.nav-link span[style*="color"]');
+            if (liveResultsText) liveResultsText.style.color = 'var(--text)';
+        } else {
+            header.classList.remove('bg-dark');
+            header.classList.add('bg-white');
+            
+            // Reset colors
+            header.querySelectorAll('.nav-link, .btn-link').forEach(el => {
+                el.style.removeProperty('color');
+            });
+            
+            // Reset logo color
+            const logoSpan = header.querySelector('.logo span');
+            if (logoSpan) logoSpan.style.removeProperty('color');
+            
+            // Reset live results text
+            const liveResultsText = header.querySelector('.nav-link span[style*="color"]');
+            if (liveResultsText) liveResultsText.style.color = '#2b3445';
+        }
+    }
+
+    // Notification system with refresh handling
+    let lastNotificationCheck = 0;
+    const NOTIFICATION_CACHE_TIME = 30000; // 30 seconds
+
+    async function loadNotifications(refresh = false) {
+        try {
+            // Only refresh if cache expired or forced
+            const now = Date.now();
+            if (!refresh && (now - lastNotificationCheck) < NOTIFICATION_CACHE_TIME) {
+                return;
+            }
+            
+            lastNotificationCheck = now;
+            
+            const response = await fetch('notification_handler.php?offset=0');
+            if (!response.ok) throw new Error('Network error');
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                updateNotificationBadge(data.total);
+                renderNotifications(data.notifications);
+                setupAutoRefresh();
+                
+                // Check for votes cast
+                checkVoteCast();
+            }
+        } catch (error) {
+            console.error('Notification error:', error);
+            // Retry after delay
+            setTimeout(() => loadNotifications(), 10000);
+        }
+    }
+
+    function updateNotificationBadge(count) {
+        const badge = document.getElementById('notificationBadge');
+        if (!badge) return;
+        
+        const countElement = badge.querySelector('.notification-count');
+        if (count > 0) {
+            countElement.textContent = count;
+            badge.style.display = 'block';
+            
+            // Add visual effect for new notifications
+            if (count > parseInt(countElement.dataset.prevCount || 0)) {
+                badge.classList.add('animate__animated', 'animate__tada');
+                setTimeout(() => {
+                    badge.classList.remove('animate__animated', 'animate__tada');
+                }, 1000);
+            }
+        } else {
+            badge.style.display = 'none';
+        }
+        countElement.dataset.prevCount = count;
+    }
+
+    function renderNotifications(notifications) {
+        const container = document.getElementById('notificationsContainer');
+        if (!container) return;
+        
+        container.innerHTML = notifications.map(notif => `
+            <div class="notification-item ${notif.bg_class} p-3 mb-2 rounded">
+                <div class="d-flex align-items-center">
+                    <i class="bi ${notif.icon} ${notif.badge_class} p-2 rounded-circle me-3"></i>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${notif.title || 'New Notification'}</h6>
+                        <p class="mb-0 small">${notif.message}</p>
+                    </div>
+                    <span class="text-muted small">${notif.time_ago}</span>
                 </div>
-                <span class="text-muted small">${notif.time_ago}</span>
+                ${notif.related_election ? `<div class="mt-2 small">
+                    <i class="bi bi-calendar-event"></i> ${notif.election_name}
+                </div>` : ''}
             </div>
-            ${notif.related_election ? `<div class="mt-2 small">
-                <i class="bi bi-calendar-event"></i> ${notif.election_name}
-            </div>` : ''}
-        </div>
-    `).join('');
-}
+        `).join('');
+    }
 
-function setupAutoRefresh() {
-    // Refresh when page becomes visible
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            loadNotifications(true);
-        }
-    });
-    
-    // Periodic refresh (every 2 minutes)
-    setInterval(() => {
-        if (!document.hidden) {
-            loadNotifications(true);
-        }
-    }, 120000);
-}
+    function setupAutoRefresh() {
+        // Refresh when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                loadNotifications(true);
+            }
+        });
+        
+        // Periodic refresh (every 2 minutes)
+        setInterval(() => {
+            if (!document.hidden) {
+                loadNotifications(true);
+            }
+        }, 120000);
+    }
 
-// Initial load
-document.addEventListener('DOMContentLoaded', () => {
-    loadNotifications();
-    
-    // Also load when navigating back to page
-    window.addEventListener('pageshow', (event) => {
-        if (event.persisted) {
-            loadNotifications(true);
+    // Function to check if student has cast votes
+    async function checkVoteCast() {
+        try {
+            const response = await fetch('vote_status_check.php');
+            if (!response.ok) throw new Error('Network error');
+            
+            const data = await response.json();
+            
+            if (data.success && data.has_voted) {
+                // Update the notification badge to include vote count
+                const currentCount = parseInt(document.querySelector('.notification-count').textContent || '0');
+                updateNotificationBadge(currentCount + data.vote_count);
+                
+                // Add vote notification to the notification list if not already present
+                if (data.vote_count > 0) {
+                    const container = document.getElementById('notificationsContainer');
+                    if (container && !document.querySelector('.vote-notification')) {
+                        const voteNotification = document.createElement('div');
+                        voteNotification.className = 'notification-item bg-light-success p-3 mb-2 rounded vote-notification';
+                        voteNotification.innerHTML = `
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill text-success p-2 rounded-circle me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Vote Cast Successfully</h6>
+                                    <p class="mb-0 small">You have cast ${data.vote_count} vote(s) in ${data.election_name}</p>
+                                </div>
+                                <span class="text-muted small">Just now</span>
+                            </div>
+                        `;
+                        container.prepend(voteNotification);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Vote status check error:', error);
         }
+    }
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadNotifications();
+        
+        // Also load when navigating back to page
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                loadNotifications(true);
+            }
+        });
     });
-});
 });
 </script>
+
+<style>
+.nav-profile {
+    display: flex;
+    align-items: center;
+    color: var(--text-color, #212529);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .nav-profile,
+[data-bs-theme="dark"] .nav-profile .dropdown-toggle {
+    color: var(--text-color, #f8f9fa);
+}
+
+.dropdown-toggle {
+    color: var(--text-color, #212529);
+    transition: color 0.3s ease;
+}
+</style>
+
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold" id="logoutModalLabel">Sign Out</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <i class="bi bi-box-arrow-right text-danger fs-1 mb-3"></i>
+          <h5>Are you sure you want to sign out?</h5>
+          <p class="text-muted">You will need to sign in again to access your account.</p>
+        </div>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+        <a href="controllers/app.php?action=logout" class="btn btn-danger px-4">Sign Out</a>
+      </div>
+    </div>
+  </div>
+</div>

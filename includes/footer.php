@@ -17,13 +17,36 @@
 </footer>
 
 <style>
+/* Theme Variables - Light Mode (Default) */
+:root {
+  --footer-bg: #f8f9fa;
+  --footer-border: #e9ecef;
+  --footer-text: #495057;
+  --footer-logo-color: #1a237e;
+  --footer-tagline-color: #6c757d;
+  --footer-link-color: #0d6efd;
+  --footer-link-hover-color: #0a58ca;
+}
+
+/* Dark Mode Variables */
+[data-bs-theme="dark"] {
+  --footer-bg: #212529;
+  --footer-border: #495057;
+  --footer-text: #adb5bd;
+  --footer-logo-color: #6ea8fe;
+  --footer-tagline-color: #9aa5b1;
+  --footer-link-color: #6ea8fe;
+  --footer-link-hover-color: #9ec5fe;
+}
+
 /* ======= Minimal Footer Styles ======= */
 .footer {
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
+  background: var(--footer-bg);
+  border-top: 1px solid var(--footer-border);
   padding: 0.75rem 0;
   font-size: 0.85rem;
-  color: #495057;
+  color: var(--footer-text);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .footer-container {
@@ -48,13 +71,15 @@
 
 .footer-logo {
   font-weight: 600;
-  color: #1a237e;
+  color: var(--footer-logo-color);
+  transition: color 0.3s ease;
 }
 
 .footer-tagline {
-  color: #6c757d;
+  color: var(--footer-tagline-color);
   position: relative;
   padding-left: 0.75rem;
+  transition: color 0.3s ease;
 }
 
 .footer-tagline::before {
@@ -73,6 +98,17 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.footer a {
+  color: var(--footer-link-color);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer a:hover {
+  color: var(--footer-link-hover-color);
+  text-decoration: underline;
 }
 
 .bi-heart-fill {
@@ -102,3 +138,16 @@
   }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize theme from localStorage
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-bs-theme', currentTheme);
+  
+  // Listen for theme change events
+  document.addEventListener('themeChanged', function(e) {
+    document.documentElement.setAttribute('data-bs-theme', e.detail.theme);
+  });
+});
+</script>

@@ -10,6 +10,24 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 
 require 'configs/dbconnection.php';
 
+// Check if display_order column exists, add if not
+try {
+    $checkColumnQuery = "SHOW COLUMNS FROM positions LIKE 'display_order'";
+    $columnExists = $conn->query($checkColumnQuery)->num_rows > 0;
+    
+    if (!$columnExists) {
+        // Add display_order column
+        $addColumnQuery = "ALTER TABLE positions ADD COLUMN display_order INT DEFAULT 0";
+        $conn->query($addColumnQuery);
+        
+        // Update display_order to match positionID initially
+        $updateOrderQuery = "UPDATE positions SET display_order = positionID";
+        $conn->query($updateOrderQuery);
+    }
+} catch (Exception $e) {
+    // Silently handle error - we'll continue anyway
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_position'])) {
@@ -17,9 +35,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = $_POST['title'];
         $description = $_POST['description'];
         $maxVotes = $_POST['maxVotes'] ?? 1;
+        $display_order = $_POST['display_order'] ?? 0;
         
-        $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("issi", $electionID, $title, $description, $maxVotes);
+        // If display_order is not set or is 0, set it to the max+1 for this election
+        if ($display_order == 0) {
+            $maxOrderQuery = $conn->prepare("SELECT COALESCE(MAX(display_order), 0) + 1 as next_order FROM positions WHERE electionID = ?");
+            $maxOrderQuery->bind_param("i", $electionID);
+            $maxOrderQuery->execute();
+            $display_order = $maxOrderQuery->get_result()->fetch_assoc()['next_order'];
+        }
+        
+        // Check if positions table has a status column
+        $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
+        if ($checkStatusCol->num_rows > 0) {
+            // Include status field in the query
+            $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order, status) VALUES (?, ?, ?, ?, ?, 'Approved')");
+            $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+        } else {
+            // Original query without status
+            $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+        }
+        
         $stmt->execute();
         $success = "Position added successfully!";
     } elseif (isset($_POST['update_position'])) {
@@ -27,18 +64,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = $_POST['title'];
         $description = $_POST['description'];
         $maxVotes = $_POST['maxVotes'];
+        $display_order = $_POST['display_order'] ?? 0;
         
-        $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ? WHERE positionID = ?");
-        $stmt->bind_param("ssii", $title, $description, $maxVotes, $positionID);
+        // Check if positions table has a status column
+        $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
+        if ($checkStatusCol->num_rows > 0) {
+            // Include status field in the query
+            $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ?, status = 'Approved' WHERE positionID = ?");
+            $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+        } else {
+            // Original query without status
+            $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ? WHERE positionID = ?");
+            $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+        }
+        
         $stmt->execute();
+        
+        // Clear any caches that might affect position display
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+        
         $success = "Position updated successfully!";
     } elseif (isset($_POST['delete_position'])) {
         $positionID = $_POST['positionID'];
         
-        $stmt = $conn->prepare("DELETE FROM positions WHERE positionID = ?");
+        // First check if there are any candidates associated with this position
+        $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM candidates WHERE positionID = ?");
+        $check_stmt->bind_param("i", $positionID);
+        $check_stmt->execute();
+        $result = $check_stmt->get_result();
+        $row = $result->fetch_assoc();
+        
+        if ($row['count'] > 0) {
+            $error = "Cannot delete position: There are candidates associated with this position. Please delete the candidates first.";
+        } else {
+            $stmt = $conn->prepare("DELETE FROM positions WHERE positionID = ?");
+            $stmt->bind_param("i", $positionID);
+            if ($stmt->execute()) {
+                $success = "Position deleted successfully!";
+            } else {
+                $error = "Error deleting position: " . $conn->error;
+            }
+        }
+    } elseif (isset($_POST['move_position'])) {
+        $positionID = $_POST['positionID'];
+        $direction = $_POST['direction'];
+        $electionID = $_POST['electionID'];
+        
+        // Get current display_order
+        $stmt = $conn->prepare("SELECT display_order FROM positions WHERE positionID = ?");
         $stmt->bind_param("i", $positionID);
         $stmt->execute();
-        $success = "Position deleted successfully!";
+        $current = $stmt->get_result()->fetch_assoc();
+        $current_order = $current['display_order'];
+        
+        if ($direction === 'up') {
+            // Get the position above this one
+            $stmt = $conn->prepare("
+                SELECT positionID, display_order 
+                FROM positions 
+                WHERE electionID = ? AND display_order < ? 
+                ORDER BY display_order DESC 
+                LIMIT 1
+            ");
+            $stmt->bind_param("ii", $electionID, $current_order);
+        } else { // down
+            // Get the position below this one
+            $stmt = $conn->prepare("
+                SELECT positionID, display_order 
+                FROM positions 
+                WHERE electionID = ? AND display_order > ? 
+                ORDER BY display_order ASC 
+                LIMIT 1
+            ");
+            $stmt->bind_param("ii", $electionID, $current_order);
+        }
+        
+        $stmt->execute();
+        $swap = $stmt->get_result()->fetch_assoc();
+        
+        if ($swap) {
+            // Swap the display orders
+            $stmt = $conn->prepare("UPDATE positions SET display_order = ? WHERE positionID = ?");
+            $stmt->bind_param("ii", $swap['display_order'], $positionID);
+            $stmt->execute();
+            
+            $stmt = $conn->prepare("UPDATE positions SET display_order = ? WHERE positionID = ?");
+            $stmt->bind_param("ii", $current_order, $swap['positionID']);
+            $stmt->execute();
+            
+            $success = "Position order updated successfully!";
+        }
     }
 }
 
@@ -50,7 +167,7 @@ $positions = $conn->query("
     SELECT p.*, e.name as electionName 
     FROM positions p
     JOIN elections e ON p.electionID = e.electionID
-    ORDER BY p.positionID DESC
+    ORDER BY e.electionID, p.display_order, p.positionID
 ");
 ?>
 
@@ -70,6 +187,10 @@ $positions = $conn->query("
             --secondary-color: #f8f9fc;
             --text-primary: #5a5c69;
             --text-secondary: #858796;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
         }
         
         body {
@@ -96,10 +217,13 @@ $positions = $conn->query("
         
         .card {
             border: none;
-            border-radius: 0.35rem;
+            border-radius: 0.75rem;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
             margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+        
+        
         
         .card-header {
             background-color: white;
@@ -108,6 +232,8 @@ $positions = $conn->query("
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
         }
         
         .header-icon {
@@ -119,12 +245,20 @@ $positions = $conn->query("
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s;
         }
         
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
+       
+        
+        .btn-secondary {
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s;
         }
+        
+       
         
         .table {
             color: var(--text-primary);
@@ -135,6 +269,8 @@ $positions = $conn->query("
             border-top: none;
             background-color: #f8f9fc;
         }
+        
+       
         
         .badge-status {
             font-size: 0.85em;
@@ -149,23 +285,37 @@ $positions = $conn->query("
         }
         
         .modal-content {
-            border-radius: 0.35rem;
+            border-radius: 0.75rem;
             border: none;
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
         }
         
         .modal-header {
             background-color: var(--primary-color);
             color: white;
-            border-top-left-radius: 0.35rem;
-            border-top-right-radius: 0.35rem;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            padding: 1.2rem 1.5rem;
         }
         
         .modal-header .btn-close {
             filter: brightness(0) invert(1);
         }
         
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
         .alert {
-            border-radius: 0.35rem;
+            border-radius: 0.75rem;
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
         }
         
         .action-buttons {
@@ -198,6 +348,13 @@ $positions = $conn->query("
             padding-left: 2.5rem;
             border-radius: 10rem;
             height: calc(1.5em + 0.75rem + 2px);
+            border: 1px solid #e3e6f0;
+            transition: all 0.2s;
+        }
+        
+        .search-wrapper .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
         }
         
         .search-icon {
@@ -214,15 +371,26 @@ $positions = $conn->query("
             padding: 0;
         }
         
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+       
+        
         .card-stats {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1.25rem;
-            border-radius: 0.35rem;
+            border-radius: 0.75rem;
             margin-bottom: 1.5rem;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+        
+        
         
         .card-stats-icon {
             font-size: 2rem;
@@ -230,7 +398,9 @@ $positions = $conn->query("
             border-radius: 50%;
             background-color: rgba(78, 115, 223, 0.1);
             color: var(--primary-color);
+            transition: transform 0.2s;
         }
+      
         
         .card-stats-info {
             text-align: right;
@@ -250,13 +420,51 @@ $positions = $conn->query("
             font-weight: 600;
         }
         
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e3e6f0;
+            transition: all 0.2s;
+        }
+        
         .form-control:focus, .form-select:focus {
             border-color: #bac8f3;
             box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
         }
         
+        .input-group-text {
+            border-radius: 0.5rem 0 0 0.5rem;
+            background-color: rgba(78, 115, 223, 0.1);
+            border: 1px solid #e3e6f0;
+            color: var(--primary-color);
+        }
+        
+        .input-group .form-control {
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        
         .dropdown-item.active, .dropdown-item:active {
             background-color: var(--primary-color);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.2s;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-outline-danger {
+            transition: all 0.2s;
+        }
+        
+        .btn-outline-danger:hover {
+            color: white;
         }
         
         /* Responsive adjustments */
@@ -281,25 +489,38 @@ $positions = $conn->query("
             <div class="main-content">
                 <nav aria-label="breadcrumb" class="mb-5">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Manage Positions</li>
+                        <li class="breadcrumb-item"><a href="dashboard.php"><i class="bi bi-house-door me-1"></i>Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><i class="bi bi-person-badge me-1"></i>Manage Positions</li>
                     </ol>
                 </nav>
                 
                 <div class="page-header">
                     <div>
-                        <h1 class="h3 mb-0 text-gray-800">Manage Positions</h1>
-                        <p class="mb-0 text-muted">Create and manage election positions</p>
+                        <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-list-check me-2"></i>Manage Positions</h1>
+                        <p class="mb-0 text-muted"><i class="bi bi-info-circle me-1"></i>Create and manage election positions</p>
                     </div>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPositionModal">
-                        <i class="bi bi-plus-circle me-1"></i> Add Position
-                    </button>
+                    <div>
+                        <a href="position_order.php" class="btn btn-outline-primary shadow-sm me-2">
+                            <i class="bi bi-arrows-move me-1"></i> Manage Order
+                        </a>
+                        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add Position
+                        </button>
+                    </div>
                 </div>
                 
                 <?php if (isset($success)): ?>
                 <div class="alert alert-success alert-dismissible fade show">
-                    <i class="bi bi-check-circle me-1"></i>
+                    <i class="bi bi-check-circle-fill me-1"></i>
                     <?php echo $success; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (isset($error)): ?>
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <?php echo $error; ?>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 <?php endif; ?>
@@ -308,7 +529,7 @@ $positions = $conn->query("
                     <div class="col-xl-4 col-md-6">
                         <div class="card-stats bg-white">
                             <div class="card-stats-icon">
-                                <i class="bi bi-person-badge"></i>
+                                <i class="bi bi-person-badge-fill"></i>
                             </div>
                             <div class="card-stats-info">
                                 <p class="card-stats-number">
@@ -317,14 +538,14 @@ $positions = $conn->query("
                                     echo $total['total'];
                                     ?>
                                 </p>
-                                <p class="card-stats-label">Total Positions</p>
+                                <p class="card-stats-label"><i class="bi bi-clipboard-data me-1"></i>Total Positions</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-xl-4 col-md-6">
                         <div class="card-stats bg-white">
                             <div class="card-stats-icon">
-                                <i class="bi bi-calendar-check"></i>
+                                <i class="bi bi-calendar-check-fill"></i>
                             </div>
                             <div class="card-stats-info">
                                 <p class="card-stats-number">
@@ -333,23 +554,23 @@ $positions = $conn->query("
                                     echo $activeElections['total'];
                                     ?>
                                 </p>
-                                <p class="card-stats-label">Elections With Positions</p>
+                                <p class="card-stats-label"><i class="bi bi-diagram-3 me-1"></i>Elections With Positions</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-xl-4 col-md-6">
                         <div class="card-stats bg-white">
                             <div class="card-stats-icon">
-                                <i class="bi bi-people"></i>
+                                <i class="bi bi-people-fill"></i>
                             </div>
                             <div class="card-stats-info">
                             <p class="card-stats-number">
                                 <?php 
-                                $avgVotes = $conn->query("SELECT AVG(maxVotes) as avg FROM positions")->fetch_assoc();
-                                echo ($avgVotes['avg'] !== null) ? number_format($avgVotes['avg'], 1) : '0.0';
+                                $avgVotes = $conn->query("SELECT COALESCE(AVG(maxVotes), 0) as avg FROM positions")->fetch_assoc();
+                                echo number_format($avgVotes['avg'], 1);
                                 ?>
                             </p>
-                                <p class="card-stats-label">Avg. Max Votes</p>
+                                <p class="card-stats-label"><i class="bi bi-calculator me-1"></i>Avg. Max Votes</p>
                             </div>
                         </div>
                     </div>
@@ -371,12 +592,13 @@ $positions = $conn->query("
                             <table class="table table-hover" id="positionsTable">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Position Title</th>
-                                        <th>Election</th>
-                                        <th>Max Votes</th>
-                                        <th>Description</th>
-                                        <th class="text-center">Actions</th>
+                                        <th><i class="bi bi-hash me-1"></i>ID</th>
+                                        <th><i class="bi bi-card-heading me-1"></i>Position Title</th>
+                                        <th><i class="bi bi-calendar-event me-1"></i>Election</th>
+                                        <th><i class="bi bi-check-square me-1"></i>Max Votes</th>
+                                        <th><i class="bi bi-arrow-down-up me-1"></i>Order</th>
+                                        <th><i class="bi bi-text-paragraph me-1"></i>Description</th>
+                                        <th class="text-center"><i class="bi bi-gear me-1"></i>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -384,32 +606,54 @@ $positions = $conn->query("
                                     <tr>
                                         <td><?php echo $position['positionID']; ?></td>
                                         <td>
-                                            <strong><?php echo htmlspecialchars($position['title']); ?></strong>
+                                            <strong><i class="bi bi-person-workspace me-1"></i><?php echo htmlspecialchars($position['title']); ?></strong>
                                         </td>
                                         <td>
-                                            <span class="badge bg-info text-dark"><?php echo htmlspecialchars($position['electionName']); ?></span>
+                                            <span class="badge bg-info text-dark"><i class="bi bi-calendar2-event me-1"></i><?php echo htmlspecialchars($position['electionName']); ?></span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-primary"><?php echo $position['maxVotes']; ?></span>
+                                            <span class="badge bg-primary"><i class="bi bi-123 me-1"></i><?php echo $position['maxVotes']; ?></span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary"><i class="bi bi-arrow-down-up me-1"></i><?php echo $position['display_order']; ?></span>
                                         </td>
                                         <td class="description-cell" title="<?php echo htmlspecialchars($position['description']); ?>">
-                                            <?php echo htmlspecialchars($position['description']); ?>
+                                            <i class="bi bi-info-circle me-1"></i><?php echo htmlspecialchars($position['description']); ?>
                                         </td>
                                         <td>
                                             <div class="action-buttons justify-content-center">
+                                                <div class="btn-group btn-group-sm me-1">
+                                                    <form method="POST" style="display:inline;">
+                                                        <input type="hidden" name="positionID" value="<?php echo $position['positionID']; ?>">
+                                                        <input type="hidden" name="electionID" value="<?php echo $position['electionID']; ?>">
+                                                        <input type="hidden" name="direction" value="up">
+                                                        <button type="submit" name="move_position" class="btn btn-sm btn-outline-secondary" title="Move Up">
+                                                            <i class="bi bi-arrow-up"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" style="display:inline;">
+                                                        <input type="hidden" name="positionID" value="<?php echo $position['positionID']; ?>">
+                                                        <input type="hidden" name="electionID" value="<?php echo $position['electionID']; ?>">
+                                                        <input type="hidden" name="direction" value="down">
+                                                        <button type="submit" name="move_position" class="btn btn-sm btn-outline-secondary" title="Move Down">
+                                                            <i class="bi bi-arrow-down"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                                 <button class="btn btn-sm btn-outline-primary edit-btn" 
                                                         data-bs-toggle="modal" 
                                                         data-bs-target="#editPositionModal"
                                                         data-id="<?php echo $position['positionID']; ?>"
                                                         data-title="<?php echo htmlspecialchars($position['title']); ?>"
                                                         data-description="<?php echo htmlspecialchars($position['description']); ?>"
-                                                        data-maxvotes="<?php echo $position['maxVotes']; ?>">
-                                                    <i class="bi bi-pencil"></i> Edit
+                                                        data-maxvotes="<?php echo $position['maxVotes']; ?>"
+                                                        data-display-order="<?php echo $position['display_order']; ?>">
+                                                    <i class="bi bi-pencil-square"></i> Edit
                                                 </button>
                                                 <form method="POST" style="display:inline;">
                                                     <input type="hidden" name="positionID" value="<?php echo $position['positionID']; ?>">
                                                     <button type="submit" name="delete_position" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this position? This action cannot be undone.')">
-                                                        <i class="bi bi-trash"></i> Delete
+                                                        <i class="bi bi-trash-fill"></i> Delete
                                                     </button>
                                                 </form>
                                             </div>
@@ -429,7 +673,7 @@ $positions = $conn->query("
     <div class="modal fade" id="addPositionModal" tabindex="-1" aria-labelledby="addPositionModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST">
+                <form method="POST" id="positionForm">
                     <div class="modal-header">
                         <h5 class="modal-title" id="addPositionModalLabel">
                             <i class="bi bi-plus-circle me-2"></i>Add New Position
@@ -438,37 +682,72 @@ $positions = $conn->query("
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="electionID" class="form-label">Election</label>
-                            <select class="form-select" id="electionID" name="electionID" required>
-                                <option value="">Select Election</option>
-                                <?php 
-                                // Reset the elections result pointer
-                                $elections->data_seek(0);
-                                while ($election = $elections->fetch_assoc()): 
-                                ?>
-                                <option value="<?php echo $election['electionID']; ?>"><?php echo htmlspecialchars($election['name']); ?></option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="title" class="form-label">Position Title</label>
-                            <input type="text" class="form-control" id="title" name="title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="maxVotes" class="form-label">Max Votes Allowed</label>
+                            <label for="electionID" class="form-label"><i class="bi bi-calendar3 me-1"></i>Election</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-people"></i></span>
-                                <input type="number" class="form-control" id="maxVotes" name="maxVotes" value="1" min="1" required>
+                                <span class="input-group-text"><i class="bi bi-megaphone"></i></span>
+                                <select class="form-select" id="electionID" name="electionID" required>
+                                    <option value="">Select Election</option>
+                                    <?php 
+                                    // Reset the elections result pointer
+                                    $elections->data_seek(0);
+                                    while ($election = $elections->fetch_assoc()): 
+                                    ?>
+                                    <option value="<?php echo $election['electionID']; ?>"><?php echo htmlspecialchars($election['name']); ?></option>
+                                    <?php endwhile; ?>
+                                </select>
                             </div>
-                            <small class="form-text text-muted">Number of candidates a voter can select for this position</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label"><i class="bi bi-type me-1"></i>Position Title</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+                                <input type="text" class="form-control" id="title" name="title" placeholder="Enter position title" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label"><i class="bi bi-file-text me-1"></i>Description</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter position description"></textarea>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxVotes" class="form-label"><i class="bi bi-ui-checks me-1"></i>Maximum Votes</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-123"></i></span>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="maxVotes" 
+                                       name="maxVotes" 
+                                       value="<?= isset($position) ? $position['maxVotes'] : '1' ?>" 
+                                       min="1" 
+                                       max="999"
+                                       placeholder="Enter maximum votes allowed"
+                                       required>
+                            </div>
+                            <div class="form-text"><i class="bi bi-info-circle me-1"></i>Maximum number of candidates that can be voted for this position.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="display_order" class="form-label"><i class="bi bi-sort-numeric-down me-1"></i>Display Order</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-arrow-down-up"></i></span>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="display_order" 
+                                       name="display_order" 
+                                       value="<?= isset($position) ? $position['display_order'] : '0' ?>" 
+                                       min="0" 
+                                       max="999"
+                                       placeholder="Enter display order (0 = default)"
+                                       required>
+                            </div>
+                            <div class="form-text"><i class="bi bi-info-circle me-1"></i>The order in which this position will be displayed (lower numbers first).</div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
                         <button type="submit" name="add_position" class="btn btn-primary">
                             <i class="bi bi-save me-1"></i> Save Position
                         </button>
@@ -492,26 +771,42 @@ $positions = $conn->query("
                     <div class="modal-body">
                         <input type="hidden" id="edit_positionID" name="positionID">
                         <div class="mb-3">
-                            <label for="edit_title" class="form-label">Position Title</label>
-                            <input type="text" class="form-control" id="edit_title" name="title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_description" class="form-label">Description</label>
-                            <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_maxVotes" class="form-label">Max Votes Allowed</label>
+                            <label for="edit_title" class="form-label"><i class="bi bi-type me-1"></i>Position Title</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-people"></i></span>
+                                <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+                                <input type="text" class="form-control" id="edit_title" name="title" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_description" class="form-label"><i class="bi bi-file-text me-1"></i>Description</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                                <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_maxVotes" class="form-label"><i class="bi bi-ui-checks me-1"></i>Max Votes Allowed</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-123"></i></span>
                                 <input type="number" class="form-control" id="edit_maxVotes" name="maxVotes" min="1" required>
                             </div>
-                            <small class="form-text text-muted">Number of candidates a voter can select for this position</small>
+                            <small class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>Number of candidates a voter can select for this position</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_display_order" class="form-label"><i class="bi bi-sort-numeric-down me-1"></i>Display Order</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-arrow-down-up"></i></span>
+                                <input type="number" class="form-control" id="edit_display_order" name="display_order" min="0" required>
+                            </div>
+                            <small class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>The order in which this position will be displayed</small>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
                         <button type="submit" name="update_position" class="btn btn-primary">
-                            <i class="bi bi-save me-1"></i> Update Position
+                            <i class="bi bi-save2 me-1"></i> Update Position
                         </button>
                     </div>
                 </form>
@@ -532,8 +827,17 @@ $positions = $conn->query("
                 lengthMenu: [5, 10, 25, 50],
                 responsive: true,
                 language: {
-                    search: "",
-                    searchPlaceholder: "Search positions..."
+                    search: "<i class='bi bi-search'></i>",
+                    searchPlaceholder: "Search positions...",
+                    infoFiltered: "<span class='text-muted'>(filtered from _MAX_ total positions)</span>",
+                    emptyTable: "<i class='bi bi-exclamation-triangle text-warning'></i> No positions found",
+                    zeroRecords: "<i class='bi bi-search'></i> No matching positions found",
+                    paginate: {
+                        first: "<i class='bi bi-chevron-double-left'></i>",
+                        previous: "<i class='bi bi-chevron-left'></i>",
+                        next: "<i class='bi bi-chevron-right'></i>",
+                        last: "<i class='bi bi-chevron-double-right'></i>"
+                    }
                 }
             });
             
@@ -547,6 +851,7 @@ $positions = $conn->query("
                 $('#edit_title').val($(this).data('title'));
                 $('#edit_description').val($(this).data('description'));
                 $('#edit_maxVotes').val($(this).data('maxvotes'));
+                $('#edit_display_order').val($(this).data('display-order'));
             });
             
             // Auto-hide alerts after 5 seconds
@@ -566,6 +871,19 @@ $positions = $conn->query("
                 $("#positionsTable tbody tr").filter(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
+            });
+
+            // Add animation effects
+            $('.card').addClass('animate__animated animate__fadeIn');
+            
+            // Form validation
+            document.getElementById('positionForm').addEventListener('submit', function(e) {
+                const maxVotes = document.getElementById('maxVotes').value;
+                if (maxVotes < 1) {
+                    e.preventDefault();
+                    alert('Maximum votes must be at least 1');
+                    return false;
+                }
             });
         });
     </script>

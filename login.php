@@ -35,6 +35,22 @@
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="/assets/vendor/js/template-customizer.js"></script>
     <script src="/assets/js/config.js"></script>
+    <style>
+      /* Custom styles for compact button */
+      .btn-compact {
+        padding-top: 0.375rem;
+        padding-bottom: 0.375rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+      }
+      .btn-compact .icon {
+        font-size: 0.875rem;
+        margin-right: 0.25rem;
+      }
+      .spinner-border-sm {
+        margin-right: 0.25rem;
+      }
+    </style>
   </head>
 
   <body>
@@ -96,8 +112,8 @@
                   </div>
                 </div>
                 <div class="mb-6">
-                  <button class="btn btn-primary d-grid w-100" type="submit" id="loginBtn">
-                  <i class="bi bi-box-arrow-in-right action-icon icon"></i>Sign In 
+                  <button class="btn btn-primary d-grid w-100 btn-compact" type="submit" id="loginBtn">
+                    <i class="bi bi-box-arrow-in-right action-icon icon"></i>Sign In 
                   </button>
                 </div>
               </form>
@@ -235,6 +251,15 @@
           error === 'invalid' ? 'Invalid credentials' :
           'Login failed'
         );
+      }
+      
+      // Check for password changed notification
+      const passwordChanged = urlParams.get('password_changed');
+      if (passwordChanged) {
+        authAlert.textContent = 'Your password has been changed successfully. Please login with your new password.';
+        authAlert.classList.remove('d-none');
+        authAlert.classList.remove('alert-danger');
+        authAlert.classList.add('alert-success');
       }
     });
     </script>

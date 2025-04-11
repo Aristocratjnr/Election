@@ -135,14 +135,13 @@
                                     </td>
                                     <td>
                                         <?php if ($position['status'] == 'Completed'): ?>
-                                            <span class="badge bg-<?= 
-                                                ($candidate['vote_count'] == max(array_column($candidates->fetch_all(MYSQLI_ASSOC), 'vote_count'))) ? 
-                                                'success' : 'secondary' 
-                                            ?>">
-                                                <?= 
-                                                    ($candidate['vote_count'] == max(array_column($candidates->fetch_all(MYSQLI_ASSOC), 'vote_count'))) ? 
-                                                    'Winner' : 'Candidate' 
-                                                ?>
+                                            <?php 
+                                                $allCandidates = $candidates->fetch_all(MYSQLI_ASSOC);
+                                                $maxVotes = !empty($allCandidates) ? max(array_column($allCandidates, 'vote_count')) : 0;
+                                                $isWinner = ($candidate['vote_count'] == $maxVotes && $maxVotes > 0);
+                                            ?>
+                                            <span class="badge bg-<?= $isWinner ? 'success' : 'secondary' ?>">
+                                                <?= $isWinner ? 'Winner' : 'Candidate' ?>
                                             </span>
                                         <?php else: ?>
                                             <span class="badge bg-info">Running</span>

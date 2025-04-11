@@ -1,14 +1,18 @@
 <?php
+require_once 'includes/auth_check.php';
+require_once 'configs/dbconnection.php';
+require_once 'update_election_status.php'; // Include the status updater
+
+// Automatically update election statuses when viewing election details
+updateElectionStatuses();
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php'); 
     exit();
 }
-
-require 'configs/dbconnection.php';
 
 $election_id = $_GET['id'] ?? null;
 
@@ -27,6 +31,41 @@ try {
     if (!$election) {
         throw new Exception("Election not found");
     }
+    
+    // Format dates for display
+    $start_date = new DateTime($election['startDate']);
+    $end_date = new DateTime($election['endDate']);
+    
+    // Check if time fields exist in the table
+    $time_fields_exist = false;
+    
+    try {
+        $check_fields = $conn->query("SHOW COLUMNS FROM elections LIKE 'start_time'");
+        $time_fields_exist = ($check_fields->num_rows > 0);
+    } catch (Exception $e) {
+        // If the query fails, assume time fields don't exist
+        $time_fields_exist = false;
+    }
+    
+    // Set default times if not in database
+    $start_time = "08:00 AM";
+    $end_time = "05:00 PM";
+    
+    if ($time_fields_exist) {
+        if (!empty($election['start_time'])) {
+            $start_time_obj = new DateTime($election['start_time']);
+            $start_time = $start_time_obj->format('h:i A');
+        }
+        
+        if (!empty($election['end_time'])) {
+            $end_time_obj = new DateTime($election['end_time']);
+            $end_time = $end_time_obj->format('h:i A');
+        }
+    }
+    
+    // Format for display
+    $formatted_start_date = $start_date->format('F j, Y');
+    $formatted_end_date = $end_date->format('F j, Y');
     
     // Get total voters
     $voters_query = $conn->query("SELECT COUNT(*) as total FROM students WHERE status = 'Active'");
@@ -77,15 +116,10 @@ try {
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         
-        .sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, var(--primary-color) 0%, #224abe 100%);
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-        }
-        
+     
         .main-content {
             margin-left: 120px;
-            width: calc(100% - 250px);
+            width: calc(100% - 210px);
         }
         
         .navbar {
@@ -100,6 +134,7 @@ try {
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
             transition: all 0.3s ease;
         }
+        
         
         .card-header {
             background-color: white;
@@ -236,9 +271,9 @@ try {
         <div class="row">
             <?php include 'includes/sidebar.php'; ?>
             <div class="main-content">
-                <?php include 'includes/header.php'; ?><br><br><br>
+                <?php include 'includes/header.php'; ?><br><br>
                 
-                <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4">
+                <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-5">
                     <!-- Page Header -->
                     <div class="d-flex justify-content-between align-items-center flex-wrap mb-4 page-header">
                         <div>
@@ -284,7 +319,12 @@ try {
                                             <i class="bi bi-calendar-event text-primary me-2"></i>
                                             <div>
                                                 <small class="text-muted">Start Date</small>
-                                                <p class="mb-0 fw-bold"><?php echo htmlspecialchars($election['startDate'] ?? 'Not set'); ?></p>
+                                                <p class="mb-0 fw-bold">
+                                                    <?php echo $formatted_start_date; ?>
+                                                    <span class="badge bg-light text-primary ms-2">
+                                                        <i class="bi bi-clock"></i> <?php echo $start_time; ?>
+                                                    </span>
+                                                </p>
                                             </div>
                                         </div>
                                         
@@ -292,13 +332,31 @@ try {
                                             <i class="bi bi-calendar-check text-primary me-2"></i>
                                             <div>
                                                 <small class="text-muted">End Date</small>
-                                                <p class="mb-0 fw-bold"><?php echo htmlspecialchars($election['endDate'] ?? 'Not set'); ?></p>
+                                                <p class="mb-0 fw-bold">
+                                                    <?php echo $formatted_end_date; ?>
+                                                    <span class="badge bg-light text-primary ms-2">
+                                                        <i class="bi bi-clock"></i> <?php echo $end_time; ?>
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="bi bi-journals text-primary me-2"></i>
+                                            <div>
+                                                <small class="text-muted">Status</small>
+                                                <p class="mb-0">
+                                                    <span class="badge <?php echo ($election['status'] == 'Ongoing') ? 'bg-success' : (($election['status'] == 'Scheduled') ? 'bg-warning' : 'bg-secondary'); ?>">
+                                                        <i class="bi <?php echo ($election['status'] == 'Ongoing') ? 'bi-play-circle' : (($election['status'] == 'Scheduled') ? 'bi-calendar-date' : 'bi-check-circle'); ?>"></i>
+                                                        <?php echo htmlspecialchars($election['status'] ?? ''); ?>
+                                                    </span>
+                                                </p>
                                             </div>
                                         </div>
                                         
                                         <div>
-                                            <small class="text-muted">Description</small>
-                                            <p class="mb-0"><?php echo htmlspecialchars($election['description'] ?? 'No description provided'); ?></p>
+                                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i> Description</small>
+                                            <p class="mb-0"><?php echo htmlspecialchars($election['description'] ?? ''); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -317,7 +375,7 @@ try {
                                         <div class="col-md-6">
                                             <div class="d-flex align-items-center">
                                                 <div class="card-icon bg-success-light me-3">
-                                                    <i class="bi bi-person-check"></i>
+                                                    <i class="bi bi-person-check-fill"></i>
                                                 </div>
                                                 <div>
                                                     <h2 class="mb-0"><?php echo $total_voted; ?></h2>
@@ -329,7 +387,7 @@ try {
                                         <div class="col-md-6">
                                             <div class="d-flex align-items-center">
                                                 <div class="card-icon bg-primary-light me-3">
-                                                    <i class="bi bi-people"></i>
+                                                    <i class="bi bi-people-fill"></i>
                                                 </div>
                                                 <div>
                                                     <h2 class="mb-0"><?php echo $total_voters; ?></h2>
@@ -341,7 +399,7 @@ try {
                                         <div class="col-12">
                                             <div class="mb-3">
                                                 <div class="d-flex justify-content-between mb-2">
-                                                    <span class="text-muted">Participation Rate</span>
+                                                    <span class="text-muted"><i class="bi bi-bar-chart-line me-1"></i> Participation Rate</span>
                                                     <span class="fw-bold text-<?php echo ($participation_rate > 50) ? 'success' : 'warning'; ?>">
                                                         <?php echo $participation_rate; ?>%
                                                     </span>
@@ -396,7 +454,7 @@ try {
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <div class="card-icon bg-primary-light me-3">
-                                                            <i class="bi bi-bookmark"></i>
+                                                            <i class="bi bi-tag-fill"></i>
                                                         </div>
                                                         <div>
                                                             <h6 class="mb-0"><?php echo htmlspecialchars($category['name']); ?></h6>
@@ -404,12 +462,18 @@ try {
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <p class="mb-0 text-muted"><?php echo htmlspecialchars($category['description']); ?></p>
+                                                    <p class="mb-0 text-muted"><?php echo isset($category['description']) ? htmlspecialchars($category['description']) : 'No description available'; ?></p>
                                                 </td>
                                                 <td>
                                                     <?php 
-                                                    $cand_query = $conn->prepare("SELECT COUNT(*) as count FROM candidates WHERE categoryID = ?");
-                                                    $cand_query->bind_param("i", $category['categoryID']);
+                                                    // Count candidates related to positions in this election
+                                                    $cand_query = $conn->prepare("
+                                                        SELECT COUNT(*) as count 
+                                                        FROM candidates c
+                                                        JOIN positions p ON c.positionID = p.positionID 
+                                                        WHERE p.electionID = ?
+                                                    ");
+                                                    $cand_query->bind_param("i", $election_id);
                                                     $cand_query->execute();
                                                     $cand_count = $cand_query->get_result()->fetch_assoc()['count'];
                                                     ?>
@@ -418,7 +482,7 @@ try {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <a href="category_details.php?id=<?php echo $category['categoryID']; ?>" 
+                                                    <a href="categories.php?category_id=<?php echo $category['categoryID']; ?>" 
                                                        class="btn btn-sm btn-outline-primary">
                                                         <i class="bi bi-eye me-1"></i> View
                                                     </a>
@@ -437,7 +501,8 @@ try {
                             <?php endif; ?>
                         </div>
                     </div>
-                  
+                    
+                    
                 </main>
             </div>
         </div>

@@ -196,3 +196,65 @@ if ($show_results) {
 
     </div><!-- /.No active election section -->
 <?php } ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+
+    // Export form submission
+    const exportForm = document.querySelector('#exportModal form');
+    if (exportForm) {
+        exportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Exporting...';
+            
+            // Submit form
+            fetch('export_votes.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'vote_records_' + new Date().toISOString().split('T')[0] + '.' + formData.get('exportFormat');
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+                modal.hide();
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                alert('Failed to export data. Please try again.');
+                
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
+    }
+});
+</script>

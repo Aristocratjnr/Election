@@ -1,5 +1,5 @@
 <?php
-// Secure session initialization
+// Secure session initialization - This check is already here but let's make sure it works
 if (session_status() === PHP_SESSION_NONE) {
     session_start([
         'cookie_secure' => true,
@@ -39,6 +39,7 @@ if (!empty($profile_pic)) {
 
 /* ===== Premium Sidebar Styles ===== */
 :root {
+  /* Light mode variables (default) */
   --sidebar-width: 280px;
   --sidebar-bg: #fdfdfd;
   --sidebar-accent: #1e3a8a;
@@ -52,6 +53,48 @@ if (!empty($profile_pic)) {
   --success-badge: #16a34a;
   --primary-badge: #1e40af;
   --notification-badge: #be123c;
+  --profile-card-bg: rgba(255, 255, 255, 0.2);
+  --avatar-gradient-start: #4361ee;
+  --avatar-gradient-end: #3a0ca3;
+  --avatar-text: #ffffff;
+  --sidebar-shadow: rgba(0, 0, 0, 0.03);
+  --active-item-bg: rgba(59, 130, 246, 0.08);
+  --active-item-border: #3b82f6;
+  --logout-bg: #ffffff;
+  --logout-border: #e9ecef;
+  --logout-hover-bg: #f8f9fa;
+  --version-color: #adb5bd;
+  --info-color: #6c757d;
+  --info-icon-color: #adb5bd;
+}
+
+/* Dark Mode Variables */
+[data-bs-theme="dark"] {
+  --sidebar-bg: #212529;
+  --sidebar-accent: #6ea8fe;
+  --sidebar-text: #f8f9fa;
+  --sidebar-text-light: #adb5bd;
+  --sidebar-border: #495057;
+  --sidebar-hover: #343a40;
+  --admin-color: #ea868f;
+  --voter-color: #75b798;
+  --highlight-color: #6ea8fe;
+  --success-badge: #75b798;
+  --primary-badge: #6ea8fe;
+  --notification-badge: #ea868f;
+  --profile-card-bg: rgba(33, 37, 41, 0.5);
+  --avatar-gradient-start: #6ea8fe;
+  --avatar-gradient-end: #0d6efd;
+  --avatar-text: #ffffff;
+  --sidebar-shadow: rgba(0, 0, 0, 0.2);
+  --active-item-bg: rgba(110, 168, 254, 0.15);
+  --active-item-border: #6ea8fe;
+  --logout-bg: #343a40;
+  --logout-border: #495057;
+  --logout-hover-bg: #495057;
+  --version-color: #6c757d;
+  --info-color: #adb5bd;
+  --info-icon-color: #6c757d;
 }
 
 .sidebar {
@@ -61,12 +104,13 @@ if (!empty($profile_pic)) {
   left: 0;
   top: 0;
   background: var(--sidebar-bg);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 4px 0 20px var(--sidebar-shadow);
   display: flex;
   flex-direction: column;
   z-index: 1000;
   border-right: 1px solid var(--sidebar-border);
   padding-top: 60px; /* Space for the header */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Mobile Header */
@@ -82,6 +126,7 @@ if (!empty($profile_pic)) {
   right: 0;
   z-index: 100;
   background: var(--sidebar-bg);
+  transition: background-color 0.3s ease;
 }
 
 .mobile-header .logo {
@@ -106,8 +151,9 @@ if (!empty($profile_pic)) {
   border-bottom: 1px solid var(--sidebar-border);
   position: relative;
   margin: 20px 15px 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--profile-card-bg);
   border-radius: 8px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .profile-avatar {
@@ -116,10 +162,11 @@ if (!empty($profile_pic)) {
   border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #4361ee, #3a0ca3);
+  background: linear-gradient(135deg, var(--avatar-gradient-start), var(--avatar-gradient-end));
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.3s ease;
 }
 
 .profile-avatar img {
@@ -129,7 +176,7 @@ if (!empty($profile_pic)) {
 }
 
 .avatar-fallback {
-  color: white;
+  color: var(--avatar-text);
   font-weight: 600;
   font-size: 1.25rem;
 }
@@ -147,6 +194,7 @@ if (!empty($profile_pic)) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.3s ease;
 }
 
 .profile-meta {
@@ -162,6 +210,7 @@ if (!empty($profile_pic)) {
   background: var(--sidebar-hover);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
 .profile-status {
@@ -169,6 +218,7 @@ if (!empty($profile_pic)) {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  transition: color 0.3s ease;
 }
 
 .profile-status.admin {
@@ -248,9 +298,17 @@ if (!empty($profile_pic)) {
   text-align: center;
 }
 
+.nav-link.active {
+  color: var(--sidebar-accent);
+  background: var(--active-item-bg);
+  font-weight: 500;
+  border-left: 3px solid var(--active-item-border);
+  padding-left: calc(1.5rem - 3px); /* Adjust for border */
+}
+
 .nav-item.active .nav-link {
   color: var(--sidebar-accent);
-  background: rgba(67, 97, 238, 0.05);
+  background: var(--active-item-bg);
   font-weight: 500;
 }
 
@@ -261,7 +319,7 @@ if (!empty($profile_pic)) {
   top: 0;
   bottom: 0;
   width: 3px;
-  background: var(--sidebar-accent);
+  background: var(--active-item-border);
   border-radius: 0 3px 3px 0;
 }
 
@@ -328,10 +386,23 @@ if (!empty($profile_pic)) {
 
 /* Sidebar Footer */
 .sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid var(--sidebar-border);
+  padding: 1rem 1.5rem;
   font-size: 0.8rem;
-  background: #f8f9fa;
+  color: var(--sidebar-text-light);
+  border-top: 1px solid var(--sidebar-border);
+  margin-top: auto;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar-footer-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-footer-text i {
+  font-size: 0.9rem;
+  color: var(--sidebar-accent);
 }
 
 .system-info {
@@ -342,22 +413,22 @@ if (!empty($profile_pic)) {
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
-  color: #6c757d;
+  color: var(--info-color);
 }
 
 .info-item i {
   margin-right: 0.5rem;
   font-size: 1rem;
-  color: #adb5bd;
+  color: var(--info-icon-color);
 }
 
 .logout-btn {
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  background: white;
+  background: var(--logout-bg);
   color: var(--admin-color);
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--logout-border);
   border-radius: 4px;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -365,9 +436,9 @@ if (!empty($profile_pic)) {
 }
 
 .logout-btn:hover {
-  background: #f8f9fa;
+  background: var(--logout-hover-bg);
   color: var(--admin-color);
-  border-color: #dee2e6;
+  border-color: var(--sidebar-border);
 }
 
 .logout-btn i {
@@ -376,7 +447,7 @@ if (!empty($profile_pic)) {
 
 .version-info {
   text-align: center;
-  color: #adb5bd;
+  color: var(--version-color);
   font-size: 0.7rem;
 }
 
@@ -406,7 +477,7 @@ if (!empty($profile_pic)) {
   
   .sidebar.show {
     transform: translateX(0);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 4px 0 20px var(--sidebar-shadow);
   }
   
   .mobile-header {
@@ -416,6 +487,94 @@ if (!empty($profile_pic)) {
   .profile-card {
     margin-top: 70px; /* Extra space for mobile header */
   }
+}
+</style>
+
+<!-- Add additional dark mode specific styles outside the main style block -->
+<style>
+/* Additional dark mode fixes */
+[data-bs-theme="dark"] .nav-parent > .nav-link, 
+[data-bs-theme="dark"] .submenu-item a {
+  color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .submenu-item a {
+  color: var(--sidebar-text-light);
+}
+
+[data-bs-theme="dark"] .submenu-item.active a,
+[data-bs-theme="dark"] .submenu-item a:hover {
+  color: var(--sidebar-accent);
+}
+
+[data-bs-theme="dark"] .mobile-header {
+  background-color: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .mobile-header .logo {
+  color: var(--sidebar-accent);
+}
+
+[data-bs-theme="dark"] .main-content {
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+}
+
+/* Fix the main content area in dark mode */
+.main-content {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .main-content h1,
+[data-bs-theme="dark"] .main-content h2,
+[data-bs-theme="dark"] .main-content h3,
+[data-bs-theme="dark"] .main-content h4,
+[data-bs-theme="dark"] .main-content h5,
+[data-bs-theme="dark"] .main-content h6 {
+  color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .main-content .bg-white {
+  background-color: var(--sidebar-bg) !important;
+}
+
+[data-bs-theme="dark"] .main-content .border-bottom {
+  border-color: var(--sidebar-border) !important;
+}
+
+[data-bs-theme="dark"] .main-content .text-muted {
+  color: var(--sidebar-text-light) !important;
+}
+
+/* Fix any possible color issues with sidebar elements */
+[data-bs-theme="dark"] .sidebar {
+  background-color: var(--sidebar-bg);
+  border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .profile-card {
+  background-color: var(--profile-card-bg);
+  border-color: var(--sidebar-border);
+}
+
+[data-bs-theme="dark"] .profile-name {
+  color: var(--sidebar-text);
+}
+
+[data-bs-theme="dark"] .profile-role {
+  color: var(--sidebar-text-light);
+  background-color: var(--sidebar-hover);
+}
+
+/* Ensure submenu backgrounds are consistent */
+[data-bs-theme="dark"] .submenu {
+  background-color: var(--sidebar-bg);
+}
+
+/* Fix any elements that might have hardcoded colors */
+[data-bs-theme="dark"] .nav-arrow {
+  color: var(--sidebar-text-light);
 }
 </style>
 
@@ -459,7 +618,7 @@ if (!empty($profile_pic)) {
       </li>
 
       <!-- Election Control -->
-      <li class="nav-item <?= in_array($current_script, ['/election/pages/elections/election.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php']) ? 'active' : '' ?>">
+      <li class="nav-item <?= in_array($current_script, ['election.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php','categories.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
           <div class="nav-link settings-toggle" data-tooltip="Manage Elections, Candidates, Positions and Ballots">
             <i class="bi bi-calendar-event"></i>
@@ -478,6 +637,14 @@ if (!empty($profile_pic)) {
               <a href="election.php">
                 <i class="bi bi-plus-circle"></i>
                 <span>Create New</span>
+              </a>
+            </li>
+
+            <!-- Categories Submenu -->
+            <li class="submenu-item <?= ($current_script === 'categories.php') ? 'active' : '' ?>">
+              <a href="categories.php">
+                <i class="bi bi-bookmark-fill"></i>
+                <span>Categories</span>
               </a>
             </li>
 
@@ -538,7 +705,7 @@ if (!empty($profile_pic)) {
       </li>
 
       <!-- Admin Preferences -->
-      <li class="nav-item <?= in_array($current_script, ['profile.php','security.php']) ? 'active' : '' ?>">
+      <li class="nav-item <?= in_array($current_script, ['profile.php','security.php','preferences.php','activity.php','appearance.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
           <div class="nav-link settings-toggle" data-tooltip="Administrator Settings">
             <i class="bi bi-person-gear"></i>
@@ -548,14 +715,32 @@ if (!empty($profile_pic)) {
           <ul class="submenu settings-dropdown">
             <li class="submenu-item <?= ($current_script === 'profile.php') ? 'active' : '' ?>">
               <a href="profile.php">
-                <i class="bi bi-person"></i>
+                <i class="bi bi-person-circle"></i>
                 <span>Admin Profile</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'security.php') ? 'active' : '' ?>">
               <a href="security.php">
-                <i class="bi bi-shield-lock"></i>
+                <i class="bi bi-shield-lock-fill"></i>
                 <span>Account Security</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'appearance.php') ? 'active' : '' ?>">
+              <a href="appearance.php">
+                <i class="bi bi-palette-fill"></i>
+                <span>UI Appearance</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'preferences.php') ? 'active' : '' ?>">
+              <a href="preferences.php">
+                <i class="bi bi-sliders"></i>
+                <span>System Settings</span>
+              </a>
+            </li>
+            <li class="submenu-item <?= ($current_script === 'activity.php') ? 'active' : '' ?>">
+              <a href="activity.php">
+                <i class="bi bi-activity"></i>
+                <span>Activity Log</span>
               </a>
             </li>
           </ul>
@@ -566,27 +751,60 @@ if (!empty($profile_pic)) {
 
   <!-- Sidebar Footer -->
   <div class="sidebar-footer">
-    <div class="system-info">
-      <div class="info-item last-login">
-        <i class="bi bi-clock-history"></i>
-        <span id="lastLoginTime">
-          Last login: <?= $last_login ? date('M j, Y g:i a', strtotime($last_login)) : 'Never' ?>
+    <span class="sidebar-footer-text">
+        <i class="bi bi-clock"></i>
+        Last login: <span id="lastLoginTime">
+            <?php 
+                if ($last_login) {
+                    echo date('M d, Y H:i', strtotime($last_login));
+                } else {
+                    echo 'Just now';
+                }
+            ?>
         </span>
-      </div>
-      <div class="info-item">
-        <i class="bi bi-shield-check"></i>
-        <span>Secure Admin Session</span>
-      </div>
-    </div>
-    <a href="logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?');">
-      <i class="bi bi-box-arrow-left"></i>
+    </span>
+    
+    <a href="#" class="logout-btn mt-3" id="logoutBtn">
+      <i class="bi bi-box-arrow-right"></i>
       <span>Logout</span>
     </a>
-    <div class="version-info">
-      Admin Console v2.1.0 · <?= date('Y') ?>
+    
+    <div class="version-info mt-2">
+      <span>Admin Console, v1.0</span>
     </div>
   </div>
 </aside>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="logoutModalLabel">
+          <i class="bi bi-box-arrow-right me-2"></i> Confirm Logout
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex align-items-center mb-3">
+          <i class="bi bi-question-circle-fill text-danger me-3" style="font-size: 2rem;"></i>
+          <div>
+            <p class="mb-1">Are you sure you want to log out of your account?</p>
+            <p class="text-muted mb-0">You will need to log in again to access the admin panel.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <a href="controllers/app.php?action=logout" class="btn btn-danger">
+          <i class="bi bi-box-arrow-right me-1"></i> Yes, Log Out
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Sidebar Overlay for Mobile -->
 <div class="sidebar-overlay"></div>
@@ -594,10 +812,12 @@ if (!empty($profile_pic)) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Mobile toggle functionality
-  const mobileToggle = document.querySelector('.mobile-toggle');
+  const mobileToggle = document.querySelector('.mobile-header .mobile-toggle');
+  const headerToggle = document.getElementById('sidebarToggle'); // Get header toggle button if it exists
   const sidebar = document.getElementById('sidebar');
   const overlay = document.querySelector('.sidebar-overlay');
   
+  // Mobile header toggle button
   if (mobileToggle) {
     mobileToggle.addEventListener('click', function() {
       sidebar.classList.toggle('show');
@@ -605,11 +825,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Header toggle button (if it exists from header.php)
+  if (headerToggle) {
+    headerToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('show');
+      overlay.classList.toggle('active');
+    });
+  }
+  
   // Close sidebar when clicking overlay
-  overlay.addEventListener('click', function() {
-    sidebar.classList.remove('show');
-    overlay.classList.remove('active');
-  });
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('show');
+      overlay.classList.remove('active');
+    });
+  }
   
   // Auto-expand active submenus
   document.querySelectorAll('.nav-item.active').forEach(item => {
@@ -647,21 +877,102 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Update last login time display
+  // Function to update last login time
   function updateLastLoginTime() {
-    const now = new Date();
-    const options = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    };
-    document.getElementById('lastLoginTime').textContent = 'Last login: ' + now.toLocaleDateString('en-US', options);
+    const lastLoginElement = document.getElementById('lastLoginTime');
+    if (!lastLoginElement) return;
+    
+    // If it's a PHP timestamp, format it as "X minutes/hours ago"
+    const loginTime = '<?php echo $last_login ? date('c', strtotime($last_login)) : ''; ?>';
+    if (loginTime) {
+        const loginDate = new Date(loginTime);
+        const now = new Date();
+        const diffMs = now - loginDate;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) {
+            lastLoginElement.textContent = 'Just now';
+        } else if (diffMins < 60) {
+            lastLoginElement.textContent = diffMins + ' minute' + (diffMins > 1 ? 's' : '') + ' ago';
+        } else if (diffMins < 1440) {
+            const hours = Math.floor(diffMins / 60);
+            lastLoginElement.textContent = hours + ' hour' + (hours > 1 ? 's' : '') + ' ago';
+        } else {
+            const days = Math.floor(diffMins / 1440);
+            lastLoginElement.textContent = days + ' day' + (days > 1 ? 's' : '') + ' ago';
+        }
+    }
   }
+  
+  // Call once and set up interval
   updateLastLoginTime();
-  setInterval(updateLastLoginTime, 1000);
+  setInterval(updateLastLoginTime, 60000); // Update every minute
+  
+  // Initialize theme from localStorage
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-bs-theme', currentTheme);
+  
+  // Apply initial theme styles
+  updateThemeSpecificElements(currentTheme);
+  
+  // Listen for theme changes
+  document.addEventListener('themeChanged', function(e) {
+    // Update theme-specific elements when theme changes
+    updateThemeSpecificElements(e.detail.theme);
+    console.log('Theme changed to:', e.detail.theme);
+  });
+  
+  // Function to update theme-specific elements that might not be covered by CSS variables
+  function updateThemeSpecificElements(theme) {
+    // Update any elements that need manual adjustment
+    const isDark = theme === 'dark';
+    
+    // Update background colors for elements that might have hardcoded colors
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      if (isDark) {
+        // Remove any bg-white or bg-light classes on main content
+        mainContent.classList.remove('bg-white', 'bg-light');
+      }
+    }
+    
+    // Find all bg-white elements in the page and update them for dark mode
+    const bgWhiteElements = document.querySelectorAll('.bg-white');
+    bgWhiteElements.forEach(el => {
+      if (isDark) {
+        el.classList.remove('bg-white');
+        el.classList.add('bg-dark-subtle');
+      } else {
+        el.classList.remove('bg-dark-subtle');
+        el.classList.add('bg-white');
+      }
+    });
+    
+    // Adjust border colors
+    const borderElements = document.querySelectorAll('.border, .border-top, .border-bottom, .border-start, .border-end');
+    borderElements.forEach(el => {
+      if (isDark) {
+        // Add a dark border class or adjust inline style if needed
+        el.style.borderColor = 'var(--sidebar-border)';
+      } else {
+        // Reset to default
+        el.style.borderColor = '';
+      }
+    });
+  }
+});
+</script>
+<!-- Additional script for logout modal -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Logout button functionality
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+      logoutModal.show();
+    });
+  }
 });
 </script>
