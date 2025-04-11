@@ -65,114 +65,33 @@ try {
 $positions = [];
 if ($currentElection && !$hasVoted) {
     try {
-        // Fetch positions and candidates in a single query
-        $positionsSql = "
-            SELECT p.positionID, p.title, p.description, p.maxVotes, p.display_order,
-                   c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
-                   s.name, s.department, s.profilePicture
-            FROM positions p 
-            LEFT JOIN candidates c ON p.positionID = c.positionID AND c.status = 'Approved'
-            LEFT JOIN students s ON c.studentID = s.studentID
-            WHERE p.electionID = ? 
-            ORDER BY p.display_order, p.positionID ASC, s.name ASC
-        ";
-        $positionsStmt = $conn->prepare($positionsSql);
-        $positionsStmt->bind_param("i", $currentElection['electionID']);
-        $positionsStmt->execute();
-        $result = $positionsStmt->get_result();
-        $positionsStmt->close();
+        // Get positions for current election - IMPROVED QUERY
+        $stmt = $conn->prepare("
+            SELECT positionID, title, description, maxVotes
+            FROM positions 
+            WHERE electionID = ?
+            ORDER BY display_order, positionID ASC
+        ");
+        $stmt->bind_param('i', $currentElection['electionID']);
+        $stmt->execute();
+        $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
 
-        // Process the results
-        $positions = [];
-        $seenPositions = [];
-        while ($row = $result->fetch_assoc()) {
-            $positionID = $row['positionID'];
-            $lowerTitle = strtolower($row['title']);
-            
-            // Create candidate array if we have candidate data
-            $candidate = null;
-            if ($row['candidateID']) {
-                $candidate = [
-                    'candidateID' => $row['candidateID'],
-                    'studentID' => $row['studentID'],
-                    'photo' => $row['photo'],
-                    'manifesto' => $row['manifesto'],
-                    'status' => $row['status'],
-                    'name' => $row['name'],
-                    'department' => $row['department'],
-                    'profilePicture' => $row['profilePicture']
-                ];
-            }
-
-            if (!isset($seenPositions[$lowerTitle])) {
-                // New position
-                $position = [
-                    'positionID' => $positionID,
-                    'title' => $row['title'],
-                    'description' => $row['description'],
-                    'maxVotes' => $row['maxVotes'],
-                    'display_order' => $row['display_order'],
-                    'candidates' => $candidate ? [$candidate] : []
-                ];
-                $positions[] = $position;
-                $seenPositions[$lowerTitle] = count($positions) - 1;
-            } else {
-                // Existing position, add candidate if we have one
-                if ($candidate) {
-                    $positions[$seenPositions[$lowerTitle]]['candidates'][] = $candidate;
-                }
-            }
-        }
-
-        // Sort positions by display_order
-        usort($positions, function($a, $b) {
-            return $a['display_order'] - $b['display_order'];
-        });
-
-        // Debug positions
-        foreach ($positions as $position) {
-            error_log("Final Position: {$position['title']} - Candidates: " . count($position['candidates']));
-        }
-
-        // First, let's check for exact duplicates in the database
-        $positionTitles = [];
-        foreach ($positions as $position) {
-            $positionTitles[] = $position['title'];
-        }
-        $duplicateTitles = array_diff_assoc($positionTitles, array_unique($positionTitles));
-        if (!empty($duplicateTitles)) {
-            error_log("Found duplicate titles in database: " . json_encode($duplicateTitles));
-        }
-
-        // Deduplicate positions by title (case-insensitive) and ensure proper order
+        // Filter out duplicate positions by title (case-insensitive)
         $uniquePositions = [];
-        $seenPositionTitles = [];
-
+        $seenTitles = [];
         foreach ($positions as $position) {
-            $lowerTitle = strtolower(trim($position['title']));
-            if (!in_array($lowerTitle, $seenPositionTitles)) {
-                $seenPositionTitles[] = $lowerTitle;
+            $title = strtolower($position['title']);
+            if (!isset($seenTitles[$title])) {
                 $uniquePositions[] = $position;
-            } else {
-                // If we find a duplicate, merge its candidates with the existing position
-                $existingIndex = array_search($lowerTitle, array_map('strtolower', array_column($uniquePositions, 'title')));
-                if ($existingIndex !== false && isset($position['candidates'])) {
-                    $uniquePositions[$existingIndex]['candidates'] = array_merge(
-                        $uniquePositions[$existingIndex]['candidates'] ?? [],
-                        $position['candidates']
-                    );
-                }
+                $seenTitles[$title] = true;
             }
         }
-
         $positions = $uniquePositions;
 
-        // Debug positions after deduplication
-        error_log("Final positions after deduplication: " . json_encode($positions));
-
-        // Get candidates for each position
+        // Get candidates for each position - IMPROVED QUERY
         foreach ($positions as &$position) {
-            if (!isset($position['candidates'])) {
+            // Use a clearer query that avoids potential issues with status
             $stmt = $conn->prepare("
                 SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
                        s.name, s.department, s.profilePicture
@@ -186,146 +105,9 @@ if ($currentElection && !$hasVoted) {
             $stmt->execute();
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
-            }
             
             // For debugging
             error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($position['candidates']));
-        }
-
-        // First, let's check the database directly for duplicate positions
-        $checkDuplicatesSql = "
-            SELECT title, COUNT(*) as count 
-            FROM positions 
-            WHERE electionID = ? 
-            GROUP BY LOWER(title) 
-            HAVING count > 1
-        ";
-        $checkDuplicatesStmt = $conn->prepare($checkDuplicatesSql);
-        $checkDuplicatesStmt->bind_param("i", $currentElection['electionID']);
-        $checkDuplicatesStmt->execute();
-        $duplicates = $checkDuplicatesStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $checkDuplicatesStmt->close();
-
-        if (!empty($duplicates)) {
-            error_log("Found duplicate positions in database: " . json_encode($duplicates));
-            // If we find duplicates, we need to clean them up
-            foreach ($duplicates as $duplicate) {
-                // For each duplicate title, keep the one with the lowest positionID and merge candidates
-                $title = $duplicate['title'];
-                
-                // Get all positions with this title
-                $getDuplicatesSql = "
-                    SELECT positionID, title 
-                    FROM positions 
-                    WHERE electionID = ? 
-                    AND LOWER(title) = LOWER(?)
-                    ORDER BY positionID ASC
-                ";
-                $getDuplicatesStmt = $conn->prepare($getDuplicatesSql);
-                $getDuplicatesStmt->bind_param("is", $currentElection['electionID'], $title);
-                $getDuplicatesStmt->execute();
-                $duplicatePositions = $getDuplicatesStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-                $getDuplicatesStmt->close();
-                
-                if (count($duplicatePositions) > 1) {
-                    // Keep the first one (lowest positionID)
-                    $keepPositionID = $duplicatePositions[0]['positionID'];
-                    
-                    // Update candidates from other positions to point to the kept position
-                    $updateCandidatesSql = "
-                        UPDATE candidates 
-                        SET positionID = ? 
-                        WHERE positionID IN (
-                            SELECT positionID 
-                            FROM positions 
-                            WHERE electionID = ? 
-                            AND LOWER(title) = LOWER(?)
-                            AND positionID != ?
-                        )
-                    ";
-                    $updateCandidatesStmt = $conn->prepare($updateCandidatesSql);
-                    $updateCandidatesStmt->bind_param("iisi", $keepPositionID, $currentElection['electionID'], $title, $keepPositionID);
-                    $updateCandidatesStmt->execute();
-                    $updateCandidatesStmt->close();
-                    
-                    // Delete the duplicate positions
-                    $deleteDuplicatesSql = "
-                        DELETE FROM positions 
-                        WHERE electionID = ? 
-                        AND LOWER(title) = LOWER(?) 
-                        AND positionID != ?
-                    ";
-                    $deleteDuplicatesStmt = $conn->prepare($deleteDuplicatesSql);
-                    $deleteDuplicatesStmt->bind_param("isi", $currentElection['electionID'], $title, $keepPositionID);
-                    $deleteDuplicatesStmt->execute();
-                    $deleteDuplicatesStmt->close();
-                }
-            }
-        }
-
-        // Now fetch positions again after cleanup
-        $positionsSql = "
-            SELECT DISTINCT p.positionID, p.title, p.description, p.maxVotes, p.display_order 
-            FROM positions p 
-            WHERE p.electionID = ? 
-            ORDER BY p.display_order, p.positionID ASC
-        ";
-        $positionsStmt = $conn->prepare($positionsSql);
-        $positionsStmt->bind_param("i", $currentElection['electionID']);
-        $positionsStmt->execute();
-        $positions = $positionsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $positionsStmt->close();
-
-        // Get candidates for each position
-        foreach ($positions as $key => $position) {
-            $stmt = $conn->prepare("
-                SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
-                       s.name, s.department, s.profilePicture
-                FROM candidates c
-                JOIN students s ON c.studentID = s.studentID
-                WHERE c.positionID = ? 
-                AND c.status = 'Approved'
-                ORDER BY s.name ASC
-            ");
-            $stmt->bind_param('i', $position['positionID']);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $candidates = $result->fetch_all(MYSQLI_ASSOC);
-            $positions[$key]['candidates'] = $candidates;
-            $stmt->close();
-            
-            // For debugging
-            error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($candidates));
-        }
-
-        // Double check for any remaining duplicates in memory and merge candidates
-        $seenPositionTitles = [];
-        $uniquePositions = [];
-        foreach ($positions as $position) {
-            $lowerTitle = strtolower($position['title']);
-            if (!in_array($lowerTitle, $seenPositionTitles)) {
-                $seenPositionTitles[] = $lowerTitle;
-                $uniquePositions[] = $position;
-            } else {
-                // If we find a duplicate, merge its candidates with the existing position
-                $existingIndex = array_search($lowerTitle, array_map('strtolower', array_column($uniquePositions, 'title')));
-                if ($existingIndex !== false && isset($position['candidates'])) {
-                    if (!isset($uniquePositions[$existingIndex]['candidates'])) {
-                        $uniquePositions[$existingIndex]['candidates'] = [];
-                    }
-                    $uniquePositions[$existingIndex]['candidates'] = array_merge(
-                        $uniquePositions[$existingIndex]['candidates'],
-                        $position['candidates']
-                    );
-                }
-            }
-        }
-
-        $positions = $uniquePositions;
-
-        // Debug positions after final processing
-        foreach ($positions as $position) {
-            error_log("Final Position: {$position['title']} - Candidates: " . count($position['candidates'] ?? []));
         }
     } catch (Exception $e) {
         error_log("Positions fetch error: " . $e->getMessage());
@@ -2219,7 +2001,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         </div>
                                         <div class="row g-3">
                                             <?php
-                                        
+                                            // Get top candidates by vote count - SIMPLIFIED QUERY
                                             $topCandidatesQuery = "
                                                 SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
                                                        p.title as position, COUNT(v.voteID) as voteCount
@@ -2257,7 +2039,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                             </div>
                                                             <div class="candidate-main">
                                                                 <?php 
-                                                              
+                                                                // First check for candidate photo in uploads/candidates directory
                                                                 $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
                                                                 $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
                                                                 
@@ -2356,7 +2138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <?php foreach ($position['candidates'] as $candidate): ?>
                             <div class="col-md-6 col-lg-4 col-xl-3">
                                 <div class="candidate-card h-100 shadow-sm rounded-3 overflow-hidden position-relative"
-                                     data-max-votes="<?= $position['maxVotes'] ?>">
+                                     onclick="selectCandidate(this, <?= $position['positionID'] ?>, <?= $candidate['candidateID'] ?>, <?= $position['maxVotes'] ?>)">
                                     <div class="bg-light p-3 text-center position-relative">
                                         <div class="avatar-container mx-auto mb-3 position-relative">
                                             <?php 
@@ -2599,7 +2381,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
-         document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             // Initialize theme from localStorage
             const currentTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', currentTheme);
@@ -2630,21 +2412,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 }
             });
             
-            // Add click handlers to candidate cards
+            // Set checkbox state when candidate card is clicked
             document.querySelectorAll('.candidate-card').forEach(card => {
                 card.addEventListener('click', function(e) {
-                    // Don't process clicks on links or buttons
-                    if (e.target.closest('a') || e.target.closest('button')) {
+                    // Only process click on the card itself, not on its children
+                    if (e.target.closest('.manifesto-btn') || e.target.closest('a') || e.target.tagName === 'INPUT') {
                         return;
                     }
                     
+                    // Find the checkbox
                     const checkbox = this.querySelector('input[type="checkbox"]');
-                    const positionId = checkbox.name.split('_')[1];
-                    const maxVotes = parseInt(this.getAttribute('data-max-votes') || '1');
+                    const isMultiple = checkbox.getAttribute('data-multiple') === 'true';
+                    const positionId = checkbox.getAttribute('data-position');
                     
                     // If it's not a multiple selection position, uncheck all other checkboxes in this group
-                    if (maxVotes === 1) {
-                        document.querySelectorAll(`input[name="position_${positionId}[]"]`).forEach(cb => {
+                    if (!isMultiple) {
+                        document.querySelectorAll(`input[data-position="${positionId}"]`).forEach(cb => {
                             if (cb !== checkbox) {
                                 cb.checked = false;
                                 cb.closest('.candidate-card').classList.remove('selected');
@@ -2659,8 +2442,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     this.classList.toggle('selected', checkbox.checked);
                     
                     // Enforce max votes if needed
-                    if (maxVotes > 1) {
-                        const checkedBoxes = document.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
+                    if (isMultiple) {
+                        const maxVotes = parseInt(checkbox.getAttribute('data-max-votes'));
+                        const checkedBoxes = document.querySelectorAll(`input[data-position="${positionId}"]:checked`).length;
                         
                         if (checkedBoxes > maxVotes) {
                             checkbox.checked = false;
@@ -2679,12 +2463,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             `;
                             
                             // Find the position container and insert alert
-                            const positionContainer = this.closest('.position-section');
+                            const positionContainer = this.closest('.position-container');
                             if (positionContainer) {
                                 if (positionContainer.querySelector('.alert')) {
                                     positionContainer.querySelector('.alert').remove();
                                 }
-                                positionContainer.querySelector('.row').before(alertDiv);
+                                positionContainer.querySelector('.candidates-row').before(alertDiv);
                                 
                                 // Auto dismiss after 3 seconds
                                 setTimeout(() => {
@@ -2699,200 +2483,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 });
             });
             
-            // Handle vote button click
-            const voteBtn = document.getElementById('voteBtn');
-            if (voteBtn) {
-                voteBtn.addEventListener('click', function() {
-                    // Validate selections
-                    const positions = document.querySelectorAll('.position-section');
-                    let isValid = true;
-                    let missingPositions = [];
+            // Handle manifesto button click to open modal
+            document.querySelectorAll('.manifesto-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    positions.forEach(position => {
-                        const checkboxes = position.querySelectorAll('input[type="checkbox"]');
-                        if (checkboxes.length > 0) {  // Only validate if position has candidates
-                            const positionId = checkboxes[0].name.split('_')[1];
-                            const selectedCandidates = position.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
-                            
-                            if (selectedCandidates === 0) {
-                                isValid = false;
-                                const positionTitle = position.querySelector('h3').textContent.trim();
-                                missingPositions.push(positionTitle);
-                            }
-                        }
-                    });
+                    const candidateName = this.getAttribute('data-name');
+                    const candidateManifesto = this.getAttribute('data-manifesto');
                     
-                    if (!isValid) {
-                        // Show error alert
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-                        alertDiv.setAttribute('role', 'alert');
-                        alertDiv.innerHTML = `
-                            <i class="bi bi-exclamation-triangle-fill"></i> Please select candidates for the following positions: ${missingPositions.join(', ')}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        `;
-                        
-                        const votingCard = document.querySelector('.voting-card');
-                        if (votingCard) {
-                            if (votingCard.querySelector('.alert')) {
-                                votingCard.querySelector('.alert').remove();
-                            }
-                            votingCard.querySelector('.card-body').prepend(alertDiv);
-                        }
-                        return;
-                    }
+                    // Update modal content
+                    const modal = document.getElementById('manifestoModal');
+                    modal.querySelector('.modal-title').textContent = `${candidateName}'s Manifesto`;
+                    modal.querySelector('.modal-body').innerHTML = `<p>${candidateManifesto || 'No manifesto available.'}</p>`;
                     
-                    // Show confirmation modal
-                    const confirmationModal = new bootstrap.Modal(document.getElementById('voteConfirmationModal'));
-                    confirmationModal.show();
-                    
-                    // Update vote summary
-                    const summaryDiv = document.getElementById('voteReviewSummary');
-                    if (summaryDiv) {
-                        let summaryHTML = '<div class="list-group">';
-                        positions.forEach(position => {
-                            const positionTitle = position.querySelector('h3').textContent;
-                            const selectedCandidates = position.querySelectorAll('input[type="checkbox"]:checked');
-                            
-                            if (selectedCandidates.length > 0) {
-                                summaryHTML += `<div class="list-group-item">
-                                    <h6 class="mb-1">${positionTitle}</h6>
-                                    <p class="mb-0">`;
-                                
-                                selectedCandidates.forEach(candidate => {
-                                    const candidateCard = candidate.closest('.candidate-card');
-                                    const candidateName = candidateCard.querySelector('.candidate-name').textContent;
-                                    summaryHTML += `${candidateName}<br>`;
-                                });
-                                
-                                summaryHTML += '</p></div>';
-                            }
-                        });
-                        summaryHTML += '</div>';
-                        summaryDiv.innerHTML = summaryHTML;
-                    }
+                    // Show modal
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
                 });
-            }
+            });
             
-            // Handle final submission
-            const finalSubmitBtn = document.getElementById('finalSubmitBtn');
-            if (finalSubmitBtn) {
-                finalSubmitBtn.addEventListener('click', function() {
-                    const form = document.getElementById('votingForm');
-                    if (form) {
-                        // Validate selections one last time
-                        const positions = document.querySelectorAll('.position-section');
+            // Vote form validation
+            const voteForm = document.getElementById('voteForm');
+            if (voteForm) {
+                voteForm.addEventListener('submit', function(e) {
+                    // Check if at least one candidate is selected for each position
+                    const positionContainers = document.querySelectorAll('.position-container');
                     let isValid = true;
-                        let missingPositions = [];
-                        
-                        positions.forEach(position => {
-                            const checkboxes = position.querySelectorAll('input[type="checkbox"]');
-                            if (checkboxes.length > 0) {  // Only validate if position has candidates
-                                const positionId = checkboxes[0].name.split('_')[1];
-                                const selectedCandidates = position.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
+                    
+                    positionContainers.forEach(container => {
+                        const positionId = container.getAttribute('data-position-id');
+                        const selectedCandidates = container.querySelectorAll(`input[data-position="${positionId}"]:checked`).length;
                         
                         if (selectedCandidates === 0) {
                             isValid = false;
-                                    const positionTitle = position.querySelector('h3').textContent.trim();
-                                    missingPositions.push(positionTitle);
-                                }
-                            }
-                        });
-                        
-                        if (!isValid) {
-                            // Hide the confirmation modal
-                            const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('voteConfirmationModal'));
-                            confirmationModal.hide();
                             
-                            // Show error alert
+                            // Add error message
+                            if (!container.querySelector('.alert')) {
                                 const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                                alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
                                 alertDiv.setAttribute('role', 'alert');
                                 alertDiv.innerHTML = `
-                                <i class="bi bi-exclamation-triangle-fill"></i> Please select candidates for the following positions: ${missingPositions.join(', ')}
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Please select at least one candidate for this position.
                                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 `;
                                 
-                            const votingCard = document.querySelector('.voting-card');
-                            if (votingCard) {
-                                if (votingCard.querySelector('.alert')) {
-                                    votingCard.querySelector('.alert').remove();
-                                }
-                                votingCard.querySelector('.card-body').prepend(alertDiv);
-                            }
-                            return;
-                        }
-                        
-                        // Add submit_vote parameter
-                        const submitInput = document.createElement('input');
-                        submitInput.type = 'hidden';
-                        submitInput.name = 'submit_vote';
-                        submitInput.value = '1';
-                        form.appendChild(submitInput);
-                        
-                        // Show loading state
-                        this.disabled = true;
-                        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
-                        
-                        // Submit the form
-                        form.submit();
-                    }
-                });
-            }
-
-            // Handle form submission
-            const votingForm = document.getElementById('votingForm');
-            if (votingForm) {
-                votingForm.addEventListener('submit', function(e) {
-                    // Always prevent default submission - we'll handle it through the finalSubmitBtn
-                        e.preventDefault();
-                    
-                    // Validate selections
-                    const positions = document.querySelectorAll('.position-section');
-                    let isValid = true;
-                    let missingPositions = [];
-                    
-                    positions.forEach(position => {
-                        const checkboxes = position.querySelectorAll('input[type="checkbox"]');
-                        if (checkboxes.length > 0) {  // Only validate if position has candidates
-                            const positionId = checkboxes[0].name.split('_')[1];
-                            const selectedCandidates = position.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
-                            
-                            if (selectedCandidates === 0) {
-                                isValid = false;
-                                const positionTitle = position.querySelector('h3').textContent.trim();
-                                missingPositions.push(positionTitle);
+                                container.querySelector('.candidates-row').before(alertDiv);
                             }
                         }
                     });
                     
                     if (!isValid) {
-                        // Show error alert
-                        const alertDiv = document.createElement('div');
-                        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-                        alertDiv.setAttribute('role', 'alert');
-                        alertDiv.innerHTML = `
-                            <i class="bi bi-exclamation-triangle-fill"></i> Please select candidates for the following positions: ${missingPositions.join(', ')}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        `;
-                        
-                        const votingCard = document.querySelector('.voting-card');
-                        if (votingCard) {
-                            if (votingCard.querySelector('.alert')) {
-                                votingCard.querySelector('.alert').remove();
-                            }
-                            votingCard.querySelector('.card-body').prepend(alertDiv);
+                        e.preventDefault();
+                        // Scroll to the first error
+                        const firstError = document.querySelector('.alert-danger');
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }
-                        return;
+                    } else {
+                        // Show loading state
+                        const submitBtn = voteForm.querySelector('button[type="submit"]');
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
                     }
-                    
-                    // Show confirmation modal
-                    const confirmationModal = new bootstrap.Modal(document.getElementById('voteConfirmationModal'));
-                    confirmationModal.show();
                 });
             }
         });
-
-       </script>
+    </script>
 </body>
 </html>

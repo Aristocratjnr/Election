@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Notification system with refresh handling
     let lastNotificationCheck = 0;
     const NOTIFICATION_CACHE_TIME = 30000; // 30 seconds
+    const notificationSound = new Audio('assets/audio/sounds/notification.mp3');
 
     async function loadNotifications(refresh = false) {
         try {
@@ -324,18 +325,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             lastNotificationCheck = now;
             
-            const response = await fetch('notification_handler.php?offset=0');
+            const response = await fetch('api/notification_count.php');
             if (!response.ok) throw new Error('Network error');
             
             const data = await response.json();
             
             if (data.success) {
-                updateNotificationBadge(data.total);
-                renderNotifications(data.notifications);
-                setupAutoRefresh();
+                const previousCount = parseInt(document.querySelector('.notification-count').textContent || '0');
+                const newCount = data.count;
                 
-                // Check for votes cast
-                checkVoteCast();
+                // Update badge
+                updateNotificationBadge(newCount);
+                
+                // Play sound if new notifications
+                if (newCount > previousCount) {
+                    notificationSound.play().catch(e => console.log('Sound play failed:', e));
+                }
             }
         } catch (error) {
             console.error('Notification error:', error);
@@ -366,88 +371,20 @@ document.addEventListener('DOMContentLoaded', function() {
         countElement.dataset.prevCount = count;
     }
 
-    function renderNotifications(notifications) {
-        const container = document.getElementById('notificationsContainer');
-        if (!container) return;
-        
-        container.innerHTML = notifications.map(notif => `
-            <div class="notification-item ${notif.bg_class} p-3 mb-2 rounded">
-                <div class="d-flex align-items-center">
-                    <i class="bi ${notif.icon} ${notif.badge_class} p-2 rounded-circle me-3"></i>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">${notif.title || 'New Notification'}</h6>
-                        <p class="mb-0 small">${notif.message}</p>
-                    </div>
-                    <span class="text-muted small">${notif.time_ago}</span>
-                </div>
-                ${notif.related_election ? `<div class="mt-2 small">
-                    <i class="bi bi-calendar-event"></i> ${notif.election_name}
-                </div>` : ''}
-            </div>
-        `).join('');
-    }
-
-    function setupAutoRefresh() {
-        // Refresh when page becomes visible
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                loadNotifications(true);
-            }
-        });
-        
-        // Periodic refresh (every 2 minutes)
-        setInterval(() => {
-            if (!document.hidden) {
-                loadNotifications(true);
-            }
-        }, 120000);
-    }
-
-    // Function to check if student has cast votes
-    async function checkVoteCast() {
-        try {
-            const response = await fetch('vote_status_check.php');
-            if (!response.ok) throw new Error('Network error');
-            
-            const data = await response.json();
-            
-            if (data.success && data.has_voted) {
-                // Update the notification badge to include vote count
-                const currentCount = parseInt(document.querySelector('.notification-count').textContent || '0');
-                updateNotificationBadge(currentCount + data.vote_count);
-                
-                // Add vote notification to the notification list if not already present
-                if (data.vote_count > 0) {
-                    const container = document.getElementById('notificationsContainer');
-                    if (container && !document.querySelector('.vote-notification')) {
-                        const voteNotification = document.createElement('div');
-                        voteNotification.className = 'notification-item bg-light-success p-3 mb-2 rounded vote-notification';
-                        voteNotification.innerHTML = `
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-check-circle-fill text-success p-2 rounded-circle me-3"></i>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">Vote Cast Successfully</h6>
-                                    <p class="mb-0 small">You have cast ${data.vote_count} vote(s) in ${data.election_name}</p>
-                                </div>
-                                <span class="text-muted small">Just now</span>
-                            </div>
-                        `;
-                        container.prepend(voteNotification);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Vote status check error:', error);
-        }
-    }
-
     // Initial load
     document.addEventListener('DOMContentLoaded', () => {
         loadNotifications();
         
-        // Also load when navigating back to page
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
+        // Check for new notifications every 30 seconds
+        setInterval(() => {
+            if (!document.hidden) {
+                loadNotifications(true);
+            }
+        }, 30000);
+        
+        // Also check when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
                 loadNotifications(true);
             }
         });
