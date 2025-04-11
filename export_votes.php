@@ -46,15 +46,16 @@ $voteData = [];
 $totalVotes = 0;
 $uniqueVoters = 0;
 
-// Get all votes for this election
+// Get all votes for this election - FIXED QUERY
 $votesQuery = "
     SELECT v.voteID, v.timestamp, 
            s.studentID, s.name as voterName, s.department as voterDepartment,
-           c.candidateID, c.position,
+           c.candidateID, p.title as position,
            st.name as candidateName, st.profilePicture as candidatePhoto
     FROM votes v
     JOIN students s ON v.studentID = s.studentID
     JOIN candidates c ON v.candidateID = c.candidateID
+    JOIN positions p ON c.positionID = p.positionID
     JOIN students st ON c.studentID = st.studentID
     WHERE v.electionID = ?
     ORDER BY v.timestamp DESC
@@ -334,4 +335,4 @@ switch ($exportFormat) {
     default:
         header('Location: voters.php?election=' . $electionID);
         exit();
-} 
+}
