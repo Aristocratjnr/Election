@@ -30,7 +30,40 @@ if ($electionID) {
     $electionStmt->execute();
     $electionDetails = $electionStmt->get_result()->fetch_assoc();
 
-    // Get all votes for this election
+    // Modified query to get all candidates for this election with their vote counts
+    $candidatesQuery = "
+        SELECT c.candidateID, 
+               st.name as candidateName, 
+               st.profilePicture as candidatePhoto,
+               p.title as position,
+               c.manifesto
+        FROM candidates c
+        JOIN students st ON c.studentID = st.studentID
+        JOIN positions p ON c.positionID = p.positionID
+        WHERE p.electionID = ? AND c.status = 'Approved'
+        ORDER BY p.display_order, p.positionID, st.name
+    ";
+    
+    $candidatesStmt = $conn->prepare($candidatesQuery);
+    $candidatesStmt->bind_param("i", $electionID);
+    $candidatesStmt->execute();
+    $candidatesResult = $candidatesStmt->get_result();
+    
+    // Initialize voteData with all candidates (including those with zero votes)
+    while ($candidate = $candidatesResult->fetch_assoc()) {
+        if (!isset($voteData[$candidate['candidateID']])) {
+            $voteData[$candidate['candidateID']] = [
+                'candidateID' => $candidate['candidateID'],
+                'candidateName' => $candidate['candidateName'],
+                'position' => $candidate['position'],
+                'photo' => $candidate['candidatePhoto'],
+                'votes' => [],
+                'voteCount' => 0
+            ];
+        }
+    }
+    
+    // Now get all votes for this election to add to the candidate data
     $votesQuery = "
         SELECT v.voteID, v.timestamp, 
                s.studentID, s.name as voterName, s.department as voterDepartment, s.profilePicture as voterPhoto,
@@ -50,21 +83,13 @@ if ($electionID) {
     $votesStmt->execute();
     $votesResult = $votesStmt->get_result();
     
-    // Group votes by candidate
+    // Add votes to the candidates
     while ($vote = $votesResult->fetch_assoc()) {
-        if (!isset($voteData[$vote['candidateID']])) {
-            $voteData[$vote['candidateID']] = [
-                'candidateID' => $vote['candidateID'],
-                'candidateName' => $vote['candidateName'],
-                'position' => $vote['position'],
-                'photo' => $vote['candidatePhoto'],
-                'votes' => [],
-                'voteCount' => 0
-            ];
+        if (isset($voteData[$vote['candidateID']])) {
+            $voteData[$vote['candidateID']]['votes'][] = $vote;
+            $voteData[$vote['candidateID']]['voteCount']++;
+            $totalVotes++;
         }
-        $voteData[$vote['candidateID']]['votes'][] = $vote;
-        $voteData[$vote['candidateID']]['voteCount']++;
-        $totalVotes++;
     }
 
     // Get unique voters count
