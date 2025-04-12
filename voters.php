@@ -1033,14 +1033,27 @@ if ($electionID) {
                                                                     // Calculate votes by department
                                                                     $departments = [];
                                                                     foreach ($candidate['votes'] as $vote) {
-                                                                        $dept = $vote['voterDepartment'];
-                                                                        if (!isset($departments[$dept])) {
-                                                                            $departments[$dept] = 0;
+                                                                        if (isset($vote['voterDepartment'])) {
+                                                                            $dept = $vote['voterDepartment'];
+                                                                            if (!isset($departments[$dept])) {
+                                                                                $departments[$dept] = 0;
+                                                                            }
+                                                                            $departments[$dept]++;
                                                                         }
-                                                                        $departments[$dept]++;
                                                                     }
-                                                                    arsort($departments);
-                                                                    $topDept = empty($departments) ? 'None' : array_key_first($departments);
+                                                                    
+                                                                    // Set a default department if none exists
+                                                                    $topDept = 'None';
+                                                                    
+                                                                    // Only try to get top department if we have data
+                                                                    if (!empty($departments)) {
+                                                                        arsort($departments);
+                                                                        // Get first key safely using array_keys
+                                                                        $deptKeys = array_keys($departments);
+                                                                        if (!empty($deptKeys)) {
+                                                                            $topDept = $deptKeys[0];
+                                                                        }
+                                                                    }
                                                                     ?>
                                                                     <h5 class="text-primary mb-1"><?php echo htmlspecialchars($topDept); ?></h5>
                                                                     <p class="text-muted mb-0 small">Top Department</p>

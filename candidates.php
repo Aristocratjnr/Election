@@ -10,6 +10,11 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 
 require 'configs/dbconnection.php';
 
+$topDept = 'None';
+if (!empty($departments)) {
+    reset($departments);
+    $topDept = key($departments);
+}
 
 $electionID = $_GET['election'] ?? null;
 
@@ -129,7 +134,8 @@ $positions = $conn->query($positionsQuery);
 
 // Base query for candidates
 $candidatesQuery = "
-    SELECT c.*, s.name as studentName, s.profilePicture, p.title as positionTitle 
+    SELECT DISTINCT c.candidateID, c.studentID, c.positionID, c.manifesto, c.status, c.photo,
+           s.name as studentName, s.profilePicture, p.title as positionTitle 
     FROM candidates c
     JOIN students s ON c.studentID = s.studentID
     LEFT JOIN positions p ON c.positionID = p.positionID
@@ -140,8 +146,8 @@ if ($electionID) {
     $candidatesQuery .= " WHERE p.electionID = $electionID";
 }
 
-// Add sorting and grouping
-$candidatesQuery .= " GROUP BY c.candidateID ORDER BY s.name ASC";
+// Add sorting
+$candidatesQuery .= " ORDER BY s.name ASC";
 
 // Get candidates
 $candidates = $conn->query($candidatesQuery);

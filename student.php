@@ -523,6 +523,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voting Portal - SmartVote</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -762,50 +763,371 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             color: white;
         }
         
-        
-        
         .election-timer {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 30px;
-            position: relative;
+    background: #E3E9FF;
+    color: #4B5563;  /* Dark gray for better contrast */
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.15);
+    backdrop-filter: blur(8px);
+    border: 2px solid #C5D1FF;
+}
+
+.election-timer h2,
+.election-timer h3,
+.election-timer h4 {
+    color: #374151;  /* Darker gray for headings */
+    margin-bottom: 0.5rem;
+}
+
+.election-timer p {
+    color: #6B7280;  /* Medium gray for regular text */
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .election-title {
+    color: #4B5563;  /* Dark gray for title */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.election-timer .election-date {
+    color: #6B7280;  /* Medium gray for dates */
+    font-size: 0.95rem;
+}
+
+.election-timer .election-status {
+    color: #6B7280;  /* Medium gray for status */
+    font-weight: 500;
+}
+
+.timer-countdown {
+    color: #374151;  /* Darker gray for countdown */
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .election-timer,
+[data-bs-theme="dark"] .election-timer h2,
+[data-bs-theme="dark"] .election-timer h3,
+[data-bs-theme="dark"] .election-timer h4,
+[data-bs-theme="dark"] .election-timer p,
+[data-bs-theme="dark"] .election-timer .election-title,
+[data-bs-theme="dark"] .election-timer .election-date,
+[data-bs-theme="dark"] .election-timer .election-status,
+[data-bs-theme="dark"] .timer-countdown {
+    color: rgba(255, 255, 255, 0.9);  /* Light gray for dark theme */
+}
+
+.timer-remaining {
+    color: #4B5563;  /* Consistent gray color for the timer text */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.timer-end-date {
+    color: #4B5563;  /* Same gray for the end date */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.election-results-container h3,
+.election-results-container p {
+    color: #4B5563;  /* Consistent gray for results text */
+}
+
+.live-updates-badge {
+    color: #4B5563;  /* Same gray for live updates text */
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Additional dark theme overrides */
+[data-bs-theme="dark"] .timer-remaining,
+[data-bs-theme="dark"] .timer-end-date,
+[data-bs-theme="dark"] .election-results-container h3,
+[data-bs-theme="dark"] .election-results-container p,
+[data-bs-theme="dark"] .live-updates-badge {
+    color: #E5E7EB;  /* Light gray for dark theme */
+}
+
+.election-timer h4,
+.election-timer h5,
+.election-timer .time-remaining-text {
+    color: #6B7280;  /* Medium gray for headers and time remaining text */
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .election-date {
+    color: #6B7280;  /* Medium gray for date */
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.live-results-header {
+    color: #6B7280;  /* Medium gray for live results text */
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.live-updates-text {
+    color: #6B7280;  /* Medium gray for live updates text */
+    font-size: 0.875rem;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .election-timer h4,
+[data-bs-theme="dark"] .election-timer h5,
+[data-bs-theme="dark"] .election-timer .time-remaining-text,
+[data-bs-theme="dark"] .election-timer .election-date,
+[data-bs-theme="dark"] .live-results-header,
+[data-bs-theme="dark"] .live-updates-text {
+    color: rgba(255, 255, 255, 0.7);  /* Light gray with opacity for dark theme */
+}
+
+.election-timer .time-remaining-text {
+    color: #4B5563;  /* Dark gray for "Time Remaining" text */
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .end-date {
+    color: #4B5563;  /* Dark gray for the end date */
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.election-results-header {
+    color: #4B5563;  /* Dark gray for "Election Results" */
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.live-updates-text {
+    color: #4B5563;  /* Dark gray for "Live updates" text */
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .election-timer .time-remaining-text,
+[data-bs-theme="dark"] .election-timer .end-date,
+[data-bs-theme="dark"] .election-results-header,
+[data-bs-theme="dark"] .live-updates-text {
+    color: rgba(255, 255, 255, 0.9);  /* Light color for dark theme */
+}
+
+.election-timer .time-remaining {
+    color: #4B5563;  /* Dark gray for "Time Remaining" text */
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .end-date-text {
+    color: #4B5563;  /* Dark gray for the May 1, 2025 date */
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.election-results-section h3 {
+    color: #4B5563;  /* Dark gray for "Election Results" */
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.live-updates-indicator {
+    color: #4B5563;  /* Dark gray for "Live updates" text */
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .election-timer .time-remaining-text,
+[data-bs-theme="dark"] .election-timer .end-date-text,
+[data-bs-theme="dark"] .election-results-section h3,
+[data-bs-theme="dark"] .live-updates-indicator {
+    color: rgba(255, 255, 255, 0.9);  /* Light color for dark theme */
+}
+
+.time-remaining-text,
+.end-date-text,
+.election-results-heading,
+.live-updates-description {
+    color: #4B5563;  /* Dark gray for better visibility */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.election-results-section h3,
+.election-results-section .live-updates-text {
+    color: #4B5563;  /* Dark gray for better visibility */
+}
+
+/* Specific styles for each element */
+.time-remaining-heading {
+    color: #4B5563;  /* Dark gray */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.election-end-date {
+    color: #4B5563;  /* Dark gray */
+    font-size: 1rem;
+}
+
+.election-results-title {
+    color: #4B5563;  /* Dark gray */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.live-updates-indicator {
+    color: #4B5563;  /* Dark gray */
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .time-remaining-text,
+[data-bs-theme="dark"] .end-date-text,
+[data-bs-theme="dark"] .election-results-heading,
+[data-bs-theme="dark"] .live-updates-description,
+[data-bs-theme="dark"] .election-results-section h3,
+[data-bs-theme="dark"] .election-results-section .live-updates-text,
+[data-bs-theme="dark"] .time-remaining-heading,
+[data-bs-theme="dark"] .election-end-date,
+[data-bs-theme="dark"] .election-results-title,
+[data-bs-theme="dark"] .live-updates-indicator {
+    color: #E5E7EB;  /* Light gray for dark theme */
+}
+
+.time-remaining,
+.election-status-text,
+.election-title-text,
+.live-updates-caption {
+    color: #4B5563;  /* Consistent dark gray for text elements */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.status-text,
+.date-text {
+    color: #6B7280;  /* Medium gray for secondary text */
+    font-size: 0.95rem;
+}
+
+.timer-text {
+    color: #374151;  /* Darker gray for important text */
+    font-weight: 600;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .time-remaining,
+[data-bs-theme="dark"] .election-status-text,
+[data-bs-theme="dark"] .election-title-text,
+[data-bs-theme="dark"] .live-updates-caption,
+[data-bs-theme="dark"] .status-text,
+[data-bs-theme="dark"] .date-text,
+[data-bs-theme="dark"] .timer-text {
+    color: #E5E7EB;  /* Light gray for dark theme */
+}
+        
+        .student-details h5 {
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .student-details p {
+            font-size: 0.813rem;
+            margin-bottom: 0;
+        }
+
+        .student-info {
+            background: var(--surface);
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 10px 30px var(--shadow-color);
+            padding: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .student-details .text-muted {
+            font-size: 0.813rem;
+        }
+
+        /* Make sure text is black in light theme */
+        [data-bs-theme="light"] .election-timer,
+        [data-bs-theme="light"] .timer-countdown,
+        [data-bs-theme="light"] .counter-circle,
+        [data-bs-theme="light"] .student-details h5,
+        [data-bs-theme="light"] .student-details p {
+            color: #000000;
+        }
+
+        [data-bs-theme="light"] .student-details .text-muted {
+            color: #6c757d !important;
+        }
+
+        .counter-circle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            margin-right: 15px;
+            color: #000000;
+        }
+
+        [data-bs-theme="dark"] .counter-circle {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
         }
         
-        .election-timer::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-            opacity: 0.5;
-        }
-        
-        .timer-countdown {
+        .student-info {
+            background: var(--surface);
+            color: #2B3445;
             font-size: 2rem;
             font-weight: 700;
             font-family: 'DM Mono', monospace;
             letter-spacing: 1px;
         }
-        
+
+        [data-bs-theme="dark"] .timer-countdown {
+            color: white;
+        }
+
         .counter-circle {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.15);
+            background: rgba(67, 97, 238, 0.1);
             border-radius: 50%;
             width: 60px;
             height: 60px;
             margin-right: 15px;
+            color: #2B3445;
         }
-        
-        .counter-circle i {
-            font-size: 1.5rem;
+
+        [data-bs-theme="dark"] .counter-circle {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
         }
         
         .student-info {
@@ -1899,7 +2221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         /* Fix election timer in dark mode */
         [data-bs-theme="dark"] .election-timer {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: rgba(255, 255, 255, 0.2);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
@@ -2034,15 +2356,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             background-color: var(--surface) !important;
             border-color: var(--border) !important;
         }
+
+        /* Light theme updates */
+        [data-bs-theme="light"] .student-details h5 {
+            color: #2B3445;
+            font-size: 0.95rem;
+        }
+
+        [data-bs-theme="light"] .student-details p,
+        [data-bs-theme="light"] .student-details .text-muted {
+            color: #4B5563 !important;
+            font-size: 0.813rem;
+        }
+
+        [data-bs-theme="light"] .voting-card .card-header h2 {
+            color: #2B3445;
+        }
+
+        [data-bs-theme="light"] .text-muted {
+            color: #6B7280 !important;
+        }
+
+        [data-bs-theme="light"] p {
+            color: #4B5563;
+        }
+
+        [data-bs-theme="light"] .position-title,
+        [data-bs-theme="light"] .candidate-name,
+        [data-bs-theme="light"] h3,
+        [data-bs-theme="light"] h4,
+        [data-bs-theme="light"] h5 {
+            color: #2B3445;
+        }
+
+        /* Ensure text visibility in light theme */
+        [data-bs-theme="light"] .voting-status {
+            color: #2B3445;
+        }
+
+        /* Make the student details slightly smaller */
+        .student-details h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: inherit;
+        }
+
+        .student-details p,
+        .student-details .text-muted {
+            font-size: 0.813rem;
+            margin-bottom: 0;
+        }
+
+        .student-details .department-icon {
+            font-size: 0.875rem;
+        }
+
+        .election-title {
+            color: #4B5563;  /* Dark gray for title */
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .election-dates {
+            color: #6B7280;  /* Medium gray for dates */
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .election-status {
+            color: #6B7280;  /* Same gray for status */
+            font-weight: 500;
+        }
+
+        /* Ensure text colors in dark theme */
+        [data-bs-theme="dark"] .election-title,
+        [data-bs-theme="dark"] .election-dates,
+        [data-bs-theme="dark"] .election-status {
+            color: #E5E7EB;
+        }
     </style>
 </head>
 <body>
-    </style>
-</head>
-<body>
-   
     <?php include 'includes/header.php'; ?><br>
-   
+    
     <main class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-10 col-sm-12">
@@ -2061,6 +2459,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     </div>
                     
                     <div class="card-body p-4">
+                        <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
+                            <div class="election-timer mb-4">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="counter-circle">
+                                            <i class="bi bi-stopwatch-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h6 class="mb-2 text-white-20"><i class="bi bi-calendar-event me-1"></i> Time Remaining:</h6>
+                                        <div class="timer-countdown" id="election-countdown">
+                                            <div class="d-flex gap-2 flex-wrap justify-content-start align-items-center">
+                                                <div class="time-unit">
+                                                    <i class="bi bi-calendar2-week d-block d-sm-none mb-1"></i>
+                                                    <span id="days">00</span>
+                                                    <small></small>
+                                                </div>
+                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-unit">
+                                                    <i class="bi bi-clock d-block d-sm-none mb-1"></i>
+                                                    <span id="hours">00</span>
+                                                    <small></small>
+                                                </div>
+                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-unit">
+                                                    <i class="bi bi-alarm d-block d-sm-none mb-1"></i>
+                                                    <span id="minutes">00</span>
+                                                    <small></small>
+                                                </div>
+                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-unit">
+                                                    <i class="bi bi-stopwatch d-block d-sm-none mb-1"></i>
+                                                    <span id="seconds">00</span>
+                                                    <small></small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                         <!-- Student Info -->
                         <div class="student-info d-flex align-items-center mb-4">
                             <div class="me-3">
@@ -2133,18 +2573,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                             <div class="counter-circle me-3">
                                                 <i class="bi bi-calendar-event"></i>
                                             </div>
-                                            <h4 class="text-white mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
+                                            <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
                                         </div>
-                                        <p class="text-white-50 mb-2">
+                                        <p class="election-dates mb-2">
                                             <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
                                         </p>
                                         <div class="progress-wave mt-3"></div>
                                     </div>
                                     <div class="col-md-5 text-md-end">
-                                        <div class="timer-countdown text-white mb-1" id="countdown-timer">
+                                        <div class="timer-countdown text-white-20 mb-1" id="countdown-timer">
                                             <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
                                         </div>
-                                        <p class="text-white-50 mb-0">
+                                        <p class="election-status mb-0">
                                             <i class="bi bi-clock me-1"></i>
                                             Status: <?= $currentElection['status'] ?>
                                         </p>
@@ -2171,8 +2611,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             <div class="card-header bg-gradient-primary text-white py-3 px-4">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-0 fw-bold">Election Results</h5>
-                                        <p class="mb-0 opacity-75 small">Live updates from the voting system</p>
+                                        <h5 class="mb-0 fw-bold text-white">Election Results</h5>
+                                        <p class="mb-0 opacity-75 small text-white">Live updates from the voting system</p>
                                     </div>
                                     <div class="live-indicator">
                                         <span class="pulse-dot"></span> LIVE
@@ -2908,6 +3348,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             setInterval(checkNewNotifications, 30000);
         });
 
-       </script>
+        // Countdown Timer functionality
+        function updateCountdown() {
+            <?php if ($currentElection): ?>
+            const endDate = new Date('<?= $currentElection['endDate'] ?>').getTime();
+            const now = new Date().getTime();
+            const timeLeft = endDate - now;
+
+            if (timeLeft > 0) {
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            } else {
+                // If election has ended
+                document.getElementById('election-countdown').innerHTML = '<div class="text-center text-warning">Election has ended</div>';
+                clearInterval(countdownInterval);
+                
+                // Reload the page to update election status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+            <?php endif; ?>
+        }
+
+        // Update countdown every second
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        updateCountdown(); // Initial call to avoid delay
+    </script>
 </body>
 </html>
