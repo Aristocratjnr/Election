@@ -1102,7 +1102,7 @@ if ($electionID) {
                                                 <!-- Department - Only show if exists -->
                                                 <?php if (isset($candidate['department']) && !empty($candidate['department'])): ?>
                                                 <p class="mb-2 text-muted small">
-                                                    <i class="bi bi-building me-1"></i> 
+                                                    <i class="bi bi-buildings department-icon icon"></i> 
                                                     <?php echo htmlspecialchars($candidate['department']); ?>
                                                 </p>
                                                 <?php endif; ?>

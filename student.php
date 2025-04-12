@@ -339,9 +339,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         $error = "You cannot vote at this time.";
     } else {
         try {
-            // Do not start transaction yet - we need to check for a special case first
-            
-            // Check for existing votes - we need to know if this student has already voted
+           
             $hasVotedBefore = false;
             $checkStmt = $conn->prepare("SELECT COUNT(*) as vote_count FROM votes WHERE electionID = ? AND studentID = ?");
             $checkStmt->bind_param('ii', $currentElection['electionID'], $studentID);
@@ -351,11 +349,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 $hasVotedBefore = ($checkResult->fetch_assoc()['vote_count'] > 0);
             }
             $checkStmt->close();
-            
-            // DIRECT SQL APPROACH: If student has voted before, we need to completely delete all their votes first
+           
             if ($hasVotedBefore) {
-                // This SQL delete should happen OUTSIDE the transaction so it's guaranteed to complete
-                // before we try to insert new votes
+                
                 $deleteSQL = "DELETE FROM votes WHERE electionID = ? AND studentID = ?";
                 $deleteStmt = $conn->prepare($deleteSQL);
                 $deleteStmt->bind_param('ii', $currentElection['electionID'], $studentID);
@@ -370,7 +366,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 usleep(500000); // 0.5 seconds
             }
             
-            // NOW start the transaction for inserting new votes
             $conn->begin_transaction();
 
             // Validate selections
@@ -381,18 +376,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 }
 
                 $selectedCandidate = $_POST['vote_' . $position['positionID']];
-                // For radio buttons, the value will be a single value, not an array
+               
                 $votes[] = [
                     'electionID' => $currentElection['electionID'],
                     'candidateID' => (int)$selectedCandidate,
                     'studentID' => $studentID
                 ];
             }
-            
-            // SUPER SIMPLE APPROACH: One query, one vote record with just the first candidate
-            // This works around the unique key constraint while still registering the vote
             if (!empty($votes)) {
-                $firstVote = $votes[0]; // Just take the first vote
+                $firstVote = $votes[0]; 
                 
                 $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
                 $simpleStmt = $conn->prepare($simpleSQL);
@@ -412,8 +404,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 throw new Exception("No votes to record. Please select at least one candidate.");
             }
             
-            // Store all vote data in the results table instead
-            // This bypasses the unique key constraint by using a different table
             foreach ($votes as $vote) {
                 // Check if result entry exists
                 $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
@@ -481,8 +471,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             $stmt->execute();
             $stmt->close();
             
-            // Also insert a special tracking record to indicate this student has voted in this election
-            // This can be used for participation tracking without the unique key constraint issues
             try {
                 $conn->query("
                     CREATE TABLE IF NOT EXISTS election_participation (
@@ -506,8 +494,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 error_log("Participation tracking error: " . $e->getMessage());
             }
             
-            // Create a cache invalidation flag using a session variable
-            // instead of using the system_events table that doesn't exist
+          
             $_SESSION['vote_cache_updated'] = time();
             $_SESSION['vote_success'] = true;
             $_SESSION['vote_timestamp'] = time();

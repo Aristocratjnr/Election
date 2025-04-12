@@ -157,7 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_defaults'])) {
 // Page title
 $page_title = "UI Appearance";
 include 'includes/header.php';
-?>
+?><br><br>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -213,10 +213,7 @@ include 'includes/header.php';
         overflow: hidden;
     }
     
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
-    }
+   
     
     .card-header {
         background-color: #fff;
@@ -315,16 +312,8 @@ include 'includes/header.php';
         margin-right: 0.5rem;
     }
     
-    .btn-primary {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
     
-    .btn-primary:hover {
-        background-color: #3a5bd9;
-        border-color: #3a5bd9;
-        transform: translateY(-2px);
-    }
+    
     
     .btn-outline-secondary {
         border-color: #d1d3e2;
@@ -439,14 +428,6 @@ include 'includes/header.php';
         box-shadow: none;
     }
     
-    /* Hover effects */
-    .hover-effect {
-        transition: var(--transition);
-    }
-    
-    .hover-effect:hover {
-        transform: translateY(-3px);
-    }
     
     /* Custom scrollbar */
     ::-webkit-scrollbar {
@@ -614,7 +595,7 @@ include 'includes/header.php';
                                             <div class="col-md-6">
                                                 <label for="site_name" class="form-label fw-medium">Site Name</label>
                                                 <div class="input-group has-validation">
-                                                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                                    <span class="input-group-text"><i class="bi bi-buildings department-icon icon"></i></span>
                                                     <input type="text" class="form-control" id="site_name" name="site_name" 
                                                            value="<?php echo htmlspecialchars($system_settings['site_name']); ?>" required>
                                                     <div class="invalid-feedback">
@@ -921,7 +902,7 @@ include 'includes/header.php';
                                                 </th>
                                                 <td class="text-end pe-0">
                                                     <span class="badge bg-warning bg-opacity-10 text-warning status-badge">
-                                                        v2.1.0
+                                                        v1.0
                                                     </span>
                                                 </td>
                                             </tr>

@@ -175,10 +175,6 @@ include 'includes/header.php';
         transition: all 0.3s ease;
     }
 
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1.5rem rgba(58, 59, 69, 0.2);
-    }
 
     .card-header {
         background-color: #f8f9fc;
@@ -209,9 +205,6 @@ include 'includes/header.php';
         transition: all 0.15s ease;
     }
 
-    .table tbody tr:hover {
-        background-color: rgba(78, 115, 223, 0.05);
-    }
 
     .badge {
         font-weight: 500;
@@ -391,7 +384,7 @@ include 'includes/header.php';
         <?php include 'includes/sidebar.php'; ?>
         
         <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <main class="col-md-12 ms-auto col-lg-10 px-md-6 py-3">
             <div class="container-fluid">
                 <!-- Header Section -->
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
@@ -695,5 +688,4 @@ function getActivityClass($activity) {
     }
 }
 
-include 'includes/footer.php';
 ?>

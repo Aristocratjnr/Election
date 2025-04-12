@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../configs/dbconnection.php';
-require_once __DIR__ . '/../configs/session.php';
+require_once __DIR__ . '../configs/dbconnection.php';
+require_once __DIR__ . '../configs/session.php';
 
 // Start secure session
 if (session_status() === PHP_SESSION_NONE) {
