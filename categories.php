@@ -39,7 +39,7 @@ $categoriesCount = $totalCategoriesQuery->get_result()->fetch_assoc()['total'];
 // Update session data for dashboard
 $_SESSION['dashboard_stats']['total_active_categories'] = $categoriesCount;
 
-$pageTitle = "Election Categories"; // Used in header.php
+$pageTitle = "Election Categories"; 
 ?>
 <!doctype html>
 <html lang="en">
@@ -47,7 +47,8 @@ $pageTitle = "Election Categories"; // Used in header.php
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Categories Management - SmartVote</title>
-    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -73,10 +74,7 @@ $pageTitle = "Election Categories"; // Used in header.php
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
+        
 
         .election-selector {
             background-color: #f8f9fa;
@@ -99,10 +97,7 @@ $pageTitle = "Election Categories"; // Used in header.php
             padding: 0.75rem 1rem;
         }
 
-        .category-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(5px);
-        }
+        
 
         .btn-action {
             border-radius: 50%;
@@ -114,9 +109,7 @@ $pageTitle = "Election Categories"; // Used in header.php
             transition: all 0.3s ease;
         }
 
-        .btn-action:hover {
-            transform: scale(1.1);
-        }
+        
 
         .empty-state {
             text-align: center;
@@ -235,10 +228,10 @@ $pageTitle = "Election Categories"; // Used in header.php
         <div class="row">
             <!-- Include Sidebar -->
             <?php include 'includes/sidebar.php'; ?>
-            
             <div class="main-content">
                 <!-- Include Header -->
-                <?php include 'includes/header.php'; ?>
+                <?php include 'includes/header.php'; ?><br>
+            
                 
                 <main class="col-md-9 ms-sm-auto col-lg-14 px-md-4 py-4"><br>
                     <!-- Page Header -->

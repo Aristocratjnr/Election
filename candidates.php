@@ -10,7 +10,7 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 
 require 'configs/dbconnection.php';
 
-// Get election ID from query parameter if available
+
 $electionID = $_GET['election'] ?? null;
 
 // Handle form submissions
@@ -162,6 +162,8 @@ if ($electionID) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Candidates - EMS</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
@@ -814,7 +816,7 @@ if ($electionID) {
                                                                 <div class="d-flex align-items-center">
                                                                     <div>
                                                                         <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($candidate['studentName'] ?? '') ?></h6>
-                                                                        <small class="text-muted d-flex align-items-center">
+                                                                        <small class="text-muted d-flex justify-content-center">
                                                                             <i class="bi bi-person-badge me-1"></i>
                                                                             ID: <?= $candidate['studentID'] ?? '' ?>
                                                                         </small>

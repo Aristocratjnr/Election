@@ -33,6 +33,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('iiiis', $studentID, $electionID, $categoryID, $candidateID, $currentTime);
         $stmt->execute();
 
+        // Get election details for notification
+        $electionStmt = $conn->prepare("SELECT name FROM elections WHERE electionID = ?");
+        $electionStmt->bind_param("i", $electionID);
+        $electionStmt->execute();
+        $electionResult = $electionStmt->get_result();
+        $election = $electionResult->fetch_assoc();
+
+        // Create voter notification
+        $voterNotifyStmt = $conn->prepare("
+            INSERT INTO notifications (user_id, user_type, title, message, type, related_election, is_read, created_at)
+            VALUES (?, ?, ?, ?, 'vote', ?, 0, NOW())
+        ");
+        
+        $title = "Vote Recorded";
+        $message = "Your vote for the election '{$election['name']}' has been successfully recorded.";
+        $userRole = $_SESSION['role'] ?? 'student';
+        
+        $voterNotifyStmt->bind_param(
+            "isssi",
+            $studentID,
+            $userRole,
+            $title,
+            $message,
+            $electionID
+        );
+        
+        $voterNotifyStmt->execute();
+
+        // Create notification for admin
+        $adminNotifyStmt = $conn->prepare("
+            INSERT INTO notifications (user_id, user_type, title, message, type, related_election, is_read, created_at)
+            SELECT studentID, role, ?, ?, 'vote', ?, 0, NOW()
+            FROM students 
+            WHERE role = 'admin'
+        ");
+        
+        $adminTitle = "New Vote Cast";
+        $adminMessage = "A new vote has been cast in the election '{$election['name']}'";
+        
+        $adminNotifyStmt->bind_param(
+            "ssi",
+            $adminTitle,
+            $adminMessage,
+            $electionID
+        );
+        
+        $adminNotifyStmt->execute();
+
         // Commit transaction
         $conn->commit();
 
@@ -45,4 +93,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->close();
     $conn->close();
-} 
+}
+?>

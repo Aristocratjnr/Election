@@ -1,7 +1,7 @@
 <?php
 $base_path = dirname(__FILE__, 2); // Go up one level from api folder
-require_once $base_path . '/configs/dbconnection.php';
-require_once $base_path . '/includes/auth_check.php';
+require_once $base_path . '../configs/dbconnection.php';
+require_once $base_path . '../includes/auth_check.php';
 
 header('Content-Type: application/json');
 

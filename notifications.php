@@ -15,7 +15,7 @@ if (!isset($_SESSION['login_id'])) {
 }
 
 $userID = (int)$_SESSION['login_id'];
-$userType = $_SESSION['user_type'] ?? 'student'; 
+$userType = $_SESSION['role'] ?? 'student'; 
 
 // Get unread notifications count
 $unreadCount = 0;
@@ -137,7 +137,9 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications - Student Voting System</title>
+    <title>Notifications - Student Voting System</title>  
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
@@ -582,25 +584,13 @@ try {
                                 <p class="text-muted">
                                     <i class="bi bi-info-circle me-1"></i>When you get notifications, they'll appear here
                                 </p>
-                                <button class="btn btn-sm btn-outline-primary mt-2" id="refresh-empty">
-                                    <i class="bi bi-arrow-repeat me-1"></i> Check again
-                                </button>
                             </div>
-                            <script>
-                                document.getElementById('refresh-empty').addEventListener('click', function() {
-                                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Checking...';
-                                    this.disabled = true;
-                                    setTimeout(() => {
-                                        window.location.reload();
-                                    }, 500);
-                                });
-                            </script>
                         <?php else: ?>
                             <div class="notification-container">
                                 <div class="list-group list-group-flush">
                                     <?php foreach ($notifications as $notification): ?>
-                                    <a href="<?= htmlspecialchars($notification['action_url'] ?? '#') ?>" 
-                                       class="list-group-item list-group-item-action notification-item <?= $notification['is_read'] ? '' : 'unread' ?>">
+                                    <div class="list-group-item list-group-item-action notification-item <?= $notification['is_read'] ? '' : 'unread' ?>"
+                                         data-notification-id="<?= $notification['notificationID'] ?>">
                                         <?php if (!$notification['is_read']): ?>
                                             <span class="notification-badge <?= $notification['badge_class'] ?>"></span>
                                         <?php endif; ?>
@@ -615,7 +605,7 @@ try {
                                                         <i class="bi bi-clock"></i> <?= $notification['time_ago'] ?>
                                                     </small>
                                                 </div>
-                                                <p class="mb-2 text-muted"><?= htmlspecialchars($notification['message']) ?></p>
+                                                <p class="mb-2 text-muted"><?= nl2br(htmlspecialchars($notification['message'])) ?></p>
                                                 
                                                 <div class="d-flex flex-wrap mt-2">
                                                     <?php if ($notification['election_name']): ?>
@@ -646,7 +636,7 @@ try {
                                                 </div>
                                             </div>
                                         </div>
-                                    </a>
+                                    </div>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -750,8 +740,8 @@ try {
                     if (data.notifications && data.notifications.length > 0) {
                         data.notifications.forEach(function(notification) {
                             const notificationHtml = `
-                                <a href="${notification.action_url || '#'}" 
-                                   class="list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'} ${document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'text-white-50' : ''}">
+                                <div class="list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'} ${document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'text-white-50' : ''}"
+                                     data-notification-id="${notification.notificationID}">
                                     ${!notification.is_read ? `<span class="notification-badge ${notification.badge_class}"></span>` : ''}
                                     <div class="d-flex align-items-start">
                                         <div class="notification-icon ${notification.bg_class}">
@@ -790,7 +780,7 @@ try {
                                             </div>
                                         </div>
                                     </div>
-                                </a>
+                                </div>
                             `;
                             $('.list-group').append(notificationHtml);
                         });
@@ -905,7 +895,7 @@ try {
         
         // Mark clicked notifications as read using AJAX
         $('.notification-item').click(function(e) {
-            const notificationId = $(this).data('id');
+            const notificationId = $(this).data('notification-id');
             if (notificationId) {
                 $.ajax({
                     url: 'api/mark_notification_read.php',

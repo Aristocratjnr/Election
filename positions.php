@@ -37,28 +37,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $maxVotes = $_POST['maxVotes'] ?? 1;
         $display_order = $_POST['display_order'] ?? 0;
         
-        // If display_order is not set or is 0, set it to the max+1 for this election
-        if ($display_order == 0) {
-            $maxOrderQuery = $conn->prepare("SELECT COALESCE(MAX(display_order), 0) + 1 as next_order FROM positions WHERE electionID = ?");
-            $maxOrderQuery->bind_param("i", $electionID);
-            $maxOrderQuery->execute();
-            $display_order = $maxOrderQuery->get_result()->fetch_assoc()['next_order'];
-        }
+        // Check if position with the same title already exists for this election
+        $checkTitle = $conn->prepare("SELECT COUNT(*) as count FROM positions WHERE electionID = ? AND LOWER(title) = LOWER(?)");
+        $checkTitle->bind_param("is", $electionID, $title);
+        $checkTitle->execute();
+        $titleExists = $checkTitle->get_result()->fetch_assoc()['count'] > 0;
+        $checkTitle->close();
         
-        // Check if positions table has a status column
-        $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
-        if ($checkStatusCol->num_rows > 0) {
-            // Include status field in the query
-            $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order, status) VALUES (?, ?, ?, ?, ?, 'Approved')");
-            $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+        if ($titleExists) {
+            $error = "A position with this title already exists for this election. Please use a different title.";
         } else {
-            // Original query without status
-            $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+            // If display_order is not set or is 0, set it to the max+1 for this election
+            if ($display_order == 0) {
+                $maxOrderQuery = $conn->prepare("SELECT COALESCE(MAX(display_order), 0) + 1 as next_order FROM positions WHERE electionID = ?");
+                $maxOrderQuery->bind_param("i", $electionID);
+                $maxOrderQuery->execute();
+                $display_order = $maxOrderQuery->get_result()->fetch_assoc()['next_order'];
+            }
+            
+            // Check if positions table has a status column
+            $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
+            if ($checkStatusCol->num_rows > 0) {
+                // Include status field in the query
+                $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order, status) VALUES (?, ?, ?, ?, ?, 'Approved')");
+                $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+            } else {
+                // Original query without status
+                $stmt = $conn->prepare("INSERT INTO positions (electionID, title, description, maxVotes, display_order) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("issii", $electionID, $title, $description, $maxVotes, $display_order);
+            }
+            
+            $stmt->execute();
+            $success = "Position added successfully!";
         }
-        
-        $stmt->execute();
-        $success = "Position added successfully!";
     } elseif (isset($_POST['update_position'])) {
         $positionID = $_POST['positionID'];
         $title = $_POST['title'];
@@ -66,26 +77,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $maxVotes = $_POST['maxVotes'];
         $display_order = $_POST['display_order'] ?? 0;
         
-        // Check if positions table has a status column
-        $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
-        if ($checkStatusCol->num_rows > 0) {
-            // Include status field in the query
-            $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ?, status = 'Approved' WHERE positionID = ?");
-            $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+        // Check if position with the same title already exists for this election
+        $checkTitle = $conn->prepare("SELECT COUNT(*) as count FROM positions p1 
+            JOIN positions p2 ON p1.electionID = p2.electionID 
+            WHERE p2.positionID = ? AND p1.positionID != ? 
+            AND LOWER(p1.title) = LOWER(?)");
+        $checkTitle->bind_param("iis", $positionID, $positionID, $title);
+        $checkTitle->execute();
+        $titleExists = $checkTitle->get_result()->fetch_assoc()['count'] > 0;
+        $checkTitle->close();
+        
+        if ($titleExists) {
+            $error = "A position with this title already exists for this election. Please use a different title.";
         } else {
-            // Original query without status
-            $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ? WHERE positionID = ?");
-            $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+            // Check if positions table has a status column
+            $checkStatusCol = $conn->query("SHOW COLUMNS FROM positions LIKE 'status'");
+            if ($checkStatusCol->num_rows > 0) {
+                // Include status field in the query
+                $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ?, status = 'Approved' WHERE positionID = ?");
+                $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+            } else {
+                // Original query without status
+                $stmt = $conn->prepare("UPDATE positions SET title = ?, description = ?, maxVotes = ?, display_order = ? WHERE positionID = ?");
+                $stmt->bind_param("ssiii", $title, $description, $maxVotes, $display_order, $positionID);
+            }
+            
+            $stmt->execute();
+            
+            // Clear any caches that might affect position display
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
+            }
+            
+            $success = "Position updated successfully!";
         }
-        
-        $stmt->execute();
-        
-        // Clear any caches that might affect position display
-        if (function_exists('opcache_reset')) {
-            opcache_reset();
-        }
-        
-        $success = "Position updated successfully!";
     } elseif (isset($_POST['delete_position'])) {
         $positionID = $_POST['positionID'];
         
@@ -177,6 +202,8 @@ $positions = $conn->query("
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Positions - EMS</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">

@@ -150,7 +150,7 @@ function sendEmailConfirmation($email, $name, $studentID, $department, $phone) {
             <p>You can now login to your account using your student ID and password.</p>
             
             <p style="text-align: center;">
-                <a href="https://yourdomain.com/login.php" class="button">Login to Your Account</a>
+                <a href="https://smartvote.42web.io/Election/login.php" class="button">Login to Your Account</a>
             </p>
             
             <p>If you did not request this registration, please contact our support team immediately.</p>
@@ -177,7 +177,7 @@ function sendSMSConfirmation($phone, $name) {
     $apiKey = $_ENV['ARKESKEL_API_KEY'] ?? '';
     if (empty($apiKey)) return;
     
-    $smsMessage = "Hello $name, your SmartVote registration is successful! Login at https://yourdomain.com/login.php";
+    $smsMessage = "Hello $name, your SmartVote registration is successful! Login at https://smartvote.42web.io/Election/login.php";
     
     $smsData = [
         "sender" => "SmartVote",

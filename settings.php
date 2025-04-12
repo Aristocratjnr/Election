@@ -323,6 +323,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Settings - SmartVote</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -859,7 +861,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="department" class="form-label"><i class="bi bi-building me-1"></i> Department</label>
+                                        <label for="department" class="form-label"><i class="bi bi-buildings department-icon icon"></i> Department</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-buildings-fill"></i></span>
                                             <input type="text" class="form-control" id="department" name="department" 

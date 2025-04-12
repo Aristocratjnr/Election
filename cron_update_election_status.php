@@ -61,6 +61,73 @@ try {
             logMessage("Error {$index}: {$error}", 'ERROR');
         }
     }
+
+    // Additional functionality: Create notifications for election status changes
+    $query = "SELECT electionID, name, status, startDate, endDate FROM elections 
+              WHERE (status = 'Scheduled' AND startDate <= NOW()) 
+              OR (status = 'Ongoing' AND endDate <= NOW())";
+              
+    $result = $conn->query($query);
+    
+    if (!$result) {
+        throw new Exception("Failed to fetch elections: " . $conn->error);
+    }
+
+    while ($election = $result->fetch_assoc()) {
+        $newStatus = '';
+        $notificationTitle = '';
+        $notificationMessage = '';
+        
+        // Determine new status and notification message
+        if ($election['status'] === 'Scheduled' && strtotime($election['startDate']) <= time()) {
+            $newStatus = 'Ongoing';
+            $notificationTitle = "Election Started";
+            $notificationMessage = "The election '{$election['name']}' has started. You can now cast your vote!";
+        } elseif ($election['status'] === 'Ongoing' && strtotime($election['endDate']) <= time()) {
+            $newStatus = 'Completed';
+            $notificationTitle = "Election Ended";
+            $notificationMessage = "The election '{$election['name']}' has ended. Results will be available soon.";
+        }
+        
+        if ($newStatus) {
+            // Update election status
+            $updateStmt = $conn->prepare("UPDATE elections SET status = ? WHERE electionID = ?");
+            $updateStmt->bind_param("si", $newStatus, $election['electionID']);
+            
+            if (!$updateStmt->execute()) {
+                throw new Exception("Failed to update election status: " . $updateStmt->error);
+            }
+            
+            // Create notifications for all students
+            $studentQuery = "SELECT studentID, role FROM students WHERE status = 'Active'";
+            $studentResult = $conn->query($studentQuery);
+            
+            if ($studentResult) {
+                $notifyStmt = $conn->prepare("
+                    INSERT INTO notifications (user_id, user_type, title, message, type, related_election, is_read, created_at) 
+                    VALUES (?, ?, ?, ?, 'election', ?, 0, NOW())
+                ");
+
+                while ($student = $studentResult->fetch_assoc()) {
+                    $notifyStmt->bind_param(
+                        "isssi",
+                        $student['studentID'],
+                        $student['role'],
+                        $notificationTitle,
+                        $notificationMessage,
+                        $election['electionID']
+                    );
+                    
+                    $notifyStmt->execute();
+                }
+                
+                $notifyStmt->close();
+            }
+        }
+    }
+    
+    logMessage("Election status update and notifications creation completed successfully.");
+    
 } catch (Exception $e) {
     // Log any unexpected exceptions
     logMessage("Unexpected error: " . $e->getMessage(), 'ERROR');
@@ -69,3 +136,6 @@ try {
 
 // Log end of execution
 logMessage("Finished election status update cron job");
+
+$conn->close();
+?>
