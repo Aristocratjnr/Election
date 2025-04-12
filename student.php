@@ -2085,7 +2085,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         ID: <?= $studentID ?>
                                     </span>
                                     <span class="text-muted small">
-                                        <i class="bi bi-building-check icon"></i>
+                                        <i class="bi bi-building-check icon icon"></i>
                                         Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                     </span>
                                 </div>
@@ -2365,7 +2365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                         </span>
                                                         <?php if (!empty($candidate['department'])): ?>
                                                             <div class="department-badge">
-                                                                <i class="bi bi-building me-1"></i>
+                                                                <i class="bi bi-buildings department-icon icon"></i>
                                                                 <?= htmlspecialchars($candidate['department']) ?>
                                                             </div>
                                                         <?php endif; ?>
@@ -2801,6 +2801,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     modalBody.textContent = manifestoContent;
                 });
             }
+
+            // === NOTIFICATION FUNCTIONALITY ===
+            // Check for new notifications
+            function checkNewNotifications() {
+                const studentID = <?= $studentID ?? 0 ?>;
+                const userType = 'student';
+                
+                if (studentID > 0) {
+                    fetch('api/notifications_count.php?user_id=' + studentID + '&user_type=' + userType + '&last_check=' + new Date().toISOString())
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.count > 0) {
+                                // Update notification count in header if badge exists
+                                const $badge = document.getElementById('notification-badge');
+                                if ($badge) {
+                                    $badge.textContent = data.count;
+                                    $badge.classList.remove('d-none');
+                                }
+                                
+                                // Show toast notification for latest notification
+                                if (data.latest_notification) {
+                                    showToastNotification(data.latest_notification);
+                                }
+                            }
+                        })
+                        .catch(error => console.error('Error checking notifications:', error));
+                }
+            }
+            
+            // Show toast notification
+            function showToastNotification(notification) {
+                const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                
+                // Remove any existing toast
+                const existingToasts = document.querySelectorAll('.toast');
+                existingToasts.forEach(toast => toast.remove());
+                
+                // Create toast element
+                const toastEl = document.createElement('div');
+                toastEl.className = `toast show ${isDarkMode ? 'bg-dark text-white' : ''}`;
+                toastEl.setAttribute('role', 'alert');
+                toastEl.style.position = 'fixed';
+                toastEl.style.bottom = '1.5rem';
+                toastEl.style.right = '1.5rem';
+                toastEl.style.minWidth = '300px';
+                toastEl.style.maxWidth = '90vw';
+                toastEl.style.zIndex = '9999';
+                toastEl.style.border = 'none';
+                toastEl.style.borderRadius = '0.5rem';
+                toastEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                
+                // Create toast content
+                const icon = notification.icon || 'bi-bell-fill';
+                toastEl.innerHTML = `
+                    <div class="toast-header ${isDarkMode ? 'bg-dark text-white border-secondary' : ''}">
+                        <i class="bi ${icon} me-2"></i>
+                        <strong class="me-auto">New Notification</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close ${isDarkMode ? 'btn-close-white' : ''}" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        <h6 class="mb-1">${notification.title}</h6>
+                        <p class="mb-0 ${isDarkMode ? 'text-light' : ''}">${notification.message}</p>
+                        ${notification.action_url ? `
+                            <div class="mt-2 pt-2 border-top ${isDarkMode ? 'border-secondary' : ''}">
+                                <a href="${notification.action_url}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                // Add toast to body
+                document.body.appendChild(toastEl);
+                
+                // Add click handler for close button
+                const closeBtn = toastEl.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        toastEl.remove();
+                    });
+                }
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    if (toastEl.parentNode) {
+                        toastEl.style.opacity = '0';
+                        toastEl.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => {
+                            if (toastEl.parentNode) {
+                                toastEl.remove();
+                            }
+                        }, 500);
+                    }
+                }, 5000);
+            }
+            
+            // Check for notifications when page loads
+            setTimeout(checkNewNotifications, 1000);
+            
+            // Check for new notifications every 30 seconds
+            setInterval(checkNewNotifications, 30000);
         });
 
        </script>
