@@ -376,25 +376,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             // Validate selections
             $votes = [];
             foreach ($positions as $position) {
-                if (!isset($_POST['position_' . $position['positionID']]) || empty($_POST['position_' . $position['positionID']])) {
+                if (!isset($_POST['vote_' . $position['positionID']]) || empty($_POST['vote_' . $position['positionID']])) {
                     throw new Exception("Please select a candidate for all positions.");
                 }
 
-                $selectedCandidates = $_POST['position_' . $position['positionID']];
-                if (count($selectedCandidates) > $position['maxVotes']) {
-                    throw new Exception("You can only select up to " . $position['maxVotes'] . " candidates for " . $position['title']);
-                }
-
-                // Remove duplicates
-                $selectedCandidates = array_unique($selectedCandidates);
-                
-                foreach ($selectedCandidates as $candidateID) {
-                    $votes[] = [
-                        'electionID' => $currentElection['electionID'],
-                        'candidateID' => (int)$candidateID,
-                        'studentID' => $studentID
-                    ];
-                }
+                $selectedCandidate = $_POST['vote_' . $position['positionID']];
+                // For radio buttons, the value will be a single value, not an array
+                $votes[] = [
+                    'electionID' => $currentElection['electionID'],
+                    'candidateID' => (int)$selectedCandidate,
+                    'studentID' => $studentID
+                ];
             }
             
             // SUPER SIMPLE APPROACH: One query, one vote record with just the first candidate
@@ -2354,56 +2346,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     
                     <div class="row g-4">
                         <?php foreach ($position['candidates'] as $candidate): ?>
-                            <div class="col-md-6 col-lg-4 col-xl-3">
-                                <div class="candidate-card h-100 shadow-sm rounded-3 overflow-hidden position-relative"
-                                     data-max-votes="<?= $position['maxVotes'] ?>">
-                                    <div class="bg-light p-3 text-center position-relative">
-                                        <div class="avatar-container mx-auto mb-3 position-relative">
-                                            <?php 
-                                            // First check for candidate photo in uploads/candidates directory
-                                            $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
-                                            $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                            
-                                            if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
-                                                <img src="<?= $candidateCustPhotoPath ?>" 
-                                                     class="avatar" 
-                                                     alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                            <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
-                                                <img src="<?= $candidateStdPhotoPath ?>" 
-                                                     class="avatar" 
-                                                     alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                            <?php else: ?>
-                                                <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                    <i class="bi bi-person fs-2"></i>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="candidate-card mb-3 position-relative">
+                                    <div class="form-check">
+                                        <input class="form-check-input position-absolute" type="radio" 
+                                               name="vote_<?= $position['positionID'] ?>" 
+                                               value="<?= $candidate['candidateID'] ?>" 
+                                               id="candidate_<?= $candidate['candidateID'] ?>"
+                                               required>
+                                        <label class="form-check-label w-100" for="candidate_<?= $candidate['candidateID'] ?>">
+                                            <div class="candidate-info">
+                                                <div class="candidate-main mb-3">
+                                                    <?php 
+                                                    $candidatePhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                                    $studentPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                    
+                                                    if (!empty($candidate['photo']) && file_exists($candidatePhotoPath)): ?>
+                                                        <img src="<?= $candidatePhotoPath ?>" class="candidate-avatar" alt="Candidate Photo">
+                                                    <?php elseif (!empty($candidate['profilePicture']) && file_exists($studentPhotoPath)): ?>
+                                                        <img src="<?= $studentPhotoPath ?>" class="candidate-avatar" alt="Student Photo">
+                                                    <?php else: ?>
+                                                        <div class="candidate-avatar-placeholder">
+                                                            <i class="bi bi-person"></i>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <div class="candidate-details">
+                                                        <h5 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h5>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
+                                                            <?= htmlspecialchars($position['title']) ?>
+                                                        </span>
+                                                        <?php if (!empty($candidate['department'])): ?>
+                                                            <div class="department-badge">
+                                                                <i class="bi bi-building me-1"></i>
+                                                                <?= htmlspecialchars($candidate['department']) ?>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
-                                            <?php endif; ?>
-                                            
-                                            <!-- Selection indicator -->
-                                            <div class="selection-check">
-                                                <i class="bi bi-check2"></i>
+                                                <?php if (!empty($candidate['manifesto'])): ?>
+                                                    <div class="manifesto-btn p-2 rounded text-center">
+                                                        <i class="bi bi-file-text me-1"></i>
+                                                        View Manifesto
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
-                                        </div>
+                                        </label>
                                     </div>
-                                
-                                    <div class="p-3 text-center position-relative">
-                                        <h5 class="candidate-name mb-1"><?= htmlspecialchars($candidate['name']) ?></h5>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
-                                            <?= htmlspecialchars($candidate['department']) ?>
-                                        </span>
-                                        <div class="candidate-tagline bg-light p-2 rounded small mb-2">
-                                            <?= htmlspecialchars($candidate['manifesto'] ?? 'No manifesto provided') ?>
-                                        </div>
-                                        <div class="d-flex justify-content-center small text-muted">
-                                            <span class="me-2">
-                                                <i class="bi bi-person-check"></i> Candidate
-                                            </span>
-                                        </div>
+                                    <div class="selection-check">
+                                        <i class="bi bi-check-circle-fill"></i>
                                     </div>
-                                    
-                                    <input type="checkbox" 
-                                           name="position_<?= $position['positionID'] ?>[]" 
-                                           value="<?= $candidate['candidateID'] ?>" 
-                                           class="d-none position-checkbox">
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -2638,64 +2630,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         return;
                     }
                     
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    const positionId = checkbox.name.split('_')[1];
-                    const maxVotes = parseInt(this.getAttribute('data-max-votes') || '1');
+                    const radioButton = this.querySelector('input[type="radio"]');
                     
-                    // If it's not a multiple selection position, uncheck all other checkboxes in this group
-                    if (maxVotes === 1) {
-                        document.querySelectorAll(`input[name="position_${positionId}[]"]`).forEach(cb => {
-                            if (cb !== checkbox) {
-                                cb.checked = false;
-                                cb.closest('.candidate-card').classList.remove('selected');
-                            }
-                        });
-                    }
-                    
-                    // Toggle checkbox
-                    checkbox.checked = !checkbox.checked;
+                    // Toggle radio button
+                    radioButton.checked = true;
                     
                     // Toggle selected class
-                    this.classList.toggle('selected', checkbox.checked);
-                    
-                    // Enforce max votes if needed
-                    if (maxVotes > 1) {
-                        const checkedBoxes = document.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
-                        
-                        if (checkedBoxes > maxVotes) {
-                            checkbox.checked = false;
-                            this.classList.remove('selected');
-                            
-                            // Show warning
-                            const alertMessage = `You can only select up to ${maxVotes} candidate(s) for this position.`;
-                            
-                            // Create bootstrap alert
-                            const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-warning alert-dismissible fade show mt-3';
-                            alertDiv.setAttribute('role', 'alert');
-                            alertDiv.innerHTML = `
-                                <i class="bi bi-exclamation-triangle-fill"></i> ${alertMessage}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            `;
-                            
-                            // Find the position container and insert alert
-                            const positionContainer = this.closest('.position-section');
-                            if (positionContainer) {
-                                if (positionContainer.querySelector('.alert')) {
-                                    positionContainer.querySelector('.alert').remove();
-                                }
-                                positionContainer.querySelector('.row').before(alertDiv);
-                                
-                                // Auto dismiss after 3 seconds
-                                setTimeout(() => {
-                                    if (alertDiv.parentNode) {
-                                        const bsAlert = new bootstrap.Alert(alertDiv);
-                                        bsAlert.close();
-                                    }
-                                }, 3000);
-                            }
-                        }
-                    }
+                    document.querySelectorAll('.candidate-card').forEach(card => card.classList.remove('selected'));
+                    this.classList.add('selected');
                 });
             });
             
@@ -2709,12 +2651,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     let missingPositions = [];
                     
                     positions.forEach(position => {
-                        const checkboxes = position.querySelectorAll('input[type="checkbox"]');
-                        if (checkboxes.length > 0) {  // Only validate if position has candidates
-                            const positionId = checkboxes[0].name.split('_')[1];
-                            const selectedCandidates = position.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
+                        const radioButtons = position.querySelectorAll('input[type="radio"]');
+                        if (radioButtons.length > 0) {  // Only validate if position has candidates
+                            const positionId = radioButtons[0].name.split('_')[1];
+                            const selectedCandidate = position.querySelector(`input[name="vote_${positionId}"]:checked`);
                             
-                            if (selectedCandidates === 0) {
+                            if (!selectedCandidate) {
                                 isValid = false;
                                 const positionTitle = position.querySelector('h3').textContent.trim();
                                 missingPositions.push(positionTitle);
@@ -2752,20 +2694,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         let summaryHTML = '<div class="list-group">';
                         positions.forEach(position => {
                             const positionTitle = position.querySelector('h3').textContent;
-                            const selectedCandidates = position.querySelectorAll('input[type="checkbox"]:checked');
+                            const selectedCandidate = position.querySelector('input[type="radio"]:checked');
                             
-                            if (selectedCandidates.length > 0) {
+                            if (selectedCandidate) {
+                                const candidateCard = selectedCandidate.closest('.candidate-card');
+                                const candidateName = candidateCard.querySelector('.candidate-name').textContent;
                                 summaryHTML += `<div class="list-group-item">
                                     <h6 class="mb-1">${positionTitle}</h6>
-                                    <p class="mb-0">`;
-                                
-                                selectedCandidates.forEach(candidate => {
-                                    const candidateCard = candidate.closest('.candidate-card');
-                                    const candidateName = candidateCard.querySelector('.candidate-name').textContent;
-                                    summaryHTML += `${candidateName}<br>`;
-                                });
-                                
-                                summaryHTML += '</p></div>';
+                                    <p class="mb-0">${candidateName}</p>
+                                </div>`;
                             }
                         });
                         summaryHTML += '</div>';
@@ -2780,49 +2717,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 finalSubmitBtn.addEventListener('click', function() {
                     const form = document.getElementById('votingForm');
                     if (form) {
-                        // Validate selections one last time
-                        const positions = document.querySelectorAll('.position-section');
-                    let isValid = true;
-                        let missingPositions = [];
-                        
-                        positions.forEach(position => {
-                            const checkboxes = position.querySelectorAll('input[type="checkbox"]');
-                            if (checkboxes.length > 0) {  // Only validate if position has candidates
-                                const positionId = checkboxes[0].name.split('_')[1];
-                                const selectedCandidates = position.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
-                        
-                        if (selectedCandidates === 0) {
-                            isValid = false;
-                                    const positionTitle = position.querySelector('h3').textContent.trim();
-                                    missingPositions.push(positionTitle);
-                                }
-                            }
-                        });
-                        
-                        if (!isValid) {
-                            // Hide the confirmation modal
-                            const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('voteConfirmationModal'));
-                            confirmationModal.hide();
-                            
-                            // Show error alert
-                                const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-                                alertDiv.setAttribute('role', 'alert');
-                                alertDiv.innerHTML = `
-                                <i class="bi bi-exclamation-triangle-fill"></i> Please select candidates for the following positions: ${missingPositions.join(', ')}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                `;
-                                
-                            const votingCard = document.querySelector('.voting-card');
-                            if (votingCard) {
-                                if (votingCard.querySelector('.alert')) {
-                                    votingCard.querySelector('.alert').remove();
-                                }
-                                votingCard.querySelector('.card-body').prepend(alertDiv);
-                            }
-                            return;
-                        }
-                        
                         // Add submit_vote parameter
                         const submitInput = document.createElement('input');
                         submitInput.type = 'hidden';
@@ -2845,7 +2739,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             if (votingForm) {
                 votingForm.addEventListener('submit', function(e) {
                     // Always prevent default submission - we'll handle it through the finalSubmitBtn
-                        e.preventDefault();
+                    e.preventDefault();
                     
                     // Validate selections
                     const positions = document.querySelectorAll('.position-section');
@@ -2853,12 +2747,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     let missingPositions = [];
                     
                     positions.forEach(position => {
-                        const checkboxes = position.querySelectorAll('input[type="checkbox"]');
-                        if (checkboxes.length > 0) {  // Only validate if position has candidates
-                            const positionId = checkboxes[0].name.split('_')[1];
-                            const selectedCandidates = position.querySelectorAll(`input[name="position_${positionId}[]"]:checked`).length;
+                        const radioButtons = position.querySelectorAll('input[type="radio"]');
+                        if (radioButtons.length > 0) {  // Only validate if position has candidates
+                            const positionId = radioButtons[0].name.split('_')[1];
+                            const selectedCandidate = position.querySelector(`input[name="vote_${positionId}"]:checked`);
                             
-                            if (selectedCandidates === 0) {
+                            if (!selectedCandidate) {
                                 isValid = false;
                                 const positionTitle = position.querySelector('h3').textContent.trim();
                                 missingPositions.push(positionTitle);
