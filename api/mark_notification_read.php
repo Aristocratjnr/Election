@@ -12,8 +12,8 @@ header('Access-Control-Allow-Headers: Content-Type');
 define('ROOT_PATH', dirname(dirname(__FILE__)));
 
 // Include required files using absolute paths
-require_once ROOT_PATH . '../configs/dbconnection.php';
-require_once ROOT_PATH . '../configs/session.php';
+require_once ROOT_PATH . '/../configs/dbconnection.php';
+require_once ROOT_PATH . '/../configs/session.php';
 
 // Start secure session if not already started
 if (session_status() === PHP_SESSION_NONE) {
