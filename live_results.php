@@ -63,44 +63,39 @@ try {
     if (!$currentElection) {
         $error = "Election not found.";
     } else {
-        // Get positions for the election
-        $stmt = $conn->prepare("SELECT DISTINCT * FROM positions WHERE electionID = ? ORDER BY display_order, positionID ASC");
+        // Get positions for the election with proper ordering
+        $stmt = $conn->prepare("
+            SELECT p.*, COUNT(c.candidateID) as candidate_count 
+            FROM positions p
+            LEFT JOIN candidates c ON p.positionID = c.positionID AND c.status = 'Approved'
+            WHERE p.electionID = ?
+            GROUP BY p.positionID, p.title, p.description, p.maxVotes, p.display_order
+            ORDER BY p.display_order ASC, p.positionID ASC
+        ");
         $stmt->bind_param('i', $electionID);
         $stmt->execute();
         $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Debug the positions array before deduplication
-        echo "<!-- LIVE RESULTS POSITION DEBUG BEFORE -->";
-        echo "<!-- " . json_encode($positions) . " -->";
-
-        // Filter out duplicate positions by title (case-insensitive)
-        $uniquePositions = [];
-        $seenTitles = [];
-        foreach ($positions as $position) {
-            $title = strtolower($position['title']);
-            if (!isset($seenTitles[$title])) {
-                $uniquePositions[] = $position;
-                $seenTitles[$title] = true;
-            }
+        // Debug information
+        echo "<!-- LIVE RESULTS DEBUG: -->";
+        echo "<!-- Positions found: " . count($positions) . " -->";
+        foreach ($positions as $pos) {
+            echo "<!-- Position: " . $pos['title'] . " (ID: " . $pos['positionID'] . ") -->";
         }
-        $positions = $uniquePositions;
 
-        // Debug the positions array after deduplication
-        echo "<!-- LIVE RESULTS POSITION DEBUG AFTER -->";
-        echo "<!-- " . json_encode($positions) . " -->";
-
-        // Get candidates and vote counts for each position - SIMPLIFIED QUERY
+        // Get candidates and vote counts for each position
         foreach ($positions as &$position) {
             $stmt = $conn->prepare("
-                SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
-                       s.name, s.department, s.profilePicture, 
-                       COUNT(v.voteID) as voteCount
+                SELECT 
+                    c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
+                    s.name, s.department, s.profilePicture, 
+                    COUNT(DISTINCT v.voteID) as voteCount
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
                 LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
                 WHERE c.positionID = ? AND c.status = 'Approved'
-                GROUP BY c.candidateID
+                GROUP BY c.candidateID, c.studentID, c.photo, c.manifesto, c.status, s.name, s.department, s.profilePicture
                 ORDER BY voteCount DESC, s.name ASC
             ");
             $stmt->bind_param('ii', $electionID, $position['positionID']);
@@ -108,14 +103,13 @@ try {
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
 
-            // Calculate total votes for this position
+            // Calculate total votes and percentages for this position
             $totalVotes = 0;
             foreach ($position['candidates'] as $candidate) {
                 $totalVotes += (int)$candidate['voteCount'];
             }
             $position['totalVotes'] = $totalVotes;
 
-            // Calculate vote percentages
             foreach ($position['candidates'] as &$candidate) {
                 $candidate['votePercentage'] = $totalVotes > 0 ? 
                     round(($candidate['voteCount'] / $totalVotes) * 100, 1) : 0;
@@ -1056,4 +1050,4 @@ try {
         });
     </script>
 </body>
-</html> 
+</html>
