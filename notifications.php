@@ -582,19 +582,7 @@ try {
                                 <p class="text-muted">
                                     <i class="bi bi-info-circle me-1"></i>When you get notifications, they'll appear here
                                 </p>
-                                <button class="btn btn-sm btn-outline-primary mt-2" id="refresh-empty">
-                                    <i class="bi bi-arrow-repeat me-1"></i> Check again
-                                </button>
                             </div>
-                            <script>
-                                document.getElementById('refresh-empty').addEventListener('click', function() {
-                                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Checking...';
-                                    this.disabled = true;
-                                    setTimeout(() => {
-                                        window.location.reload();
-                                    }, 500);
-                                });
-                            </script>
                         <?php else: ?>
                             <div class="notification-container">
                                 <div class="list-group list-group-flush">
