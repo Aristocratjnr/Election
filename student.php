@@ -2385,7 +2385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                     </div>
                                                 </div>
                                                 <?php if (!empty($candidate['manifesto'])): ?>
-                                                    <div class="manifesto-btn p-2 rounded text-center">
+                                                    <div class="manifesto-btn p-2 rounded text-center" data-bs-toggle="modal" data-bs-target="#manifestoModal" data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>">
                                                         <i class="bi bi-file-text me-1"></i>
                                                         View Manifesto
                                                     </div>
@@ -2579,6 +2579,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     <button type="button" class="btn btn-primary" id="finalSubmitBtn">
                         <i class="bi bi-check2-circle me-1"></i> Confirm and Submit
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manifesto Modal -->
+    <div class="modal fade" id="manifestoModal" tabindex="-1" aria-labelledby="manifestoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="manifestoModalLabel">Candidate Manifesto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="manifesto-content p-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -2783,6 +2801,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     // Show confirmation modal
                     const confirmationModal = new bootstrap.Modal(document.getElementById('voteConfirmationModal'));
                     confirmationModal.show();
+                });
+            }
+
+            // Handle manifesto modal
+            const manifestoModal = document.getElementById('manifestoModal');
+            if (manifestoModal) {
+                manifestoModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const manifestoContent = button.getAttribute('data-manifesto');
+                    const modalBody = manifestoModal.querySelector('.manifesto-content');
+                    modalBody.textContent = manifestoContent;
                 });
             }
         });
