@@ -88,7 +88,6 @@ if ($electionID) {
         if (isset($voteData[$vote['candidateID']])) {
             $voteData[$vote['candidateID']]['votes'][] = $vote;
             $voteData[$vote['candidateID']]['voteCount']++;
-            $totalVotes++;
         }
     }
 
@@ -98,6 +97,13 @@ if ($electionID) {
     $uniqueQuery->execute();
     $uniqueResult = $uniqueQuery->get_result();
     $uniqueVoters = $uniqueResult->fetch_assoc()['count'];
+
+    // Get total votes count directly from database
+    $totalVotesQuery = $conn->prepare("SELECT COUNT(*) as count FROM votes WHERE electionID = ?");
+    $totalVotesQuery->bind_param("i", $electionID);
+    $totalVotesQuery->execute();
+    $totalVotesResult = $totalVotesQuery->get_result();
+    $totalVotes = $totalVotesResult->fetch_assoc()['count'];
 }
 ?>
 
