@@ -6,9 +6,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $studentID = $_SESSION['login_id'] ?? null;
     $electionID = $_POST['electionID'] ?? null;
     $candidateID = $_POST['candidateID'] ?? null;
-    $categoryID = $_POST['categoryID'] ?? null;
 
-    if (!$studentID || !$electionID || !$candidateID || !$categoryID) {
+    if (!$studentID || !$electionID || !$candidateID) {
         die(json_encode(['success' => false, 'message' => 'Missing required parameters']));
     }
 
@@ -16,21 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Begin transaction
         $conn->begin_transaction();
 
-        // Check if user has already voted for this category in this election
-        $checkStmt = $conn->prepare("SELECT id FROM votes WHERE studentID = ? AND electionID = ? AND categoryID = ?");
-        $checkStmt->bind_param('iii', $studentID, $electionID, $categoryID);
+        // Check if user has already voted for this election
+        $checkStmt = $conn->prepare("SELECT voteID FROM votes WHERE studentID = ? AND electionID = ?");
+        $checkStmt->bind_param('ii', $studentID, $electionID);
         $checkStmt->execute();
         $result = $checkStmt->get_result();
 
         if ($result->num_rows > 0) {
             $conn->rollback();
-            die(json_encode(['success' => false, 'message' => 'You have already voted for this category']));
+            die(json_encode(['success' => false, 'message' => 'You have already voted in this election']));
         }
 
         // Record the vote
         $currentTime = date('Y-m-d H:i:s'); // Get current time with correct timezone
-        $stmt = $conn->prepare("INSERT INTO votes (studentID, electionID, categoryID, candidateID, timestamp) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param('iiiis', $studentID, $electionID, $categoryID, $candidateID, $currentTime);
+        $stmt = $conn->prepare("INSERT INTO votes (studentID, electionID, candidateID, timestamp) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param('iiis', $studentID, $electionID, $candidateID, $currentTime);
         $stmt->execute();
 
         // Get election details for notification

@@ -384,79 +384,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 ];
             }
             if (!empty($votes)) {
-                $firstVote = $votes[0]; 
+                // Start transaction for multiple inserts
+                $conn->begin_transaction();
                 
-                $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
-                $simpleStmt = $conn->prepare($simpleSQL);
-                $simpleStmt->bind_param('iii', 
-                    $firstVote['electionID'], 
-                    $firstVote['candidateID'], 
-                    $firstVote['studentID']
-                );
-                $insertResult = $simpleStmt->execute();
-                $insertCount = $simpleStmt->affected_rows;
-                $simpleStmt->close();
-                
-                if (!$insertResult || $insertCount === 0) {
-                    throw new Exception("Failed to record your vote. Database error: " . $conn->error);
+                try {
+                    // Insert each vote individually
+                    $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
+                    $simpleStmt = $conn->prepare($simpleSQL);
+                    
+                    // Process each vote
+                    foreach ($votes as $vote) {
+                        $simpleStmt->bind_param('iii', 
+                            $vote['electionID'], 
+                            $vote['candidateID'], 
+                            $vote['studentID']
+                        );
+                        $insertResult = $simpleStmt->execute();
+                        
+                        if (!$insertResult) {
+                            throw new Exception("Failed to record vote for candidate ID: " . $vote['candidateID'] . ". Database error: " . $conn->error);
+                        }
+                    }
+                    
+                    // Close the statement
+                    $simpleStmt->close();
+                    
+                    // Now update the results table for each vote
+                    foreach ($votes as $vote) {
+                        // Check if result entry exists
+                        $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
+                        $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                        $checkResStmt->execute();
+                        $resultExists = ($checkResStmt->get_result()->num_rows > 0);
+                        $checkResStmt->close();
+                        
+                        if ($resultExists) {
+                            // Update existing result
+                            $updateResStmt = $conn->prepare("
+                                UPDATE results 
+                                SET voteCount = voteCount + 1 
+                                WHERE electionID = ? AND candidateID = ?
+                            ");
+                            $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $updateResStmt->execute();
+                            $updateResStmt->close();
+                        } else {
+                            // Insert new result
+                            $insertResStmt = $conn->prepare("
+                                INSERT INTO results (electionID, candidateID, voteCount, percentage) 
+                                VALUES (?, ?, 1, 0)
+                            ");
+                            $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $insertResStmt->execute();
+                            $insertResStmt->close();
+                        }
+                    }
+                    
+                    // Update percentages
+                    $updatePercentageSQL = "
+                        UPDATE results r
+                        JOIN (
+                            SELECT candidateID, 
+                                   (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
+                            FROM results 
+                            WHERE electionID = ?
+                        ) as calc ON r.candidateID = calc.candidateID
+                        SET r.percentage = calc.pct
+                        WHERE r.electionID = ?
+                    ";
+                    $updatePctStmt = $conn->prepare($updatePercentageSQL);
+                    $updatePctStmt->bind_param('iii', 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID']
+                    );
+                    $updatePctStmt->execute();
+                    $updatePctStmt->close();
+                    
+                    // Commit the transaction
+                    $conn->commit();
+                    
+                } catch (Exception $e) {
+                    // Rollback on error
+                    $conn->rollback();
+                    throw $e;
                 }
             } else {
                 throw new Exception("No votes to record. Please select at least one candidate.");
             }
             
-            foreach ($votes as $vote) {
-                // Check if result entry exists
-                $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
-                $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                $checkResStmt->execute();
-                $resultExists = ($checkResStmt->get_result()->num_rows > 0);
-                $checkResStmt->close();
-                
-                if ($resultExists) {
-                    // Update existing result
-                    $updateResStmt = $conn->prepare("
-                        UPDATE results 
-                        SET voteCount = voteCount + 1 
-                        WHERE electionID = ? AND candidateID = ?
-                    ");
-                    $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $updateResStmt->execute();
-                    $updateResStmt->close();
-                } else {
-                    // Insert new result
-                    $insertResStmt = $conn->prepare("
-                        INSERT INTO results (electionID, candidateID, voteCount, percentage) 
-                        VALUES (?, ?, 1, 0)
-                    ");
-                    $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $insertResStmt->execute();
-                    $insertResStmt->close();
-                }
-            }
-            
-            // Update percentages
-            $updatePercentageSQL = "
-                UPDATE results r
-                JOIN (
-                    SELECT candidateID, 
-                           (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
-                    FROM results 
-                    WHERE electionID = ?
-                ) as calc ON r.candidateID = calc.candidateID
-                SET r.percentage = calc.pct
-                WHERE r.electionID = ?
-            ";
-            $updatePctStmt = $conn->prepare($updatePercentageSQL);
-            $updatePctStmt->bind_param('iii', 
-                $currentElection['electionID'], 
-                $currentElection['electionID'], 
-                $currentElection['electionID']
-            );
-            $updatePctStmt->execute();
-            $updatePctStmt->close();
-
-            // Commit transaction
-            $conn->commit();
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
 

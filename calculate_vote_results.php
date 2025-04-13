@@ -129,6 +129,9 @@ function updateVoteResults($conn, $electionID = null) {
                 $voteCount = $voteStmt->get_result()->fetch_assoc()['voteCount'];
                 $voteStmt->close();
                 
+                // Debug output
+                error_log("Counted {$voteCount} votes for candidate {$candidateID} in election {$currentElectionID}");
+                
                 // Calculate percentage
                 $totalPositionVotes = $positionVotes[$positionID] ?? 0;
                 $percentage = ($totalPositionVotes > 0) ? ($voteCount / $totalPositionVotes) * 100 : 0;
@@ -252,4 +255,4 @@ if (isset($_GET['ajax']) || isset($_POST['ajax'])) {
     header('Content-Type: application/json');
     echo json_encode($result);
     exit;
-} 
+}

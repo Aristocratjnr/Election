@@ -86,11 +86,14 @@ try {
 
         // Get candidates and vote counts for each position
         foreach ($positions as &$position) {
+            // Add better debugging information
+            error_log("Processing position: {$position['title']} (ID: {$position['positionID']})");
+            
             $stmt = $conn->prepare("
                 SELECT 
                     c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
                     s.name, s.department, s.profilePicture, 
-                    COUNT(DISTINCT v.voteID) as voteCount
+                    COUNT(v.voteID) as voteCount
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
                 LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
@@ -103,13 +106,19 @@ try {
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
 
+            // Debug output for this position
+            error_log("Position: {$position['title']} (ID: {$position['positionID']})");
+            error_log("Candidates found: " . count($position['candidates']));
+            
             // Calculate total votes and percentages for this position
             $totalVotes = 0;
             foreach ($position['candidates'] as $candidate) {
                 $totalVotes += (int)$candidate['voteCount'];
+                error_log("Candidate: {$candidate['name']} (ID: {$candidate['candidateID']}), Votes: {$candidate['voteCount']}");
             }
             $position['totalVotes'] = $totalVotes;
 
+            // Calculate percentage for each candidate
             foreach ($position['candidates'] as &$candidate) {
                 $candidate['votePercentage'] = $totalVotes > 0 ? 
                     round(($candidate['voteCount'] / $totalVotes) * 100, 1) : 0;
