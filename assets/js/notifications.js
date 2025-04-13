@@ -3,7 +3,7 @@
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize notifications audio
-    const notificationSound = new Audio('assets/audio/sounds/notifications.mp3');
+    const notificationSound = new Audio('assets/audio/sounds/notification.mp3');
     
     // Initialize notifications
     initializeNotifications();

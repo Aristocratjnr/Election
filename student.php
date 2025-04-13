@@ -3051,7 +3051,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <!-- Audio element for notification sound -->
     <audio id="notification-sound" preload="auto">
-        <source src="assets/audio/notification.mp3" type="audio/mpeg">
+        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
         <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
     </audio>
 
