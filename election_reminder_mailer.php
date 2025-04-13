@@ -178,7 +178,7 @@ function sendReminderEmail($email, $name, $electionName, $startDate, $startTime,
         $mail->Subject = "REMINDER: $electionName Election Tomorrow";
         
         // Generate voter portal URL
-        $baseUrl = isset($_ENV['BASE_URL']) ? $_ENV['BASE_URL'] : 'http://localhost/Election';
+        $baseUrl = isset($_ENV['BASE_URL']) ? $_ENV['BASE_URL'] : 'https://smartvote.42web.io';
         $voteUrl = "$baseUrl/student.php";
         
         // Professional HTML email template
