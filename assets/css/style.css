@@ -1224,7 +1224,7 @@
 
   .student-details h5 {
       font-size: 1.5rem;
-      font-weight: 700;
+      font-weight: 500;
       margin-bottom: 0.75rem;
       color: var(--text);
   }
@@ -1270,7 +1270,7 @@
       }
       
       .student-details {
-          text-align: center;
+          text-align: justify;
       }
       
       .student-details .d-flex.flex-wrap {

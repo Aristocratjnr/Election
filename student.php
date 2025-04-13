@@ -1048,7 +1048,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         .student-details h5 {
             font-weight: 700;
             margin-bottom: 4px;
-            font-size: 0.95rem;
+            font-size: 0.97rem;
         }
 
         .student-details p {
