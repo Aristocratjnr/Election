@@ -56,10 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 $notifications = [];
 try {
     $query = "SELECT n.*, e.name AS election_name, e.status AS election_status,
-                     c.position AS candidate_position, s.name AS candidate_name
+                     p.title AS position_title, s.name AS candidate_name
               FROM notifications n
               LEFT JOIN elections e ON n.related_election = e.electionID
               LEFT JOIN candidates c ON n.related_candidate = c.candidateID
+              LEFT JOIN positions p ON c.positionID = p.positionID
               LEFT JOIN students s ON c.studentID = s.studentID
               WHERE n.user_id = ? AND n.user_type = ?
               ORDER BY n.created_at DESC 
@@ -98,6 +99,11 @@ try {
                 $row['bg_class'] = 'bg-warning-light';
                 $row['badge_class'] = 'bg-warning';
                 break;
+            case 'system':
+                $row['icon'] = 'bi-gear';
+                $row['bg_class'] = 'bg-secondary-light';
+                $row['badge_class'] = 'bg-secondary';
+                break;
             default:
                 $row['icon'] = 'bi-bell';
                 $row['bg_class'] = 'bg-secondary-light';
@@ -105,8 +111,8 @@ try {
         }
         
         // Format time as "X minutes/hours/days ago"
-        $createdAt = new DateTime($row['created_at'], new DateTimeZone('Asia/Manila'));
-        $now = new DateTime('now', new DateTimeZone('Asia/Manila'));
+        $createdAt = new DateTime($row['created_at']);
+        $now = new DateTime();
         $interval = $now->diff($createdAt);
         
         if ($interval->y > 0) {
@@ -130,6 +136,22 @@ try {
     error_log("Fetch notifications error: " . $e->getMessage());
     $notifications = [];
 }
+
+// Get notification links based on type
+function getNotificationLink($notification) {
+    switch ($notification['type']) {
+        case 'vote':
+            return 'live_results.php?election=' . $notification['related_election'];
+        case 'election':
+            return 'student.php';
+        case 'result':
+            return 'live_results.php?election=' . $notification['related_election'];
+        case 'candidate':
+            return 'student.php';
+        default:
+            return '#';
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -144,7 +166,7 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
-            --notification-primary: #7367f0;
+            --notification-primary: #4361ee;
             --notification-success: #28c76f;
             --notification-info: #00cfe8;
             --notification-warning: #ff9f43;
@@ -170,7 +192,7 @@ try {
         }
         
         .notification-item.unread {
-            background-color: rgba(115, 103, 240, 0.05);
+            background-color: rgba(67, 97, 238, 0.05);
             border-left-color: var(--notification-primary);
         }
         
@@ -194,7 +216,7 @@ try {
         }
         
         /* Background colors */
-        .bg-primary-light { background-color: rgba(115, 103, 240, 0.15); }
+        .bg-primary-light { background-color: rgba(67, 97, 238, 0.15); }
         .bg-success-light { background-color: rgba(40, 199, 111, 0.15); }
         .bg-info-light { background-color: rgba(0, 207, 232, 0.15); }
         .bg-warning-light { background-color: rgba(255, 159, 67, 0.15); }
@@ -272,7 +294,7 @@ try {
         
         .btn-refresh:hover, .btn-load-more:hover {
             transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(115, 103, 240, 0.2);
+            box-shadow: 0 3px 8px rgba(67, 97, 238, 0.2);
         }
         
         /* Badge styles for categories */
@@ -342,30 +364,6 @@ try {
         .notification-container::-webkit-scrollbar-thumb {
             background-color: rgba(0,0,0,0.1);
             border-radius: 3px;
-        }
-        
-        /* Toast notification styles */
-        .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            min-width: 300px;
-            max-width: 90vw;
-            z-index: 9999;
-            border: none;
-            border-radius: 0.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .toast-header {
-            border-radius: 0.5rem 0.5rem 0 0;
-            display: flex;
-            align-items: center;
-        }
-        
-        .toast-header i {
-            margin-right: 0.5rem;
-            color: var(--notification-primary);
         }
         
         /* Animation for new notifications */
@@ -459,98 +457,6 @@ try {
         [data-bs-theme="dark"] .notification-container::-webkit-scrollbar-thumb {
             background-color: rgba(255, 255, 255, 0.1);
         }
-        
-        [data-bs-theme="dark"] .toast {
-            background-color: #343a40;
-            color: #e9ecef;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        [data-bs-theme="dark"] .toast-header {
-            background-color: #2b3035;
-            color: #e9ecef;
-            border-bottom-color: rgba(255, 255, 255, 0.08);
-        }
-        
-        /* Additional dark mode fixes */
-        [data-bs-theme="dark"] .list-group-item-action {
-            color: #e9ecef;
-        }
-        
-        [data-bs-theme="dark"] .list-group-item-action:hover {
-            background-color: #343a40;
-            color: #f8f9fa;
-        }
-        
-        [data-bs-theme="dark"] .notification-item h6 {
-            color: #f8f9fa;
-        }
-        
-        [data-bs-theme="dark"] .notification-item p {
-            color: #adb5bd !important;
-        }
-        
-        [data-bs-theme="dark"] .category-badge {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        [data-bs-theme="dark"] .btn-sm.btn-outline-primary {
-            color: #a499f9;
-            border-color: #7367f0;
-        }
-        
-        [data-bs-theme="dark"] .btn-sm.btn-primary {
-            background-color: #7367f0;
-            border-color: #7367f0;
-        }
-        
-        [data-bs-theme="dark"] .notification-icon {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Dark mode icon colors */
-        [data-bs-theme="dark"] .bg-primary-light {
-            background-color: rgba(115, 103, 240, 0.2);
-        }
-        
-        [data-bs-theme="dark"] .bg-success-light {
-            background-color: rgba(40, 199, 111, 0.2);
-        }
-        
-        [data-bs-theme="dark"] .bg-info-light {
-            background-color: rgba(0, 207, 232, 0.2);
-        }
-        
-        [data-bs-theme="dark"] .bg-warning-light {
-            background-color: rgba(255, 159, 67, 0.2);
-        }
-        
-        [data-bs-theme="dark"] .bg-secondary-light {
-            background-color: rgba(130, 134, 139, 0.2);
-        }
-        
-        [data-bs-theme="dark"] .bg-danger-light {
-            background-color: rgba(234, 84, 85, 0.2);
-        }
-        
-        /* Fix for specific Bootstrap elements in dark mode */
-        [data-bs-theme="dark"] .badge.bg-danger {
-            background-color: #ea5455 !important;
-        }
-        
-        [data-bs-theme="dark"] .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-        
-        [data-bs-theme="dark"] .card-footer small.text-muted {
-            color: #adb5bd !important;
-        }
-        
-        [data-bs-theme="dark"] .btn-light {
-            background-color: #444;
-            border-color: #555;
-            color: #eee;
-        }
     </style>
 </head>
 <body>
@@ -589,8 +495,8 @@ try {
                             <div class="notification-container">
                                 <div class="list-group list-group-flush">
                                     <?php foreach ($notifications as $notification): ?>
-                                    <div class="list-group-item list-group-item-action notification-item <?= $notification['is_read'] ? '' : 'unread' ?>"
-                                         data-notification-id="<?= $notification['notificationID'] ?>">
+                                    <a href="<?= getNotificationLink($notification) ?>" class="list-group-item list-group-item-action notification-item <?= $notification['is_read'] ? '' : 'unread' ?>"
+                                         data-notification-id="<?= $notification['notification_id'] ?>">
                                         <?php if (!$notification['is_read']): ?>
                                             <span class="notification-badge <?= $notification['badge_class'] ?>"></span>
                                         <?php endif; ?>
@@ -614,11 +520,11 @@ try {
                                                             <?= htmlspecialchars($notification['election_name']) ?>
                                                             <?php if ($notification['election_status']): ?>
                                                                 <span class="ms-1">
-                                                                    <?php if ($notification['election_status'] == 'active'): ?>
+                                                                    <?php if ($notification['election_status'] == 'Ongoing'): ?>
                                                                         <i class="bi bi-play-fill"></i>
-                                                                    <?php elseif ($notification['election_status'] == 'completed'): ?>
+                                                                    <?php elseif ($notification['election_status'] == 'Completed'): ?>
                                                                         <i class="bi bi-check2-circle"></i>
-                                                                    <?php elseif ($notification['election_status'] == 'upcoming'): ?>
+                                                                    <?php elseif ($notification['election_status'] == 'Scheduled'): ?>
                                                                         <i class="bi bi-hourglass-split"></i>
                                                                     <?php endif; ?>
                                                                 </span>
@@ -626,46 +532,62 @@ try {
                                                         </span>
                                                     <?php endif; ?>
                                                     
-                                                    <?php if ($notification['candidate_position']): ?>
+                                                    <?php if ($notification['position_title']): ?>
                                                         <span class="category-badge <?= $notification['badge_class'] ?> text-white">
                                                             <i class="bi bi-person-badge"></i>
                                                             <?= htmlspecialchars($notification['candidate_name'] ?? 'Candidate') ?> - 
-                                                            <?= htmlspecialchars($notification['candidate_position']) ?>
+                                                            <?= htmlspecialchars($notification['position_title']) ?>
                                                         </span>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </a>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
                         <?php endif; ?>
                     </div>
                     
-                    <?php if (!empty($notifications)): ?>
+                    <?php if (!empty($notifications) && count($notifications) >= 50): ?>
                     <div class="card-footer d-flex justify-content-between align-items-center">
                         <button class="btn btn-sm btn-outline-primary btn-load-more" id="load-more">
                             <i class="bi bi-arrow-down-circle"></i> Load More
                         </button>
                         <small class="text-muted">
                             <i class="bi bi-info-circle me-1"></i>
-                            Showing <?= count($notifications) ?> of <?= $unreadCount + count($notifications) ?> notifications
+                            Showing <?= count($notifications) ?> notifications
                         </small>
                     </div>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
-    </main><br><br><br><br><br><br><br><br><br>
+    </main>
 
     <?php include 'includes/footer.php'; ?>
 
+    <!-- Audio element for notification sound -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
+    </audio>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
     <script>
-    $(document).ready(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Audio setup
+        const notificationSound = document.getElementById('notification-sound');
+        
+        // Function to play notification sound
+        function playNotificationSound() {
+            if (notificationSound) {
+                notificationSound.currentTime = 0;
+                notificationSound.play().catch(err => {
+                    console.log('Audio playback was prevented:', err);
+                });
+            }
+        }
+
         // Apply theme from localStorage
         const currentTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-bs-theme', currentTheme);
@@ -689,16 +611,6 @@ try {
                     cardHeader.classList.remove('bg-dark-subtle');
                 }
             }
-            
-            // Update any other elements that need special handling
-            const listItems = document.querySelectorAll('.list-group-item');
-            listItems.forEach(item => {
-                if (isDarkMode) {
-                    item.classList.add('text-white-50');
-                } else {
-                    item.classList.remove('text-white-50');
-                }
-            });
         }
         
         // Run initially
@@ -709,207 +621,404 @@ try {
             updateDarkModeClasses();
         });
         
-        // Refresh notifications
-        $('#refresh-notifications').click(function() {
-            const $btn = $(this);
-            $btn.html('<span class="spinner-border spinner-border-sm me-1" role="status"></span> Refreshing...');
-            $btn.prop('disabled', true);
+        // Refresh notifications with AJAX
+        document.getElementById('refresh-notifications').addEventListener('click', function() {
+            const btn = this;
+            const userID = <?= $userID ?>;
+            const userType = '<?= $userType ?>';
+            const previousCount = document.querySelectorAll('.notification-item.unread').length;
             
-            setTimeout(function() {
-                window.location.reload();
-            }, 500);
-        });
-        
-        // Load more notifications
-        $('#load-more').click(function() {
-            const $btn = $(this);
-            const currentCount = <?= count($notifications) ?>;
+            // Change button state to loading
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Refreshing...';
+            btn.disabled = true;
             
-            $btn.html('<span class="spinner-border spinner-border-sm me-1" role="status"></span> Loading...');
-            $btn.prop('disabled', true);
+            // Add timestamp to prevent caching
+            const timestamp = new Date().getTime();
             
-            $.ajax({
-                url: 'api/notifications.php',
-                type: 'GET',
-                data: {
-                    offset: currentCount,
-                    user_id: <?= $userID ?>,
-                    user_type: '<?= $userType ?>'
-                },
-                success: function(data) {
-                    if (data.notifications && data.notifications.length > 0) {
-                        data.notifications.forEach(function(notification) {
-                            const notificationHtml = `
-                                <div class="list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'} ${document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'text-white-50' : ''}"
-                                     data-notification-id="${notification.notificationID}">
-                                    ${!notification.is_read ? `<span class="notification-badge ${notification.badge_class}"></span>` : ''}
+            // Fetch fresh notifications
+            fetch(`api/notifications.php?user_id=${userID}&user_type=${userType}&t=${timestamp}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const container = document.querySelector('.notification-container');
+                        const listGroup = document.querySelector('.list-group');
+                        const emptyState = document.querySelector('.empty-state');
+                        
+                        if (data.notifications && data.notifications.length > 0) {
+                            // Count unread notifications
+                            const unreadCount = data.notifications.filter(n => n.is_read == 0).length;
+                            
+                            // Play sound if there are new unread notifications
+                            if (unreadCount > previousCount) {
+                                playNotificationSound();
+                            }
+                            
+                            // Hide empty state if visible
+                            if (emptyState) emptyState.style.display = 'none';
+                            
+                            // Clear existing notifications
+                            listGroup.innerHTML = '';
+                            
+                            // Add new notifications with animation
+                            data.notifications.forEach(notification => {
+                                const notificationItem = document.createElement('a');
+                                notificationItem.href = getNotificationLink(notification);
+                                notificationItem.className = `list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'}`;
+                                notificationItem.dataset.notificationId = notification.notification_id;
+                                
+                                // Add notification badge for unread
+                                let badgeHtml = '';
+                                if (notification.is_read == 0) {
+                                    badgeHtml = `<span class="notification-badge ${notification.badge_class}"></span>`;
+                                }
+                                
+                                // Format notification content
+                                notificationItem.innerHTML = `
+                                    ${badgeHtml}
                                     <div class="d-flex align-items-start">
                                         <div class="notification-icon ${notification.bg_class}">
                                             <i class="bi ${notification.icon} fs-5"></i>
                                         </div>
                                         <div class="notification-content">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <h6 class="mb-0 fw-bold">${notification.title}</h6>
+                                                <h6 class="mb-0 fw-bold">${escapeHtml(notification.title)}</h6>
                                                 <small class="notification-time">
                                                     <i class="bi bi-clock"></i> ${notification.time_ago}
                                                 </small>
                                             </div>
-                                            <p class="mb-2 text-muted">${notification.message}</p>
+                                            <p class="mb-2 text-muted">${escapeHtml(notification.message)}</p>
                                             
                                             <div class="d-flex flex-wrap mt-2">
                                                 ${notification.election_name ? `
                                                     <span class="category-badge ${notification.badge_class} text-white">
                                                         <i class="bi bi-calendar-event"></i>
-                                                        ${notification.election_name}
+                                                        ${escapeHtml(notification.election_name)}
                                                         ${notification.election_status ? `
                                                             <span class="ms-1">
-                                                                ${notification.election_status === 'active' ? `<i class="bi bi-play-fill"></i>` : ''}
-                                                                ${notification.election_status === 'completed' ? `<i class="bi bi-check2-circle"></i>` : ''}
-                                                                ${notification.election_status === 'upcoming' ? `<i class="bi bi-hourglass-split"></i>` : ''}
+                                                                ${notification.election_status === 'Ongoing' ? `<i class="bi bi-play-fill"></i>` : ''}
+                                                                ${notification.election_status === 'Completed' ? `<i class="bi bi-check2-circle"></i>` : ''}
+                                                                ${notification.election_status === 'Scheduled' ? `<i class="bi bi-hourglass-split"></i>` : ''}
                                                             </span>
                                                         ` : ''}
                                                     </span>
                                                 ` : ''}
                                                 
-                                                ${notification.candidate_position ? `
+                                                ${notification.position_title ? `
                                                     <span class="category-badge ${notification.badge_class} text-white">
                                                         <i class="bi bi-person-badge"></i>
-                                                        ${notification.candidate_name || 'Candidate'} - ${notification.candidate_position}
+                                                        ${escapeHtml(notification.candidate_name || 'Candidate')} - 
+                                                        ${escapeHtml(notification.position_title)}
                                                     </span>
                                                 ` : ''}
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            `;
-                            $('.list-group').append(notificationHtml);
-                        });
-                        
-                        // Apply dark mode to new elements if needed
-                        updateDarkModeClasses();
-                        
-                        if (!data.has_more) {
-                            $btn.removeClass('btn-outline-primary').addClass('btn-light');
-                            $btn.html('<i class="bi bi-check-circle"></i> All loaded');
-                            setTimeout(() => {
-                                $btn.parent().fadeOut();
-                            }, 2000);
+                                `;
+                                
+                                // Setup click event to mark as read
+                                notificationItem.addEventListener('click', function() {
+                                    markNotificationAsRead(notification.notification_id, this);
+                                });
+                                
+                                // Add to list
+                                listGroup.appendChild(notificationItem);
+                            });
+                            
+                            // Show container
+                            container.style.display = 'block';
+                            
+                            // Update unread count in header badge
+                            updateUnreadCount(data.unread || 0);
+                            
+                            // Show success message
+                            showToast('Notifications refreshed', 'success');
+                        } else {
+                            // Show empty state
+                            if (listGroup) listGroup.innerHTML = '';
+                            if (emptyState) {
+                                emptyState.style.display = 'block';
+                                // Update empty state message
+                                const messageEl = emptyState.querySelector('p');
+                                if (messageEl) {
+                                    messageEl.innerHTML = '<i class="bi bi-info-circle me-1"></i>No notifications found';
+                                }
+                            }
                         }
+                        
+                        // Update dark mode styles
+                        updateDarkModeClasses();
                     } else {
-                        $btn.removeClass('btn-outline-primary').addClass('btn-light');
-                        $btn.html('<i class="bi bi-check-circle"></i> No more notifications');
-                        setTimeout(() => {
-                            $btn.parent().fadeOut();
-                        }, 2000);
+                        showToast('Error refreshing notifications', 'error');
                     }
-                },
-                complete: function() {
-                    if ($btn.html().indexOf('No more') === -1 && $btn.html().indexOf('All loaded') === -1) {
-                        $btn.html('<i class="bi bi-arrow-down-circle"></i> Load More');
-                        $btn.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    $btn.html('<i class="bi bi-exclamation-triangle"></i> Error loading');
+                })
+                .catch(error => {
+                    console.error('Error refreshing notifications:', error);
+                    showToast('Network error, please try again', 'error');
+                })
+                .finally(() => {
+                    // Reset button state after short delay
                     setTimeout(() => {
-                        $btn.html('<i class="bi bi-arrow-down-circle"></i> Try Again');
-                        $btn.prop('disabled', false);
-                    }, 2000);
-                }
-            });
+                        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Refresh';
+                        btn.disabled = false;
+                    }, 500);
+                });
         });
         
-        // Real-time notification check
-        function checkNewNotifications() {
-            $.ajax({
-                url: 'api/notifications_count.php',
-                type: 'GET',
-                data: {
-                    user_id: <?= $userID ?>,
-                    user_type: '<?= $userType ?>',
-                    last_check: new Date().toISOString()
-                },
-                success: function(data) {
-                    if (data.count > 0) {
-                        // Update notification count in header
-                        const $badge = $('#notification-badge');
-                        if ($badge.length) {
-                            $badge.text(data.count).removeClass('d-none');
+        // Load more notifications
+        const loadMoreBtn = document.getElementById('load-more');
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function() {
+                const btn = this;
+                const currentCount = <?= count($notifications) ?>;
+                const userID = <?= $userID ?>;
+                const previousUnreadCount = document.querySelectorAll('.notification-item.unread').length;
+                
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Loading...';
+                btn.disabled = true;
+                
+                // Fetch more notifications
+                fetch(`api/notifications.php?offset=${currentCount}&user_id=${userID}&user_type=<?= $userType ?>`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.notifications && data.notifications.length > 0) {
+                            const listGroup = document.querySelector('.list-group');
+                            
+                            // Count new unread notifications
+                            const newUnreadCount = data.notifications.filter(n => n.is_read == 0).length;
+                            
+                            // Play sound if there are new unread notifications
+                            if (newUnreadCount > 0) {
+                                playNotificationSound();
+                            }
+                            
+                            data.notifications.forEach(function(notification) {
+                                // Create notification element
+                                const notificationItem = document.createElement('a');
+                                notificationItem.href = getNotificationLink(notification);
+                                notificationItem.className = `list-group-item list-group-item-action notification-item notification-new ${notification.is_read ? '' : 'unread'}`;
+                                notificationItem.dataset.notificationId = notification.notification_id;
+                                
+                                // Add notification badge for unread
+                                let badgeHtml = '';
+                                if (!notification.is_read) {
+                                    badgeHtml = `<span class="notification-badge ${notification.badge_class}"></span>`;
+                                }
+                                
+                                // Format notification content
+                                notificationItem.innerHTML = `
+                                    ${badgeHtml}
+                                    <div class="d-flex align-items-start">
+                                        <div class="notification-icon ${notification.bg_class}">
+                                            <i class="bi ${notification.icon} fs-5"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="mb-0 fw-bold">${escapeHtml(notification.title)}</h6>
+                                                <small class="notification-time">
+                                                    <i class="bi bi-clock"></i> ${notification.time_ago}
+                                                </small>
+                                            </div>
+                                            <p class="mb-2 text-muted">${escapeHtml(notification.message)}</p>
+                                            
+                                            <div class="d-flex flex-wrap mt-2">
+                                                ${notification.election_name ? `
+                                                    <span class="category-badge ${notification.badge_class} text-white">
+                                                        <i class="bi bi-calendar-event"></i>
+                                                        ${escapeHtml(notification.election_name)}
+                                                        ${notification.election_status ? `
+                                                            <span class="ms-1">
+                                                                ${notification.election_status === 'Ongoing' ? `<i class="bi bi-play-fill"></i>` : ''}
+                                                                ${notification.election_status === 'Completed' ? `<i class="bi bi-check2-circle"></i>` : ''}
+                                                                ${notification.election_status === 'Scheduled' ? `<i class="bi bi-hourglass-split"></i>` : ''}
+                                                            </span>
+                                                        ` : ''}
+                                                    </span>
+                                                ` : ''}
+                                                
+                                                ${notification.position_title ? `
+                                                    <span class="category-badge ${notification.badge_class} text-white">
+                                                        <i class="bi bi-person-badge"></i>
+                                                        ${escapeHtml(notification.candidate_name || 'Candidate')} - 
+                                                        ${escapeHtml(notification.position_title)}
+                                                    </span>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                // Setup click handler
+                                notificationItem.addEventListener('click', function() {
+                                    markNotificationAsRead(notification.notification_id, this);
+                                });
+                                
+                                // Add to list
+                                listGroup.appendChild(notificationItem);
+                            });
+                            
+                            // Update dark mode styles
+                            updateDarkModeClasses();
+                            
+                            // Update button state
+                            if (!data.has_more) {
+                                btn.innerHTML = '<i class="bi bi-check-circle"></i> All loaded';
+                                btn.disabled = true;
+                                setTimeout(() => {
+                                    btn.parentElement.style.display = 'none';
+                                }, 2000);
+                            } else {
+                                btn.innerHTML = '<i class="bi bi-arrow-down-circle"></i> Load More';
+                                btn.disabled = false;
+                            }
                         } else {
-                            const $newBadge = $(`<span id="notification-badge" class="badge bg-danger rounded-pill position-absolute start-100 translate-middle">
-                                ${data.count}
-                            </span>`);
-                            $('#nav-notification-icon').append($newBadge);
+                            btn.innerHTML = '<i class="bi bi-check-circle"></i> No more notifications';
+                            btn.disabled = true;
+                            setTimeout(() => {
+                                btn.parentElement.style.display = 'none';
+                            }, 2000);
                         }
-                        
-                        // Show toast notification
-                        if (data.latest_notification) {
-                            showToastNotification(data.latest_notification);
-                        }
-                    }
-                }
+                    })
+                    .catch(error => {
+                        console.error('Error loading more notifications:', error);
+                        btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error loading';
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="bi bi-arrow-down-circle"></i> Try Again';
+                            btn.disabled = false;
+                        }, 2000);
+                    });
             });
         }
         
         // Show toast notification
-        function showToastNotification(notification) {
-            const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-            const toastHtml = `
-                <div class="toast show ${isDarkMode ? 'bg-dark text-white' : ''}" role="alert">
-                    <div class="toast-header ${isDarkMode ? 'bg-dark text-white border-secondary' : ''}">
-                        <i class="bi ${notification.icon || 'bi-bell-fill'}"></i>
-                        <strong class="me-auto">New Notification</strong>
-                        <small>Just now</small>
-                        <button type="button" class="btn-close ${isDarkMode ? 'btn-close-white' : ''}" data-bs-dismiss="toast"></button>
+        function showToast(message, type = 'info') {
+            // Remove any existing toasts
+            const existingToasts = document.querySelectorAll('.toast-container');
+            existingToasts.forEach(toast => toast.remove());
+            
+            // Create toast container
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            
+            // Set toast class based on type
+            let bgColor = 'bg-primary text-white';
+            let icon = 'bi-info-circle';
+            
+            if (type === 'success') {
+                bgColor = 'bg-success text-white';
+                icon = 'bi-check-circle';
+            } else if (type === 'error') {
+                bgColor = 'bg-danger text-white';
+                icon = 'bi-exclamation-triangle';
+            }
+            
+            // Create toast HTML
+            toastContainer.innerHTML = `
+                <div class="toast show ${bgColor}" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header ${bgColor}">
+                        <i class="bi ${icon} me-2"></i>
+                        <strong class="me-auto">Notification</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
                     <div class="toast-body">
-                        <h6 class="mb-1">${notification.title}</h6>
-                        <p class="mb-0 ${isDarkMode ? 'text-light' : ''}">${notification.message}</p>
-                        ${notification.action_url ? `
-                            <div class="mt-2 pt-2 border-top ${isDarkMode ? 'border-secondary' : ''}">
-                                <a href="${notification.action_url}" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye"></i> View Details
-                                </a>
-                            </div>
-                        ` : ''}
+                        ${escapeHtml(message)}
                     </div>
                 </div>
             `;
             
-            // Remove any existing toast
-            $('.toast').remove();
+            // Add to document
+            document.body.appendChild(toastContainer);
             
-            // Add new toast
-            $('body').append(toastHtml);
-            
-            // Auto-hide after 5 seconds
+            // Auto-hide toast after 3 seconds
             setTimeout(() => {
-                $('.toast').fadeOut(500, function() {
-                    $(this).remove();
-                });
-            }, 5000);
+                const toast = toastContainer.querySelector('.toast');
+                if (toast) {
+                    toast.classList.remove('show');
+                    setTimeout(() => toastContainer.remove(), 300);
+                }
+            }, 3000);
         }
         
-        // Check every 30 seconds
-        setInterval(checkNewNotifications, 30000);
-        
-        // Mark clicked notifications as read using AJAX
-        $('.notification-item').click(function(e) {
-            const notificationId = $(this).data('notification-id');
-            if (notificationId) {
-                $.ajax({
-                    url: 'api/mark_notification_read.php',
-                    type: 'POST',
-                    data: {
-                        notification_id: notificationId
-                    },
-                    success: function() {
-                        // No need to do anything, just mark as read on server
-                    }
-                });
+        // Update unread count in header
+        function updateUnreadCount(count) {
+            const badge = document.querySelector('.card-header .badge');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count + ' new';
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
             }
+        }
+        
+        // Mark notification as read
+        function markNotificationAsRead(notificationId, element) {
+            fetch('api/mark_notification_read.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    notification_id: notificationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI
+                    if (element) {
+                        element.classList.remove('unread');
+                        const badge = element.querySelector('.notification-badge');
+                        if (badge) badge.remove();
+                    }
+                }
+            })
+            .catch(error => console.error('Error marking as read:', error));
+        }
+        
+        // Helper function to get notification link
+        function getNotificationLink(notification) {
+            switch (notification.type) {
+                case 'vote':
+                    return `live_results.php?election=${notification.related_election}`;
+                case 'election':
+                    return `student.php`;
+                case 'result':
+                    return `live_results.php?election=${notification.related_election}`;
+                case 'candidate':
+                    return `student.php`;
+                default:
+                    return '#';
+            }
+        }
+        
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Mark initial notifications as read when clicked
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const notificationId = this.dataset.notificationId;
+                if (notificationId) {
+                    markNotificationAsRead(notificationId, this);
+                }
+            });
         });
     });
     </script>
+
+    <!-- Toast CSS -->
+    <style>
+    .toast {
+        transition: all 0.3s ease;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    </style>
 </body>
 </html>

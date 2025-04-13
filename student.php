@@ -3049,6 +3049,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <?php include 'includes/footer.php'; ?>
 
+    <!-- Audio element for notification sound -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/audio/notification.mp3" type="audio/mpeg">
+        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -3278,6 +3284,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                     $badge.classList.remove('d-none');
                                 }
                                 
+                                // Play notification sound
+                                const notificationSound = document.getElementById('notification-sound');
+                                if (notificationSound) {
+                                    notificationSound.currentTime = 0;
+                                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                                }
+                                
                                 // Show toast notification for latest notification
                                 if (data.latest_notification) {
                                     showToastNotification(data.latest_notification);
@@ -3292,23 +3305,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             function showToastNotification(notification) {
                 const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
                 
+                // Play notification sound
+                const notificationSound = document.getElementById('notification-sound');
+                if (notificationSound) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                }
+                
                 // Remove any existing toast
                 const existingToasts = document.querySelectorAll('.toast');
                 existingToasts.forEach(toast => toast.remove());
                 
-                // Create toast element
+                // Create toast container
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                
+                // Create toast element with slide-in animation
                 const toastEl = document.createElement('div');
                 toastEl.className = `toast show ${isDarkMode ? 'bg-dark text-white' : ''}`;
                 toastEl.setAttribute('role', 'alert');
-                toastEl.style.position = 'fixed';
-                toastEl.style.bottom = '1.5rem';
-                toastEl.style.right = '1.5rem';
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
                 toastEl.style.minWidth = '300px';
                 toastEl.style.maxWidth = '90vw';
-                toastEl.style.zIndex = '9999';
                 toastEl.style.border = 'none';
                 toastEl.style.borderRadius = '0.5rem';
                 toastEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                toastEl.style.animation = 'slideIn 0.5s ease-out forwards';
+                
+                // Add CSS animation
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateY(100%); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styleEl);
                 
                 // Create toast content
                 const icon = notification.icon || 'bi-bell-fill';
@@ -3332,28 +3366,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     </div>
                 `;
                 
-                // Add toast to body
-                document.body.appendChild(toastEl);
+                // Add toast to container
+                toastContainer.appendChild(toastEl);
+                
+                // Add container to body
+                document.body.appendChild(toastContainer);
                 
                 // Add click handler for close button
                 const closeBtn = toastEl.querySelector('.btn-close');
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => {
-                        toastEl.remove();
+                        toastContainer.remove();
                     });
                 }
                 
                 // Auto-hide after 5 seconds
                 setTimeout(() => {
-                    if (toastEl.parentNode) {
-                        toastEl.style.opacity = '0';
-                        toastEl.style.transition = 'opacity 0.5s ease';
-                        setTimeout(() => {
-                            if (toastEl.parentNode) {
-                                toastEl.remove();
-                            }
-                        }, 500);
-                    }
+                    toastEl.style.opacity = '0';
+                    toastEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    toastEl.style.transform = 'translateY(100%)';
+                    
+                    setTimeout(() => {
+                        if (toastContainer.parentNode) {
+                            toastContainer.remove();
+                        }
+                    }, 500);
                 }, 5000);
             }
             

@@ -1053,14 +1053,20 @@ if ($electionID) {
                                 <div class="row g-4">
                                     <?php 
                                     $voteCountsArray = !empty($position['candidates']) ? array_column($position['candidates'], 'voteCount') : [0];
-                                    $maxVotes = !empty($voteCountsArray) ? max($voteCountsArray) : 0;
+                                    $maxVotes = !empty($voteCountsArray) ? max(array_map('intval', $voteCountsArray)) : 0; // Ensure numeric comparison
                                     foreach ($position['candidates'] as $candidate): 
-                                        $isWinner = ($candidate['voteCount'] == $maxVotes && $maxVotes > 0);
+                                        // Add check for valid candidate data
+                                        if (!is_array($candidate) || !isset($candidate['candidateID'])) {
+                                            error_log("Skipping invalid candidate data in results.php for position: " . ($position['title'] ?? 'Unknown'));
+                                            continue; // Skip this iteration if data is invalid
+                                        }
+                                        // Refined winner check
+                                        $currentVoteCount = $candidate['voteCount'] ?? 0;
+                                        $isWinner = ($currentVoteCount > 0 && $maxVotes > 0 && $currentVoteCount == $maxVotes);
                                     ?>
-                                    <!-- Simplified Candidate Card -->
                                     <div class="col-md-6 col-lg-4">
-                                        <div class="card border-0 shadow-sm h-100 position-relative <?php echo isset($isWinner) && $isWinner ? 'border border-warning border-3' : ''; ?>">
-                                            <?php if (isset($isWinner) && $isWinner): ?>
+                                        <div class="card border-0 shadow-sm h-100 position-relative <?php echo $isWinner ? 'border border-warning border-3' : ''; ?>">
+                                            <?php if ($isWinner): ?>
                                             <span class="winner-badge" title="Winner">
                                                 <i class="bi bi-trophy-fill"></i>
                                             </span>
@@ -1069,22 +1075,21 @@ if ($electionID) {
                                                 <!-- Profile Photo -->
                                                 <div class="position-relative mb-3">
                                                     <?php 
-                                                    // Check both profile picture sources
-                                                    $profilePic = isset($candidate) && is_array($candidate) ? findProfilePicture($candidate) : '';
+                                                    $profilePic = findProfilePicture($candidate);
                                                     
                                                     if (!empty($profilePic)): 
                                                     ?>
                                                     <img src="<?php echo $profilePic; ?>" 
                                                         class="candidate-photo" 
-                                                        alt="<?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Candidate'; ?>"
+                                                        alt="<?php echo htmlspecialchars($candidate['name'] ?? 'Candidate'); ?>"
                                                         data-bs-toggle="modal" 
-                                                        data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>"
+                                                        data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>"
                                                         style="cursor: pointer; width: 80px; height: 80px;"
                                                         onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
                                                     <?php else: ?>
                                                     <div class="candidate-photo bg-light d-flex align-items-center justify-content-center"
                                                          data-bs-toggle="modal" 
-                                                         data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>"
+                                                         data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>"
                                                          style="cursor: pointer; width: 80px; height: 80px;">
                                                         <i class="bi bi-person-circle text-muted" style="font-size: 2rem;"></i>
                                                     </div>
@@ -1095,8 +1100,8 @@ if ($electionID) {
                                                 <h5 class="mb-2 fw-bold">
                                                     <a href="#" class="text-decoration-none text-dark" 
                                                        data-bs-toggle="modal" 
-                                                       data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>">
-                                                        <?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Unknown Candidate'; ?>
+                                                       data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>">
+                                                        <?php echo htmlspecialchars($candidate['name'] ?? 'Unknown Candidate'); ?>
                                                     </a>
                                                 </h5>
                                                 
@@ -1113,10 +1118,15 @@ if ($electionID) {
                                                     <div class="d-flex justify-content-between mb-1">
                                                         <span class="text-muted small">Votes</span>
                                                         <span class="vote-count fw-bold">
-                                                            <?php 
-                                                                $displayVotes = isset($candidate['voteCount']) ? $candidate['voteCount'] : 0;
-                                                                $actualVotes = isset($candidate['actualVotes']) ? $candidate['actualVotes'] : 0;
-                                                                
+                                                            <?php
+                                                                // Add specific safety checks here before display
+                                                                $displayVotes = 0;
+                                                                $actualVotes = 0;
+                                                                if (is_array($candidate)) { // Re-check if $candidate is array
+                                                                    $displayVotes = $candidate['voteCount'] ?? 0;
+                                                                    $actualVotes = $candidate['actualVotes'] ?? 0;
+                                                                }
+
                                                                 if ($displayVotes == 0 && $actualVotes > 0) {
                                                                     echo number_format($actualVotes) . " *";
                                                                 } else {
@@ -1128,14 +1138,14 @@ if ($electionID) {
                                                     
                                                     <div class="progress-bar-custom mb-1" style="height: 6px;">
                                                         <div class="progress-custom" 
-                                                            style="width: <?php echo isset($candidate['percentage']) ? $candidate['percentage'] : '0'; ?>%">
+                                                            style="width: <?php echo $candidate['percentage'] ?? '0'; ?>%">
                                                         </div>
                                                     </div>
                                                     
                                                     <div class="d-flex justify-content-between">
                                                         <span class="text-muted small">Percentage</span>
                                                         <span class="percentage fw-bold text-success">
-                                                            <?php echo isset($candidate['percentage']) ? $candidate['percentage'] : '0'; ?>%
+                                                            <?php echo $candidate['percentage'] ?? '0'; ?>%
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1143,14 +1153,14 @@ if ($electionID) {
                                                 <!-- View Profile Button -->
                                                 <button class="btn btn-sm btn-outline-primary w-100" 
                                                        data-bs-toggle="modal" 
-                                                       data-bs-target="#profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>">
+                                                       data-bs-target="#profileModal<?php echo $candidate['candidateID']; ?>">
                                                     <i class="bi bi-person-lines-fill me-1"></i> View Profile
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
                                     <!-- Profile Modal -->
-                                    <div class="modal fade" id="profileModal<?php echo isset($candidate['candidateID']) ? $candidate['candidateID'] : '0'; ?>" tabindex="-1">
+                                    <div class="modal fade" id="profileModal<?php echo $candidate['candidateID']; ?>" tabindex="-1">
                                         <div class="modal-dialog modal-lg modal-dialog-centered">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-primary text-white">
@@ -1164,14 +1174,14 @@ if ($electionID) {
                                                     <div class="row">
                                                         <div class="col-md-4 text-center mb-4 mb-md-0">
                                                             <?php 
-                                                            $profilePic = isset($candidate) ? findProfilePicture($candidate) : '';
+                                                            $profilePicModal = findProfilePicture($candidate);
                                                                     
-                                                            if (!empty($profilePic)): 
+                                                            if (!empty($profilePicModal)): 
                                                             ?>
-                                                            <img src="<?php echo $profilePic; ?>" 
+                                                            <img src="<?php echo $profilePicModal; ?>" 
                                                                 class="img-fluid rounded-circle profile-modal-img mb-3" 
                                                                 style="width: 180px; height: 180px; object-fit: cover; border: 5px solid #eee;"
-                                                                alt="<?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Unknown Candidate'; ?>"
+                                                                alt="<?php echo htmlspecialchars($candidate['name'] ?? 'Unknown Candidate'); ?>"
                                                                 onerror="this.onerror=null;this.src='assets/img/default-profile.png'">
                                                             <?php else: ?>
                                                             <div class="profile-modal-img mx-auto mb-3 bg-light rounded-circle d-flex align-items-center justify-content-center"
@@ -1180,16 +1190,16 @@ if ($electionID) {
                                                             </div>
                                                             <?php endif; ?>
                                                             
-                                                            <h4 class="fw-bold"><?php echo isset($candidate['name']) ? htmlspecialchars($candidate['name']) : 'Unknown Candidate'; ?></h4>
+                                                            <h4 class="fw-bold"><?php echo htmlspecialchars($candidate['name'] ?? 'Unknown Candidate'); ?></h4>
                                                             
                                                             <div class="d-flex justify-content-center mt-2 mb-3">
                                                                 <span class="badge bg-primary px-3 py-2 rounded-pill">
                                                                     <i class="bi bi-award-fill me-1"></i>
-                                                                    <?php echo isset($position['title']) ? htmlspecialchars($position['title']) : 'Position'; ?> Candidate
+                                                                    <?php echo htmlspecialchars($position['title'] ?? 'Position'); ?> Candidate
                                                                 </span>
                                                             </div>
                                                             
-                                                            <?php if (isset($candidate) && isset($isWinner) && $isWinner): ?>
+                                                            <?php if ($isWinner): ?>
                                                             <div class="winner-badge-modal mt-2">
                                                                 <span class="badge bg-warning text-dark d-inline-flex align-items-center justify-content-center py-2 px-4">
                                                                     <i class="bi bi-trophy-fill me-2"></i>
@@ -1217,7 +1227,7 @@ if ($electionID) {
                                                                     </div>
                                                                     <div>
                                                                         <span class="text-muted small">Student ID</span>
-                                                                        <p class="mb-0 fw-medium"><?php echo isset($candidate['studentID']) ? htmlspecialchars($candidate['studentID']) : 'N/A'; ?></p>
+                                                                        <p class="mb-0 fw-medium"><?php echo htmlspecialchars($candidate['studentID']); ?></p>
                                                                     </div>
                                                                 </li>
                                                             </ul>

@@ -27,33 +27,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = $_POST['status'];
         $photo = '';
 
-        // Handle photo upload
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-            $allowed = ['jpg', 'jpeg', 'png'];
-            $filename = $_FILES['photo']['name'];
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-            
-            if (in_array($ext, $allowed)) {
-                $new_filename = uniqid() . '.' . $ext;
-                $upload_path = 'uploads/candidates/' . $new_filename;
-                
-                if (!is_dir('uploads/candidates')) {
-                    mkdir('uploads/candidates', 0777, true);
+        // Check if a candidate already exists for the Treasurer position in the selected election
+        $positionTitleQuery = $conn->query("SELECT title FROM positions WHERE positionID = '$positionID'");
+        $positionTitle = $positionTitleQuery->fetch_assoc()['title'];
+
+        if ($positionTitle == "Treasurer") {
+            $electionID = $_GET['election'] ?? null;
+            $existingCandidateQuery = $conn->prepare("SELECT COUNT(*) FROM candidates c JOIN positions p ON c.positionID = p.positionID WHERE p.title = 'Treasurer' AND p.electionID = ?");
+            $existingCandidateQuery->bind_param("i", $electionID);
+            $existingCandidateQuery->execute();
+            $existingCandidateCount = $existingCandidateQuery->get_result()->fetch_row()[0];
+
+            if ($existingCandidateCount > 0) {
+                $error = "A candidate already exists for the Treasurer position in this election.";
+            } else {
+                // Handle photo upload
+                if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+                    $allowed = ['jpg', 'jpeg', 'png'];
+                    $filename = $_FILES['photo']['name'];
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                    
+                    if (in_array($ext, $allowed)) {
+                        $new_filename = uniqid() . '.' . $ext;
+                        $upload_path = 'uploads/candidates/' . $new_filename;
+                        
+                        if (!is_dir('uploads/candidates')) {
+                            mkdir('uploads/candidates', 0777, true);
+                        }
+                        
+                        if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
+                            $photo = $new_filename;
+                        }
+                    }
                 }
                 
-                if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
-                    $photo = $new_filename;
+                $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
+                
+                if ($stmt->execute()) {
+                    $success = "Candidate added successfully!";
+                } else {
+                    $error = "Error adding candidate: " . $conn->error;
                 }
             }
-        }
-        
-        $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
-        
-        if ($stmt->execute()) {
-            $success = "Candidate added successfully!";
         } else {
-            $error = "Error adding candidate: " . $conn->error;
+            // Handle photo upload
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+                $allowed = ['jpg', 'jpeg', 'png'];
+                $filename = $_FILES['photo']['name'];
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                
+                if (in_array($ext, $allowed)) {
+                    $new_filename = uniqid() . '.' . $ext;
+                    $upload_path = 'uploads/candidates/' . $new_filename;
+                    
+                    if (!is_dir('uploads/candidates')) {
+                        mkdir('uploads/candidates', 0777, true);
+                    }
+                    
+                    if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
+                        $photo = $new_filename;
+                    }
+                }
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
+            
+            if ($stmt->execute()) {
+                $success = "Candidate added successfully!";
+            } else {
+                $error = "Error adding candidate: " . $conn->error;
+            }
         }
     } elseif (isset($_POST['update_candidate'])) {
         $candidateID = $_POST['candidateID'];
