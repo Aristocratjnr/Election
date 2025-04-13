@@ -63,13 +63,11 @@ try {
     if (!$currentElection) {
         $error = "Election not found.";
     } else {
-        // Get positions for the election with proper ordering (make title case-insensitive in sorting)
+        // Improved query for positions with proper ordering
         $stmt = $conn->prepare("
-            SELECT p.*, COUNT(c.candidateID) as candidate_count 
+            SELECT p.* 
             FROM positions p
-            LEFT JOIN candidates c ON p.positionID = c.positionID AND c.status = 'Approved'
             WHERE p.electionID = ?
-            GROUP BY p.positionID, p.title, p.description, p.maxVotes, p.display_order
             ORDER BY p.display_order ASC, p.positionID ASC
         ");
         $stmt->bind_param('i', $electionID);
@@ -78,10 +76,9 @@ try {
         $stmt->close();
 
         // Debug information
-        echo "<!-- LIVE RESULTS DEBUG: -->";
-        echo "<!-- Positions found: " . count($positions) . " -->";
+        error_log("Retrieved " . count($positions) . " positions for election ID: " . $electionID);
         foreach ($positions as $pos) {
-            echo "<!-- Position: " . $pos['title'] . " (ID: " . $pos['positionID'] . ") -->";
+            error_log("Position: {$pos['title']} (ID: {$pos['positionID']})");
         }
 
         // Get candidates and vote counts for each position
@@ -89,34 +86,24 @@ try {
             // Add better debugging information
             error_log("Processing position: {$position['title']} (ID: {$position['positionID']})");
             
-            // Different query for treasurer position to fix duplication issue
-            if (strtolower($position['title']) === 'treasurer') {
-                $stmt = $conn->prepare("
-                    SELECT DISTINCT
-                        c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
-                        s.name, s.department, s.profilePicture, 
-                        (SELECT COUNT(voteID) FROM votes 
-                         WHERE candidateID = c.candidateID AND electionID = ?) as voteCount
-                    FROM candidates c
-                    JOIN students s ON c.studentID = s.studentID
-                    WHERE c.positionID = ? AND c.status = 'Approved'
-                    ORDER BY voteCount DESC, s.name ASC
-                ");
-            } else {
-                $stmt = $conn->prepare("
-                    SELECT 
-                        c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
-                        s.name, s.department, s.profilePicture, 
-                        COUNT(v.voteID) as voteCount
-                    FROM candidates c
-                    JOIN students s ON c.studentID = s.studentID
-                    LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
-                    WHERE c.positionID = ? AND c.status = 'Approved'
-                    GROUP BY c.candidateID, c.studentID, c.photo, c.manifesto, c.status, s.name, s.department, s.profilePicture
-                    ORDER BY voteCount DESC, s.name ASC
-                ");
-            }
-            
+            // Standard query for all positions to ensure consistency
+            $stmt = $conn->prepare("
+                SELECT 
+                    c.candidateID, 
+                    c.studentID, 
+                    c.photo, 
+                    c.manifesto, 
+                    c.status,
+                    s.name, 
+                    s.department, 
+                    s.profilePicture,
+                    IFNULL((SELECT COUNT(*) FROM votes WHERE candidateID = c.candidateID AND electionID = ?), 0) as voteCount
+                FROM candidates c
+                JOIN students s ON c.studentID = s.studentID
+                WHERE c.positionID = ? AND c.status = 'Approved'
+                GROUP BY c.candidateID
+                ORDER BY voteCount DESC, s.name ASC
+            ");
             $stmt->bind_param('ii', $electionID, $position['positionID']);
             $stmt->execute();
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -195,16 +182,22 @@ try {
                 
                 error_log("Added treasurer position manually: ID " . $treasurerPosition['positionID']);
                 
-                // Get candidates for treasurer - use different query to prevent duplication
+                // Improved query to correctly fetch ALL treasurer candidates without duplication
                 $candStmt = $conn->prepare("
-                    SELECT DISTINCT
-                        c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
-                        s.name, s.department, s.profilePicture, 
-                        (SELECT COUNT(voteID) FROM votes 
-                         WHERE candidateID = c.candidateID AND electionID = ?) as voteCount
+                    SELECT 
+                        c.candidateID, 
+                        c.studentID, 
+                        c.photo, 
+                        c.manifesto, 
+                        c.status,
+                        s.name, 
+                        s.department, 
+                        s.profilePicture,
+                        (SELECT COUNT(*) FROM votes WHERE candidateID = c.candidateID AND electionID = ?) as voteCount
                     FROM candidates c
                     JOIN students s ON c.studentID = s.studentID
                     WHERE c.positionID = ? AND c.status = 'Approved'
+                    GROUP BY c.candidateID
                     ORDER BY voteCount DESC, s.name ASC
                 ");
                 $candStmt->bind_param('ii', $electionID, $treasurerPosition['positionID']);
