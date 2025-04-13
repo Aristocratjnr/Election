@@ -565,11 +565,11 @@ function getNotificationLink($notification) {
         </div>
     </main>
 
-    <?php include 'includes/footer.php'; ?>
+
 
     <!-- Audio element for notification sound -->
     <audio id="notification-sound" preload="auto">
-        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
+        <source src="assets\audio\sounds\notification.mp3" type="audio/mpeg">
     </audio>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
