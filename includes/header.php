@@ -81,29 +81,29 @@ if (empty($userData)) {
                         </button>
                     </li>
                     
-                   <!-- Live Results Tab - Improved UI -->
-<li class="nav-item mx-1">
-    <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
-       href="live_results.php"
-       style="transition: all 0.3s ease;"
-       onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
-       onmouseout="this.style.backgroundColor='transparent';">
-        
-        <!-- Animated Icon with Pulse Effect -->
-        <span class="position-relative">
-            <i class="bi bi-bar-chart-line-fill fs-5 me-2" style="color: var(--primary);"></i>
-            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                <span class="visually-hidden">Live updates</span>
-            </span>
-        </span>
-        
-        <!-- Text with subtle animation - using CSS variables instead of fixed color -->
-        <span class="d-none d-md-inline fw-medium live-results-text">
-            Live Results
-        </span>
-        
-    </a>
-</li>
+                                <!-- Live Results Tab - Improved UI -->
+                <li class="nav-item mx-1">
+                    <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
+                    href="live_results.php"
+                    style="transition: all 0.3s ease;"
+                    onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
+                    onmouseout="this.style.backgroundColor='transparent';">
+                        
+                        <!-- Animated Icon with Pulse Effect -->
+                        <span class="position-relative">
+                            <i class="bi bi-bar-chart-line-fill fs-5 me-2" style="color: var(--primary);"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                <span class="visually-hidden">Live updates</span>
+                            </span>
+                        </span>
+                        
+                        <!-- Text with subtle animation - using CSS variables instead of fixed color -->
+                        <span class="d-none d-md-inline fw-medium live-results-text">
+                            Live Results
+                        </span>
+                        
+                    </a>
+                </li>
                     
                     <!-- Notification Bell with Real-Time Updates -->
                     <li class="nav-item dropdown mx-2" id="notification-dropdown">
@@ -123,10 +123,7 @@ if (empty($userData)) {
                                     <h6 class="mb-0 fw-semibold">Notifications</h6>
                                     <span id="notification-counter" class="badge bg-danger ms-2" style="display: none;">1 new</span>
                                 </div>
-                                <button id="refresh-notifications" class="btn btn-sm btn-link text-white p-0">
-                                    <i class="bi bi-arrow-clockwise"></i>
-                                    <span class="ms-1">Refresh</span>
-                                </button>
+                               
                             </div>
                             
                             <!-- Loading indicator -->

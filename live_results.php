@@ -75,7 +75,6 @@ try {
         $all_positions_raw = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // 2. Deduplicate positions by title (case-insensitive), keeping the first encountered
         $uniquePositionsData = [];
         $seenPositionTitles = [];
         foreach ($all_positions_raw as $position_raw) {

@@ -167,7 +167,6 @@ if ($currentElection && !$hasVoted) {
 
         $positions = $uniquePositions;
 
-        // Debug positions after deduplication
         error_log("Final positions after deduplication: " . json_encode($positions));
 
         // Get candidates for each position
@@ -188,7 +187,7 @@ if ($currentElection && !$hasVoted) {
             $stmt->close();
             }
             
-            // For debugging
+           
             error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($position['candidates']));
         }
 
@@ -1147,13 +1146,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 }
         
         .student-details h5 {
-            font-weight: 700;
+            font-weight: 600;
             margin-bottom: 4px;
-            font-size: 0.97rem;
+            font-size: 0.99rem;
         }
 
         .student-details p {
-            font-size: 0.813rem;
+            font-size: 0.913rem;
             margin-bottom: 0;
         }
 
@@ -1168,7 +1167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         }
 
         .student-details .text-muted {
-            font-size: 0.813rem;
+            font-size: 0.913rem;
         }
 
         /* Make sure text is black in light theme */
@@ -1533,7 +1532,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             }
             
             .timer-countdown {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
             }
             
             .counter-circle {
@@ -1574,8 +1573,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         @media (max-width: 576px) {
             .col-md-6, .col-lg-4 {
-                flex: 1 1 100%; /* Adjust width to fit one card per row on smaller screens */
-                max-width: 100%;
+                flex: 1 1 80%; 
+                max-width: 80%;
             }
         }
 
@@ -1863,7 +1862,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: #fff;
+            background-color: var(--success);
             margin-right: 6px;
             animation: pulse 1.5s infinite;
         }
@@ -2559,7 +2558,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         </div>
                     </div>
                     
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 ">
                         <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
                             <div class="election-timer mb-4">
                                 <div class="row align-items-center">
@@ -2576,17 +2575,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                     <span id="days">00</span>
                                                     <small>days</small>
                                                 </div>
-                                                <div class="time-separator mx-1">:</div>
+                                                <div class="time-separator ">:</div>
                                                 <div class="time-unit">
                                                     <span id="hours">00</span>
                                                     <small>hours</small>
                                                 </div>
-                                                <div class="time-separator mx-1">:</div>
+                                                <div class="time-separator ">:</div>
                                                 <div class="time-unit">
                                                     <span id="minutes">00</span>
                                                     <small>minutes</small>
                                                 </div>
-                                                <div class="time-separator mx-1">:</div>
+                                                <div class="time-separator ">:</div>
                                                 <div class="time-unit">
                                                     <span id="seconds">00</span>
                                                     <small>seconds</small>
