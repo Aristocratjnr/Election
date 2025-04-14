@@ -331,7 +331,7 @@ if ($electionID) {
             
             // Get candidates and their results for this position - use prepared statement for security
             $candidatesStmt = $conn->prepare("
-                SELECT c.candidateID, c.studentID, p.title as position, c.manifesto, c.photo as candidatePhoto,
+                SELECT DISTINCT c.candidateID, c.studentID, p.title as position, c.manifesto, c.photo as candidatePhoto,
                       s.name, s.profilePicture, s.email, s.department,
                       COALESCE(r.voteCount, 0) as voteCount,
                       COALESCE(r.percentage, 0) as percentage
