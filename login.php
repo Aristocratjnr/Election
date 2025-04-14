@@ -78,7 +78,7 @@
                 <div class="mb-6 form-control-validation">
                   <label for="studentID" class="form-label"><i class="bi bi-person-badge profile-icon icon"></i>&nbsp;Student ID:</label>
                   <input
-                    type="text"
+                    type="number"
                     class="form-control"
                     id="studentID"
                     name="student"
