@@ -1060,6 +1060,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 [data-bs-theme="dark"] .timer-text {
     color: #E5E7EB;  /* Light gray for dark theme */
 }
+
+/* Countdown timer styles */
+.countdown-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(67, 97, 238, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 100px;
+    border: 1px solid rgba(67, 97, 238, 0.2);
+    box-shadow: 0 2px 6px rgba(67, 97, 238, 0.08);
+    transition: all 0.3s ease;
+}
+
+.time-unit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(67, 97, 238, 0.15);
+}
+
+.time-unit span {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+}
+
+.time-unit small {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.time-separator {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    line-height: 1;
+    margin-top: -10px;
+}
+
+/* Dark mode adjustments for countdown */
+[data-bs-theme="dark"] .time-unit {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .time-unit span {
+    color: var(--primary);
+}
+
+[data-bs-theme="dark"] .time-unit small {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+[data-bs-theme="dark"] .time-separator {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 576px) {
+    .time-unit {
+        min-width: 60px;
+        padding: 6px 10px;
+    }
+
+    .time-unit span {
+        font-size: 1.5rem;
+    }
+
+    .time-separator {
+        font-size: 1.5rem;
+    }
+}
         
         .student-details h5 {
             font-weight: 700;
@@ -2479,39 +2564,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             <div class="election-timer mb-4">
                                 <div class="row align-items-center">
                                     <div class="col-auto">
-                                        <div class="counter-circle">
+                                        <div class="counter-circle text-muted">
                                             <i class="bi bi-stopwatch-fill"></i>
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <h6 class="mb-2 text-white-20"><i class="bi bi-calendar-event me-1"></i> Time Remaining:</h6>
+                                        <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
                                         <div class="timer-countdown" id="election-countdown">
-                                            <div class="d-flex gap-2 flex-wrap justify-content-start align-items-center">
+                                            <div class="d-flex align-items-center justify-content-start countdown-container">
                                                 <div class="time-unit">
-                                                    <i class="bi bi-calendar2-week d-block d-sm-none mb-1"></i>
                                                     <span id="days">00</span>
-                                                    <small></small>
+                                                    <small>days</small>
                                                 </div>
-                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-separator mx-1">:</div>
                                                 <div class="time-unit">
-                                                    <i class="bi bi-clock d-block d-sm-none mb-1"></i>
                                                     <span id="hours">00</span>
-                                                    <small></small>
+                                                    <small>hours</small>
                                                 </div>
-                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-separator mx-1">:</div>
                                                 <div class="time-unit">
-                                                    <i class="bi bi-alarm d-block d-sm-none mb-1"></i>
                                                     <span id="minutes">00</span>
-                                                    <small></small>
+                                                    <small>minutes</small>
                                                 </div>
-                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-separator mx-1">:</div>
                                                 <div class="time-unit">
-                                                    <i class="bi bi-stopwatch d-block d-sm-none mb-1"></i>
                                                     <span id="seconds">00</span>
-                                                    <small></small>
+                                                    <small>seconds</small>
                                                 </div>
                                             </div>
                                         </div>
+                                        <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -2537,15 +2619,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             </div>
                             <div class="student-details">
                                 <h5> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
-                                <div class="d-flex flex-wrap">
-                                    <span class="me-3 text-muted small">
-                                        <i class="bi bi-person-badge me-1"></i> 
-                                        ID: <?= $studentID ?>
-                                    </span>
-                                    <span class="text-muted small">
-                                        <i class="bi bi-building-check icon icon"></i>
-                                        Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
-                                    </span>
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-person-badge me-1"></i> 
+                                    ID: <?= $studentID ?>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-building-check icon icon"></i>
+                                    Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                 </div>
                             </div>
                             <?php if ($hasVoted): ?>
@@ -2586,7 +2666,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <div class="row align-items-center">
                                     <div class="col-md-7 mb-3 mb-md-0">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="counter-circle me-3">
+                                            <div class="counter-circle me-3 text-muted">
                                                 <i class="bi bi-calendar-event"></i>
                                             </div>
                                             <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
@@ -2596,8 +2676,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         </p>
                                         <div class="progress-wave mt-3"></div>
                                     </div>
-                                    <div class="col-md-5 text-md-end">
-                                        <div class="timer-countdown text-white-20 mb-1" id="countdown-timer">
+                                    <div class="col-md-5 text-md-end" >
+                                        <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
                                             <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
                                         </div>
                                         <p class="election-status mb-0">
