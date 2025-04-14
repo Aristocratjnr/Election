@@ -128,6 +128,14 @@ try {
             }
         }
 
+        // Debugging: Log candidate-to-position mapping
+        foreach ($positions as $position) {
+            error_log("Position: {$position['title']} (ID: {$position['positionID']})");
+            foreach ($position['candidates'] as $candidate) {
+                error_log("Candidate: {$candidate['name']} (ID: {$candidate['candidateID']}) mapped to Position ID: {$position['positionID']}");
+            }
+        }
+
         // Get total votes for the election
         $stmt = $conn->prepare("
             SELECT COUNT(DISTINCT studentID) as totalVoters
@@ -154,8 +162,40 @@ try {
         // Calculate voter turnout percentage
         $voterTurnout = $eligibleVoters > 0 ? 
             round(($totalVoters / $eligibleVoters) * 100, 1) : 0;
+            
+        // Ensure all positions, including Treasurer, are properly included
+        $uniquePositions = [];
+        $seenPositionTitles = [];
 
-        // Check if treasurer position exists but might be skipped due to no candidates showing
+        foreach ($positions as $position) {
+            $lowerTitle = strtolower($position['title']);
+
+            if (!isset($seenPositionTitles[$lowerTitle])) {
+                $seenPositionTitles[$lowerTitle] = count($uniquePositions);
+                $uniquePositions[] = $position;
+            } else {
+                // Merge candidates for duplicate positions
+                $existingIndex = $seenPositionTitles[$lowerTitle];
+                foreach ($position['candidates'] as $candidate) {
+                    $isDuplicateCandidate = false;
+                    foreach ($uniquePositions[$existingIndex]['candidates'] as $existingCandidate) {
+                        if ($existingCandidate['candidateID'] === $candidate['candidateID']) {
+                            $isDuplicateCandidate = true;
+                            break;
+                        }
+                    }
+                    if (!$isDuplicateCandidate) {
+                        $uniquePositions[$existingIndex]['candidates'][] = $candidate;
+                        $uniquePositions[$existingIndex]['totalVotes'] += $candidate['voteCount'];
+                    }
+                }
+            }
+        }
+
+        // Replace the original positions array with the deduplicated version
+        $positions = $uniquePositions;
+
+        // Ensure Treasurer position is included if missing
         $treasurerFound = false;
         foreach ($positions as $position) {
             if (strtolower($position['title']) === 'treasurer') {
@@ -165,64 +205,30 @@ try {
         }
 
         if (!$treasurerFound) {
-            // Try to find treasurer position and add it manually
-            $treasStmt = $conn->prepare("
-                SELECT * FROM positions 
-                WHERE electionID = ? AND LOWER(title) = 'treasurer'
-            ");
-            $treasStmt->bind_param('i', $electionID);
-            $treasStmt->execute();
-            $treasurerResult = $treasStmt->get_result();
-            
-            if ($treasurerResult->num_rows > 0) {
-                $treasurerPosition = $treasurerResult->fetch_assoc();
-                $treasurerPosition['candidates'] = [];
+            // Fetch Treasurer position manually
+            $stmt = $conn->prepare("SELECT * FROM positions WHERE electionID = ? AND LOWER(title) = 'treasurer'");
+            $stmt->bind_param('i', $electionID);
+            $stmt->execute();
+            $treasurerPosition = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+
+            if ($treasurerPosition) {
+                // Fetch candidates for Treasurer position
+                $stmt = $conn->prepare("SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status, s.name, s.department, s.profilePicture, IFNULL((SELECT COUNT(*) FROM votes WHERE candidateID = c.candidateID AND electionID = ?), 0) as voteCount FROM candidates c JOIN students s ON c.studentID = s.studentID WHERE c.positionID = ? AND c.status = 'Approved' ORDER BY voteCount DESC, s.name ASC");
+                $stmt->bind_param('ii', $electionID, $treasurerPosition['positionID']);
+                $stmt->execute();
+                $treasurerPosition['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                $stmt->close();
+
+                // Calculate total votes for Treasurer position
                 $treasurerPosition['totalVotes'] = 0;
+                foreach ($treasurerPosition['candidates'] as $candidate) {
+                    $treasurerPosition['totalVotes'] += (int)$candidate['voteCount'];
+                }
+
+                // Add Treasurer position to positions array
                 $positions[] = $treasurerPosition;
-                
-                error_log("Added treasurer position manually: ID " . $treasurerPosition['positionID']);
-                
-                // Improved query to correctly fetch ALL treasurer candidates without duplication
-                $candStmt = $conn->prepare("
-                    SELECT 
-                        c.candidateID, 
-                        c.studentID, 
-                        c.photo, 
-                        c.manifesto, 
-                        c.status,
-                        s.name, 
-                        s.department, 
-                        s.profilePicture,
-                        (SELECT COUNT(*) FROM votes WHERE candidateID = c.candidateID AND electionID = ?) as voteCount
-                    FROM candidates c
-                    JOIN students s ON c.studentID = s.studentID
-                    WHERE c.positionID = ? AND c.status = 'Approved'
-                    GROUP BY c.candidateID
-                    ORDER BY voteCount DESC, s.name ASC
-                ");
-                $candStmt->bind_param('ii', $electionID, $treasurerPosition['positionID']);
-                $candStmt->execute();
-                $treasurerCandidates = $candStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-                $candStmt->close();
-                
-                // Calculate total votes and percentages
-                $totalVotes = 0;
-                foreach ($treasurerCandidates as $candidate) {
-                    $totalVotes += (int)$candidate['voteCount'];
-                }
-                
-                foreach ($treasurerCandidates as &$candidate) {
-                    $candidate['votePercentage'] = $totalVotes > 0 ? 
-                        round(($candidate['voteCount'] / $totalVotes) * 100, 1) : 0;
-                }
-                
-                $index = count($positions) - 1;
-                $positions[$index]['candidates'] = $treasurerCandidates;
-                $positions[$index]['totalVotes'] = $totalVotes;
-                
-                error_log("Added " . count($treasurerCandidates) . " treasurer candidates manually");
             }
-            $treasStmt->close();
         }
     }
 } catch (Exception $e) {

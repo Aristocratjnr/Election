@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 11, 2025 at 08:03 PM
+-- Generation Time: Apr 14, 2025 at 05:04 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -118,11 +118,13 @@ CREATE TABLE `candidates` (
 INSERT INTO `candidates` (`candidateID`, `studentID`, `manifesto`, `photo`, `status`, `positionID`) VALUES
 (2372719, 1231231, 'i am zuckerberg', '67f69401ac970.jpg', 'Approved', 10),
 (2372720, 10928371, 'i will introduced new cards', '67f6948d0d2b8.jpg', 'Approved', 9),
-(2372721, 109911311, 'New Infrastructure', '67f694f6607ad.jpg', 'Approved', 11),
-(2372723, 10945821, 'kkjk', '67f6a01b50d83.jpeg', 'Approved', 9),
-(2372724, 19218182, 'Automobile', '67f6a0310912f.jpg', 'Approved', 8),
-(2372726, 2147483647, 'Technology', '67f6a109b0dee.jpeg', 'Approved', 8),
-(2372735, 121312131, 'Test manifesto for position Vice President', NULL, 'Approved', 10);
+(2372721, 109911311, 'New Infrastructure', '67fac407829dc.jpg', 'Approved', 11),
+(2372724, 19218182, 'Improve the value of dollar', '67fad24642ee8.png', 'Approved', 8),
+(2372726, 2147483647, 'Technology', '67fad0f3d5a7b.jpg', 'Approved', 8),
+(2372735, 121312131, 'Improve Windows OS', '67f99fc64f501.jpg', 'Approved', 10),
+(2372740, 10928191, 'Make Africa Great!', '67fabdd1a7c21.png', 'Approved', 9),
+(2372741, 9291918, 'Increase Finances', '67fabded371be.png', 'Approved', 11),
+(2372742, 1078899, 'New Finances ', '67fac1e34137e.png', 'Pending', 11);
 
 -- --------------------------------------------------------
 
@@ -192,7 +194,18 @@ INSERT INTO `election_participation` (`id`, `electionID`, `studentID`, `timestam
 (2, 1, 109911311, '2025-04-09 20:53:06'),
 (3, 1, 1231231, '2025-04-09 20:56:00'),
 (4, 1, 19218182, '2025-04-09 21:53:29'),
-(5, 1, 121312131, '2025-04-11 09:38:24');
+(5, 1, 121312131, '2025-04-11 09:38:24'),
+(6, 1, 2147483647, '2025-04-11 23:00:20'),
+(7, 1, 10928191, '2025-04-12 11:38:55'),
+(8, 1, 9291918, '2025-04-12 12:06:15'),
+(9, 1, 1078899, '2025-04-12 17:14:36'),
+(10, 1, 10937138, '2025-04-13 01:04:49'),
+(11, 1, 10837197, '2025-04-13 01:18:21'),
+(12, 1, 20818127, '2025-04-13 01:27:21'),
+(13, 1, 38172911, '2025-04-13 01:38:35'),
+(14, 1, 1298491, '2025-04-13 12:43:01'),
+(15, 1, 81981218, '2025-04-13 13:19:34'),
+(16, 1, 7928271, '2025-04-14 13:07:34');
 
 -- --------------------------------------------------------
 
@@ -239,12 +252,18 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `user_type`, `title`,
 (6, 10928371, 'student', 'System Alert', 'Complete your profile information', 'system', NULL, NULL, 1, '2025-04-05 01:40:59'),
 (28, 10928371, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-06 22:10:01'),
 (29, 10928371, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-06 22:11:51'),
-(32, 10928371, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-07 14:53:55'),
-(34, 10928371, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-09 20:50:18'),
-(35, 109911311, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 0, '2025-04-09 20:53:06'),
-(36, 1231231, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-09 20:56:00'),
-(37, 19218182, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 0, '2025-04-09 21:53:29'),
-(38, 121312131, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-11 09:38:24');
+(34, 10945821, 'admin', 'SmartVote ', 'The developer for the awesome election system', 'vote', 1, NULL, 1, '2025-04-09 20:50:18'),
+(38, 121312131, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-11 09:38:24'),
+(40, 10945821, 'admin', 'Welcome to SmartVote', 'Thank you for joining our voting system. Start exploring the features!', 'system', NULL, NULL, 1, '2025-04-12 10:27:23'),
+(41, 121312131, 'student', 'Welcome to SmartVote', 'Thank you for joining our voting system. Start exploring the features!', 'system', NULL, NULL, 1, '2025-04-12 10:31:32'),
+(45, 1078899, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-12 17:14:36'),
+(46, 10937138, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-13 01:04:49'),
+(47, 10837197, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-13 01:18:21'),
+(48, 20818127, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-13 01:27:21'),
+(49, 38172911, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-13 01:38:35'),
+(50, 1298491, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-13 12:43:01'),
+(51, 81981218, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election', 'vote', 1, NULL, 1, '2025-04-13 13:19:34'),
+(52, 7928271, 'student', 'Vote Submitted', 'Thank you for voting in the Student Council Election election.', 'vote', 1, NULL, 1, '2025-04-14 13:07:34');
 
 -- --------------------------------------------------------
 
@@ -271,7 +290,10 @@ INSERT INTO `password_resets` (`id`, `email`, `token`, `expires_at`, `used`) VAL
 (4, 'simonsetor561@outlook.com', '704924dd502fc999e5a44769f492bf3f213a1d174005953b49df351c93400bb4', '2025-04-05 21:47:24', 0),
 (5, 'alberteinstern@outlook.com', '41102b15aef7ac5ece66746a7b4cbd85cb6fd281951e8f8e74d73b199cfeaace', '2025-04-11 02:43:46', 0),
 (6, 'alberteinstern@outlook.com', '30c7000b3acb3d114e34cc78cb3bc80344300c1b3dad73876e9771a673e9a1b4', '2025-04-11 02:47:33', 0),
-(7, 'alberteinstern@outlook.com', 'b306b19e17ae4f51b9bfb2b29995f51455d42ce9458f6558c240da753f767abf', '2025-04-11 02:47:53', 0);
+(7, 'alberteinstern@outlook.com', 'b306b19e17ae4f51b9bfb2b29995f51455d42ce9458f6558c240da753f767abf', '2025-04-11 02:47:53', 0),
+(8, 'ayimobuob44i@gmail.com', '40143731d9c7f6dbfdb7190157e06d773e7b6c8fae9f0392ee599af737a0b076', '2025-04-12 18:11:33', 0),
+(9, 'daobuobi006@st.ug.edu.gh', '72c9fe4fe3e0225ce1170d8f34c00834af01e86b1f6b766496ad64c04d380068', '2025-04-12 18:22:03', 0),
+(10, 'davidayim01@gmail.com', 'f0483cfec13ae4c1f9c06aac1b8c598437836a41b826176049c83ace4f1297bc', '2025-04-12 20:32:22', 0);
 
 -- --------------------------------------------------------
 
@@ -294,9 +316,9 @@ CREATE TABLE `positions` (
 
 INSERT INTO `positions` (`positionID`, `electionID`, `title`, `description`, `maxVotes`, `display_order`) VALUES
 (8, 1, 'Secretary', 'New Secretary', 1, 3),
-(9, 1, 'SRC President', 'New President', 1, 2),
-(10, 1, 'Vice President', 'New Vice President', 1, 1),
-(11, 1, 'treasurer', 'better management', 1, 4);
+(9, 1, 'SRC President', 'New President', 1, 1),
+(10, 1, 'Vice President', 'New Vice President', 1, 2),
+(11, 1, 'Treasurer', 'better management', 1, 4);
 
 -- --------------------------------------------------------
 
@@ -317,13 +339,15 @@ CREATE TABLE `results` (
 --
 
 INSERT INTO `results` (`resultID`, `electionID`, `candidateID`, `voteCount`, `percentage`) VALUES
-(323, 1, 2372719, 2, 100.00),
-(324, 1, 2372720, 3, 100.00),
-(325, 1, 2372721, 0, 0.00),
-(326, 1, 2372723, 0, 0.00),
-(327, 1, 2372724, 0, 0.00),
-(328, 1, 2372726, 0, 0.00),
-(329, 1, 2372735, 0, 0.00);
+(751, 1, 2372724, 4, 10.81),
+(752, 1, 2372726, 3, 8.11),
+(753, 1, 2372720, 5, 13.51),
+(754, 1, 2372740, 5, 13.51),
+(755, 1, 2372719, 4, 10.81),
+(756, 1, 2372735, 9, 24.32),
+(757, 1, 2372721, 1, 2.70),
+(758, 1, 2372741, 5, 13.51),
+(759, 1, 2372742, 1, 2.70);
 
 -- --------------------------------------------------------
 
@@ -353,13 +377,23 @@ CREATE TABLE `students` (
 --
 
 INSERT INTO `students` (`studentID`, `name`, `email`, `password`, `dateOfBirth`, `department`, `contactNumber`, `registrationDate`, `status`, `created_at`, `role`, `profilePicture`, `two_factor_secret`, `two_factor_enabled`) VALUES
-(1231231, 'Mark Zuckerberg', 'bmfhpwww@sharklasers.com', '$2y$10$6qE8mXZGvLdFnC0YlY0rLeoFOB1g95BtD4J3BHi8wwYgm3RP1Zj3e', '2000-01-02', 'Computer Science', '233551784926', '2025-04-04', 'Active', '2025-04-04 12:42:19', 'student', '1231231_1743771186.jpg', NULL, 0),
-(10928371, 'Simon Setor AB', 'simonsetor561@outlook.com', '$2y$10$gOemaLmRIcVSjwLd2DHTkOOcJndd71HZK58OY1Y2h9CHT6XZN3Loa', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 15:16:55', 'student', '10928371_1743868570.jpg', 'ZQU7HY2HFQYCQPU5', 0),
+(1078899, 'Kamala Harris', 'davidayim01@gmail.com', '$2y$10$9pDbLaEiiouuCMOgJ50lN.YuOFQFDShadAWukOzz1Tk3NyWpCHDie', '2000-01-02', 'Info. Tech.', '233551784926', '2025-04-12', 'Active', '2025-04-12 17:10:48', 'student', '1078899_1744486193.png', 'EE74F7PYPLPS7NRY', 1),
+(1231231, 'Mark Zuck.', 'bmfhpwww@sharklasers.com', '$2y$10$hwDzmjBdqDbJvPQnWLlcmOw/iv6b3a81ikO6qaE1GsiuxxlRaxbQ.', '2000-01-02', 'Computer Science', '233551784926', '2025-04-04', 'Active', '2025-04-04 12:42:19', 'student', '1231231_1743771186.jpg', NULL, 0),
+(1298491, 'Benjamin N.', 'benjaminNyan@hotmail.com', '$2y$10$TO56xbbX2umeJlFY6kM2J.YMUQU6gjNFodbZ/tTiYXfw/SIcu7XKa', '2000-01-02', 'Computer Eng.', '233278291811', '2025-04-13', 'Active', '2025-04-13 12:32:16', 'student', '1298491_1744548780.jpg', NULL, 0),
+(7928271, 'Benedicta Clerk', 'benedictaclerk@gmail.com', '$2y$10$unUN2Inpk0zoZodmx63fFeNoFMTzcqJEop0I4KGLOUF68JjjriC/a', '2000-01-02', 'Computer Science', '233551784926', '2025-04-14', 'Active', '2025-04-14 13:03:30', 'student', '7928271_1744638718.png', NULL, 0),
+(9291918, 'Joe Baiden', 'loisbrown@aol.com', '$2y$10$mCo/aHK8cVGvbUDEVUf9TeI0m4b7uXGg9CgptRvSYxdyeFkUVfSs.', '2000-01-02', 'Geography', '233551784926', '2025-04-12', 'Active', '2025-04-12 11:43:12', 'student', '9291918_1744485831.png', NULL, 0),
+(10837197, 'Putin M', 'putinvald@yahoo.com', '$2y$10$/zxqUnf1av.jeb/DSUjusuml0yK/4YuA8TRWSwxTuAoaMtPc.GFAe', '2000-01-02', 'Allied Health', '233551784926', '2025-04-13', 'Active', '2025-04-13 01:17:37', 'student', '10837197_1744507225.png', NULL, 0),
+(10928191, 'Donald Trump', 'batmanbruce@hotmail.com', '$2y$10$JGJyFjE2jPDhdbGPc1I7KuQqxgNHFLpSdPovJ461Hn1J6STzPhb36', '2000-01-02', 'Computer Science.', '233202248817', '2025-04-12', 'Active', '2025-04-12 11:20:01', 'student', '10928191_1744485642.png', NULL, 0),
+(10928371, 'Elon M.', 'simonsetor561@outlook.com', '$2y$10$NnvYxoKaewmctC4PrGoj3eWaxhNAmH/ms1I.hWSz0Hw3wumnMu98u', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 15:16:55', 'student', '10928371_1744488649.jpg', 'ZQU7HY2HFQYCQPU5', 0),
+(10937138, 'Barrack Obama', 'Obamabarrak@hotmail.com', '$2y$10$.k6RkCmscsM8kxzY6m5b0e8yowxZ5V7JBHT7pMuTPVjWf2hwdX6OC', '2002-01-01', 'Physics', '233551784926', '2025-04-13', 'Active', '2025-04-13 00:58:56', 'student', '10937138_1744506839.png', NULL, 0),
 (10945821, 'Aristocratjnr', 'david.obuobi@inkris.ca', '$2y$10$PaQkW9.LAKdG5atPFSosZuPBivPtBZKwl9.ZLJz1p1WAxyqGIzPGq', '2002-09-23', 'Administrator', '0551784926', '2025-04-02', 'Active', '2025-04-02 14:03:42', 'admin', '10945821_1744243647.jpeg', 'EO7CYYN3Q5TZKHUP', 1),
-(19218182, 'Aristocrat', 'afa@gmail.ocm', '$2y$10$zIEtnqNq5BWQ5H/agLmRqul93m8fa6GUu/TOncAzqdd0rwzpEPdgm', '2000-01-02', 'Computer Science', '23355184926', '2025-04-08', 'Active', '2025-04-08 19:13:43', 'student', '19218182_1744140047.jpg', NULL, 0),
-(109911311, 'Testing', 'daobuobi006@st.ug.edu.gh', '$2y$10$be5XjjUTu7RdH4zFiWI3VeMhMJBB7XIUGnaYcn5ThuET0RaV2wE8O', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 18:35:06', 'student', '109911311_1744211665.png', NULL, 0),
-(121312131, 'Albert Einstern', 'alberteinstern@outlook.com', '$2y$10$..zgZpk4iWwWbEXdhZmnc.8FyTE2hYN/yIVEP0G4qtWvPZqQE/GHy', '2000-01-02', 'Computer Science', '233551784926', '2025-04-10', 'Active', '2025-04-10 23:37:31', 'student', NULL, NULL, 0),
-(2147483647, 'Junior', 'ayimobuob44i@gmail.com', '$2y$10$U7FZFpsgHaYtM7RBUPEQfuvzalTJC2W18OtEJP1wojsPLksB4Mknu', '2000-01-02', 'Chemistry', '233551784926', '2025-04-01', 'Active', '2025-04-01 15:50:04', 'student', '2147483647_1744221192.jpg', 'LM2DSMWNBNXG3H2Z', 0);
+(19218182, 'Bawumia', 'afa@gmail.ocm', '$2y$10$ub28n1oGm6vTJDHuEOgofeC3fB3XCCWk3D0nlzTeEZ0q0GRseMM3m', '2000-01-02', 'Computer Science', '23355184926', '2025-04-08', 'Active', '2025-04-08 19:13:43', 'student', '19218182_1744491015.png', NULL, 0),
+(20818127, 'Kim J', 'kimjoung@msn.com', '$2y$10$ELt0UAapF6KRa7jCk45rZuaIyupmvbXS1UDsEXyEWvM94A1W.YUfu', '2000-01-02', 'Chinese', '233551784926', '2025-04-13', 'Active', '2025-04-13 01:26:39', 'student', '20818127_1744507777.jpg', 'GJWAS3HD3M3ZIZFW', 0),
+(38172911, 'Xi JinPing', 'xijinping@gmail.com', '$2y$10$Sb4JDcAywNn4xeW2AX1Ole1zoAxN.kYfVOWkGbO0Bnr5P9NVuVa3W', '2000-01-02', 'Mathematics', '233208188179', '2025-04-13', 'Active', '2025-04-13 01:37:49', 'student', '38172911_1744508416.png', 'QMLWUUECHIJ7ZEPT', 0),
+(81981218, 'Prince Charles', 'charlesprince@outlook.com', '$2y$10$ZberWgXTbLpE4AAVRD5m1u0n1K3zOU9LfaKUUkp9UmQW1oHaZEe/O', '2000-01-02', 'Geography', '233558181712', '2025-04-13', 'Active', '2025-04-13 13:18:58', 'student', '81981218_1744550535.png', NULL, 0),
+(109911311, 'Nana Addo', 'daobuobi006@st.ug.edu.gh', '$2y$10$be5XjjUTu7RdH4zFiWI3VeMhMJBB7XIUGnaYcn5ThuET0RaV2wE8O', '2000-01-02', 'Computer Science', '233551784926', '2025-04-05', 'Active', '2025-04-05 18:35:06', 'student', '109911311_1744487194.jpg', NULL, 0),
+(121312131, 'Bill Gates', 'billgates@outlook.com', '$2y$10$..zgZpk4iWwWbEXdhZmnc.8FyTE2hYN/yIVEP0G4qtWvPZqQE/GHy', '2000-01-02', 'Physics', '233551784926', '2025-04-10', 'Active', '2025-04-10 23:37:31', 'student', '121312131_1744411343.jpg', NULL, 0),
+(2147483647, 'Mahama', 'ayimobuob44i@gmail.com', '$2y$10$HfAoDUet121kj9If8baSRuC7g1tbxNxeh8Veb3Lmt4Jrog8.MqnAy', '2000-01-02', 'Chemistry', '233551784926', '2025-04-01', 'Active', '2025-04-01 15:50:04', 'student', '2147483647_1744487631.jpg', 'NHZB3RW4P6HWWJGR', 0);
 
 -- --------------------------------------------------------
 
@@ -415,7 +449,39 @@ INSERT INTO `votes` (`voteID`, `electionID`, `candidateID`, `studentID`, `timest
 (78, 1, 2372720, 109911311, '2025-04-09 20:53:06', 'pending', NULL),
 (79, 1, 2372720, 1231231, '2025-04-09 20:56:00', 'pending', NULL),
 (80, 1, 2372720, 19218182, '2025-04-09 21:53:29', 'pending', NULL),
-(81, 1, 2372719, 121312131, '2025-04-11 09:38:24', 'pending', NULL);
+(81, 1, 2372719, 121312131, '2025-04-11 09:38:24', 'pending', NULL),
+(82, 1, 2372735, 2147483647, '2025-04-11 23:00:20', 'pending', NULL),
+(83, 1, 2372735, 10928191, '2025-04-12 11:38:55', 'pending', NULL),
+(84, 1, 2372735, 9291918, '2025-04-12 12:06:15', 'pending', NULL),
+(85, 1, 2372735, 1078899, '2025-04-12 17:14:36', 'pending', NULL),
+(92, 1, 2372735, 10937138, '2025-04-13 01:04:48', 'pending', NULL),
+(93, 1, 2372740, 10937138, '2025-04-13 01:04:48', 'pending', NULL),
+(94, 1, 2372724, 10937138, '2025-04-13 01:04:48', 'pending', NULL),
+(95, 1, 2372741, 10937138, '2025-04-13 01:04:48', 'pending', NULL),
+(96, 1, 2372735, 10837197, '2025-04-13 01:18:21', 'pending', NULL),
+(97, 1, 2372740, 10837197, '2025-04-13 01:18:21', 'pending', NULL),
+(98, 1, 2372724, 10837197, '2025-04-13 01:18:21', 'pending', NULL),
+(99, 1, 2372741, 10837197, '2025-04-13 01:18:21', 'pending', NULL),
+(100, 1, 2372735, 20818127, '2025-04-13 01:27:21', 'pending', NULL),
+(101, 1, 2372740, 20818127, '2025-04-13 01:27:21', 'pending', NULL),
+(102, 1, 2372726, 20818127, '2025-04-13 01:27:21', 'pending', NULL),
+(103, 1, 2372742, 20818127, '2025-04-13 01:27:21', 'pending', NULL),
+(104, 1, 2372719, 38172911, '2025-04-13 01:38:35', 'pending', NULL),
+(105, 1, 2372720, 38172911, '2025-04-13 01:38:35', 'pending', NULL),
+(106, 1, 2372724, 38172911, '2025-04-13 01:38:35', 'pending', NULL),
+(107, 1, 2372721, 38172911, '2025-04-13 01:38:35', 'pending', NULL),
+(108, 1, 2372735, 1298491, '2025-04-13 12:43:01', 'pending', NULL),
+(109, 1, 2372740, 1298491, '2025-04-13 12:43:01', 'pending', NULL),
+(110, 1, 2372724, 1298491, '2025-04-13 12:43:01', 'pending', NULL),
+(111, 1, 2372741, 1298491, '2025-04-13 12:43:01', 'pending', NULL),
+(112, 1, 2372735, 81981218, '2025-04-13 13:19:34', 'pending', NULL),
+(113, 1, 2372740, 81981218, '2025-04-13 13:19:34', 'pending', NULL),
+(114, 1, 2372726, 81981218, '2025-04-13 13:19:34', 'pending', NULL),
+(115, 1, 2372741, 81981218, '2025-04-13 13:19:34', 'pending', NULL),
+(116, 1, 2372720, 7928271, '2025-04-14 13:07:34', 'pending', NULL),
+(117, 1, 2372719, 7928271, '2025-04-14 13:07:34', 'pending', NULL),
+(118, 1, 2372726, 7928271, '2025-04-14 13:07:34', 'pending', NULL),
+(119, 1, 2372741, 7928271, '2025-04-14 13:07:34', 'pending', NULL);
 
 -- --------------------------------------------------------
 
@@ -529,9 +595,9 @@ ALTER TABLE `system_settings`
 --
 ALTER TABLE `votes`
   ADD PRIMARY KEY (`voteID`),
-  ADD UNIQUE KEY `electionID` (`electionID`,`studentID`),
-  ADD KEY `candidateID` (`candidateID`),
-  ADD KEY `studentID` (`studentID`);
+  ADD UNIQUE KEY `election_student_candidate` (`electionID`,`studentID`,`candidateID`),
+  ADD KEY `fk_votes_candidate` (`candidateID`),
+  ADD KEY `fk_votes_student` (`studentID`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -559,7 +625,7 @@ ALTER TABLE `ballot_designs`
 -- AUTO_INCREMENT for table `candidates`
 --
 ALTER TABLE `candidates`
-  MODIFY `candidateID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2372739;
+  MODIFY `candidateID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2372743;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -577,19 +643,19 @@ ALTER TABLE `elections`
 -- AUTO_INCREMENT for table `election_participation`
 --
 ALTER TABLE `election_participation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `positions`
@@ -601,7 +667,7 @@ ALTER TABLE `positions`
 -- AUTO_INCREMENT for table `results`
 --
 ALTER TABLE `results`
-  MODIFY `resultID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=330;
+  MODIFY `resultID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=760;
 
 --
 -- AUTO_INCREMENT for table `students`
@@ -619,7 +685,7 @@ ALTER TABLE `system_settings`
 -- AUTO_INCREMENT for table `votes`
 --
 ALTER TABLE `votes`
-  MODIFY `voteID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `voteID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- Constraints for dumped tables
@@ -676,9 +742,9 @@ ALTER TABLE `results`
 -- Constraints for table `votes`
 --
 ALTER TABLE `votes`
-  ADD CONSTRAINT `votes_ibfk_1` FOREIGN KEY (`electionID`) REFERENCES `elections` (`electionID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `votes_ibfk_2` FOREIGN KEY (`candidateID`) REFERENCES `candidates` (`candidateID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `votes_ibfk_3` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_votes_candidate` FOREIGN KEY (`candidateID`) REFERENCES `candidates` (`candidateID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_votes_election` FOREIGN KEY (`electionID`) REFERENCES `elections` (`electionID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_votes_student` FOREIGN KEY (`studentID`) REFERENCES `students` (`studentID`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
