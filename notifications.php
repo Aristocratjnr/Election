@@ -384,78 +384,83 @@ function getNotificationLink($notification) {
         
         /* Dark mode styles */
         [data-bs-theme="dark"] {
-            --notification-primary: #7367f0;
-            --notification-success: #28c76f;
-            --notification-info: #00cfe8;
-            --notification-warning: #ff9f43;
-            --notification-secondary: #82868b;
-            --notification-danger: #ea5455;
+            --primary: #6ea8fe;
+            --primary-rgb: 110, 168, 254;
+            --primary-light: rgba(110, 168, 254, 0.2);
+            --primary-dark: #3a56d4;
+            --surface: #1e1e2d;
+            --surface-hover: #2a2a3c;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            --card-hover-shadow: 0 15px 35px rgba(110, 168, 254, 0.25);
+            --text: #e9ecef;
+            --text-muted: #adb5bd;
+            --border: #2d2d3d;
+            --bg: #151521;
+            --header-bg: #1e1e2d;
+            --shadow-color: rgba(0, 0, 0, 0.25);
         }
         
-        [data-bs-theme="dark"] .card {
-            background-color: #2b3035;
+        [data-bs-theme="dark"] .notification-container {
+            background: linear-gradient(145deg, var(--surface) 0%, var(--surface-hover) 100%);
+            border: 1px solid var(--border);
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
         }
         
-        [data-bs-theme="dark"] .card-header {
-            background-color: #343a40 !important;
-            border-bottom-color: rgba(255, 255, 255, 0.08);
-        }
-        
-        [data-bs-theme="dark"] .card-footer {
-            background-color: #343a40;
-            border-top-color: rgba(255, 255, 255, 0.08);
-        }
-        
         [data-bs-theme="dark"] .notification-item {
-            background-color: #2b3035;
-            border-color: #2b3035;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
         [data-bs-theme="dark"] .notification-item:hover {
-            background-color: #343a40;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+            background-color: var(--surface-hover);
         }
         
-        [data-bs-theme="dark"] .notification-item.unread {
-            background-color: rgba(115, 103, 240, 0.1);
-            border-left-color: var(--notification-primary);
+        [data-bs-theme="dark"] .notification-icon {
+            background: rgba(110, 168, 254, 0.15);
+            color: var(--primary);
         }
         
-        [data-bs-theme="dark"] .notification-time,
-        [data-bs-theme="dark"] .text-muted {
-            color: #adb5bd !important;
+        [data-bs-theme="dark"] .notification-title {
+            color: var(--text);
         }
         
-        [data-bs-theme="dark"] .empty-state {
-            color: #adb5bd;
+        [data-bs-theme="dark"] .notification-meta {
+            color: var(--text-muted);
         }
         
-        [data-bs-theme="dark"] .empty-state i {
-            color: #495057;
+        [data-bs-theme="dark"] .empty-notifications {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
         }
         
-        [data-bs-theme="dark"] .bg-white {
-            background-color: #343a40 !important;
+        [data-bs-theme="dark"] .notification-badge {
+            background: rgba(110, 168, 254, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(110, 168, 254, 0.25);
         }
         
-        [data-bs-theme="dark"] .btn-outline-primary {
-            color: #7367f0;
-            border-color: #7367f0;
+        [data-bs-theme="dark"] .mark-all-read {
+            color: var(--text);
+            border-color: var(--border);
         }
         
-        [data-bs-theme="dark"] .btn-outline-primary:hover {
-            background-color: #7367f0;
-            color: #fff;
+        [data-bs-theme="dark"] .mark-all-read:hover {
+            background-color: var(--surface-hover);
+            border-color: var(--primary);
+            color: var(--primary);
         }
         
-        [data-bs-theme="dark"] .list-group-item {
-            background-color: #2b3035;
-            border-color: rgba(255, 255, 255, 0.08);
+        [data-bs-theme="dark"] .load-more-btn {
+            background: linear-gradient(145deg, var(--surface) 0%, var(--surface-hover) 100%);
+            border: 1px solid var(--border);
+            color: var(--text);
         }
         
-        [data-bs-theme="dark"] .notification-container::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.1);
+        [data-bs-theme="dark"] .load-more-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+            color: var(--primary);
         }
     </style>
 </head>

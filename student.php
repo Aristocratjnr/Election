@@ -2617,7 +2617,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="student-details">
-                                <h5> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
+                                <h5 > <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
                                 <div class="text-muted small mb-1">
                                     <i class="bi bi-person-badge me-1"></i> 
                                     ID: <?= $studentID ?>
