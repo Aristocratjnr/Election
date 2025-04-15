@@ -62,8 +62,7 @@ try {
         }
     }
 
-    // Additional functionality: Create notifications for election status changes
-    // Get current time in MySQL format including time component
+   
     $currentDateTime = date('Y-m-d H:i:s');
     
     // Update ongoing elections with precise datetime comparison
