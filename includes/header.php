@@ -116,7 +116,7 @@ if (empty($userData)) {
                         </a>
                         
                         <!-- Notifications Dropdown -->
-                        <div class="dropdown-menu dropdown-menu-end dropdown-notifications shadow p-0" style="width: 320px; max-height: 500px; overflow-y: auto;">
+                        <div class="dropdown-menu dropdown-menu-end dropdown-notifications shadow p-0" style="width: 461px; max-height: 500px; overflow-y: auto;">
                             <div class="dropdown-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-bell me-2"></i>

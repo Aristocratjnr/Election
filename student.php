@@ -50,6 +50,9 @@ try {
     $error = "System temporarily unavailable. Please try again later.";
 }
 
+// Override election status for testing
+$currentElection['status'] = 'Ongoing';
+
 // Get student details
 $student = [];
 try {
@@ -1885,9 +1888,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
-            border: 1px solid #f0f0f5;
-        }
-        
         .status-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
@@ -3483,36 +3483,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         // Countdown Timer functionality
         function updateCountdown() {
             <?php if ($currentElection): ?>
-            const endDate = new Date('<?= $currentElection['endDate'] ?>').getTime();
-            const now = new Date().getTime();
-            const timeLeft = endDate - now;
+            // Election start and end dates from PHP
+            const electionStartDate = new Date('<?= isset($currentElection["start_time"]) && $currentElection["start_time"] ? date('Y-m-d', strtotime($currentElection["startDate"])) . 'T' . date('H:i:s', strtotime($currentElection["start_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["startDate"])) ?>');
+            const electionEndDate = new Date('<?= isset($currentElection["end_time"]) && $currentElection["end_time"] ? date('Y-m-d', strtotime($currentElection["endDate"])) . 'T' . date('H:i:s', strtotime($currentElection["end_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["endDate"])) ?>');
+            const electionStartDateUTC = new Date(electionStartDate.getTime() + (electionStartDate.getTimezoneOffset() * 60000));
+            const electionEndDateUTC = new Date(electionEndDate.getTime() + (electionEndDate.getTimezoneOffset() * 60000));
+            
+            const currentStatus = '<?= $currentElection["status"] ?>';
+
+            // Get current time in UTC
+            const now = new Date(Date.UTC(
+                new Date().getUTCFullYear(),
+                new Date().getUTCMonth(),
+                new Date().getUTCDate(),
+                new Date().getUTCHours(),
+                new Date().getUTCMinutes(),
+                new Date().getUTCSeconds()
+            ));
+
+
+            let targetDate;
+            let countdownLabel;
+
+            if (currentStatus === 'Scheduled') {
+                targetDate = electionStartDate;
+                countdownLabel = 'Election Starts In:';
+            } else if (currentStatus === 'Ongoing') {
+                targetDate = electionEndDate;
+                countdownLabel = 'Election Ends In:';
+            } else {
+                // Election is not scheduled or ongoing, so hide the timer
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                    clearInterval(countdownInterval);
+                }
+                return;
+            }
+
+            // Calculate time remaining in milliseconds
+            const timeLeft = targetDate.getTime() - now.getTime();
 
             if (timeLeft > 0) {
+                // Election is still active (scheduled or ongoing)
                 const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
-                document.getElementById('days').textContent = String(days).padStart(2, '0');
-                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+                // Update DOM elements safely
+                const daysEl = document.getElementById('days');
+                const hoursEl = document.getElementById('hours');
+                const minutesEl = document.getElementById('minutes');
+                const secondsEl = document.getElementById('seconds');
+                const timeRemainingText = document.querySelector('.time-remaining-text');
+
+                if (timeRemainingText) {
+                    timeRemainingText.textContent = countdownLabel;
+                }
+
+                if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+                if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+                if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+                if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+
             } else {
-                // If election has ended
-                document.getElementById('election-countdown').innerHTML = '<div class="text-center text-warning">Election has ended</div>';
-                clearInterval(countdownInterval);
-                
-                // Reload the page to update election status
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                // If target date has passed
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    if (currentStatus === 'Scheduled') {
+                        // If scheduled election start time has passed, it should now be ongoing
+                        countdownContainer.innerHTML = '<div class="text-center text-success fw-bold">Election is starting now! Refreshing...</div>';
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000); // Reload after 3 seconds
+                    } else if (currentStatus === 'Ongoing') {
+                        // For ongoing elections, we should never reach here unless the end date has passed
+                        // Double check server time vs client time
+                        const serverNow = new Date('<?= date("Y-m-d\TH:i:s") ?>');
+                        const endDate = new Date('<?= date("Y-m-d\TH:i:s", strtotime($currentElection["endDate"])) ?>');
+
+                        if (serverNow >= endDate) {
+                            // If server time confirms election has ended
+                            countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+
+                            // Disable voting form and redirect to results
+                            const votingForm = document.getElementById('votingForm');
+                            if (votingForm) {
+                                votingForm.style.display = 'none';
+                                const endedMessage = document.createElement('div');
+                                endedMessage.className = 'alert alert-warning text-center';
+                                endedMessage.innerHTML = '<i class="bi bi-clock-history me-2"></i>This election has concluded. Results should be available soon.';
+                                votingForm.parentNode.insertBefore(endedMessage, votingForm);
+
+                                const resultsButton = document.createElement('a');
+                                resultsButton.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                resultsButton.className = 'btn btn-primary d-block mt-3';
+                                resultsButton.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>View Election Results';
+                                endedMessage.appendChild(resultsButton);
+
+                                setTimeout(() => {
+                                    window.location.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                }, 5000);
+                            }
+
+                            // Clear the interval to stop the countdown
+                            clearInterval(countdownInterval);
+                        } else {
+                            // If client time is ahead of server time, recalculate with server time
+                            countdownContainer.innerHTML = '<div class="d-flex align-items-center justify-content-start countdown-container">' +
+                                '<div class="time-unit"><span>00</span><small>days</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>hours</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>minutes</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>seconds</small></div>' +
+                            '</div>';
+
+                            // Force refresh to get updated election status
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 5000);
+                        }
+                    } else {
+                        // For completed elections
+                        countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                        clearInterval(countdownInterval);
+                    }
+                }
             }
             <?php endif; ?>
         }
 
-        // Update countdown every second
-        const countdownInterval = setInterval(updateCountdown, 1000);
-        updateCountdown(); // Initial call to avoid delay
+        let countdownInterval; // Define interval variable in a scope accessible by clearInterval
+        <?php if ($currentElection): ?>
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Initial call to display immediately
+        <?php endif; ?>
     </script>
 </body>
 </html>
