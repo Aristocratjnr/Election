@@ -2536,6 +2536,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         [data-bs-theme="dark"] .election-status {
             color: #E5E7EB;
         }
+
+        /* Update responsive styles to remove sidebar/ficon */
+        @media (max-width: 992px) {
+            .sidebar {
+                display: none; /* Hide sidebar completely on mobile */
+            }
+            
+            .mobile-header {
+                display: none; /* Hide mobile header */
+            }
+            
+            .mobile-toggle {
+                display: none; /* Hide mobile toggle button */
+            }
+            
+            .sidebar-overlay {
+                display: none; /* Hide sidebar overlay */
+            }
+            
+            .container {
+                padding-left: 15px; /* Reset container padding */
+                padding-right: 15px;
+                width: 100%;
+                max-width: none;
+            }
+            
+            .main-content {
+                margin-left: 0; /* Remove margin for sidebar */
+                width: 100%;
+            }
+            
+            /* Adjust the grid for better mobile layout */
+            .col-md-6, .col-lg-4 {
+                flex: 1 1 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .voting-card {
+                margin: 0;
+                border-radius: 12px;
+            }
+        }
     </style>
 </head>
 <body>
