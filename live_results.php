@@ -63,56 +63,89 @@ try {
     if (!$currentElection) {
         $error = "Election not found.";
     } else {
-        // Get positions for the election with proper ordering
+        // 1. Fetch all positions for the election first
         $stmt = $conn->prepare("
-            SELECT p.*, COUNT(c.candidateID) as candidate_count 
+            SELECT p.* 
             FROM positions p
-            LEFT JOIN candidates c ON p.positionID = c.positionID AND c.status = 'Approved'
             WHERE p.electionID = ?
-            GROUP BY p.positionID, p.title, p.description, p.maxVotes, p.display_order
             ORDER BY p.display_order ASC, p.positionID ASC
         ");
         $stmt->bind_param('i', $electionID);
         $stmt->execute();
-        $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $all_positions_raw = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Debug information
-        echo "<!-- LIVE RESULTS DEBUG: -->";
-        echo "<!-- Positions found: " . count($positions) . " -->";
+        $uniquePositionsData = [];
+        $seenPositionTitles = [];
+        foreach ($all_positions_raw as $position_raw) {
+            $lowerTitle = strtolower($position_raw['title']);
+            if (!isset($seenPositionTitles[$lowerTitle])) {
+                $seenPositionTitles[$lowerTitle] = true; // Mark title as seen
+                // Add position data, initialize candidates array
+                $uniquePositionsData[] = [
+                    'positionID' => $position_raw['positionID'],
+                    'title' => $position_raw['title'],
+                    'description' => $position_raw['description'],
+                    'maxVotes' => $position_raw['maxVotes'],
+                    'display_order' => $position_raw['display_order'],
+                    'candidates' => [], // Initialize empty candidates array
+                    'totalVotes' => 0   // Initialize total votes
+                ];
+            }
+        }
+        $positions = $uniquePositionsData; // Use the deduplicated list
+
+        // Debug: Log unique positions
+        error_log("Unique positions count after deduplication: " . count($positions));
         foreach ($positions as $pos) {
-            echo "<!-- Position: " . $pos['title'] . " (ID: " . $pos['positionID'] . ") -->";
+            error_log("Unique Position Processed: {$pos['title']} (ID: {$pos['positionID']})");
         }
 
-        // Get candidates and vote counts for each position
-        foreach ($positions as &$position) {
+        // 3. Fetch candidates and calculate votes for each unique position
+        foreach ($positions as &$position) { // Use reference to modify the array directly
+            $currentPositionID = $position['positionID']; // Store the correct ID for this iteration
+            error_log("Fetching candidates for: {$position['title']} (ID: {$currentPositionID})");
+
             $stmt = $conn->prepare("
                 SELECT 
                     c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
-                    s.name, s.department, s.profilePicture, 
-                    COUNT(DISTINCT v.voteID) as voteCount
+                    s.name, s.department, s.profilePicture,
+                    IFNULL((SELECT COUNT(*) FROM votes WHERE candidateID = c.candidateID AND electionID = ?), 0) as voteCount
                 FROM candidates c
                 JOIN students s ON c.studentID = s.studentID
-                LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
-                WHERE c.positionID = ? AND c.status = 'Approved'
-                GROUP BY c.candidateID, c.studentID, c.photo, c.manifesto, c.status, s.name, s.department, s.profilePicture
+                WHERE c.positionID = ? AND c.status = 'Approved' -- Filter by the correct positionID for this iteration
+                GROUP BY c.candidateID 
                 ORDER BY voteCount DESC, s.name ASC
             ");
-            $stmt->bind_param('ii', $electionID, $position['positionID']);
+            // Bind parameters: electionID for subquery, currentPositionID for WHERE clause
+            $stmt->bind_param('ii', $electionID, $currentPositionID); 
             $stmt->execute();
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
+
+            error_log("Candidates found for {$position['title']}: " . count($position['candidates']));
 
             // Calculate total votes and percentages for this position
             $totalVotes = 0;
             foreach ($position['candidates'] as $candidate) {
                 $totalVotes += (int)$candidate['voteCount'];
+                error_log("  Candidate: {$candidate['name']} (ID: {$candidate['candidateID']}), Votes: {$candidate['voteCount']}");
             }
             $position['totalVotes'] = $totalVotes;
 
-            foreach ($position['candidates'] as &$candidate) {
-                $candidate['votePercentage'] = $totalVotes > 0 ? 
-                    round(($candidate['voteCount'] / $totalVotes) * 100, 1) : 0;
+            foreach ($position['candidates'] as &$candidate) { // Use reference
+                $candidate['votePercentage'] = $totalVotes > 0 ?
+                    round(((int)$candidate['voteCount'] / $totalVotes) * 100, 1) : 0;
+            }
+            unset($candidate); // Unset inner loop reference
+        }
+        unset($position); // Unset outer loop reference
+
+        // Debugging: Log final candidate-to-position mapping
+        foreach ($positions as $position) {
+            error_log("Position: {$position['title']} (ID: {$position['positionID']})");
+            foreach ($position['candidates'] as $candidate) {
+                error_log("Candidate: {$candidate['name']} (ID: {$candidate['candidateID']}) mapped to Position ID: {$position['positionID']}");
             }
         }
 

@@ -357,26 +357,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         /* Dark mode variables */
         [data-bs-theme="dark"] {
             --primary: #6ea8fe;
-            --primary-light: rgba(110, 168, 254, 0.15);
+            --primary-light: rgba(110, 168, 254, 0.2);
             --primary-dark: #3a56d4;
-            --success: #75b798;
-            --success-light: rgba(117, 183, 152, 0.15);
-            --surface: #2b3035;
-            --surface-hover: #343a40;
-            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            --success: #82ca9d;
+            --success-light: rgba(130, 202, 157, 0.2);
+            --surface: #1e1e2d;
+            --surface-hover: #2a2a3c;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             --card-hover-shadow: 0 15px 35px rgba(110, 168, 254, 0.25);
-            --text: #f8f9fa;
+            --text: #e9ecef;
             --text-muted: #adb5bd;
-            --border: #495057;
-            --bg: #212529;
-            --header-bg: #343a40;
-            --shadow-color: rgba(0,0,0,0.2);
-            --danger: #ea868f;
-            --warning: #ffda6a;
-            --info: #6edff6;
-            
-            /* Default Bootstrap theme for dark mode */
-            color-scheme: dark;
+            --border: #2d2d3d;
+            --bg: #151521;
+            --header-bg: #1e1e2d;
+            --shadow-color: rgba(0, 0, 0, 0.25);
+        }
+
+        [data-bs-theme="dark"] .student-info {
+            background: linear-gradient(145deg, var(--surface) 0%, var(--surface-hover) 100%);
+            border: 1px solid var(--border);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        [data-bs-theme="dark"] .time-unit {
+            background: rgba(110, 168, 254, 0.15);
+            border: 1px solid rgba(110, 168, 254, 0.25);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        [data-bs-theme="dark"] .voting-status.voting-active {
+            background: rgba(110, 168, 254, 0.15);
+            border: 1px solid rgba(110, 168, 254, 0.25);
+            color: var(--primary);
+        }
+
+        [data-bs-theme="dark"] .candidate-card {
+            background-color: var(--surface);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
         }
         
         body {
