@@ -831,8 +831,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     letter-spacing: 1px;
 }
 
-/* Dark theme overrides */
-[data-bs-theme="dark"] .election-timer,
+/* Dark mode improvements for countdown timer and election details */
+[data-bs-theme="dark"] .election-timer {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 [data-bs-theme="dark"] .election-timer h2,
 [data-bs-theme="dark"] .election-timer h3,
 [data-bs-theme="dark"] .election-timer h4,
@@ -841,7 +846,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 [data-bs-theme="dark"] .election-timer .election-date,
 [data-bs-theme="dark"] .election-timer .election-status,
 [data-bs-theme="dark"] .timer-countdown {
-    color: rgba(255, 255, 255, 0.9);  /* Light gray for dark theme */
+    color: var(--text);
+}
+
+[data-bs-theme="dark"] .time-unit {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+}
+
+[data-bs-theme="dark"] .time-unit span {
+    color: var(--primary);
+}
+
+[data-bs-theme="dark"] .time-unit small {
+    color: var(--text-secondary);
+}
+
+[data-bs-theme="dark"] .election-details {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .timer-remaining {
@@ -1063,7 +1089,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     color: #E5E7EB;  /* Light gray for dark theme */
 }
 
-/* Countdown timer styles */
+/* Countdown Timer styles */
 .countdown-container {
     display: flex;
     align-items: center;
@@ -1148,15 +1174,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     }
 }
         
-        .student-details h5 {
-            font-weight: 600;
-            margin-bottom: 4px;
-            font-size: 0.99rem;
+        .student-details {
+            margin-bottom: 0.5rem;
         }
 
-        .student-details p {
-            font-size: 0.913rem;
-            margin-bottom: 0;
+        .student-details h5,
+        .student-details p,
+        .student-details .text-muted,
+        .student-details .department-icon {
+            transition: color 0.3s ease;
+        }
+
+        [data-bs-theme="dark"] .student-details h5,
+        [data-bs-theme="dark"] .student-details p,
+        [data-bs-theme="dark"] .student-details .profile-icon,
+        [data-bs-theme="dark"] .student-details span {
+            color: var(--text) !important;
+        }
+
+        [data-bs-theme="dark"] .student-details .text-muted {
+            color: rgba(255, 255, 255, 0.75) !important;
+        }
+
+        /* Light mode text colors */
+        [data-bs-theme="light"] .student-details h5 {
+            color: #2B3445;
+        }
+
+        [data-bs-theme="light"] .student-details p,
+        [data-bs-theme="light"] .student-details span {
+            color: #4B5563;
+        }
+
+        [data-bs-theme="light"] .student-details .text-muted {
+            color: #6c757d !important;
         }
 
         .student-info {
@@ -1169,80 +1220,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        .student-details .text-muted {
-            font-size: 0.913rem;
-        }
-
-        /* Make sure text is black in light theme */
-        [data-bs-theme="light"] .election-timer,
-        [data-bs-theme="light"] .timer-countdown,
-        [data-bs-theme="light"] .counter-circle,
-        [data-bs-theme="light"] .student-details h5,
-        [data-bs-theme="light"] .student-details p {
-            color: #000000;
-        }
-
-        [data-bs-theme="light"] .student-details .text-muted {
-            color: #6c757d !important;
-        }
-
-        .counter-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            margin-right: 15px;
-            color: #000000;
-        }
-
-        [data-bs-theme="dark"] .counter-circle {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        
-        .student-info {
-            background: var(--surface);
-            color: #2B3445;
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 1px;
-        }
-
-        [data-bs-theme="dark"] .timer-countdown {
-            color: white;
-        }
-
-        .counter-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            margin-right: 15px;
-            color: #2B3445;
-        }
-
-        [data-bs-theme="dark"] .counter-circle {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        
-        .student-info {
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-            padding: 18px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 10px var(--shadow-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-        
         .student-avatar {
             width: 70px;
             height: 70px;
