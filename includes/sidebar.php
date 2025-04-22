@@ -576,6 +576,32 @@ if (!empty($profile_pic)) {
 [data-bs-theme="dark"] .nav-arrow {
   color: var(--sidebar-text-light);
 }
+
+/* Add styles for the last login info */
+.last-login-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    color: var(--sidebar-text-light);
+    font-size: 0.85rem;
+}
+
+.last-login-info i {
+    font-size: 1rem;
+    color: var(--sidebar-accent);
+}
+
+.timeago {
+    color: var(--sidebar-text);
+    font-weight: 500;
+    cursor: help;
+}
+
+/* Tooltip style enhancement */
+.timeago:hover {
+    text-decoration: underline dotted;
+}
 </style>
 
 <aside id="sidebar" class="sidebar">
@@ -612,7 +638,7 @@ if (!empty($profile_pic)) {
       <!-- Dashboard -->
       <li class="nav-item <?= ($current_script === 'dashboard.php' || $current_script === 'index.php') ? 'active' : '' ?>">
         <a href="dashboard.php" class="nav-link" data-tooltip="Administrative Dashboard">
-          <i class="bi bi-speedometer2"></i>
+          <i class="bi bi-grid-1x2-fill"></i>
           <span>Admin Dashboard</span>
         </a>
       </li>
@@ -620,8 +646,8 @@ if (!empty($profile_pic)) {
       <!-- Election Control -->
       <li class="nav-item <?= in_array($current_script, ['election.php','positions.php','candidates.php','ballots.php','election_results.php','election_config.php','categories.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
-          <div class="nav-link settings-toggle" data-tooltip="Manage Elections, Candidates, Positions and Ballots">
-            <i class="bi bi-calendar-event"></i>
+          <div class="nav-link settings-toggle" data-tooltip="Manage Elections">
+            <i class="bi bi-trophy-fill"></i>
             <span>Election Control</span>
             <i class="nav-arrow bi bi-chevron-down"></i>
           </div>
@@ -629,13 +655,13 @@ if (!empty($profile_pic)) {
             <!-- Elections Submenu -->
             <li class="submenu-item <?= ($current_script === 'election.php' && (!$current_action || $current_action === 'manage')) ? 'active' : '' ?>">
               <a href="election.php">
-                <i class="bi bi-list-ul"></i>
+                <i class="bi bi-list-check"></i>
                 <span>All Elections</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'elections.php' && $current_action === 'create') ? 'active' : '' ?>">
               <a href="election.php">
-                <i class="bi bi-plus-circle"></i>
+                <i class="bi bi-plus-circle-fill"></i>
                 <span>Create New</span>
               </a>
             </li>
@@ -643,7 +669,7 @@ if (!empty($profile_pic)) {
             <!-- Categories Submenu -->
             <li class="submenu-item <?= ($current_script === 'categories.php') ? 'active' : '' ?>">
               <a href="categories.php">
-                <i class="bi bi-bookmark-fill"></i>
+                <i class="bi bi-tags-fill"></i>
                 <span>Categories</span>
               </a>
             </li>
@@ -651,7 +677,7 @@ if (!empty($profile_pic)) {
             <!-- Positions Submenu -->
             <li class="submenu-item <?= ($current_script === 'positions.php') ? 'active' : '' ?>">
               <a href="positions.php">
-                <i class="bi bi-award"></i>
+                <i class="bi bi-person-badge-fill"></i>
                 <span>Positions</span>
               </a>
             </li>
@@ -659,7 +685,7 @@ if (!empty($profile_pic)) {
             <!-- Candidates Submenu -->
             <li class="submenu-item <?= ($current_script === 'candidates.php') ? 'active' : '' ?>">
               <a href="candidates.php">
-                <i class="bi bi-person-badge"></i>
+                <i class="bi bi-people-fill"></i>
                 <span>Candidates</span>
               </a>
             </li>
@@ -667,7 +693,7 @@ if (!empty($profile_pic)) {
             <!-- Ballots Submenu -->
             <li class="submenu-item <?= ($current_script === 'ballots.php') ? 'active' : '' ?>">
               <a href="ballots.php">
-                <i class="bi bi-file-earmark-text"></i>
+                <i class="bi bi-ui-checks-grid"></i>
                 <span>Ballot Design</span>
               </a>
             </li>
@@ -675,8 +701,9 @@ if (!empty($profile_pic)) {
             <!-- Results Submenu -->
             <li class="submenu-item <?= ($current_script === 'results.php') ? 'active' : '' ?>">
               <a href="results.php">
-                <i class="bi bi-graph-up"></i>
+                <i class="bi bi-bar-chart-fill"></i>
                 <span>Results</span>
+                <span class="badge bg-primary rounded-pill ms-auto">Live</span>
               </a>
             </li>
 
@@ -687,7 +714,7 @@ if (!empty($profile_pic)) {
       <!-- Voter Management -->
       <li class="nav-item <?= in_array($current_script, ['voters.php','voter_groups.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
-          <div class="nav-link settings-toggle" data-tooltip="Manage Voters and Groups">
+          <div class="nav-link settings-toggle" data-tooltip="Manage Voters">
             <i class="bi bi-people-fill"></i>
             <span>Voter Management</span>
             <i class="nav-arrow bi bi-chevron-down"></i>
@@ -704,12 +731,12 @@ if (!empty($profile_pic)) {
         </div>
       </li>
 
-      <!-- Admin Preferences -->
+      <!-- System Settings -->
       <li class="nav-item <?= in_array($current_script, ['profile.php','security.php','preferences.php','activity.php','appearance.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
-          <div class="nav-link settings-toggle" data-tooltip="Administrator Settings">
-            <i class="bi bi-person-gear"></i>
-            <span>Admin Preferences</span>
+          <div class="nav-link settings-toggle" data-tooltip="System Configuration">
+            <i class="bi bi-gear-fill"></i>
+            <span>System Settings</span>
             <i class="nav-arrow bi bi-chevron-down"></i>
           </div>
           <ul class="submenu settings-dropdown">
@@ -722,25 +749,26 @@ if (!empty($profile_pic)) {
             <li class="submenu-item <?= ($current_script === 'security.php') ? 'active' : '' ?>">
               <a href="security.php">
                 <i class="bi bi-shield-lock-fill"></i>
-                <span>Account Security</span>
+                <span>Security</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'appearance.php') ? 'active' : '' ?>">
               <a href="appearance.php">
-                <i class="bi bi-palette-fill"></i>
-                <span>UI Appearance</span>
+                <i class="bi bi-palette2"></i>
+                <span>Appearance</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'preferences.php') ? 'active' : '' ?>">
               <a href="preferences.php">
                 <i class="bi bi-sliders"></i>
-                <span>System Settings</span>
+                <span>Preferences</span>
               </a>
             </li>
             <li class="submenu-item <?= ($current_script === 'activity.php') ? 'active' : '' ?>">
               <a href="activity.php">
                 <i class="bi bi-activity"></i>
                 <span>Activity Log</span>
+                <span class="badge bg-danger rounded-pill ms-auto">New</span>
               </a>
             </li>
           </ul>
@@ -751,26 +779,31 @@ if (!empty($profile_pic)) {
 
   <!-- Sidebar Footer -->
   <div class="sidebar-footer">
-    <span class="sidebar-footer-text">
-        <i class="bi bi-clock"></i>
-        Last login: <span id="lastLoginTime">
-            <?php 
-                if ($last_login) {
-                    echo date('M d, Y H:i', strtotime($last_login));
-                } else {
-                    echo 'Just now';
-                }
-            ?>
-        </span>
-    </span>
+    <div class="system-info">
+      <div class="info-item">
+        <i class="bi bi-cpu-fill"></i>
+        <span>System Status: <span class="text-success">Active</span></span>
+      </div>
+      <div class="info-item last-login-info">
+        <i class="bi bi-clock-history"></i>
+        <span>Last login: </span>
+        <time id="lastLoginTime" 
+              class="timeago" 
+              datetime="<?= $last_login ? date('c', strtotime($last_login)) : date('c') ?>"
+              title="<?= $last_login ? date('F j, Y, g:i a', strtotime($last_login)) : 'Just now' ?>">
+          <?= $last_login ? date('M d, Y H:i', strtotime($last_login)) : 'Just now' ?>
+        </time>
+      </div>
+    </div>
     
     <a href="#" class="logout-btn mt-3" id="logoutBtn">
-      <i class="bi bi-box-arrow-right"></i>
+      <i class="bi bi-power"></i>
       <span>Logout</span>
     </a>
     
     <div class="version-info mt-2">
-      <span>Admin Console, v1.0</span>
+      <i class="bi bi-info-circle-fill me-1"></i>
+      <span>Admin Console v1.0</span>
     </div>
   </div>
 </aside>
@@ -961,7 +994,64 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Timeago formatting function
+function timeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval > 1) return interval + ' years ago';
+    if (interval === 1) return 'a year ago';
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) return interval + ' months ago';
+    if (interval === 1) return 'a month ago';
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) return interval + ' days ago';
+    if (interval === 1) return 'yesterday';
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) return interval + ' hours ago';
+    if (interval === 1) return 'an hour ago';
+    
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) return interval + ' minutes ago';
+    if (interval === 1) return 'a minute ago';
+    
+    if (seconds < 10) return 'just now';
+    
+    return Math.floor(seconds) + ' seconds ago';
+}
+
+// Update all timeago elements
+function updateTimeagoElements() {
+    const timeElements = document.querySelectorAll('time.timeago');
+    timeElements.forEach(timeEl => {
+        const datetime = new Date(timeEl.getAttribute('datetime'));
+        timeEl.textContent = timeAgo(datetime);
+        
+        // Update the full date tooltip
+        const fullDate = datetime.toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        timeEl.setAttribute('title', fullDate);
+    });
+}
+
+// Update times immediately and then every minute
+document.addEventListener('DOMContentLoaded', function() {
+    updateTimeagoElements();
+    setInterval(updateTimeagoElements, 60000);
+});
 </script>
+
 <!-- Additional script for logout modal -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
