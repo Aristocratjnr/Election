@@ -3,8 +3,8 @@
         "phpmailer/phpmailer": "^6.9",
         "vlucas/phpdotenv": "*",
         "google/auth": "^1.24",
-        "tecnickcom/tcpdf": "*",
-        "phpoffice/phpspreadsheet": "^1.29",
+        "tecnickcom/tcpdf": "^6.9",
+        "phpoffice/phpspreadsheet": "^4.2",
         "dompdf/dompdf": "^2.0",
         "spomky-labs/otphp": "^11.2"
     }

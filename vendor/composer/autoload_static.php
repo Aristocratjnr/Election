@@ -9,7 +9,6 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
-        '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
@@ -27,7 +26,6 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Ctype\\' => 23,
             'Svg\\' => 4,
-            'Sonata\\GoogleAuthenticator\\' => 27,
             'Sabberworm\\CSS\\' => 15,
         ),
         'P' => 
@@ -36,10 +34,16 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
+            'Psr\\Clock\\' => 10,
             'Psr\\Cache\\' => 10,
             'PhpOption\\' => 10,
             'PhpOffice\\PhpSpreadsheet\\' => 25,
+            'ParagonIE\\ConstantTime\\' => 23,
             'PHPMailer\\PHPMailer\\' => 20,
+        ),
+        'O' => 
+        array (
+            'OTPHP\\' => 6,
         ),
         'M' => 
         array (
@@ -52,7 +56,6 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
             'GrahamCampbell\\ResultType\\' => 26,
-            'Google\\Authenticator\\' => 21,
             'Google\\Auth\\' => 12,
         ),
         'F' => 
@@ -93,10 +96,6 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         array (
             0 => __DIR__ . '/..' . '/phenx/php-svg-lib/src/Svg',
         ),
-        'Sonata\\GoogleAuthenticator\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sonata-project/google-authenticator/src',
-        ),
         'Sabberworm\\CSS\\' => 
         array (
             0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/src',
@@ -118,6 +117,10 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
+        'Psr\\Clock\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/clock/src',
+        ),
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
@@ -130,9 +133,17 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         array (
             0 => __DIR__ . '/..' . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet',
         ),
+        'ParagonIE\\ConstantTime\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
+        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
+        'OTPHP\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/spomky-labs/otphp/src',
         ),
         'Matrix\\' => 
         array (
@@ -157,10 +168,6 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         'GrahamCampbell\\ResultType\\' => 
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
-        ),
-        'Google\\Authenticator\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sonata-project/google-authenticator/src',
         ),
         'Google\\Auth\\' => 
         array (
@@ -192,16 +199,6 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         ),
     );
 
-    public static $prefixesPsr0 = array (
-        'H' => 
-        array (
-            'HTMLPurifier' => 
-            array (
-                0 => __DIR__ . '/..' . '/ezyang/htmlpurifier/library',
-            ),
-        ),
-    );
-
     public static $classMap = array (
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
@@ -229,7 +226,6 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a::$prefixesPsr0;
             $loader->classMap = ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a::$classMap;
 
         }, null, ClassLoader::class);

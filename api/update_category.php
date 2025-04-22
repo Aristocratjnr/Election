@@ -1,108 +1,101 @@
 <?php
-// Use dirname to resolve paths correctly regardless of where the script is included from
-$base_path = dirname(__FILE__, 2); // Go up one level from api folder
-require_once $base_path . '../configs/dbconnection.php';
-require_once $base_path . '../includes/auth_check.php';
-
+require_once '../configs/dbconnection.php';
+require_once '../configs/session.php';
 header('Content-Type: application/json');
 
 // Check if user is admin
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
-    http_response_code(403);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Unauthorized access'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+    exit();
+}
+
+// Check if required data is provided
+if (!isset($_POST['categoryID']) || !isset($_POST['electionID']) || !isset($_POST['name'])) {
+    echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+    exit();
+}
+
+$categoryID = $_POST['categoryID'];
+$electionID = $_POST['electionID'];
+$name = trim($_POST['name']);
+$description = isset($_POST['description']) ? trim($_POST['description']) : '';
+
+// Validate inputs
+if (empty($name) || empty($electionID) || empty($categoryID)) {
+    echo json_encode(['success' => false, 'message' => 'All fields are required']);
+    exit();
+}
+
+// Validate name length
+if (strlen($name) < 3 || strlen($name) > 100) {
+    echo json_encode(['success' => false, 'message' => 'Category name must be between 3 and 100 characters']);
     exit();
 }
 
 try {
-    // Validate request data
-    if (!isset($_POST['categoryID']) || !isset($_POST['electionID']) || !isset($_POST['name']) || 
-        empty($_POST['categoryID']) || empty($_POST['electionID']) || empty($_POST['name'])) {
-        throw new Exception('Category ID, Election ID and category name are required');
-    }
-    
-    $categoryID = $_POST['categoryID'];
-    $electionID = $_POST['electionID'];
-    $categoryName = $_POST['name'];
-    
-    // Get a valid student ID (first student in the database)
-    $studentQuery = $conn->query("SELECT studentID FROM students LIMIT 1");
-    if ($studentQuery->num_rows === 0) {
-        throw new Exception('No student record found. Cannot update category.');
-    }
-    $studentID = $studentQuery->fetch_assoc()['studentID'];
-    
-    // Check if category exists
-    $checkCategory = $conn->prepare("SELECT categoryID FROM categories WHERE categoryID = ?");
-    $checkCategory->bind_param('i', $categoryID);
-    $checkCategory->execute();
-    $categoryResult = $checkCategory->get_result();
-    
-    if ($categoryResult->num_rows === 0) {
-        throw new Exception('Category does not exist');
-    }
-    
-    // Check if election exists
-    $checkElection = $conn->prepare("SELECT electionID FROM elections WHERE electionID = ?");
-    $checkElection->bind_param('i', $electionID);
-    $checkElection->execute();
-    $electionResult = $checkElection->get_result();
+    // Check if election exists and is active
+    $electionStmt = $conn->prepare("SELECT status FROM elections WHERE electionID = ?");
+    $electionStmt->bind_param("i", $electionID);
+    $electionStmt->execute();
+    $electionResult = $electionStmt->get_result();
     
     if ($electionResult->num_rows === 0) {
-        throw new Exception('Selected election does not exist');
+        echo json_encode(['success' => false, 'message' => 'Invalid election selected']);
+        exit();
     }
     
-    // Check if a different category with the same name exists for this election
-    $checkDuplicate = $conn->prepare("SELECT categoryID FROM categories WHERE electionID = ? AND name = ? AND categoryID != ?");
-    $checkDuplicate->bind_param('isi', $electionID, $categoryName, $categoryID);
-    $checkDuplicate->execute();
-    $duplicateResult = $checkDuplicate->get_result();
+    $electionStatus = $electionResult->fetch_assoc()['status'];
+    if ($electionStatus === 'Completed') {
+        echo json_encode(['success' => false, 'message' => 'Cannot modify categories in completed elections']);
+        exit();
+    }
+
+    // Check if category exists
+    $checkCategoryStmt = $conn->prepare("SELECT electionID FROM categories WHERE categoryID = ?");
+    $checkCategoryStmt->bind_param("i", $categoryID);
+    $checkCategoryStmt->execute();
     
-    if ($duplicateResult->num_rows > 0) {
-        throw new Exception('A category with this name already exists for the selected election');
+    if ($checkCategoryStmt->get_result()->num_rows === 0) {
+        echo json_encode(['success' => false, 'message' => 'Category not found']);
+        exit();
+    }
+
+    // Check if category name already exists in this election (excluding current category)
+    $checkStmt = $conn->prepare("SELECT categoryID FROM categories WHERE name = ? AND electionID = ? AND categoryID != ?");
+    $checkStmt->bind_param("sii", $name, $electionID, $categoryID);
+    $checkStmt->execute();
+    $result = $checkStmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        echo json_encode(['success' => false, 'message' => 'A category with this name already exists in this election']);
+        exit();
     }
     
-    // Update category - without the description field
-    $updateCategory = $conn->prepare(
-        "UPDATE categories SET 
-            electionID = ?, 
-            name = ?, 
-            updatedBy = ? 
-        WHERE categoryID = ?"
-    );
-    $updateCategory->bind_param('isii', $electionID, $categoryName, $studentID, $categoryID);
-    $updateCategory->execute();
+    // Update category
+    $stmt = $conn->prepare("UPDATE categories SET name = ?, description = ?, electionID = ?, updated_at = NOW(), updated_by = ? WHERE categoryID = ?");
+    $stmt->bind_param("ssiii", $name, $description, $electionID, $_SESSION['login_id'], $categoryID);
     
-    if ($updateCategory->affected_rows >= 0) { // Using >= 0 because affected_rows might be 0 if no changes were made
-        // Get the updated category
-        $updatedCategoryQuery = $conn->prepare(
-            "SELECT c.*, e.name as election_name, s1.name as added_by_name, s2.name as updated_by_name 
-             FROM categories c
-             LEFT JOIN elections e ON c.electionID = e.electionID
-             LEFT JOIN students s1 ON c.addedBy = s1.studentID
-             LEFT JOIN students s2 ON c.updatedBy = s2.studentID
-             WHERE c.categoryID = ?"
-        );
-        $updatedCategoryQuery->bind_param('i', $categoryID);
-        $updatedCategoryQuery->execute();
-        $updatedCategory = $updatedCategoryQuery->get_result()->fetch_assoc();
+    if ($stmt->execute()) {
+        // Log the activity
+        $activityStmt = $conn->prepare("INSERT INTO activity_log (user_id, activity_type, related_id, description, timestamp) VALUES (?, 'category_updated', ?, ?, NOW())");
+        $activityDesc = "Updated category: " . $name;
+        $activityStmt->bind_param("iis", $_SESSION['login_id'], $categoryID, $activityDesc);
+        $activityStmt->execute();
         
         echo json_encode([
-            'success' => true,
+            'success' => true, 
             'message' => 'Category updated successfully',
-            'category' => $updatedCategory
+            'category' => [
+                'id' => $categoryID,
+                'name' => $name,
+                'description' => $description,
+                'electionID' => $electionID
+            ]
         ]);
     } else {
-        throw new Exception('Failed to update category');
+        throw new Exception("Failed to update category");
     }
-    
 } catch (Exception $e) {
-    // Return error response
-    http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
-} 
+    error_log("Error in update_category.php: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Failed to update category: ' . $e->getMessage()]);
+}

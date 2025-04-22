@@ -9,18 +9,31 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 }
 
 // Get all elections for dropdown with more details
-$electionsQuery = $conn->prepare("SELECT electionID, name, status FROM elections");
+$electionsQuery = $conn->prepare("
+    SELECT e.electionID, e.name, e.status, 
+           COUNT(c.categoryID) as category_count,
+           e.startDate, e.endDate,
+           e.start_time, e.end_time
+    FROM elections e
+    LEFT JOIN categories c ON e.electionID = c.electionID
+    GROUP BY e.electionID
+    ORDER BY 
+        CASE e.status 
+            WHEN 'Ongoing' THEN 1
+            WHEN 'Scheduled' THEN 2
+            WHEN 'Completed' THEN 3
+            ELSE 4
+        END,
+        e.startDate DESC
+");
 $electionsQuery->execute();
 $elections = $electionsQuery->get_result();
 
-// Check if category_id parameter is set from election_details.php
-$selectedCategoryID = null;
+// Check if category_id parameter is set
+$selectedCategoryID = isset($_GET['category_id']) ? $_GET['category_id'] : null;
 $selectedElectionID = null;
 
-if (isset($_GET['category_id'])) {
-    $selectedCategoryID = $_GET['category_id'];
-    
-    // Get the election ID for this category to pre-select in the dropdown
+if ($selectedCategoryID) {
     $categoryQuery = $conn->prepare("SELECT electionID FROM categories WHERE categoryID = ?");
     $categoryQuery->bind_param("i", $selectedCategoryID);
     $categoryQuery->execute();
@@ -31,12 +44,11 @@ if (isset($_GET['category_id'])) {
     }
 }
 
-// Total categories count for dashboard
+// Get total categories count
 $totalCategoriesQuery = $conn->prepare("SELECT COUNT(*) as total FROM categories");
 $totalCategoriesQuery->execute();
 $categoriesCount = $totalCategoriesQuery->get_result()->fetch_assoc()['total'];
 
-// Update session data for dashboard
 $_SESSION['dashboard_stats']['total_active_categories'] = $categoriesCount;
 
 $pageTitle = "Election Categories"; 
@@ -618,6 +630,7 @@ $pageTitle = "Election Categories";
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
     <script>
     // Global variable to store DataTable instance
@@ -628,33 +641,93 @@ $pageTitle = "Election Categories";
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
         
-        // Initialize DataTable
+        // Initialize DataTable with enhanced features
         categoriesTable = $('#categoriesTable').DataTable({
-            paging: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            lengthChange: false,
             pageLength: 10,
+            dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip',
             language: {
                 search: "",
                 searchPlaceholder: "Search categories...",
-                emptyTable: ""
+                emptyTable: "",
+                info: "Showing _START_ to _END_ of _TOTAL_ categories",
+                infoEmpty: "No categories found",
+                paginate: {
+                    first: '<i class="bi bi-chevron-double-left"></i>',
+                    last: '<i class="bi bi-chevron-double-right"></i>',
+                    next: '<i class="bi bi-chevron-right"></i>',
+                    previous: '<i class="bi bi-chevron-left"></i>'
+                }
             },
+            ordering: true,
+            responsive: true,
+            stateSave: true,
             columnDefs: [
-                { orderable: false, targets: 4 }, // Disable sorting on Actions column
-                { className: "align-middle", targets: "_all" } // Center align all cells vertically
-            ],
-            dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip',
-            initComplete: function() {
-                // Hide the default search box
-                $('.dataTables_filter').hide();
-                
-                // Use custom search box
-                $('#searchCategories').on('keyup', function() {
-                    categoriesTable.search(this.value).draw();
-                });
+                { orderable: false, targets: 4 },
+                { className: "align-middle", targets: "_all" }
+            ]
+        });
+        
+        // Add keyboard shortcuts
+        $(document).keydown(function(e) {
+            // Alt + N to add new category
+            if (e.altKey && e.keyCode === 78) {
+                e.preventDefault();
+                $('#addCategoryModal').modal('show');
             }
+            // Alt + R to refresh
+            if (e.altKey && e.keyCode === 82) {
+                e.preventDefault();
+                $('#refreshCategories').click();
+            }
+        });
+        
+        // Add drag and drop reordering for categories
+        new Sortable(document.getElementById('categoriesTableBody'), {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: function(evt) {
+                updateCategoryOrder();
+            }
+        });
+        
+        // Enhanced form validation with better feedback
+        $('#addCategoryForm, #editCategoryForm').each(function() {
+            $(this).validate({
+                rules: {
+                    categoryName: {
+                        required: true,
+                        minlength: 3,
+                        maxlength: 100
+                    },
+                    electionID: "required"
+                },
+                messages: {
+                    categoryName: {
+                        required: "Please enter a category name",
+                        minlength: "Category name must be at least 3 characters",
+                        maxlength: "Category name cannot exceed 100 characters"
+                    },
+                    electionID: "Please select an election"
+                },
+                errorElement: 'div',
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.input-group').append(error);
+                },
+                highlight: function(element, errorClass, validClass) {
+                    $(element).addClass('is-invalid');
+                },
+                unhighlight: function(element, errorClass, validClass) {
+                    $(element).removeClass('is-invalid');
+                }
+            });
+        });
+        
+        // Add export functionality
+        $('#exportCategories').click(function() {
+            const electionId = $('#electionSelect').val();
+            const format = $('#exportFormat').val();
+            window.location.href = `export_categories.php?electionID=${electionId}&format=${format}`;
         });
         
         // Check if a specific category is requested
@@ -899,228 +972,57 @@ $pageTitle = "Election Categories";
     
     // Function to load categories
     function loadCategories(electionId = '', selectedCategoryId = null) {
-        // Show loading state
-        $('#categoriesTable').addClass('d-none');
-        $('#emptyState').addClass('d-none');
         $('#loadingState').removeClass('d-none');
+        $('#categoriesTable, #emptyState').addClass('d-none');
         
         $.ajax({
             url: 'api/get_categories.php',
             type: 'GET',
             data: electionId ? { electionID: electionId } : {},
             success: function(response) {
-                try {
-                    const categories = JSON.parse(response);
-                    
-                    // Clear the existing table data
-                    categoriesTable.clear();
-                    
-                    if (categories.length > 0) {
-                        // Hide empty state and show table
-                        $('#emptyState').addClass('d-none');
-                        $('#loadingState').addClass('d-none');
-                        $('#categoriesTable').removeClass('d-none');
-                        
-                        // Update category count
-                        $('#categoryCount').text(categories.length);
-                        $('#categoryCount').removeClass('bg-secondary').addClass('bg-primary');
-                        
-                        // Add each category to the table
-                        categories.forEach(function(category, index) {
-                            // Prepare status badge for election
-                            let statusBadge = '';
-                            if (category.election_status) {
-                                let statusClass = 'secondary';
-                                if (category.election_status === 'Ongoing') statusClass = 'success';
-                                else if (category.election_status === 'Completed') statusClass = 'primary';
-                                else if (category.election_status === 'Scheduled') statusClass = 'info';
-                                
-                                statusBadge = `<span class="badge bg-${statusClass} ms-2">${category.election_status}</span>`;
-                            }
-                            
-                            // Format the category name with description tooltip if available
-                            let categoryName = category.category_name || category.name;
-                            let rowClass = '';
-                            
-                            // Highlight the selected category if it matches the requested one
-                            if (selectedCategoryId && category.categoryID == selectedCategoryId) {
-                                rowClass = 'bg-light-success';
-                            }
-                            
-                            if (category.description) {
-                                categoryName = `<div class="d-flex align-items-center">
-                                    <span>${categoryName}</span>
-                                    <i class="bi bi-info-circle-fill ms-2 text-muted" 
-                                       data-bs-toggle="tooltip" 
-                                       title="${category.description}"></i>
-                                </div>`;
-                            }
-                            
-                            // Format the election name with status badge
-                            let electionName = `
-                                <div>
-                                    <span>${category.election_name || 'N/A'}</span>
-                                    ${statusBadge}
-                                </div>
-                            `;
-                            
-                            // Meta information about category creation/updates
-                            let metaInfo = 'N/A';
-                            if (category.added_by_name) {
-                                metaInfo = `<div class="small text-muted">
-                                    <i class="bi bi-person-plus me-1"></i> ${category.added_by_name}
-                                </div>`;
-                            }
-                            
-                            categoriesTable.row.add([
-                                index + 1,
-                                categoryName,
-                                electionName,
-                                `<div>
-                                    <span class="text-muted"><i class="bi bi-clock me-1"></i>${formatDate(category.created_at || 'N/A')}</span>
-                                    ${metaInfo}
-                                </div>`,
-                                `<div class="text-end">
-                                    <button class="btn btn-sm btn-outline-info btn-action edit-category me-1" 
-                                        data-id="${category.categoryID}" 
-                                        data-election-id="${category.electionID}"
-                                        data-name="${categoryName}"
-                                        data-bs-toggle="tooltip"
-                                        title="Edit this category">
-                                        <i class="bi bi-pencil-fill"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger btn-action delete-category" 
-                                        data-id="${category.categoryID}" 
-                                        data-name="${categoryName}"
-                                        data-bs-toggle="tooltip"
-                                        title="Delete this category">
-                                        <i class="bi bi-trash-fill"></i>
-                                    </button>
-                                </div>`
-                            ]);
-                        });
-                    } else {
-                        // Show empty state with context-aware message
-                        $('#emptyState').removeClass('d-none');
-                        $('#loadingState').addClass('d-none');
-                        $('#categoriesTable').addClass('d-none');
-                        
-                        // Update category count
-                        $('#categoryCount').text(0);
-                        $('#categoryCount').removeClass('bg-primary').addClass('bg-secondary');
-                        
-                        // Update empty state message based on filter
-                        if (electionId) {
-                            const electionName = $('#electionSelect option:selected').text();
-                            $('#emptyStateTitle').text('No Categories for this Election');
-                            $('#emptyStateMessage').html(`No categories found for <strong>${electionName}</strong>. Create your first category now.`);
-                        } else {
-                            $('#emptyStateTitle').text('No Categories Found');
-                            $('#emptyStateMessage').text('Start by creating a new category for any election.');
-                        }
-                    }
-                    
-                    // Redraw the table with new data
-                    categoriesTable.draw();
-                    
-                    // If a specific category was requested, highlight and scroll to it
-                    if (selectedCategoryId) {
-                        setTimeout(() => {
-                            const $rows = $('#categoriesTableBody tr');
-                            $rows.each(function() {
-                                const $row = $(this);
-                                const rowData = $row.find('button.edit-category').data('id');
-                                
-                                if (rowData == selectedCategoryId) {
-                                    $row.addClass('bg-light-success');
-                                    // Scroll the row into view
-                                    $row[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    
-                                    // Show a toast notification
-                                    const categoryName = $row.find('td:nth-child(2)').text().trim();
-                                    showToast('Category Selected', `Viewing details for category: ${categoryName}`, 'info');
-                                }
-                            });
-                        }, 300);
-                    }
-                    
-                    // Re-initialize tooltips after table is redrawn
-                    setTimeout(() => {
-                        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-                        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-                    }, 100);
-                } catch (e) {
-                    console.error('Error parsing response:', e);
-                    showToast('Error', 'Failed to load categories', 'danger');
+                if (response.success) {
+                    updateCategoriesTable(response.categories, selectedCategoryId);
+                    updateStats(response.total);
+                } else {
+                    showError('Failed to load categories');
                 }
             },
-            error: function() {
-                showToast('Error', 'Server error occurred', 'danger');
+            error: function(xhr) {
+                showError('Server error occurred');
+                console.error('AJAX error:', xhr.responseText);
+            },
+            complete: function() {
+                $('#loadingState').addClass('d-none');
             }
         });
     }
     
-    // Function to update dashboard category stats
-    function updateDashboardCategoryStats() {
-        // Make an AJAX request to update stats
+    // Add category order update function
+    function updateCategoryOrder() {
+        const categoryOrder = [];
+        $('#categoriesTableBody tr').each(function(index) {
+            categoryOrder.push({
+                categoryID: $(this).data('category-id'),
+                position: index + 1
+            });
+        });
+
         $.ajax({
-            url: 'api/update_dashboard_stats.php',
+            url: 'api/update_category_order.php',
             type: 'POST',
-            data: { update_type: 'categories' },
+            data: { categories: categoryOrder },
             success: function(response) {
-                console.log('Dashboard stats updated');
+                if (response.success) {
+                    showToast('Success', 'Category order updated successfully', 'success');
+                }
             }
         });
     }
     
-    // Function to format date
-    function formatDate(dateString) {
-        if (!dateString) return 'N/A';
-        
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-    
-    // Function to show toast notifications
-    function showToast(title, message, type = 'info') {
-        const toastId = 'toast-' + Date.now();
-        let iconClass = 'info-circle-fill';
-        
-        if (type === 'success') iconClass = 'check-circle-fill';
-        else if (type === 'danger') iconClass = 'exclamation-triangle-fill';
-        else if (type === 'warning') iconClass = 'exclamation-circle-fill';
-        
-        const html = `
-            <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-${type} text-white">
-                    <i class="bi bi-${iconClass} me-2"></i>
-                    <strong class="me-auto">${title}</strong>
-                    <small><i class="bi bi-clock me-1"></i>Just now</small>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    <i class="bi bi-${type === 'success' ? 'check-lg' : type === 'danger' ? 'x-lg' : 'info-lg'} me-2"></i>
-                    ${message}
-                </div>
-            </div>
-        `;
-        
-        $('.toast-container').append(html);
-        const toastElement = document.getElementById(toastId);
-        const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
-        
-        toast.show();
-        
-        // Remove the toast from DOM after it's hidden
-        toastElement.addEventListener('hidden.bs.toast', function() {
-            toastElement.remove();
-        });
+    // Enhanced error handling
+    function showError(message) {
+        showToast('Error', message, 'danger');
+        console.error(message);
     }
     </script>
 </body>
