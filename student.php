@@ -1599,8 +1599,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     const manifestoFile = button.getAttribute('data-manifesto');
                     const fileType = button.getAttribute('data-file-type');
                     const modalBody = manifestoModal.querySelector('.manifesto-content');
-                    // Use absolute path for Windows/localhost compatibility
-                    const manifestoPath = '/' + 'uploads/manifestos/' + manifestoFile;
+                    
+                    // Get full URL for the file (needed for external previewers)
+                    const baseUrl = window.location.protocol + '//' + window.location.host;
+                    const relativePath = 'uploads/manifestos/' + manifestoFile;
+                    const manifestoPath = '/' + relativePath;
+                    const absoluteUrl = baseUrl + '/' + relativePath;
                     
                     modalBody.innerHTML = ''; // Clear previous content
                     
@@ -1663,20 +1667,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 </div>`;
                             });
                     } else if (fileType === 'docx') {
-                        // For DOCX files, just show download option as browsers can't preview them directly
+                        // Use Microsoft Office Online Viewer or Google Docs Viewer for DOCX files
+                        // First, try Google Docs Viewer (works for public files only)
+                        const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absoluteUrl)}&embedded=true`;
+                        
+                        // Create preview container
                         modalBody.innerHTML = `
-                            <div class="docx-container text-center p-4">
-                                <i class="bi bi-file-earmark-word fs-1 text-primary mb-3"></i>
-                                <p class="mb-2">Word documents cannot be previewed directly in the browser.</p>
-                                <p class="mb-3">Please download the file to view it.</p>
+                            <div class="docx-preview-container" style="width:100%; height:70vh; position:relative;">
+                                <div class="docx-loading text-center p-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 mb-0">Loading document preview...</p>
+                                </div>
+                                <iframe 
+                                    src="${googleViewerUrl}" 
+                                    frameborder="0" 
+                                    style="width:100%; height:100%; display:none;" 
+                                    class="docx-preview-frame"
+                                    onload="this.style.display='block'; this.previousElementSibling.style.display='none';"
+                                    onerror="showDocxFallback()">
+                                </iframe>
+                            </div>
+                            <div class="text-center mt-3">
                                 <a href="${manifestoPath}" 
-                                   class="btn btn-primary" 
+                                   class="btn btn-outline-primary btn-sm" 
                                    target="_blank"
                                    download>
-                                    <i class="bi bi-download me-2"></i>Download Word Document
+                                    <i class="bi bi-download me-1"></i> Download Document
+                                </a>
+                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}" 
+                                   class="btn btn-outline-secondary btn-sm ms-2" 
+                                   target="_blank">
+                                    <i class="bi bi-microsoft me-1"></i> Open in Office Online
                                 </a>
                             </div>
                         `;
+                        
+                        // Create a fallback function in case the Google Docs viewer fails
+                        const script = document.createElement('script');
+                        script.textContent = `
+                            function showDocxFallback() {
+                                const container = document.querySelector('.docx-preview-container');
+                                if (container) {
+                                    container.innerHTML = \`
+                                        <div class="docx-fallback text-center p-4">
+                                            <i class="bi bi-file-earmark-word fs-1 text-primary mb-3"></i>
+                                            <p class="mb-2">Preview is not available. Try these options:</p>
+                                            <div class="mt-3">
+                                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}" 
+                                                   class="btn btn-primary me-2" 
+                                                   target="_blank">
+                                                    <i class="bi bi-microsoft me-1"></i> Open in Office Online
+                                                </a>
+                                                <a href="${manifestoPath}" 
+                                                   class="btn btn-outline-secondary" 
+                                                   target="_blank"
+                                                   download>
+                                                    <i class="bi bi-download me-1"></i> Download Document
+                                                </a>
+                                            </div>
+                                        </div>
+                                    \`;
+                                }
+                            }
+                            
+                            // Check if iframe loaded successfully after a delay
+                            setTimeout(() => {
+                                const iframe = document.querySelector('.docx-preview-frame');
+                                const loading = document.querySelector('.docx-loading');
+                                if (iframe && loading && loading.style.display !== 'none') {
+                                    showDocxFallback();
+                                }
+                            }, 5000); // Wait 5 seconds for loading
+                        `;
+                        document.head.appendChild(script);
                     } else {
                         modalBody.innerHTML = `<div class="alert alert-warning">Unsupported file type. 
                             <a href="${manifestoPath}" target="_blank" download class="alert-link">Download File</a>
