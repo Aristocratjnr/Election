@@ -71,6 +71,7 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         ),
         'C' => 
         array (
+            'Composer\\Semver\\' => 16,
             'Composer\\Pcre\\' => 14,
             'Complex\\' => 8,
         ),
@@ -189,6 +190,10 @@ class ComposerStaticInit57274eaa4aa087b1b60f792066c1f91a
         'Dompdf\\' => 
         array (
             0 => __DIR__ . '/..' . '/dompdf/dompdf/src',
+        ),
+        'Composer\\Semver\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/composer/semver/src',
         ),
         'Composer\\Pcre\\' => 
         array (
