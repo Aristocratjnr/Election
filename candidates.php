@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Handle manifesto upload
         if ($manifesto) {
-            $allowedManifestoExtensions = ['pdf', 'txt'];
+            $allowedManifestoExtensions = ['pdf', 'txt', 'docx'];
             $manifestoExt = strtolower(pathinfo($manifesto, PATHINFO_EXTENSION));
             
             if (in_array($manifestoExt, $allowedManifestoExtensions)) {
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Handle manifesto upload
         if (isset($_FILES['manifesto']) && $_FILES['manifesto']['error'] === 0) {
-            $allowedManifestoExtensions = ['pdf', 'txt'];
+            $allowedManifestoExtensions = ['pdf', 'txt', 'docx'];
             $manifestoExt = strtolower(pathinfo($_FILES['manifesto']['name'], PATHINFO_EXTENSION));
             
             if (in_array($manifestoExt, $allowedManifestoExtensions)) {
@@ -1018,16 +1018,16 @@ if ($electionID) {
                         <div class="mb-4">
                             <label for="manifesto" class="form-label">
                                 <i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto
-                                <small class="text-muted">(PDF or TXT file)</small>
+                                <small class="text-muted">(PDF, TXT, or DOCX file)</small>
                             </label>
                             <div class="manifesto-upload-container p-3 bg-light rounded-3 border">
                                 <div class="text-center mb-3">
                                     <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 2rem;"></i>
                                     <p class="mb-1">Drop your manifesto file here or click to browse</p>
-                                    <small class="text-muted">Supported formats: PDF, TXT (Max size: 5MB)</small>
+                                    <small class="text-muted">Supported formats: PDF, TXT, DOCX (Max size: 5MB)</small>
                                 </div>
                                 <input type="file" class="form-control" id="manifesto" name="manifesto" 
-                                    accept=".pdf,.txt" required>
+                                    accept=".pdf,.txt,.docx" required>
                                 <div id="manifestoPreview" class="mt-3 d-none">
                                     <div class="card">
                                         <div class="card-header bg-light d-flex align-items-center">
@@ -1119,16 +1119,16 @@ if ($electionID) {
                         <div class="mb-4">
                             <label for="edit_manifesto" class="form-label">
                                 <i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto
-                                <small class="text-muted">(PDF or TXT file)</small>
+                                <small class="text-muted">(PDF, TXT, or DOCX file)</small>
                             </label>
                             <div class="manifesto-upload-container p-3 bg-light rounded-3 border">
                                 <div class="text-center mb-3">
                                     <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 2rem;"></i>
                                     <p class="mb-1">Drop your manifesto file here or click to browse</p>
-                                    <small class="text-muted">Supported formats: PDF, TXT (Max size: 5MB)</small>
+                                    <small class="text-muted">Supported formats: PDF, TXT, DOCX (Max size: 5MB)</small>
                                 </div>
                                 <input type="file" class="form-control" id="edit_manifesto" name="manifesto" 
-                                    accept=".pdf,.txt">
+                                    accept=".pdf,.txt,.docx">
                                 <div id="editManifestoPreview" class="mt-3 d-none">
                                     <div class="card">
                                         <div class="card-header bg-light d-flex align-items-center">

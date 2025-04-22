@@ -1158,7 +1158,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                     </div>
                                                 </div>
                                                 <?php if (!empty($candidate['manifesto'])): ?>
-                                                    <div class="manifesto-btn p-2 rounded text-center" data-bs-toggle="modal" data-bs-target="#manifestoModal" data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>">
+                                                    <?php 
+                                                    $manifestoPath = 'uploads/manifestos/' . $candidate['manifesto'];
+                                                    $fileExtension = strtolower(pathinfo($manifestoPath, PATHINFO_EXTENSION));
+                                                    ?>
+                                                    <div class="manifesto-btn p-2 rounded text-center" 
+                                                         data-bs-toggle="modal" 
+                                                         data-bs-target="#manifestoModal" 
+                                                         data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>"
+                                                         data-file-type="<?= htmlspecialchars($fileExtension) ?>">
                                                         <i class="bi bi-file-text me-1"></i>
                                                         View Manifesto
                                                     </div>
@@ -1588,9 +1596,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             if (manifestoModal) {
                 manifestoModal.addEventListener('show.bs.modal', function(event) {
                     const button = event.relatedTarget;
-                    const manifestoContent = button.getAttribute('data-manifesto');
+                    const manifestoFile = button.getAttribute('data-manifesto');
+                    const fileType = button.getAttribute('data-file-type');
                     const modalBody = manifestoModal.querySelector('.manifesto-content');
-                    modalBody.textContent = manifestoContent;
+                    // Use absolute path for Windows/localhost compatibility
+                    const manifestoPath = '/' + 'uploads/manifestos/' + manifestoFile;
+                    
+                    modalBody.innerHTML = ''; // Clear previous content
+                    
+                    if (fileType === 'pdf') {
+                        // Try <embed> first, fallback to <iframe>, then download link
+                        const embed = document.createElement('embed');
+                        embed.src = manifestoPath;
+                        embed.type = 'application/pdf';
+                        embed.style.width = '100%';
+                        embed.style.height = '70vh';
+                        embed.onerror = function() {
+                            // Fallback if embed fails
+                            showPdfFallback();
+                        };
+                        // Try to load PDF
+                        modalBody.appendChild(embed);
+                        // Add a fallback download link always
+                        const downloadLinkDiv = document.createElement('div');
+                        downloadLinkDiv.className = 'text-center mt-3';
+                        downloadLinkDiv.innerHTML = `
+                            <a href="${manifestoPath}" 
+                               class="btn btn-outline-secondary btn-sm" 
+                               target="_blank"
+                               download>
+                                <i class="bi bi-download me-1"></i> Download PDF if preview fails
+                            </a>
+                        `;
+                        modalBody.appendChild(downloadLinkDiv);
+                        // Fallback function
+                        function showPdfFallback() {
+                            modalBody.innerHTML = `
+                                <div class="pdf-fallback text-center p-4">
+                                    <i class="bi bi-file-earmark-pdf fs-1 text-danger mb-3"></i>
+                                    <p class="mb-2">Unable to display PDF preview directly in the browser.</p>
+                                    <p class="mb-3">You can download the file to view it.</p>
+                                    <a href="${manifestoPath}" 
+                                       class="btn btn-primary" 
+                                       target="_blank"
+                                       download>
+                                        <i class="bi bi-download me-2"></i>Download PDF Manifesto
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    } else if (fileType === 'txt') {
+                        fetch(manifestoPath)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.text();
+                            })
+                            .then(content => {
+                                modalBody.innerHTML = `<pre class="p-3 bg-light border rounded" style="white-space: pre-wrap; word-wrap: break-word; max-height: 70vh; overflow-y: auto;">${content}</pre>`;
+                            })
+                            .catch(error => {
+                                console.error('Error loading text manifesto:', error);
+                                modalBody.innerHTML = `<div class="alert alert-danger">Error loading manifesto: ${error.message}. Please try downloading. 
+                                    <a href="${manifestoPath}" target="_blank" download class="alert-link">Download File</a>
+                                </div>`;
+                            });
+                    } else if (fileType === 'docx') {
+                        // For DOCX files, just show download option as browsers can't preview them directly
+                        modalBody.innerHTML = `
+                            <div class="docx-container text-center p-4">
+                                <i class="bi bi-file-earmark-word fs-1 text-primary mb-3"></i>
+                                <p class="mb-2">Word documents cannot be previewed directly in the browser.</p>
+                                <p class="mb-3">Please download the file to view it.</p>
+                                <a href="${manifestoPath}" 
+                                   class="btn btn-primary" 
+                                   target="_blank"
+                                   download>
+                                    <i class="bi bi-download me-2"></i>Download Word Document
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        modalBody.innerHTML = `<div class="alert alert-warning">Unsupported file type. 
+                            <a href="${manifestoPath}" target="_blank" download class="alert-link">Download File</a>
+                        </div>`;
+                    }
                 });
             }
 
