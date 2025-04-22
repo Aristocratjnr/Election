@@ -1130,9 +1130,16 @@ try {
                     roleChangeModal.show();
                 
                 } else if (action === 'reset') {
-                    if (confirm('Reset password for this student? A temporary password will be generated.')) {
+                    const resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+                    const confirmResetBtn = document.getElementById('confirmResetBtn');
+                    
+                    // Clear previous event listeners
+                    const newConfirmBtn = confirmResetBtn.cloneNode(true);
+                    confirmResetBtn.parentNode.replaceChild(newConfirmBtn, confirmResetBtn);
+                    
+                    // Add event listener for confirm button
+                    newConfirmBtn.addEventListener('click', function() {
                         // Show loading state
-                        const originalText = this.innerHTML;
                         this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
                         this.disabled = true;
                         
@@ -1154,8 +1161,26 @@ try {
                         })
                         .then(data => {
                             if (data.success) {
-                                // In development, show the temp password (remove in production)
-                                showPasswordModal(data.temp_password);
+                                // Show temporary password modal
+                                const tempPasswordModal = new bootstrap.Modal(document.getElementById('tempPasswordModal'));
+                                const tempPasswordField = document.getElementById('tempPasswordField');
+                                const copyTempPasswordBtn = document.getElementById('copyTempPasswordBtn');
+                                
+                                tempPasswordField.value = data.temp_password;
+                                
+                                copyTempPasswordBtn.addEventListener('click', function() {
+                                    tempPasswordField.select();
+                                    document.execCommand('copy');
+                                    
+                                    // Show feedback
+                                    const originalHtml = this.innerHTML;
+                                    this.innerHTML = '<i class="bi bi-check"></i>';
+                                    setTimeout(() => {
+                                        this.innerHTML = originalHtml;
+                                    }, 2000);
+                                });
+                                
+                                tempPasswordModal.show();
                                 showToast('Success', 'Password reset successful', 'success');
                             } else {
                                 showToast('Error', data.message || 'Operation failed', 'danger');
@@ -1166,10 +1191,14 @@ try {
                             showToast('Error', 'An error occurred while processing your request', 'danger');
                         })
                         .finally(() => {
-                            this.innerHTML = originalText;
+                            this.innerHTML = '<i class="bi bi-key me-1"></i> Reset Password';
                             this.disabled = false;
+                            resetPasswordModal.hide();
                         });
-                    }
+                    });
+                    
+                    // Show modal
+                    resetPasswordModal.show();
                 }
             });
         });
@@ -1265,257 +1294,6 @@ try {
                 toastElement.remove();
             });
         }
-        
-        // Function to show password modal
-        function showPasswordModal(password) {
-            // Create modal if it doesn't exist
-            if (!document.getElementById('passwordModal')) {
-                const modalHtml = `
-                    <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content border-0 shadow-lg">
-                                <div class="modal-header bg-warning text-white">
-                                    <h5 class="modal-title"><i class="bi bi-key-fill me-2"></i>Temporary Password</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body p-4 text-center">
-                                    <p class="text-muted mb-3">The temporary password for this student is:</p>
-                                    <div class="d-flex align-items-center justify-content-center mb-3">
-                                        <input type="text" class="form-control form-control-lg text-center" id="tempPassword" value="${password}" readonly>
-                                        <button class="btn btn-outline-primary ms-2" id="copyPasswordBtn" title="Copy">
-                                            <i class="bi bi-clipboard"></i>
-                                        </button>
-                                    </div>
-                                    <div class="alert alert-warning">
-                                        <i class="bi bi-exclamation-triangle me-2"></i>
-                                        Please communicate this password securely to the student.
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-0 justify-content-center">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        <i class="bi bi-check-circle me-1"></i> Got it
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-                
-                // Add copy functionality
-                document.getElementById('copyPasswordBtn').addEventListener('click', function() {
-                    const passwordInput = document.getElementById('tempPassword');
-                    passwordInput.select();
-                    document.execCommand('copy');
-                    
-                    // Show feedback
-                    const originalHtml = this.innerHTML;
-                    this.innerHTML = '<i class="bi bi-check"></i>';
-                    setTimeout(() => {
-                        this.innerHTML = originalHtml;
-                    }, 2000);
-                });
-            } else {
-                // Update password if modal already exists
-                document.getElementById('tempPassword').value = password;
-            }
-            
-            // Show the modal
-            const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
-            passwordModal.show();
-        }
-    });
-    </script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Share functionality
-        const shareBtn = document.getElementById('shareBtn');
-        const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
-        const copyLinkBtn = document.getElementById('copyLinkBtn');
-        const shareLink = document.getElementById('shareLink');
-        const shareEmailBtn = document.getElementById('shareEmailBtn');
-        const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
-        const shareTelegramBtn = document.getElementById('shareTelegramBtn');
-        const shareTwitterBtn = document.getElementById('shareTwitterBtn');
-        
-        // Export functionality
-        const exportBtn = document.getElementById('exportBtn');
-        const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
-        const exportSubmitBtn = document.getElementById('exportSubmitBtn');
-        
-        // Share button click event
-        shareBtn.addEventListener('click', function() {
-            shareModal.show();
-        });
-        
-        // Copy link button click event
-        copyLinkBtn.addEventListener('click', function() {
-            shareLink.select();
-            document.execCommand('copy');
-            
-            // Show feedback
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="bi bi-check-circle"></i> Copied!';
-            this.classList.remove('btn-info');
-            this.classList.add('btn-success');
-            
-            setTimeout(() => {
-                this.innerHTML = originalText;
-                this.classList.remove('btn-success');
-                this.classList.add('btn-info');
-            }, 2000);
-        });
-        
-        // Email share button click event
-        shareEmailBtn.addEventListener('click', function() {
-            const subject = 'SmartVote Dashboard';
-            const body = 'Check out the SmartVote Dashboard: ' + shareLink.value;
-            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        });
-        
-        // WhatsApp share button click event
-        shareWhatsappBtn.addEventListener('click', function() {
-            const text = 'Check out the SmartVote Dashboard: ' + shareLink.value;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-        });
-        
-        // Telegram share button click event
-        shareTelegramBtn.addEventListener('click', function() {
-            const text = 'Check out the SmartVote Dashboard: ' + shareLink.value;
-            window.open(`https://t.me/share/url?url=${encodeURIComponent(shareLink.value)}&text=${encodeURIComponent('SmartVote Dashboard')}`, '_blank');
-        });
-        
-        // Twitter share button click event
-        shareTwitterBtn.addEventListener('click', function() {
-            const text = 'Check out the SmartVote Dashboard:';
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareLink.value)}`, '_blank');
-        });
-        
-        // Export button click event
-        exportBtn.addEventListener('click', function() {
-            exportModal.show();
-        });
-        
-        // Format selection animation
-        document.querySelectorAll('input[name="exportFormat"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                document.querySelectorAll('.export-format-option').forEach(option => {
-                    option.classList.remove('border-primary', 'bg-light');
-                });
-                this.closest('.export-format-option').classList.add('border-primary', 'bg-light');
-            });
-        });
-        
-        // Trigger the change event on the checked radio button to highlight it initially
-        document.querySelector('input[name="exportFormat"]:checked').dispatchEvent(new Event('change'));
-        
-        // Export submit button click event
-        exportSubmitBtn.addEventListener('click', function() {
-            const format = document.querySelector('input[name="exportFormat"]:checked').value;
-            const includeStats = document.getElementById('exportStats').checked;
-            const includeStudents = document.getElementById('exportStudents').checked;
-            const includeElections = document.getElementById('exportElections').checked;
-            
-            if (!includeStats && !includeStudents && !includeElections) {
-                showToast('Warning', 'Please select at least one data type to export', 'warning');
-                return;
-            }
-            
-            // Show loading state
-            const originalText = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...';
-            this.disabled = true;
-            
-            // Prepare data for export
-            const exportData = {
-                format: format,
-                includeStats: includeStats,
-                includeStudents: includeStudents,
-                includeElections: includeElections
-            };
-            
-            // Send export request
-            fetch('export_dashboard.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(exportData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                // Create a download link
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                
-                // Set filename based on format
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                a.download = `smartvote-dashboard-${timestamp}.${format}`;
-                
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                
-                // Show success notification
-                showToast('Success', `Dashboard data exported as ${format.toUpperCase()} successfully`, 'success');
-                
-                // Close modal
-                exportModal.hide();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error', 'An error occurred while exporting the data', 'danger');
-            })
-            .finally(() => {
-                this.innerHTML = originalText;
-                this.disabled = false;
-            });
-        });
-        
-        // Function to show toast notifications (same as above)
-        function showToast(title, message, type = 'info') {
-            const toastId = 'toast-' + Date.now();
-            const html = `
-                <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="toast-header bg-${type} text-white">
-                        <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
-                        <strong class="me-auto">${title}</strong>
-                        <small>Just now</small>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                </div>
-            `;
-            
-            // Create toast container if it doesn't exist
-            if (!document.getElementById('toastContainer')) {
-                const toastContainer = document.createElement('div');
-                toastContainer.id = 'toastContainer';
-                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-                document.body.appendChild(toastContainer);
-            }
-            
-            document.getElementById('toastContainer').insertAdjacentHTML('beforeend', html);
-            const toastElement = document.getElementById(toastId);
-            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
-            
-            toast.show();
-            
-            // Remove the toast from DOM after it's hidden
-            toastElement.addEventListener('hidden.bs.toast', function() {
-                toastElement.remove();
-            });
-        }
     });
     </script>
     
@@ -1544,6 +1322,75 @@ try {
                     </button>
                     <button type="button" class="btn" id="confirmRoleChangeBtn">
                         <i class="bi bi-check-circle me-1"></i> Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Password Reset Confirmation Modal -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title" id="resetPasswordModalLabel"><i class="bi bi-key-fill"></i> Password Reset</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="password-icon-container mb-4">
+                        <div class="password-reset-icon">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-3">Reset Student Password</h4>
+                    <p class="text-muted">You are about to reset the password for this student. A new temporary password will be generated.</p>
+                    <div class="alert alert-info my-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        The student will need to use this temporary password for their next login.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-warning" id="confirmResetBtn">
+                        <i class="bi bi-key me-1"></i> Reset Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Temporary Password Display Modal -->
+    <div class="modal fade" id="tempPasswordModal" tabindex="-1" aria-labelledby="tempPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="tempPasswordModalLabel"><i class="bi bi-check-circle-fill"></i> Password Reset Successful</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="success-icon-container mb-4">
+                        <div class="success-icon">
+                            <i class="bi bi-unlock-fill"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-3">Temporary Password</h4>
+                    <p class="text-muted">The student's password has been reset. Here is the temporary password:</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="tempPasswordField" class="form-control form-control-lg text-center" readonly>
+                        <button class="btn btn-outline-primary" type="button" id="copyTempPasswordBtn">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Please securely communicate this password to the student.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        <i class="bi bi-check-circle me-1"></i> Done
                     </button>
                 </div>
             </div>
@@ -1580,6 +1427,37 @@ try {
         background: linear-gradient(135deg, #fb7185, #e11d48);
     }
     
+    /* Password Reset Modal Specific Styles */
+    .password-icon-container,
+    .success-icon-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+    }
+    
+    .password-reset-icon,
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+        color: white;
+    }
+    
+    .password-reset-icon {
+        background: linear-gradient(135deg, #fbbf24, #d97706);
+    }
+    
+    .success-icon {
+        background: linear-gradient(135deg, #34d399, #059669);
+    }
+    
     @keyframes icon-float {
         0% {
             transform: translateY(0px);
@@ -1590,6 +1468,12 @@ try {
         100% {
             transform: translateY(0px);
         }
+    }
+    
+    #tempPasswordField {
+        font-family: monospace;
+        letter-spacing: 2px;
+        font-weight: bold;
     }
     </style>
      <?php include 'includes/footer.php'; ?>
