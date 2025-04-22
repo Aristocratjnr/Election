@@ -5,10 +5,7 @@ ini_set('display_errors', 1);
 
 require_once 'includes/auth_check.php';
 require_once 'configs/dbconnection.php';
-require_once 'update_election_status.php'; // Include the status updater
-
-// Automatically update election statuses when managing elections
-updateElectionStatuses();
+// Remove automatic status update on page load
 
 $action = $_GET['action'] ?? 'manage';
 $electionID = $_GET['id'] ?? null;
@@ -58,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit') {
         // Process dates with validation
         $startTimestamp = strtotime($_POST['startDate']);
         $endTimestamp = strtotime($_POST['endDate']);
+        $now = time();
         
         if ($startTimestamp === false || $endTimestamp === false) {
             error_log("Invalid date format. Start: {$_POST['startDate']}, End: {$_POST['endDate']}");
@@ -67,6 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'edit') {
         $startDate = date('Y-m-d H:i:s', $startTimestamp);
         $endDate = date('Y-m-d H:i:s', $endTimestamp);
         
+        // Additional validation for Ongoing status
+        if ($_POST['status'] === 'Ongoing') {
+            if ($startTimestamp > $now) {
+                header('Location: election.php?action=edit&id='.$electionID.'&error=invalid_dates&message=' . urlencode('Start date must be in the past or now to set status to Ongoing.'));
+                exit;
+            }
+            if ($endTimestamp <= $now) {
+                header('Location: election.php?action=edit&id='.$electionID.'&error=invalid_dates&message=' . urlencode('End date must be in the future to set status to Ongoing.'));
+                exit;
+            }
+        }
         if ($endDate < $startDate) {
             header('Location: election.php?action=edit&id='.$electionID.'&error=invalid_dates');
             exit;
@@ -463,11 +472,11 @@ $errorDetail = $_GET['message'] ?? null;
         /* Compact Alert Styles */
         .alert {
             border-radius: 0.25rem;
-            border-left-width: 4px;
+           
         }
         
         .alert.py-2 {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.50rem;
         }
         
         .alert-danger {
@@ -484,7 +493,7 @@ $errorDetail = $_GET['message'] ?? null;
         
         .alert .small {
             font-size: 0.85rem;
-            line-height: 1.4;
+            line-height: 1.0;
         }
         
         .alert .btn-close.btn-sm {
@@ -636,9 +645,7 @@ $errorDetail = $_GET['message'] ?? null;
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <h5 class="mb-0"><i class="bi bi-list-check me-2 text-primary"></i>All Elections</h5>
-                            <button id="refreshElectionStatus" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Update Status
-                            </button>
+                          
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">

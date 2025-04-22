@@ -50,6 +50,9 @@ try {
     $error = "System temporarily unavailable. Please try again later.";
 }
 
+// Override election status for testing
+$currentElection['status'] = 'Ongoing';
+
 // Get student details
 $student = [];
 try {
@@ -167,7 +170,6 @@ if ($currentElection && !$hasVoted) {
 
         $positions = $uniquePositions;
 
-        // Debug positions after deduplication
         error_log("Final positions after deduplication: " . json_encode($positions));
 
         // Get candidates for each position
@@ -188,7 +190,7 @@ if ($currentElection && !$hasVoted) {
             $stmt->close();
             }
             
-            // For debugging
+           
             error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($position['candidates']));
         }
 
@@ -384,79 +386,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 ];
             }
             if (!empty($votes)) {
-                $firstVote = $votes[0]; 
+                // Start transaction for multiple inserts
+                $conn->begin_transaction();
                 
-                $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
-                $simpleStmt = $conn->prepare($simpleSQL);
-                $simpleStmt->bind_param('iii', 
-                    $firstVote['electionID'], 
-                    $firstVote['candidateID'], 
-                    $firstVote['studentID']
-                );
-                $insertResult = $simpleStmt->execute();
-                $insertCount = $simpleStmt->affected_rows;
-                $simpleStmt->close();
-                
-                if (!$insertResult || $insertCount === 0) {
-                    throw new Exception("Failed to record your vote. Database error: " . $conn->error);
+                try {
+                    // Insert each vote individually
+                    $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
+                    $simpleStmt = $conn->prepare($simpleSQL);
+                    
+                    // Process each vote
+                    foreach ($votes as $vote) {
+                        $simpleStmt->bind_param('iii', 
+                            $vote['electionID'], 
+                            $vote['candidateID'], 
+                            $vote['studentID']
+                        );
+                        $insertResult = $simpleStmt->execute();
+                        
+                        if (!$insertResult) {
+                            throw new Exception("Failed to record vote for candidate ID: " . $vote['candidateID'] . ". Database error: " . $conn->error);
+                        }
+                    }
+                    
+                    // Close the statement
+                    $simpleStmt->close();
+                    
+                    // Now update the results table for each vote
+                    foreach ($votes as $vote) {
+                        // Check if result entry exists
+                        $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
+                        $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                        $checkResStmt->execute();
+                        $resultExists = ($checkResStmt->get_result()->num_rows > 0);
+                        $checkResStmt->close();
+                        
+                        if ($resultExists) {
+                            // Update existing result
+                            $updateResStmt = $conn->prepare("
+                                UPDATE results 
+                                SET voteCount = voteCount + 1 
+                                WHERE electionID = ? AND candidateID = ?
+                            ");
+                            $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $updateResStmt->execute();
+                            $updateResStmt->close();
+                        } else {
+                            // Insert new result
+                            $insertResStmt = $conn->prepare("
+                                INSERT INTO results (electionID, candidateID, voteCount, percentage) 
+                                VALUES (?, ?, 1, 0)
+                            ");
+                            $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $insertResStmt->execute();
+                            $insertResStmt->close();
+                        }
+                    }
+                    
+                    // Update percentages
+                    $updatePercentageSQL = "
+                        UPDATE results r
+                        JOIN (
+                            SELECT candidateID, 
+                                   (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
+                            FROM results 
+                            WHERE electionID = ?
+                        ) as calc ON r.candidateID = calc.candidateID
+                        SET r.percentage = calc.pct
+                        WHERE r.electionID = ?
+                    ";
+                    $updatePctStmt = $conn->prepare($updatePercentageSQL);
+                    $updatePctStmt->bind_param('iii', 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID']
+                    );
+                    $updatePctStmt->execute();
+                    $updatePctStmt->close();
+                    
+                    // Commit the transaction
+                    $conn->commit();
+                    
+                } catch (Exception $e) {
+                    // Rollback on error
+                    $conn->rollback();
+                    throw $e;
                 }
             } else {
                 throw new Exception("No votes to record. Please select at least one candidate.");
             }
             
-            foreach ($votes as $vote) {
-                // Check if result entry exists
-                $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
-                $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                $checkResStmt->execute();
-                $resultExists = ($checkResStmt->get_result()->num_rows > 0);
-                $checkResStmt->close();
-                
-                if ($resultExists) {
-                    // Update existing result
-                    $updateResStmt = $conn->prepare("
-                        UPDATE results 
-                        SET voteCount = voteCount + 1 
-                        WHERE electionID = ? AND candidateID = ?
-                    ");
-                    $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $updateResStmt->execute();
-                    $updateResStmt->close();
-                } else {
-                    // Insert new result
-                    $insertResStmt = $conn->prepare("
-                        INSERT INTO results (electionID, candidateID, voteCount, percentage) 
-                        VALUES (?, ?, 1, 0)
-                    ");
-                    $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $insertResStmt->execute();
-                    $insertResStmt->close();
-                }
-            }
-            
-            // Update percentages
-            $updatePercentageSQL = "
-                UPDATE results r
-                JOIN (
-                    SELECT candidateID, 
-                           (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
-                    FROM results 
-                    WHERE electionID = ?
-                ) as calc ON r.candidateID = calc.candidateID
-                SET r.percentage = calc.pct
-                WHERE r.electionID = ?
-            ";
-            $updatePctStmt = $conn->prepare($updatePercentageSQL);
-            $updatePctStmt->bind_param('iii', 
-                $currentElection['electionID'], 
-                $currentElection['electionID'], 
-                $currentElection['electionID']
-            );
-            $updatePctStmt->execute();
-            $updatePctStmt->close();
-
-            // Commit transaction
-            $conn->commit();
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
 
@@ -813,8 +831,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     letter-spacing: 1px;
 }
 
-/* Dark theme overrides */
-[data-bs-theme="dark"] .election-timer,
+/* Dark mode improvements for countdown timer and election details */
+[data-bs-theme="dark"] .election-timer {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 [data-bs-theme="dark"] .election-timer h2,
 [data-bs-theme="dark"] .election-timer h3,
 [data-bs-theme="dark"] .election-timer h4,
@@ -823,7 +846,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 [data-bs-theme="dark"] .election-timer .election-date,
 [data-bs-theme="dark"] .election-timer .election-status,
 [data-bs-theme="dark"] .timer-countdown {
-    color: rgba(255, 255, 255, 0.9);  /* Light gray for dark theme */
+    color: var(--text);
+}
+
+[data-bs-theme="dark"] .time-unit {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+}
+
+[data-bs-theme="dark"] .time-unit span {
+    color: var(--primary);
+}
+
+[data-bs-theme="dark"] .time-unit small {
+    color: var(--text-secondary);
+}
+
+[data-bs-theme="dark"] .election-details {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .timer-remaining {
@@ -1044,16 +1088,126 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 [data-bs-theme="dark"] .timer-text {
     color: #E5E7EB;  /* Light gray for dark theme */
 }
+
+/* Countdown Timer styles */
+.countdown-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(67, 97, 238, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 100px;
+    border: 1px solid rgba(67, 97, 238, 0.2);
+    box-shadow: 0 2px 6px rgba(67, 97, 238, 0.08);
+    transition: all 0.3s ease;
+}
+
+.time-unit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(67, 97, 238, 0.15);
+}
+
+.time-unit span {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+}
+
+.time-unit small {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.time-separator {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    line-height: 1;
+    margin-top: -10px;
+}
+
+/* Dark mode adjustments for countdown */
+[data-bs-theme="dark"] .time-unit {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .time-unit span {
+    color: var(--primary);
+}
+
+[data-bs-theme="dark"] .time-unit small {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+[data-bs-theme="dark"] .time-separator {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 576px) {
+    .time-unit {
+        min-width: 60px;
+        padding: 6px 10px;
+    }
+
+    .time-unit span {
+        font-size: 1.5rem;
+    }
+
+    .time-separator {
+        font-size: 1.5rem;
+    }
+}
         
-        .student-details h5 {
-            font-weight: 700;
-            margin-bottom: 4px;
-            font-size: 0.97rem;
+        .student-details {
+            margin-bottom: 0.5rem;
         }
 
-        .student-details p {
-            font-size: 0.813rem;
-            margin-bottom: 0;
+        .student-details h5,
+        .student-details p,
+        .student-details .text-muted,
+        .student-details .department-icon {
+            transition: color 0.3s ease;
+        }
+
+        [data-bs-theme="dark"] .student-details h5,
+        [data-bs-theme="dark"] .student-details p,
+        [data-bs-theme="dark"] .student-details .profile-icon,
+        [data-bs-theme="dark"] .student-details span {
+            color: var(--text) !important;
+        }
+
+        [data-bs-theme="dark"] .student-details .text-muted {
+            color: rgba(255, 255, 255, 0.75) !important;
+        }
+
+        /* Light mode text colors */
+        [data-bs-theme="light"] .student-details h5 {
+            color: #2B3445;
+        }
+
+        [data-bs-theme="light"] .student-details p,
+        [data-bs-theme="light"] .student-details span {
+            color: #4B5563;
+        }
+
+        [data-bs-theme="light"] .student-details .text-muted {
+            color: #6c757d !important;
         }
 
         .student-info {
@@ -1066,80 +1220,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        .student-details .text-muted {
-            font-size: 0.813rem;
-        }
-
-        /* Make sure text is black in light theme */
-        [data-bs-theme="light"] .election-timer,
-        [data-bs-theme="light"] .timer-countdown,
-        [data-bs-theme="light"] .counter-circle,
-        [data-bs-theme="light"] .student-details h5,
-        [data-bs-theme="light"] .student-details p {
-            color: #000000;
-        }
-
-        [data-bs-theme="light"] .student-details .text-muted {
-            color: #6c757d !important;
-        }
-
-        .counter-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            margin-right: 15px;
-            color: #000000;
-        }
-
-        [data-bs-theme="dark"] .counter-circle {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        
-        .student-info {
-            background: var(--surface);
-            color: #2B3445;
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 1px;
-        }
-
-        [data-bs-theme="dark"] .timer-countdown {
-            color: white;
-        }
-
-        .counter-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            margin-right: 15px;
-            color: #2B3445;
-        }
-
-        [data-bs-theme="dark"] .counter-circle {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        
-        .student-info {
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-            padding: 18px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 10px var(--shadow-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-        
         .student-avatar {
             width: 70px;
             height: 70px;
@@ -1432,7 +1512,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             }
             
             .timer-countdown {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
             }
             
             .counter-circle {
@@ -1473,8 +1553,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         @media (max-width: 576px) {
             .col-md-6, .col-lg-4 {
-                flex: 1 1 100%; /* Adjust width to fit one card per row on smaller screens */
-                max-width: 100%;
+                flex: 1 1 80%; 
+                max-width: 80%;
             }
         }
 
@@ -1762,7 +1842,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: #fff;
+            background-color: var(--success);
             margin-right: 6px;
             animation: pulse 1.5s infinite;
         }
@@ -1785,9 +1865,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
-            border: 1px solid #f0f0f5;
-        }
-        
         .status-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
@@ -2436,6 +2513,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         [data-bs-theme="dark"] .election-status {
             color: #E5E7EB;
         }
+
+        /* Update responsive styles to remove sidebar/ficon */
+        @media (max-width: 992px) {
+            .sidebar {
+                display: none; /* Hide sidebar completely on mobile */
+            }
+            
+            .mobile-header {
+                display: none; /* Hide mobile header */
+            }
+            
+            .mobile-toggle {
+                display: none; /* Hide mobile toggle button */
+            }
+            
+            .sidebar-overlay {
+                display: none; /* Hide sidebar overlay */
+            }
+            
+            .container {
+                padding-left: 15px; /* Reset container padding */
+                padding-right: 15px;
+                width: 100%;
+                max-width: none;
+            }
+            
+            .main-content {
+                margin-left: 0; /* Remove margin for sidebar */
+                width: 100%;
+            }
+            
+            /* Adjust the grid for better mobile layout */
+            .col-md-6, .col-lg-4 {
+                flex: 1 1 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .voting-card {
+                margin: 0;
+                border-radius: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2458,44 +2578,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         </div>
                     </div>
                     
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 ">
                         <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
                             <div class="election-timer mb-4">
                                 <div class="row align-items-center">
                                     <div class="col-auto">
-                                        <div class="counter-circle">
+                                        <div class="counter-circle text-muted">
                                             <i class="bi bi-stopwatch-fill"></i>
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <h6 class="mb-2 text-white-20"><i class="bi bi-calendar-event me-1"></i> Time Remaining:</h6>
+                                        <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
                                         <div class="timer-countdown" id="election-countdown">
-                                            <div class="d-flex gap-2 flex-wrap justify-content-start align-items-center">
+                                            <div class="d-flex align-items-center justify-content-start countdown-container">
                                                 <div class="time-unit">
-                                                    <i class="bi bi-calendar2-week d-block d-sm-none mb-1"></i>
                                                     <span id="days">00</span>
-                                                    <small></small>
+                                                    <small>days</small>
                                                 </div>
-                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-separator ">:</div>
                                                 <div class="time-unit">
-                                                    <i class="bi bi-clock d-block d-sm-none mb-1"></i>
                                                     <span id="hours">00</span>
-                                                    <small></small>
+                                                    <small>hours</small>
                                                 </div>
-                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-separator ">:</div>
                                                 <div class="time-unit">
-                                                    <i class="bi bi-alarm d-block d-sm-none mb-1"></i>
                                                     <span id="minutes">00</span>
-                                                    <small></small>
+                                                    <small>minutes</small>
                                                 </div>
-                                                <div class="time-separator d-none d-sm-block">:</div>
+                                                <div class="time-separator ">:</div>
                                                 <div class="time-unit">
-                                                    <i class="bi bi-stopwatch d-block d-sm-none mb-1"></i>
                                                     <span id="seconds">00</span>
-                                                    <small></small>
+                                                    <small>seconds</small>
                                                 </div>
                                             </div>
                                         </div>
+                                        <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -2520,16 +2637,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="student-details">
-                                <h5> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
-                                <div class="d-flex flex-wrap">
-                                    <span class="me-3 text-muted small">
-                                        <i class="bi bi-person-badge me-1"></i> 
-                                        ID: <?= $studentID ?>
-                                    </span>
-                                    <span class="text-muted small">
-                                        <i class="bi bi-building-check icon icon"></i>
-                                        Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
-                                    </span>
+                                <h5 > <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-person-badge me-1"></i> 
+                                    ID: <?= $studentID ?>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-building-check icon icon"></i>
+                                    Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                 </div>
                             </div>
                             <?php if ($hasVoted): ?>
@@ -2570,7 +2685,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <div class="row align-items-center">
                                     <div class="col-md-7 mb-3 mb-md-0">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="counter-circle me-3">
+                                            <div class="counter-circle me-3 text-muted">
                                                 <i class="bi bi-calendar-event"></i>
                                             </div>
                                             <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
@@ -2580,8 +2695,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         </p>
                                         <div class="progress-wave mt-3"></div>
                                     </div>
-                                    <div class="col-md-5 text-md-end">
-                                        <div class="timer-countdown text-white-20 mb-1" id="countdown-timer">
+                                    <div class="col-md-5 text-md-end" >
+                                        <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
                                             <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
                                         </div>
                                         <p class="election-status mb-0">
@@ -3033,6 +3148,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <?php include 'includes/footer.php'; ?>
 
+    <!-- Audio element for notification sound -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
+        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -3262,6 +3383,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                     $badge.classList.remove('d-none');
                                 }
                                 
+                                // Play notification sound
+                                const notificationSound = document.getElementById('notification-sound');
+                                if (notificationSound) {
+                                    notificationSound.currentTime = 0;
+                                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                                }
+                                
                                 // Show toast notification for latest notification
                                 if (data.latest_notification) {
                                     showToastNotification(data.latest_notification);
@@ -3276,23 +3404,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             function showToastNotification(notification) {
                 const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
                 
+                // Play notification sound
+                const notificationSound = document.getElementById('notification-sound');
+                if (notificationSound) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                }
+                
                 // Remove any existing toast
                 const existingToasts = document.querySelectorAll('.toast');
                 existingToasts.forEach(toast => toast.remove());
                 
-                // Create toast element
+                // Create toast container
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                
+                // Create toast element with slide-in animation
                 const toastEl = document.createElement('div');
                 toastEl.className = `toast show ${isDarkMode ? 'bg-dark text-white' : ''}`;
                 toastEl.setAttribute('role', 'alert');
-                toastEl.style.position = 'fixed';
-                toastEl.style.bottom = '1.5rem';
-                toastEl.style.right = '1.5rem';
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
                 toastEl.style.minWidth = '300px';
                 toastEl.style.maxWidth = '90vw';
-                toastEl.style.zIndex = '9999';
                 toastEl.style.border = 'none';
                 toastEl.style.borderRadius = '0.5rem';
                 toastEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                toastEl.style.animation = 'slideIn 0.5s ease-out forwards';
+                
+                // Add CSS animation
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateY(100%); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styleEl);
                 
                 // Create toast content
                 const icon = notification.icon || 'bi-bell-fill';
@@ -3316,28 +3465,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     </div>
                 `;
                 
-                // Add toast to body
-                document.body.appendChild(toastEl);
+                // Add toast to container
+                toastContainer.appendChild(toastEl);
+                
+                // Add container to body
+                document.body.appendChild(toastContainer);
                 
                 // Add click handler for close button
                 const closeBtn = toastEl.querySelector('.btn-close');
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => {
-                        toastEl.remove();
+                        toastContainer.remove();
                     });
                 }
                 
                 // Auto-hide after 5 seconds
                 setTimeout(() => {
-                    if (toastEl.parentNode) {
-                        toastEl.style.opacity = '0';
-                        toastEl.style.transition = 'opacity 0.5s ease';
-                        setTimeout(() => {
-                            if (toastEl.parentNode) {
-                                toastEl.remove();
-                            }
-                        }, 500);
-                    }
+                    toastEl.style.opacity = '0';
+                    toastEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    toastEl.style.transform = 'translateY(100%)';
+                    
+                    setTimeout(() => {
+                        if (toastContainer.parentNode) {
+                            toastContainer.remove();
+                        }
+                    }, 500);
                 }, 5000);
             }
             
@@ -3351,36 +3503,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         // Countdown Timer functionality
         function updateCountdown() {
             <?php if ($currentElection): ?>
-            const endDate = new Date('<?= $currentElection['endDate'] ?>').getTime();
-            const now = new Date().getTime();
-            const timeLeft = endDate - now;
+            // Election start and end dates from PHP
+            const electionStartDate = new Date('<?= isset($currentElection["start_time"]) && $currentElection["start_time"] ? date('Y-m-d', strtotime($currentElection["startDate"])) . 'T' . date('H:i:s', strtotime($currentElection["start_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["startDate"])) ?>');
+            const electionEndDate = new Date('<?= isset($currentElection["end_time"]) && $currentElection["end_time"] ? date('Y-m-d', strtotime($currentElection["endDate"])) . 'T' . date('H:i:s', strtotime($currentElection["end_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["endDate"])) ?>');
+            const electionStartDateUTC = new Date(electionStartDate.getTime() + (electionStartDate.getTimezoneOffset() * 60000));
+            const electionEndDateUTC = new Date(electionEndDate.getTime() + (electionEndDate.getTimezoneOffset() * 60000));
+            
+            const currentStatus = '<?= $currentElection["status"] ?>';
+
+            // Get current time in UTC
+            const now = new Date(Date.UTC(
+                new Date().getUTCFullYear(),
+                new Date().getUTCMonth(),
+                new Date().getUTCDate(),
+                new Date().getUTCHours(),
+                new Date().getUTCMinutes(),
+                new Date().getUTCSeconds()
+            ));
+
+
+            let targetDate;
+            let countdownLabel;
+
+            if (currentStatus === 'Scheduled') {
+                targetDate = electionStartDate;
+                countdownLabel = 'Election Starts In:';
+            } else if (currentStatus === 'Ongoing') {
+                targetDate = electionEndDate;
+                countdownLabel = 'Election Ends In:';
+            } else {
+                // Election is not scheduled or ongoing, so hide the timer
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                    clearInterval(countdownInterval);
+                }
+                return;
+            }
+
+            // Calculate time remaining in milliseconds
+            const timeLeft = targetDate.getTime() - now.getTime();
 
             if (timeLeft > 0) {
+                // Election is still active (scheduled or ongoing)
                 const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
-                document.getElementById('days').textContent = String(days).padStart(2, '0');
-                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+                // Update DOM elements safely
+                const daysEl = document.getElementById('days');
+                const hoursEl = document.getElementById('hours');
+                const minutesEl = document.getElementById('minutes');
+                const secondsEl = document.getElementById('seconds');
+                const timeRemainingText = document.querySelector('.time-remaining-text');
+
+                if (timeRemainingText) {
+                    timeRemainingText.textContent = countdownLabel;
+                }
+
+                if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+                if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+                if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+                if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+
             } else {
-                // If election has ended
-                document.getElementById('election-countdown').innerHTML = '<div class="text-center text-warning">Election has ended</div>';
-                clearInterval(countdownInterval);
-                
-                // Reload the page to update election status
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                // If target date has passed
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    if (currentStatus === 'Scheduled') {
+                        // If scheduled election start time has passed, it should now be ongoing
+                        countdownContainer.innerHTML = '<div class="text-center text-success fw-bold">Election is starting now! Refreshing...</div>';
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000); // Reload after 3 seconds
+                    } else if (currentStatus === 'Ongoing') {
+                        // For ongoing elections, we should never reach here unless the end date has passed
+                        // Double check server time vs client time
+                        const serverNow = new Date('<?= date("Y-m-d\TH:i:s") ?>');
+                        const endDate = new Date('<?= date("Y-m-d\TH:i:s", strtotime($currentElection["endDate"])) ?>');
+
+                        if (serverNow >= endDate) {
+                            // If server time confirms election has ended
+                            countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+
+                            // Disable voting form and redirect to results
+                            const votingForm = document.getElementById('votingForm');
+                            if (votingForm) {
+                                votingForm.style.display = 'none';
+                                const endedMessage = document.createElement('div');
+                                endedMessage.className = 'alert alert-warning text-center';
+                                endedMessage.innerHTML = '<i class="bi bi-clock-history me-2"></i>This election has concluded. Results should be available soon.';
+                                votingForm.parentNode.insertBefore(endedMessage, votingForm);
+
+                                const resultsButton = document.createElement('a');
+                                resultsButton.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                resultsButton.className = 'btn btn-primary d-block mt-3';
+                                resultsButton.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>View Election Results';
+                                endedMessage.appendChild(resultsButton);
+
+                                setTimeout(() => {
+                                    window.location.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                }, 5000);
+                            }
+
+                            // Clear the interval to stop the countdown
+                            clearInterval(countdownInterval);
+                        } else {
+                            // If client time is ahead of server time, recalculate with server time
+                            countdownContainer.innerHTML = '<div class="d-flex align-items-center justify-content-start countdown-container">' +
+                                '<div class="time-unit"><span>00</span><small>days</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>hours</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>minutes</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>seconds</small></div>' +
+                            '</div>';
+
+                            // Force refresh to get updated election status
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 5000);
+                        }
+                    } else {
+                        // For completed elections
+                        countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                        clearInterval(countdownInterval);
+                    }
+                }
             }
             <?php endif; ?>
         }
 
-        // Update countdown every second
-        const countdownInterval = setInterval(updateCountdown, 1000);
-        updateCountdown(); // Initial call to avoid delay
+        let countdownInterval; // Define interval variable in a scope accessible by clearInterval
+        <?php if ($currentElection): ?>
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Initial call to display immediately
+        <?php endif; ?>
     </script>
 </body>
 </html>

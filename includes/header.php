@@ -81,39 +81,77 @@ if (empty($userData)) {
                         </button>
                     </li>
                     
-                   <!-- Live Results Tab - Improved UI -->
-<li class="nav-item mx-1">
-    <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
-       href="live_results.php"
-       style="transition: all 0.3s ease;"
-       onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
-       onmouseout="this.style.backgroundColor='transparent';">
-        
-        <!-- Animated Icon with Pulse Effect -->
-        <span class="position-relative">
-            <i class="bi bi-bar-chart-line-fill fs-5 me-2" style="color: var(--primary);"></i>
-            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                <span class="visually-hidden">Live updates</span>
-            </span>
-        </span>
-        
-        <!-- Text with subtle animation - using CSS variables instead of fixed color -->
-        <span class="d-none d-md-inline fw-medium live-results-text">
-            Live Results
-        </span>
-        
-    </a>
-</li>
+                                <!-- Live Results Tab - Improved UI -->
+                <li class="nav-item mx-1">
+                    <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
+                    href="live_results.php"
+                    style="transition: all 0.3s ease;"
+                    onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
+                    onmouseout="this.style.backgroundColor='transparent';">
+                        
+                        <!-- Animated Icon with Pulse Effect -->
+                        <span class="position-relative">
+                            <i class="bi bi-bar-chart-line-fill fs-5 me-2" style="color: var(--primary);"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                <span class="visually-hidden">Live updates</span>
+                            </span>
+                        </span>
+                        
+                        <!-- Text with subtle animation - using CSS variables instead of fixed color -->
+                        <span class="d-none d-md-inline fw-medium live-results-text">
+                            Live Results
+                        </span>
+                        
+                    </a>
+                </li>
                     
                     <!-- Notification Bell with Real-Time Updates -->
-                    <li class="nav-item dropdown mx-2">
-                        <a class="nav-link notification-bell position-relative" href="notifications.php" role="button" aria-expanded="false">
+                    <li class="nav-item dropdown mx-2" id="notification-dropdown">
+                        <a class="nav-link notification-bell position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell fs-5"></i>
-                            <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
-                                <span class="notification-count">0</span>
+                            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                                0
                                 <span class="visually-hidden">unread notifications</span>
                             </span>
                         </a>
+                        
+                        <!-- Notifications Dropdown -->
+                        <div class="dropdown-menu dropdown-menu-end dropdown-notifications shadow p-0" style="width: 461px; max-height: 500px; overflow-y: auto;">
+                            <div class="dropdown-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-bell me-2"></i>
+                                    <h6 class="mb-0 fw-semibold">Notifications</h6>
+                                    <span id="notification-counter" class="badge bg-danger ms-2" style="display: none;">1 new</span>
+                                </div>
+                               
+                            </div>
+                            
+                            <!-- Loading indicator -->
+                            <div id="notification-loading" class="text-center py-4" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="text-muted mt-2 mb-0">Loading notifications...</p>
+                            </div>
+                            
+                            <!-- Empty state -->
+                            <div id="notification-empty" class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-bell-slash fs-1 text-muted"></i>
+                                </div>
+                                <h6>No notifications yet</h6>
+                                <p class="text-muted mb-0 empty-message">When you get notifications, they'll appear here</p>
+                            </div>
+                            
+                            <!-- Notifications list -->
+                            <div id="notification-list" data-loaded="false">
+                                <!-- Notifications will be loaded here by JavaScript -->
+                            </div>
+                            
+                            <div class="dropdown-footer text-center p-2 border-top">
+                                <a href="notifications.php" class="text-decoration-none">View all notifications</a>
+                            </div>
+                        </div>
                     </li>
 
                     <!-- User Profile Dropdown -->
@@ -204,6 +242,54 @@ if (empty($userData)) {
     </div>
 </header>
 
+<!-- Hidden input field for current user ID -->
+<input type="hidden" id="current-user-id" value="<?php echo isset($_SESSION['login_id']) ? $_SESSION['login_id'] : ''; ?>">
+
+<style>
+.nav-profile {
+    display: flex;
+    align-items: center;
+    color: var(--text-color, #212529);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+[data-bs-theme="dark"] .nav-profile,
+[data-bs-theme="dark"] .nav-profile .dropdown-toggle {
+    color: var(--text-color, #f8f9fa);
+}
+
+.dropdown-toggle {
+    color: var(--text-color, #212529);
+    transition: color 0.3s ease;
+}
+
+/* Notification styles */
+.dropdown-notifications {
+    width: 320px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.3s ease;
+}
+
+.notification-item:hover {
+    background-color: var(--surface-hover);
+}
+
+.notification-item.unread {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.notification-item.unread:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+}
+</style>
+
+<!-- Theme toggle and notifications script -->
 <script>
 // Auto-update header after profile changes
 document.addEventListener('DOMContentLoaded', function() {
@@ -309,108 +395,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (liveResultsText) liveResultsText.style.color = '#2b3445';
         }
     }
-
-    // Notification system with refresh handling
-    let lastNotificationCheck = 0;
-    const NOTIFICATION_CACHE_TIME = 30000; // 30 seconds
-    const notificationSound = new Audio('assets/audio/sounds/notification.mp3');
-
-    async function loadNotifications(refresh = false) {
-        try {
-            // Only refresh if cache expired or forced
-            const now = Date.now();
-            if (!refresh && (now - lastNotificationCheck) < NOTIFICATION_CACHE_TIME) {
-                return;
-            }
-            
-            lastNotificationCheck = now;
-            
-            const response = await fetch('api/notification_count.php');
-            if (!response.ok) throw new Error('Network error');
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                const previousCount = parseInt(document.querySelector('.notification-count').textContent || '0');
-                const newCount = data.count;
-                
-                // Update badge
-                updateNotificationBadge(newCount);
-                
-                // Play sound if new notifications
-                if (newCount > previousCount) {
-                    notificationSound.play().catch(e => console.log('Sound play failed:', e));
-                }
-            }
-        } catch (error) {
-            console.error('Notification error:', error);
-            // Retry after delay
-            setTimeout(() => loadNotifications(), 10000);
-        }
-    }
-
-    function updateNotificationBadge(count) {
-        const badge = document.getElementById('notificationBadge');
-        if (!badge) return;
-        
-        const countElement = badge.querySelector('.notification-count');
-        if (count > 0) {
-            countElement.textContent = count;
-            badge.style.display = 'block';
-            
-            // Add visual effect for new notifications
-            if (count > parseInt(countElement.dataset.prevCount || 0)) {
-                badge.classList.add('animate__animated', 'animate__tada');
-                setTimeout(() => {
-                    badge.classList.remove('animate__animated', 'animate__tada');
-                }, 1000);
-            }
-        } else {
-            badge.style.display = 'none';
-        }
-        countElement.dataset.prevCount = count;
-    }
-
-    // Initial load
-    document.addEventListener('DOMContentLoaded', () => {
-        loadNotifications();
-        
-        // Check for new notifications every 30 seconds
-        setInterval(() => {
-            if (!document.hidden) {
-                loadNotifications(true);
-            }
-        }, 30000);
-        
-        // Also check when page becomes visible
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                loadNotifications(true);
-            }
-        });
-    });
 });
 </script>
 
-<style>
-.nav-profile {
-    display: flex;
-    align-items: center;
-    color: var(--text-color, #212529);
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-[data-bs-theme="dark"] .nav-profile,
-[data-bs-theme="dark"] .nav-profile .dropdown-toggle {
-    color: var(--text-color, #f8f9fa);
-}
-
-.dropdown-toggle {
-    color: var(--text-color, #212529);
-    transition: color 0.3s ease;
-}
-</style>
+<!-- Load notifications script -->
+<script src="assets/js/notifications.js"></script>
 
 <!-- Logout Modal -->
 <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">

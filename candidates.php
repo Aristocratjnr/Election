@@ -27,33 +27,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = $_POST['status'];
         $photo = '';
 
-        // Handle photo upload
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-            $allowed = ['jpg', 'jpeg', 'png'];
-            $filename = $_FILES['photo']['name'];
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-            
-            if (in_array($ext, $allowed)) {
-                $new_filename = uniqid() . '.' . $ext;
-                $upload_path = 'uploads/candidates/' . $new_filename;
-                
-                if (!is_dir('uploads/candidates')) {
-                    mkdir('uploads/candidates', 0777, true);
+        // Check if a candidate already exists for the Treasurer position in the selected election
+        $positionTitleQuery = $conn->query("SELECT title FROM positions WHERE positionID = '$positionID'");
+        $positionTitle = $positionTitleQuery->fetch_assoc()['title'];
+
+        if ($positionTitle == "Treasurer") {
+            $electionID = $_GET['election'] ?? null;
+            $existingCandidateQuery = $conn->prepare("SELECT COUNT(*) FROM candidates c JOIN positions p ON c.positionID = p.positionID WHERE p.title = 'Treasurer' AND p.electionID = ?");
+            $existingCandidateQuery->bind_param("i", $electionID);
+            $existingCandidateQuery->execute();
+            $existingCandidateCount = $existingCandidateQuery->get_result()->fetch_row()[0];
+
+            if ($existingCandidateCount > 0) {
+                $error = "A candidate already exists for the Treasurer position in this election.";
+            } else {
+                // Handle photo upload
+                if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+                    $allowed = ['jpg', 'jpeg', 'png'];
+                    $filename = $_FILES['photo']['name'];
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                    
+                    if (in_array($ext, $allowed)) {
+                        $new_filename = uniqid() . '.' . $ext;
+                        $upload_path = 'uploads/candidates/' . $new_filename;
+                        
+                        if (!is_dir('uploads/candidates')) {
+                            mkdir('uploads/candidates', 0777, true);
+                        }
+                        
+                        if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
+                            $photo = $new_filename;
+                        }
+                    }
                 }
                 
-                if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
-                    $photo = $new_filename;
+                $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
+                
+                if ($stmt->execute()) {
+                    $success = "Candidate added successfully!";
+                } else {
+                    $error = "Error adding candidate: " . $conn->error;
                 }
             }
-        }
-        
-        $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
-        
-        if ($stmt->execute()) {
-            $success = "Candidate added successfully!";
         } else {
-            $error = "Error adding candidate: " . $conn->error;
+            // Handle photo upload
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+                $allowed = ['jpg', 'jpeg', 'png'];
+                $filename = $_FILES['photo']['name'];
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                
+                if (in_array($ext, $allowed)) {
+                    $new_filename = uniqid() . '.' . $ext;
+                    $upload_path = 'uploads/candidates/' . $new_filename;
+                    
+                    if (!is_dir('uploads/candidates')) {
+                        mkdir('uploads/candidates', 0777, true);
+                    }
+                    
+                    if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
+                        $photo = $new_filename;
+                    }
+                }
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
+            
+            if ($stmt->execute()) {
+                $success = "Candidate added successfully!";
+            } else {
+                $error = "Error adding candidate: " . $conn->error;
+            }
         }
     } elseif (isset($_POST['update_candidate'])) {
         $candidateID = $_POST['candidateID'];
@@ -794,81 +839,75 @@ if ($electionID) {
                                 <div class="card-body p-0">
                                     <?php if ($candidates->num_rows > 0): ?>
                                         <div class="table-responsive">
-                                            <table class="table table-hover mb-0">
-                                                <thead class="table-light">
+                                            <table class="table table-hover align-middle mb-0">
+                                                <thead>
                                                     <tr>
-                                                        <th width="80" class="text-center"><i class="bi bi-image me-1"></i> Photo</th>
-                                                        <th><i class="bi bi-person-badge me-1"></i> Candidate</th>
-                                                        <th><i class="bi bi-briefcase me-1"></i> Position</th>
-                                                        <th><i class="bi bi-shield-check me-1"></i> Status</th>
-                                                        <th width="120"><i class="bi bi-gear me-1"></i> Actions</th>
+                                                        <th style="width: 50px;">#</th>
+                                                        <th style="width: 60px;">Photo</th>
+                                                        <th>Student</th>
+                                                        <th>Position</th>
+                                                        <th>Status</th>
+                                                        <th style="width: 150px;">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    <?php $count = 1; ?>
                                                     <?php while ($candidate = $candidates->fetch_assoc()): ?>
                                                         <tr>
-                                                            <td class="text-center">
-                                                                <?php if ($candidate['photo']): ?>
-                                                                    <img src="uploads/candidates/<?= htmlspecialchars($candidate['photo'] ?? '') ?>" 
-                                                                         class="candidate-img shadow-sm" 
-                                                                         alt="<?= htmlspecialchars($candidate['studentName'] ?? '') ?>">
+                                                            <td><?= $count++ ?></td>
+                                                            <td>
+                                                                <?php if ($candidate['photo'] && file_exists('uploads/candidates/' . $candidate['photo'])): ?>
+                                                                    <img src="uploads/candidates/<?= $candidate['photo'] ?>" alt="Candidate Photo" class="candidate-img">
+                                                                <?php elseif ($candidate['profilePicture'] && file_exists('uploads/students/' . $candidate['profilePicture'])): ?>
+                                                                    <img src="uploads/students/<?= $candidate['profilePicture'] ?>" alt="Candidate Photo" class="candidate-img">
                                                                 <?php else: ?>
-                                                                    <div class="candidate-img bg-light d-flex align-items-center justify-content-center shadow-sm">
-                                                                        <i class="bi bi-person-fill text-muted"></i>
+                                                                    <div class="d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 50px; height: 50px;">
+                                                                        <i class="bi bi-person text-primary"></i>
                                                                     </div>
                                                                 <?php endif; ?>
                                                             </td>
                                                             <td>
-                                                                <div class="d-flex align-items-center">
-                                                                    <div>
-                                                                        <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($candidate['studentName'] ?? '') ?></h6>
-                                                                        <small class="text-muted d-flex justify-content-center">
-                                                                            <i class="bi bi-person-badge me-1"></i>
-                                                                            ID: <?= $candidate['studentID'] ?? '' ?>
-                                                                        </small>
-                                                                    </div>
+                                                                <div class="d-flex flex-column">
+                                                                    <span class="student-name"><?= htmlspecialchars($candidate['studentName']) ?></span>
+                                                                    <span class="student-id text-muted">ID: <?= $candidate['studentID'] ?></span>
                                                                 </div>
                                                             </td>
                                                             <td>
-                                                                <span class="position-badge d-flex align-items-center justify-content-center">
-                                                                    <i class="bi bi-award me-1"></i>
-                                                                    <?= htmlspecialchars($candidate['positionTitle'] ?? '') ?>
-                                                                </span>
+                                                                <span class="position-badge"><?= htmlspecialchars($candidate['positionTitle']) ?></span>
                                                             </td>
                                                             <td>
-                                                                <span class="status-badge bg-<?php 
-                                                                    echo $candidate['status'] === 'Approved' ? 'success' : 
-                                                                        ($candidate['status'] === 'Pending' ? 'warning' : 'danger'); 
-                                                                ?> text-white px-3 py-2 rounded-pill d-inline-flex align-items-center">
-                                                                    <?php if($candidate['status'] === 'Approved'): ?>
-                                                                        <i class="bi bi-check-circle-fill me-1"></i>
-                                                                    <?php elseif($candidate['status'] === 'Pending'): ?>
-                                                                        <i class="bi bi-hourglass-split me-1"></i>
-                                                                    <?php else: ?>
-                                                                        <i class="bi bi-x-circle-fill me-1"></i>
-                                                                    <?php endif; ?>
-                                                                    <?= htmlspecialchars($candidate['status'] ?? '') ?>
-                                                                </span>
+                                                                <?php if($candidate['status'] === 'Approved'): ?>
+                                                                    <span class="status-badge bg-success-light text-success">
+                                                                        <i class="bi bi-check-circle me-1"></i>Approved
+                                                                    </span>
+                                                                <?php elseif($candidate['status'] === 'Pending'): ?>
+                                                                    <span class="status-badge bg-warning-light text-warning">
+                                                                        <i class="bi bi-clock-history me-1"></i>Pending
+                                                                    </span>
+                                                                <?php else: ?>
+                                                                    <span class="status-badge bg-danger-light text-danger">
+                                                                        <i class="bi bi-x-circle me-1"></i>Rejected
+                                                                    </span>
+                                                                <?php endif; ?>
                                                             </td>
                                                             <td>
                                                                 <div class="d-flex gap-2">
-                                                                    <button class="btn btn-sm btn-outline-primary edit-btn rounded-pill" 
+                                                                    <button type="button" 
+                                                                            class="btn btn-sm btn-outline-primary action-btn edit-btn" 
                                                                             data-bs-toggle="modal" 
                                                                             data-bs-target="#editCandidateModal"
-                                                                            data-id="<?= $candidate['candidateID'] ?? '' ?>"
-                                                                            data-studentid="<?= $candidate['studentID'] ?? '' ?>"
-                                                                            data-positionid="<?= $candidate['positionID'] ?? '' ?>"
-                                                                            data-manifesto="<?= htmlspecialchars($candidate['manifesto'] ?? '') ?>"
-                                                                            data-status="<?= htmlspecialchars($candidate['status'] ?? '') ?>"
-                                                                            data-photo="<?= htmlspecialchars($candidate['photo'] ?? '') ?>">
+                                                                            data-id="<?= $candidate['candidateID'] ?>"
+                                                                            data-studentid="<?= $candidate['studentID'] ?>"
+                                                                            data-positionid="<?= $candidate['positionID'] ?>"
+                                                                            data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>"
+                                                                            data-status="<?= $candidate['status'] ?>"
+                                                                            data-photo="<?= $candidate['photo'] ?>">
                                                                         <i class="bi bi-pencil-square"></i>
                                                                     </button>
-                                                                    <form method="POST" class="d-inline">
-                                                                        <input type="hidden" name="candidateID" value="<?= $candidate['candidateID'] ?? '' ?>">
-                                                                        <button type="submit" name="delete_candidate" 
-                                                                                class="btn btn-sm btn-outline-danger rounded-pill" 
-                                                                                onclick="return confirm('Are you sure you want to delete this candidate?')">
-                                                                            <i class="bi bi-trash3-fill"></i>
+                                                                    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this candidate?');">
+                                                                        <input type="hidden" name="candidateID" value="<?= $candidate['candidateID'] ?>">
+                                                                        <button type="submit" name="delete_candidate" class="btn btn-sm btn-outline-danger action-btn">
+                                                                            <i class="bi bi-trash"></i>
                                                                         </button>
                                                                     </form>
                                                                 </div>
@@ -881,21 +920,14 @@ if ($electionID) {
                                     <?php else: ?>
                                         <div class="empty-state">
                                             <div class="empty-state-icon">
-                                                <i class="bi bi-people-fill fs-1 text-primary opacity-50"></i>
+                                                <i class="bi bi-person-plus"></i>
                                             </div>
                                             <h4 class="empty-state-title">No Candidates Found</h4>
                                             <p class="empty-state-text">
-                                                <i class="bi bi-info-circle-fill me-1 text-primary"></i>
-                                                <?php if ($electionID): ?>
-                                                    No candidates found for this election. Add candidates using the button below.
-                                                <?php else: ?>
-                                                    You haven't added any candidates yet. Select an election and click the button below to add your first candidate.
-                                                <?php endif; ?>
+                                                There are no candidates to display. Click the button below to add your first candidate.
                                             </p>
-                                            <button class="btn badge-count bg-primary text-white d-flex align-items-center justify-content-center mx-auto" 
-                                                   data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                                                <i class="bi bi-person-plus-fill me-2"></i>
-                                                Add Candidate
+                                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                                <i class="bi bi-person-plus me-2"></i> Add New Candidate
                                             </button>
                                         </div>
                                     <?php endif; ?>

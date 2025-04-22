@@ -48,7 +48,6 @@ function updateElectionStatuses($customConn = null) {
     ];
     
     try {
-        // Verify database connection
         if (!$conn || mysqli_connect_errno()) {
             throw new Exception("Database connection failed");
         }
@@ -56,13 +55,22 @@ function updateElectionStatuses($customConn = null) {
         // Get current time in MySQL format
         $currentTime = date('Y-m-d H:i:s');
         
-        // Update elections that should be "Ongoing"
+        // Only make status updates if this is a scheduled update (not a manual edit)
+        // First, log current state
+        $debugStmt = $conn->prepare("SELECT electionID, name, startDate, endDate, status FROM elections");
+        $debugStmt->execute();
+        $elections = $debugStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        foreach ($elections as $election) {
+            error_log("Pre-update: Election {$election['electionID']} ({$election['name']}) - Start: {$election['startDate']}, End: {$election['endDate']}, Status: {$election['status']}");
+        }
+        
+        // Schedule to Ongoing: Only if current time is past start AND before end
         $ongoingStmt = $conn->prepare("
             UPDATE elections 
             SET status = 'Ongoing' 
-            WHERE status != 'Ongoing'
-            AND ? >= startDate 
-            AND ? < endDate
+            WHERE status = 'Scheduled'
+            AND DATE_FORMAT(startDate, '%Y-%m-%d %H:%i:%s') <= ?
+            AND DATE_FORMAT(endDate, '%Y-%m-%d %H:%i:%s') > ?
         ");
         
         if (!$ongoingStmt) {
@@ -78,12 +86,12 @@ function updateElectionStatuses($customConn = null) {
         $result['ongoing'] = $ongoingStmt->affected_rows;
         $ongoingStmt->close();
         
-        // Update elections that should be "Completed"
+        // Ongoing to Completed: Only if current time is past end date
         $completedStmt = $conn->prepare("
             UPDATE elections 
             SET status = 'Completed' 
-            WHERE status != 'Completed'
-            AND ? >= endDate
+            WHERE status = 'Ongoing'
+            AND DATE_FORMAT(endDate, '%Y-%m-%d %H:%i:%s') <= ?
         ");
         
         if (!$completedStmt) {
@@ -94,6 +102,14 @@ function updateElectionStatuses($customConn = null) {
         
         if (!$completedStmt->execute()) {
             throw new Exception("Failed to update completed elections: " . $completedStmt->error);
+        }
+        
+        // Log the results after update
+        $afterUpdateStmt = $conn->prepare("SELECT electionID, name, startDate, endDate, status FROM elections");
+        $afterUpdateStmt->execute();
+        $updatedElections = $afterUpdateStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        foreach ($updatedElections as $election) {
+            error_log("Post-update: Election {$election['electionID']} ({$election['name']}) - Start: {$election['startDate']}, End: {$election['endDate']}, New Status: {$election['status']}");
         }
         
         $result['completed'] = $completedStmt->affected_rows;
@@ -110,11 +126,9 @@ function updateElectionStatuses($customConn = null) {
         $result['success'] = false;
         $result['errors'][] = $e->getMessage();
         $result['message'] = "Error updating election statuses: " . $e->getMessage();
-        
-        // Log the error
         error_log("Election status update error: " . $e->getMessage());
     }
     
     return $result;
 }
-?> 
+?>

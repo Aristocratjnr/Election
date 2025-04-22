@@ -506,6 +506,138 @@ $positions = $conn->query("
                 width: 100%;
             }
         }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        body.dark-mode .card,
+        body.dark-mode .modal-content,
+        body.dark-mode .page-header,
+        body.dark-mode .card-stats {
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+        }
+        body.dark-mode .card-header,
+        body.dark-mode .modal-footer {
+            background-color: #333;
+            border-color: #444;
+        }
+        body.dark-mode .modal-header {
+            background-color: var(--primary-dark); /* Darker primary for header */
+            border-color: #444;
+        }
+        body.dark-mode .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        body.dark-mode .table {
+            color: #e0e0e0;
+        }
+        body.dark-mode .table th {
+            background-color: #3a3a3a;
+            color: #f0f0f0;
+            border-color: #444;
+        }
+        body.dark-mode .table td {
+            background-color: #2c2c2c;
+            border-color: #444;
+        }
+        body.dark-mode .table tbody tr:hover td {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        body.dark-mode .form-control::placeholder {
+            color: #888;
+        }
+        body.dark-mode .input-group-text {
+            background-color: #333;
+            border-color: #555;
+            color: #ccc;
+        }
+        body.dark-mode .text-primary {
+            color: #6ca5ff !important;
+        }
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+        body.dark-mode .text-gray-800 {
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .breadcrumb-item a {
+            color: #6ca5ff;
+        }
+        body.dark-mode .breadcrumb-item.active {
+            color: #aaa;
+        }
+        body.dark-mode .badge.bg-info {
+            background-color: #36b9cc !important;
+            color: #fff !important;
+        }
+        body.dark-mode .badge.bg-primary {
+            background-color: #4e73df !important;
+            color: #fff !important;
+        }
+        body.dark-mode .badge.bg-secondary {
+            background-color: #555 !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .btn-outline-primary {
+            color: #6ca5ff;
+            border-color: #6ca5ff;
+        }
+        body.dark-mode .btn-outline-primary:hover {
+            background-color: #6ca5ff;
+            color: #1a1a1a;
+            border-color: #6ca5ff;
+        }
+        body.dark-mode .btn-outline-secondary {
+            color: #ccc;
+            border-color: #555;
+        }
+        body.dark-mode .btn-outline-secondary:hover {
+            background-color: #444;
+            color: #fff;
+            border-color: #444;
+        }
+        body.dark-mode .btn-outline-danger {
+             color: #e74a3b;
+             border-color: #e74a3b;
+        }
+        body.dark-mode .btn-outline-danger:hover {
+            background-color: #e74a3b;
+            color: #fff;
+        }
+        body.dark-mode .dataTables_wrapper .dataTables_length select,
+        body.dark-mode .dataTables_wrapper .dataTables_filter input {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        body.dark-mode .dataTables_wrapper .dataTables_info,
+        body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+            color: #ccc !important;
+        }
+        body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            color: #666 !important;
+        }
+        body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #444;
+            border-color: #555;
+            color: #fff !important;
+        }
+        body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #6ca5ff;
+            border-color: #6ca5ff;
+            color: #1a1a1a !important;
+        }
     </style>
 </head>
 <body>
