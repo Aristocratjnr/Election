@@ -10,6 +10,7 @@ if (!$statusUpdateResult['success']) {
 }
 
 error_reporting(E_ALL);
+
 ini_set('display_errors', 1);
 
 // Session start is removed as it's already in auth_check.php
