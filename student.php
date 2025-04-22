@@ -722,6 +722,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
         }
+        
+        /* Enhanced Student Avatar Styling */
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 10%;
+            object-fit: cover;
+            border: 2px solid;
+            transition: all 0.4s ease;
+            animation: avatar-glow 3s infinite alternate ease-in-out;
+            transform: translateZ(0);
+        }
+        
+        @keyframes avatar-glow {
+            0% {
+                box-shadow: 0 0 15px rgba(var(--bubble-color-rgb), 0.4),
+                            inset 0 0 8px rgba(var(--bubble-color-rgb), 0.1);
+            }
+            100% {
+                box-shadow: 0 0 25px rgba(var(--bubble-color-rgb), 0.6),
+                            inset 0 0 12px rgba(var(--bubble-color-rgb), 0.2);
+            }
+        }
+        
+        html:not([data-bs-theme="dark"]) .student-avatar {
+            --bubble-color-rgb: 65, 105, 225; /* Royal blue for light theme */
+        }
+        
+        html[data-bs-theme="dark"] .student-avatar {
+            --bubble-color-rgb: 100, 150, 255; /* Lighter blue for dark theme */
+            border-color: rgba(var(--bubble-color-rgb), 0.5);
+            filter: contrast(1.1) saturate(1.2) brightness(1.05);
+        }
+        
+        .student-avatar:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 30px rgba(var(--bubble-color-rgb), 0.7),
+                        inset 0 0 15px rgba(var(--bubble-color-rgb), 0.2);
+        }
+        
+        /* Default avatar icon styling */
+        .student-avatar.d-flex {
+            background: linear-gradient(135deg, 
+                rgba(var(--bubble-color-rgb), 0.15) 0%, 
+                rgba(var(--bubble-color-rgb), 0.3) 100%);
+        }
+        
+        /* Candidate avatars with same effect */
+        .candidate-avatar {
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border: 2px solid rgba(var(--bubble-color-rgb), 0.3);
+            box-shadow: 0 0 10px rgba(var(--bubble-color-rgb), 0.3);
+            filter: contrast(1.05);
+            transition: all 0.3s ease;
+        }
+        
+        .candidate-card:hover .candidate-avatar {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(var(--bubble-color-rgb), 0.5);
+        }
     </style>
 </head>
 <body>
@@ -1830,7 +1893,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 // Create bubble layers for 3D effect
                 for (let layer = 1; layer <= 3; layer++) {
                     const layerBubbleCount = Math.ceil(maxBubbles / 3);
-                    const zIndex = layer * 10 - 10; // Layer 1: z-index -10, Layer 2: z-index 0, Layer 3: z-index 10
+                    const zIndex = layer * 10 - 10; 
                     const opacity = 0.05 + (layer * 0.05); // Opacity increases with each layer
                     
                     for (let i = 0; i < layerBubbleCount; i++) {
