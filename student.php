@@ -713,6 +713,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <?php endif; ?>
                         
                         <!-- Replace the status card with a live results card -->
+                        <?php if ($currentElection): ?>
                         <div class="card mb-4 border-0 shadow-sm rounded-4 overflow-hidden">
                             <div class="card-header bg-gradient-primary text-white py-3 px-4">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -726,121 +727,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 </div>
                             </div>
                             <div class="card-body p-4">
-                                <?php if ($currentElection): ?>
-                                    <?php
-                                    // Get total votes for this election
-                                    $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
-                                    $voteCountStmt = $conn->prepare($voteCountQuery);
-                                    $voteCountStmt->bind_param("i", $currentElection['electionID']);
-                                    $voteCountStmt->execute();
-                                    $voteCountResult = $voteCountStmt->get_result();
-                                    $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
-                                    $voteCountStmt->close();
-                                    ?>
-                                    <div class="mt-4">
-                                        <div class="results-section-header">
-                                            <div class="results-icon">
-                                                <i class="bi bi-trophy"></i>
-                                            </div>
-                                            <h6>Top Candidates</h6>
+                                <?php
+                                // Get total votes for this election
+                                $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
+                                $voteCountStmt = $conn->prepare($voteCountQuery);
+                                $voteCountStmt->bind_param("i", $currentElection['electionID']);
+                                $voteCountStmt->execute();
+                                $voteCountResult = $voteCountStmt->get_result();
+                                $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
+                                $voteCountStmt->close();
+                                ?>
+                                <div class="mt-4">
+                                    <div class="results-section-header">
+                                        <div class="results-icon">
+                                            <i class="bi bi-trophy"></i>
                                         </div>
-                                        <div class="row g-3">
-                                            <?php
+                                        <h6>Top Candidates</h6>
+                                    </div>
+                                    <div class="row g-3">
+                                        <?php
+                                    
+                                        $topCandidatesQuery = "
+                                            SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
+                                                   p.title as position, COUNT(v.voteID) as voteCount
+                                            FROM candidates c
+                                            JOIN students s ON c.studentID = s.studentID
+                                            JOIN positions p ON c.positionID = p.positionID
+                                            LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
+                                            WHERE c.status = 'Approved'
+                                            AND p.electionID = ?
+                                            GROUP BY c.candidateID
+                                            ORDER BY voteCount DESC
+                                            LIMIT 3
+                                        ";
+                                        $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
+                                        $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
+                                        $topCandidatesStmt->execute();
+                                        $topCandidatesResult = $topCandidatesStmt->get_result();
                                         
-                                            $topCandidatesQuery = "
-                                                SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
-                                                       p.title as position, COUNT(v.voteID) as voteCount
-                                                FROM candidates c
-                                                JOIN students s ON c.studentID = s.studentID
-                                                JOIN positions p ON c.positionID = p.positionID
-                                                LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
-                                                WHERE c.status = 'Approved'
-                                                AND p.electionID = ?
-                                                GROUP BY c.candidateID
-                                                ORDER BY voteCount DESC
-                                                LIMIT 3
-                                            ";
-                                            $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
-                                            $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
-                                            $topCandidatesStmt->execute();
-                                            $topCandidatesResult = $topCandidatesStmt->get_result();
-                                            
-                                            if ($topCandidatesResult->num_rows > 0):
-                                                $rank = 1;
-                                                $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
-                                                $rankIcon = ['trophy', 'award', 'award'];
-                                                while ($candidate = $topCandidatesResult->fetch_assoc()):
-                                                    $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
-                                                    $colorIndex = $rank - 1;
-                                            ?>
-                                                <div class="col-md-4">
-                                                    <div class="candidate-result-card">
-                                                        <div class="candidate-info">
-                                                            <div class="candidate-header">
-                                                                <div class="rank-badge">
-                                                                    <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
-                                                                </div>
-                                                                <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                        if ($topCandidatesResult->num_rows > 0):
+                                            $rank = 1;
+                                            $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
+                                            $rankIcon = ['trophy', 'award', 'award'];
+                                            while ($candidate = $topCandidatesResult->fetch_assoc()):
+                                                $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
+                                                $colorIndex = $rank - 1;
+                                        ?>
+                                            <div class="col-md-4">
+                                                <div class="candidate-result-card">
+                                                    <div class="candidate-info">
+                                                        <div class="candidate-header">
+                                                            <div class="rank-badge">
+                                                                <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
                                                             </div>
-                                                            <div class="candidate-main">
-                                                                <?php 
-                                                              
-                                                                $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
-                                                                $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                                
-                                                                if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
-                                                                    <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
-                                                                    <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                <?php else: ?>
-                                                                    <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                                        <i class="bi bi-person fs-2"></i>
+                                                            <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                                        </div>
+                                                        <div class="candidate-main">
+                                                            <?php 
+                                                          
+                                                            $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                                            $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                            
+                                                            if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
+                                                                <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                            <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
+                                                                <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                            <?php else: ?>
+                                                                <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
+                                                                    <i class="bi bi-person fs-2"></i>
+                                                                </div>
+                                                            <?php endif; ?>
+                                                            <div class="candidate-details">
+                                                                <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
+                                                                <div class="d-flex flex-column gap-2">
+                                                                    <div class="vote-stats">
+                                                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                                                        <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
                                                                     </div>
-                                                                <?php endif; ?>
-                                                                <div class="candidate-details">
-                                                                    <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
-                                                                    <div class="d-flex flex-column gap-2">
-                                                                        <div class="vote-stats">
-                                                                            <i class="bi bi-check-circle-fill text-success"></i>
-                                                                            <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
-                                                                        </div>
-                                                                        <div class="vote-stats">
-                                                                            <i class="bi bi-bar-chart-fill text-primary"></i>
-                                                                            <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
-                                                                        </div>
+                                                                    <div class="vote-stats">
+                                                                        <i class="bi bi-bar-chart-fill text-primary"></i>
+                                                                        <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="progress">
-                                                                <div class="progress-bar" role="progressbar" 
-                                                                     style="width: <?= $votePercentage ?>%;" 
-                                                                     aria-valuenow="<?= $votePercentage ?>" 
-                                                                     aria-valuemin="0" 
-                                                                     aria-valuemax="100"></div>
-                                                            </div>
+                                                        </div>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: <?= $votePercentage ?>%;" 
+                                                                 aria-valuenow="<?= $votePercentage ?>" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="100"></div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php 
-                                                $rank++;
-                                                endwhile;
-                                            else:
-                                            ?>
-                                                <div class="col-12">
-                                                    <div class="alert alert-light border-0 shadow-sm text-center py-4">
-                                                        <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
-                                                        <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
-                                                    </div>
+                                            </div>
+                                        <?php 
+                                            $rank++;
+                                            endwhile;
+                                        else:
+                                        ?>
+                                            <div class="col-12">
+                                                <div class="alert alert-light border-0 shadow-sm text-center py-4">
+                                                    <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
+                                                    <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
                                                 </div>
-                                            <?php 
-                                            endif;
-                                            $topCandidatesStmt->close();
-                                            ?>
-                                        </div>
+                                            </div>
+                                        <?php 
+                                        endif;
+                                        $topCandidatesStmt->close();
+                                        ?>
                                     </div>
-                                <?php endif; ?>
+                                </div>
                             </div>
                         </div>
+                        <?php endif; ?>
                         
                         <!-- Voting Form -->
 <?php if ($currentElection && !$hasVoted): ?>
