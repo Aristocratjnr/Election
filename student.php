@@ -548,6 +548,181 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     
+    <!-- Bubble Background Styles for Timer and Election Details -->
+    <style>
+        /* Bubble container styles */
+        .bubble-background {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            z-index: 1;
+            box-shadow: 0 8px 20px rgba(var(--bubble-color-rgb), 0.08);
+            transition: all 0.5s ease;
+        }
+        
+        /* Individual bubble styles */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(
+                circle at 30% 30%, 
+                rgba(var(--bubble-color-rgb), 0.15) 0%, 
+                rgba(var(--bubble-color-rgb), 0.05) 80%
+            );
+            backdrop-filter: blur(1px);
+            animation: float var(--float-time) ease-in-out infinite alternate, 
+                      glow var(--glow-time) ease-in-out infinite alternate;
+            z-index: -1;
+            box-shadow: inset 0 0 10px rgba(var(--bubble-color-rgb), 0.1),
+                        0 0 15px rgba(var(--bubble-color-rgb), 0.05);
+            opacity: var(--bubble-opacity);
+        }
+        
+        /* Light theme bubbles */
+        html:not([data-bs-theme="dark"]) .bubble-background {
+            --bubble-color-rgb: 65, 105, 225; /* Royal blue color RGB */
+            --bubble-gradient: linear-gradient(135deg, rgba(65, 105, 225, 0.05), rgba(100, 150, 255, 0.02));
+            background: var(--bubble-gradient);
+        }
+        
+        /* Dark theme bubbles */
+        html[data-bs-theme="dark"] .bubble-background {
+            --bubble-color-rgb: 100, 150, 255; /* Lighter blue color for dark theme */
+            --bubble-gradient: linear-gradient(135deg, rgba(30, 40, 70, 0.6), rgba(20, 30, 60, 0.4));
+            background: var(--bubble-gradient);
+        }
+        
+        /* Election timer with bubbles */
+        .election-timer.bubble-background {
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(var(--bubble-color-rgb), 0.1);
+        }
+        
+        .election-timer.bubble-background:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(var(--bubble-color-rgb), 0.15);
+        }
+        
+        /* Animation for floating bubbles */
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(var(--float-y)) translateX(var(--float-x)) rotate(var(--rotate)) scale(var(--float-scale));
+            }
+            100% {
+                transform: translateY(calc(var(--float-y) * -0.5)) translateX(calc(var(--float-x) * -0.5)) rotate(calc(var(--rotate) * -0.5)) scale(calc(1 + (var(--float-scale) - 1) * -0.5));
+            }
+        }
+        
+        /* Glow animation for bubbles */
+        @keyframes glow {
+            0% {
+                opacity: var(--bubble-opacity);
+                filter: blur(var(--bubble-blur));
+            }
+            50% {
+                opacity: calc(var(--bubble-opacity) * 1.5);
+                filter: blur(calc(var(--bubble-blur) * 0.8));
+            }
+            100% {
+                opacity: var(--bubble-opacity);
+                filter: blur(var(--bubble-blur));
+            }
+        }
+        
+        /* Enhanced time units for countdown */
+        .bubble-background .time-unit {
+            background: rgba(var(--bubble-color-rgb), 0.12);
+            padding: 0.6rem 0.9rem;
+            border-radius: 0.6rem;
+            backdrop-filter: blur(5px);
+            box-shadow: 
+                inset 0 1px 1px rgba(255, 255, 255, 0.15),
+                0 4px 15px rgba(var(--bubble-color-rgb), 0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(var(--bubble-color-rgb), 0.1);
+        }
+        
+        html[data-bs-theme="dark"] .bubble-background .time-unit {
+            background: rgba(50, 70, 120, 0.5);
+            box-shadow: 
+                inset 0 1px 1px rgba(255, 255, 255, 0.1),
+                0 4px 15px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(70, 90, 140, 0.3);
+        }
+        
+        .bubble-background .time-unit:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                inset 0 1px 1px rgba(255, 255, 255, 0.2),
+                0 10px 25px rgba(var(--bubble-color-rgb), 0.3);
+        }
+        
+        .bubble-background .time-unit span {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+            color: rgba(var(--bubble-color-rgb), 1);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            display: block;
+            line-height: 1;
+        }
+        
+        html[data-bs-theme="dark"] .bubble-background .time-unit span {
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .bubble-background .time-unit small {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        
+        /* Animation for bubble pulse */
+        @keyframes pulseBubble {
+            0% {
+                opacity: var(--bubble-opacity);
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(var(--bubble-color-rgb), 0.5);
+            }
+            50% {
+                opacity: calc(var(--bubble-opacity) * 1.3);
+                transform: scale(1.05);
+                box-shadow: 0 0 20px rgba(var(--bubble-color-rgb), 0.3);
+            }
+            100% {
+                opacity: var(--bubble-opacity);
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(var(--bubble-color-rgb), 0.5);
+            }
+        }
+        
+        .bubble.pulse {
+            animation: pulseBubble var(--pulse-time) infinite ease-in-out;
+        }
+        
+        /* Time separator styling */
+        .bubble-background .time-separator {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            color: rgba(var(--bubble-color-rgb), 0.6);
+            margin: 0 0.2rem;
+            opacity: 0.8;
+            animation: pulseSeparator 2s infinite ease-in-out;
+        }
+        
+        @keyframes pulseSeparator {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
     <?php include 'includes/header.php'; ?><br>
@@ -571,7 +746,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     
                     <div class="card-body p-4 ">
                         <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
-                            <div class="election-timer mb-4">
+                            <div class="election-timer bubble-background mb-4">
                                 <div class="row align-items-center">
                                     <div class="col-auto">
                                         <div class="counter-circle text-muted">
@@ -672,7 +847,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         
                         <!-- Election Info -->
                         <?php if ($currentElection): ?>
-                            <div class="election-timer mb-4">
+                            <div class="election-timer bubble-background mb-4">
                                 <div class="row align-items-center">
                                     <div class="col-md-7 mb-3 mb-md-0">
                                         <div class="d-flex align-items-center mb-2">
@@ -1632,6 +1807,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             countdownInterval = setInterval(updateCountdown, 1000);
             updateCountdown(); // Initial call to display immediately
         <?php endif; ?>
+        
+        // Create bubble backgrounds for election timer and info sections
+        function createBubbles() {
+            // Get all bubble background elements
+            const bubbleContainers = document.querySelectorAll('.bubble-background');
+            
+            bubbleContainers.forEach(container => {
+                // Remove any existing bubbles first (for theme changes)
+                container.querySelectorAll('.bubble').forEach(bubble => bubble.remove());
+                
+                // Create between 10-20 bubbles based on container size
+                const containerWidth = container.offsetWidth;
+                const containerHeight = container.offsetHeight;
+                const numberOfBubbles = Math.max(10, Math.floor(containerWidth * containerHeight / 8000));
+                const maxBubbles = Math.min(20, numberOfBubbles);
+                
+                // Get colors from CSS variables
+                const computedStyle = getComputedStyle(container);
+                const bubbleColorRGB = computedStyle.getPropertyValue('--bubble-color-rgb').trim();
+                
+                // Create bubble layers for 3D effect
+                for (let layer = 1; layer <= 3; layer++) {
+                    const layerBubbleCount = Math.ceil(maxBubbles / 3);
+                    const zIndex = layer * 10 - 10; // Layer 1: z-index -10, Layer 2: z-index 0, Layer 3: z-index 10
+                    const opacity = 0.05 + (layer * 0.05); // Opacity increases with each layer
+                    
+                    for (let i = 0; i < layerBubbleCount; i++) {
+                        const bubble = document.createElement('div');
+                        bubble.classList.add('bubble');
+                        
+                        // Size varies by layer - deeper layers have smaller bubbles
+                        const baseSize = 10 + (layer * 15); // Layer 1: 25px base, Layer 2: 40px base, Layer 3: 55px base
+                        const sizeVariation = 10 + (layer * 5); // Variation increases with layer
+                        const size = Math.floor(Math.random() * sizeVariation) + baseSize;
+                        
+                        bubble.style.width = `${size}px`;
+                        bubble.style.height = `${size}px`;
+                        
+                        // Random position
+                        const left = Math.floor(Math.random() * (containerWidth - size));
+                        const top = Math.floor(Math.random() * (containerHeight - size));
+                        bubble.style.left = `${left}px`;
+                        bubble.style.top = `${top}px`;
+                        
+                        // Layer-specific styles
+                        bubble.style.zIndex = zIndex;
+                        bubble.style.setProperty('--bubble-opacity', opacity);
+                        bubble.style.setProperty('--bubble-blur', `${4 - layer}px`); // Deeper layers are blurrier
+                        
+                        // More organic shape with border-radius variations
+                        if (Math.random() > 0.7) {
+                            // Create slightly oval bubble
+                            const randomBorderRadius = `${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}%`;
+                            bubble.style.borderRadius = randomBorderRadius;
+                        }
+                        
+                        // Random float animation properties - deeper layers move more slowly
+                        const floatTime = Math.floor((Math.random() * 8) + 10 - (layer * 2)); // 4-12s
+                        const glowTime = Math.floor((Math.random() * 10) + 5); // 5-15s
+                        const pulseTime = Math.floor((Math.random() * 5) + 2); // 2-7s
+                        
+                        // Movement range decreases with layer depth
+                        const movementFactor = 1 - ((layer - 1) * 0.2); // Layer 1: 0.8, Layer 2: 0.6, Layer 3: 0.4
+                        const floatY = Math.floor(Math.random() * 50 * movementFactor) - (25 * movementFactor); 
+                        const floatX = Math.floor(Math.random() * 50 * movementFactor) - (25 * movementFactor);
+                        const rotate = Math.floor(Math.random() * 30) - 15; // -15 to 15 degrees rotation
+                        const floatScale = (Math.random() * 0.3 * movementFactor) + 0.85; // Scale variation 0.85-1.15
+                        
+                        bubble.style.setProperty('--float-time', `${floatTime}s`);
+                        bubble.style.setProperty('--glow-time', `${glowTime}s`);
+                        bubble.style.setProperty('--pulse-time', `${pulseTime}s`);
+                        bubble.style.setProperty('--float-y', `${floatY}px`);
+                        bubble.style.setProperty('--float-x', `${floatX}px`);
+                        bubble.style.setProperty('--rotate', `${rotate}deg`);
+                        bubble.style.setProperty('--float-scale', floatScale);
+                        
+                        // Make some bubbles pulse
+                        if (Math.random() > 0.5) {
+                            bubble.classList.add('pulse');
+                        }
+                        
+                        // Add custom gradient to some bubbles for more realism
+                        if (Math.random() > 0.3) {
+                            const gradientAngle = Math.floor(Math.random() * 360);
+                            const gradientStart = `rgba(${bubbleColorRGB}, ${opacity * 3})`;
+                            const gradientEnd = `rgba(${bubbleColorRGB}, ${opacity / 2})`;
+                            bubble.style.background = `radial-gradient(circle at ${Math.floor(Math.random() * 70) + 15}% ${Math.floor(Math.random() * 70) + 15}%, ${gradientStart} 0%, ${gradientEnd} 80%)`;
+                        }
+                        
+                        // Append bubble to container
+                        container.appendChild(bubble);
+                    }
+                }
+            });
+        }
+        
+        // Create bubbles on page load with a small delay to ensure container sizes are calculated correctly
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(createBubbles, 100);
+            
+            // Recreate bubbles when theme changes to update colors
+            document.addEventListener('themeChanged', function() {
+                setTimeout(createBubbles, 100); // Small delay for theme transition
+            });
+            
+            // Recreate bubbles on window resize
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(createBubbles, 300);
+            });
+        });
     </script>
 </body>
 </html>
