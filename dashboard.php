@@ -1050,111 +1050,185 @@ try {
         });
         
         document.querySelectorAll('.student-action').forEach(button => {
-    button.addEventListener('click', function() {
-        const action = this.getAttribute('data-action');
-        const studentId = this.getAttribute('data-id');
-        
-        if (action === 'promote' || action === 'demote') {
-            if (confirm(`Are you sure you want to ${action} this student?`)) {
-                // Show loading state
-                const originalText = this.innerHTML;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-                this.disabled = true;
+            button.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const studentId = this.getAttribute('data-id');
                 
-                fetch('update_student_role.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({
-                        student_id: studentId,
-                        action: action
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.message || 'Network response was not ok');
+                if (action === 'promote' || action === 'demote') {
+                    // Use modal instead of confirm
+                    const roleChangeModal = new bootstrap.Modal(document.getElementById('roleChangeModal'));
+                    const roleChangeTitle = document.getElementById('roleChangeTitle');
+                    const roleChangeMessage = document.getElementById('roleChangeMessage');
+                    const roleChangeAlert = document.getElementById('roleChangeAlert');
+                    const roleChangeAlertMessage = document.getElementById('roleChangeAlertMessage');
+                    const confirmRoleChangeBtn = document.getElementById('confirmRoleChangeBtn');
+                    const roleChangeIcon = document.querySelector('.role-change-icon');
+                    const modalHeader = document.getElementById('roleChangeModal').querySelector('.modal-header');
+                    
+                    // Clear previous event listeners
+                    const newConfirmBtn = confirmRoleChangeBtn.cloneNode(true);
+                    confirmRoleChangeBtn.parentNode.replaceChild(newConfirmBtn, confirmRoleChangeBtn);
+                    
+                    // Update modal content based on action
+                    if (action === 'promote') {
+                        modalHeader.classList.remove('bg-danger');
+                        modalHeader.classList.add('bg-success');
+                        roleChangeTitle.textContent = 'Promote to Admin';
+                        roleChangeMessage.textContent = 'You are about to promote this student to an admin role. They will have full access to manage elections and system settings.';
+                        roleChangeAlertMessage.textContent = 'Admin users can create and manage elections, categories, and other administrative tasks.';
+                        roleChangeIcon.innerHTML = '<i class="bi bi-arrow-up-circle-fill"></i>';
+                        roleChangeIcon.classList.remove('demote-icon');
+                        roleChangeIcon.classList.add('promote-icon');
+                        newConfirmBtn.classList.remove('btn-danger');
+                        newConfirmBtn.classList.add('btn-success');
+                        
+                        // Store original button for reference
+                        const originalButton = this;
+                        
+                        // Add event listener for confirm button
+                        newConfirmBtn.addEventListener('click', function() {
+                            // Show loading state
+                            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                            this.disabled = true;
+                            
+                            // Hide modal
+                            roleChangeModal.hide();
+                            
+                            // Execute promote action
+                            executeRoleChange(originalButton, studentId, 'promote');
+                        });
+                    } else { // demote
+                        modalHeader.classList.remove('bg-success');
+                        modalHeader.classList.add('bg-danger');
+                        roleChangeTitle.textContent = 'Demote to Student';
+                        roleChangeMessage.textContent = 'You are about to remove admin privileges from this user. They will no longer be able to manage elections or access administrative features.';
+                        roleChangeAlertMessage.textContent = 'If you demote yourself, you will be logged out and redirected to the login page.';
+                        roleChangeIcon.innerHTML = '<i class="bi bi-arrow-down-circle-fill"></i>';
+                        roleChangeIcon.classList.remove('promote-icon');
+                        roleChangeIcon.classList.add('demote-icon');
+                        newConfirmBtn.classList.remove('btn-success');
+                        newConfirmBtn.classList.add('btn-danger');
+                        
+                        // Store original button for reference
+                        const originalButton = this;
+                        
+                        // Add event listener for confirm button
+                        newConfirmBtn.addEventListener('click', function() {
+                            // Show loading state
+                            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                            this.disabled = true;
+                            
+                            // Hide modal
+                            roleChangeModal.hide();
+                            
+                            // Execute demote action
+                            executeRoleChange(originalButton, studentId, 'demote');
                         });
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Show success toast notification
-                        showToast('Success', `Student ${action === 'promote' ? 'promoted' : 'demoted'} successfully!`, 'success');
-                        
-                        if (data.logout_required) {
-                            setTimeout(() => {
-                                window.location.href = 'login.php';
-                            }, 2000);
-                        } else {
-                            // Refresh the page to show changes after a short delay
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        }
-                    } else {
-                        showToast('Error', data.message || 'Operation failed', 'danger');
-                        if (data.error) console.error('Server error:', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('Error', 'An error occurred: ' + error.message, 'danger');
-                })
-                .finally(() => {
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                });
-            }
-        
-        } else if (action === 'reset') {
-            if (confirm('Reset password for this student? A temporary password will be generated.')) {
-                // Show loading state
-                const originalText = this.innerHTML;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-                this.disabled = true;
+                    
+                    // Show modal
+                    roleChangeModal.show();
                 
-                fetch('reset_student_password.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({
-                        student_id: studentId
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                } else if (action === 'reset') {
+                    if (confirm('Reset password for this student? A temporary password will be generated.')) {
+                        // Show loading state
+                        const originalText = this.innerHTML;
+                        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                        this.disabled = true;
+                        
+                        fetch('reset_student_password.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                student_id: studentId
+                            })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                // In development, show the temp password (remove in production)
+                                showPasswordModal(data.temp_password);
+                                showToast('Success', 'Password reset successful', 'success');
+                            } else {
+                                showToast('Error', data.message || 'Operation failed', 'danger');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showToast('Error', 'An error occurred while processing your request', 'danger');
+                        })
+                        .finally(() => {
+                            this.innerHTML = originalText;
+                            this.disabled = false;
+                        });
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // In development, show the temp password (remove in production)
-                        showPasswordModal(data.temp_password);
-                        showToast('Success', 'Password reset successful', 'success');
-                    } else {
-                        showToast('Error', data.message || 'Operation failed', 'danger');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('Error', 'An error occurred while processing your request', 'danger');
-                })
-                .finally(() => {
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                });
-            }
-        }
-    });
-});
+                }
+            });
+        });
 
+        // Helper function for executing role changes
+        function executeRoleChange(buttonElement, studentId, action) {
+            const originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            buttonElement.disabled = true;
+            
+            fetch('update_student_role.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    action: action
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Network response was not ok');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success toast notification
+                    showToast('Success', `Student ${action === 'promote' ? 'promoted' : 'demoted'} successfully!`, 'success');
+                    
+                    if (data.logout_required) {
+                        setTimeout(() => {
+                            window.location.href = 'login.php';
+                        }, 2000);
+                    } else {
+                        // Refresh the page to show changes after a short delay
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else {
+                    showToast('Error', data.message || 'Operation failed', 'danger');
+                    if (data.error) console.error('Server error:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred: ' + error.message, 'danger');
+            })
+            .finally(() => {
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+            });
+        }
+        
         // Create toast container if it doesn't exist
         if (!document.getElementById('toastContainer')) {
             const toastContainer = document.createElement('div');
@@ -1444,6 +1518,80 @@ try {
         }
     });
     </script>
+    
+    <!-- Role Change Confirmation Modal -->
+    <div class="modal fade" id="roleChangeModal" tabindex="-1" aria-labelledby="roleChangeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header text-white">
+                    <h5 class="modal-title" id="roleChangeModalLabel"><i class="bi bi-shield-fill"></i> Role Change Confirmation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="role-icon-container mb-4">
+                        <div class="role-change-icon"></div>
+                    </div>
+                    <h4 id="roleChangeTitle" class="mb-3"></h4>
+                    <p id="roleChangeMessage" class="text-muted"></p>
+                    <div class="alert alert-info my-3" id="roleChangeAlert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <span id="roleChangeAlertMessage"></span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn" id="confirmRoleChangeBtn">
+                        <i class="bi bi-check-circle me-1"></i> Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+    /* Role Change Modal Specific Styles */
+    .role-icon-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+    }
+    
+    .role-change-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+        color: white;
+    }
+    
+    .promote-icon {
+        background: linear-gradient(135deg, #4ade80, #22c55e);
+    }
+    
+    .demote-icon {
+        background: linear-gradient(135deg, #fb7185, #e11d48);
+    }
+    
+    @keyframes icon-float {
+        0% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+        100% {
+            transform: translateY(0px);
+        }
+    }
+    </style>
      <?php include 'includes/footer.php'; ?>
 </body>
 </html>
