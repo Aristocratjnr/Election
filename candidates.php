@@ -23,9 +23,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_candidate'])) {
         $studentID = $_POST['studentID'];
         $positionID = $_POST['positionID'];
-        $manifesto = $_POST['manifesto'];
+        $manifesto = $_FILES['manifesto']['name'] ?? null;
         $status = $_POST['status'];
         $photo = '';
+
+        // Handle manifesto upload
+        if ($manifesto) {
+            $allowedManifestoExtensions = ['pdf', 'txt'];
+            $manifestoExt = strtolower(pathinfo($manifesto, PATHINFO_EXTENSION));
+            
+            if (in_array($manifestoExt, $allowedManifestoExtensions)) {
+                $newManifestoFilename = uniqid() . '.' . $manifestoExt;
+                $manifestoUploadPath = 'uploads/manifestos/' . $newManifestoFilename;
+                
+                if (!is_dir('uploads/manifestos')) {
+                    mkdir('uploads/manifestos', 0777, true);
+                }
+                
+                if (move_uploaded_file($_FILES['manifesto']['tmp_name'], $manifestoUploadPath)) {
+                    $manifesto = $newManifestoFilename;
+                }
+            }
+        }
 
         // Check if a candidate already exists for the Treasurer position in the selected election
         $positionTitleQuery = $conn->query("SELECT title FROM positions WHERE positionID = '$positionID'");
@@ -104,9 +123,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $candidateID = $_POST['candidateID'];
         $studentID = $_POST['studentID'];
         $positionID = $_POST['positionID'];
-        $manifesto = $_POST['manifesto'];
+        $manifesto = $_FILES['manifesto']['name'] ?? $_POST['current_manifesto'];
         $status = $_POST['status'];
         $photo = $_POST['current_photo'];
+
+        // Handle manifesto upload
+        if (isset($_FILES['manifesto']) && $_FILES['manifesto']['error'] === 0) {
+            $allowedManifestoExtensions = ['pdf', 'txt'];
+            $manifestoExt = strtolower(pathinfo($_FILES['manifesto']['name'], PATHINFO_EXTENSION));
+            
+            if (in_array($manifestoExt, $allowedManifestoExtensions)) {
+                $newManifestoFilename = uniqid() . '.' . $manifestoExt;
+                $manifestoUploadPath = 'uploads/manifestos/' . $newManifestoFilename;
+                
+                if (!is_dir('uploads/manifestos')) {
+                    mkdir('uploads/manifestos', 0777, true);
+                }
+                
+                if (move_uploaded_file($_FILES['manifesto']['tmp_name'], $manifestoUploadPath)) {
+                    // Delete old manifesto if exists
+                    if ($manifesto && file_exists('uploads/manifestos/' . $manifesto)) {
+                        unlink('uploads/manifestos/' . $manifesto);
+                    }
+                    $manifesto = $newManifestoFilename;
+                }
+            }
+        }
 
         // Handle photo upload
         if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
@@ -144,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $candidateID = $_POST['candidateID'];
         
         // Get photo filename before deletion
-        $stmt = $conn->prepare("SELECT photo FROM candidates WHERE candidateID = ?");
+        $stmt = $conn->prepare("SELECT photo, manifesto FROM candidates WHERE candidateID = ?");
         $stmt->bind_param("i", $candidateID);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -153,6 +195,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Delete photo file if exists
         if ($candidate['photo'] && file_exists('uploads/candidates/' . $candidate['photo'])) {
             unlink('uploads/candidates/' . $candidate['photo']);
+        }
+
+        // Delete manifesto file if exists
+        if ($candidate['manifesto'] && file_exists('uploads/manifestos/' . $candidate['manifesto'])) {
+            unlink('uploads/manifestos/' . $candidate['manifesto']);
         }
         
         $stmt = $conn->prepare("DELETE FROM candidates WHERE candidateID = ?");
@@ -968,9 +1015,34 @@ if ($electionID) {
                                 <?php endwhile; ?>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="manifesto" class="form-label"><i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto</label>
-                            <textarea class="form-control rounded-3" id="manifesto" name="manifesto" rows="3" placeholder="Candidate's agenda and promises"></textarea>
+                        <div class="mb-4">
+                            <label for="manifesto" class="form-label">
+                                <i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto
+                                <small class="text-muted">(PDF or TXT file)</small>
+                            </label>
+                            <div class="manifesto-upload-container p-3 bg-light rounded-3 border">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 2rem;"></i>
+                                    <p class="mb-1">Drop your manifesto file here or click to browse</p>
+                                    <small class="text-muted">Supported formats: PDF, TXT (Max size: 5MB)</small>
+                                </div>
+                                <input type="file" class="form-control" id="manifesto" name="manifesto" 
+                                    accept=".pdf,.txt" required>
+                                <div id="manifestoPreview" class="mt-3 d-none">
+                                    <div class="card">
+                                        <div class="card-header bg-light d-flex align-items-center">
+                                            <i class="bi bi-file-text me-2"></i>
+                                            <span class="file-name"></span>
+                                            <button type="button" class="btn-close ms-auto" 
+                                                onclick="clearManifestoPreview()"></button>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="preview-content" style="max-height: 300px; overflow-y: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="photo" class="form-label"><i class="bi bi-camera-fill me-1 text-primary"></i>Photo</label>
@@ -1018,6 +1090,7 @@ if ($electionID) {
                 <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="candidateID" id="edit_candidateID">
                     <input type="hidden" name="current_photo" id="edit_current_photo">
+                    <input type="hidden" name="current_manifesto" id="edit_current_manifesto">
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label for="edit_studentID" class="form-label"><i class="bi bi-person-badge-fill me-1 text-primary"></i>Student</label>
@@ -1043,9 +1116,34 @@ if ($electionID) {
                                 <?php endwhile; ?>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_manifesto" class="form-label"><i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto</label>
-                            <textarea class="form-control rounded-3" id="edit_manifesto" name="manifesto" rows="3"></textarea>
+                        <div class="mb-4">
+                            <label for="edit_manifesto" class="form-label">
+                                <i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto
+                                <small class="text-muted">(PDF or TXT file)</small>
+                            </label>
+                            <div class="manifesto-upload-container p-3 bg-light rounded-3 border">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 2rem;"></i>
+                                    <p class="mb-1">Drop your manifesto file here or click to browse</p>
+                                    <small class="text-muted">Supported formats: PDF, TXT (Max size: 5MB)</small>
+                                </div>
+                                <input type="file" class="form-control" id="edit_manifesto" name="manifesto" 
+                                    accept=".pdf,.txt">
+                                <div id="editManifestoPreview" class="mt-3 d-none">
+                                    <div class="card">
+                                        <div class="card-header bg-light d-flex align-items-center">
+                                            <i class="bi bi-file-text me-2"></i>
+                                            <span class="file-name"></span>
+                                            <button type="button" class="btn-close ms-auto" 
+                                                onclick="clearEditManifestoPreview()"></button>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="preview-content" style="max-height: 300px; overflow-y: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="edit_photo" class="form-label"><i class="bi bi-camera-fill me-1 text-primary"></i>Photo</label>
@@ -1092,6 +1190,7 @@ if ($electionID) {
                 document.getElementById('edit_manifesto').value = this.dataset.manifesto;
                 document.getElementById('edit_status').value = this.dataset.status;
                 document.getElementById('edit_current_photo').value = this.dataset.photo;
+                document.getElementById('edit_current_manifesto').value = this.dataset.manifesto;
                 
                 // Show current photo preview
                 const preview = document.getElementById('current_photo_preview');
@@ -1130,6 +1229,16 @@ if ($electionID) {
             }
         });
 
+        // Handle manifesto upload preview for Add form
+        document.getElementById('manifesto')?.addEventListener('change', function() {
+            previewManifesto(this, 'manifestoPreview');
+        });
+
+        // Handle manifesto upload preview for Edit form
+        document.getElementById('edit_manifesto')?.addEventListener('change', function() {
+            previewManifesto(this, 'editManifestoPreview');
+        });
+
         // Image preview function
         function previewImage(input, previewId) {
             const previewContainer = document.getElementById(previewId);
@@ -1156,6 +1265,68 @@ if ($electionID) {
             }
         }
 
+        // Manifesto preview function
+        async function previewManifesto(input, previewId) {
+            const previewContainer = document.getElementById(previewId);
+            const previewContent = previewContainer.querySelector('.preview-content');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    input.value = '';
+                    return;
+                }
+
+                previewContainer.querySelector('.file-name').textContent = file.name;
+                previewContainer.classList.remove('d-none');
+
+                // Handle different file types
+                if (file.type === 'application/pdf') {
+                    // Create PDF embed element
+                    previewContent.innerHTML = `
+                        <embed src="${URL.createObjectURL(file)}" 
+                               type="application/pdf" 
+                               width="100%" 
+                               height="500px">
+                    `;
+                } else if (file.type === 'text/plain') {
+                    // Handle text files
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewContent.innerHTML = `
+                            <pre class="p-3" style="max-height: 500px; overflow-y: auto;">${e.target.result}</pre>
+                        `;
+                    }
+                    reader.readAsText(file);
+                }
+            } else {
+                previewContainer.querySelector('.file-name').textContent = '';
+                previewContent.innerHTML = '';
+                previewContainer.classList.add('d-none');
+            }
+        }
+
+        // Clear manifesto preview
+        function clearManifestoPreview() {
+            const previewContainer = document.getElementById('manifestoPreview');
+            previewContainer.querySelector('.file-name').textContent = '';
+            previewContainer.querySelector('.preview-content').textContent = '';
+            previewContainer.classList.add('d-none');
+            document.getElementById('manifesto').value = '';
+        }
+
+        // Clear edit manifesto preview
+        function clearEditManifestoPreview() {
+            const previewContainer = document.getElementById('editManifestoPreview');
+            previewContainer.querySelector('.file-name').textContent = '';
+            previewContainer.querySelector('.preview-content').textContent = '';
+            previewContainer.classList.add('d-none');
+            document.getElementById('edit_manifesto').value = '';
+        }
+
         // Show success alerts for 3 seconds then fade out
         const successAlert = document.querySelector('.alert-success');
         if (successAlert) {
@@ -1176,6 +1347,12 @@ if ($electionID) {
                 if (photoPreview) {
                     photoPreview.innerHTML = '';
                     photoPreview.classList.add('d-none');
+                }
+                const manifestoPreview = document.getElementById('manifestoPreview');
+                if (manifestoPreview) {
+                    manifestoPreview.querySelector('.file-name').textContent = '';
+                    manifestoPreview.querySelector('.preview-content').textContent = '';
+                    manifestoPreview.classList.add('d-none');
                 }
             });
         });
