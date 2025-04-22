@@ -669,24 +669,130 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             border: none;
         }
         
+        /* Core candidate card styles */
         .candidate-card {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: auto;
-            max-height: 250px; /* Set a maximum height for the cards */
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            box-shadow: 0 2px 5px var(--shadow-color);
             background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        /* Mobile-specific card styles */
+        @media (max-width: 768px) {
+            .row.g-4 {
+                margin: 0 -8px;
+            }
+            
+            .col-md-6, .col-lg-4 {
+                padding: 0 8px;
+            }
+            
+            .candidate-card {
+                padding: 1rem;
+                margin-bottom: 0.75rem;
+                touch-action: manipulation; /* Improve touch response */
+            }
+
+            .candidate-photo {
+                width: 70px;
+                height: 70px;
+                margin: 0 auto 0.75rem;
+                border: 2px solid var(--border);
+            }
+
+            .candidate-name {
+                font-size: 1rem;
+                line-height: 1.3;
+                margin-bottom: 0.5rem;
+            }
+
+            .candidate-department {
+                font-size: 0.85rem;
+                opacity: 0.8;
+            }
+
+            .candidate-manifesto {
+                font-size: 0.9rem;
+                margin-top: 0.75rem;
+                line-height: 1.4;
+            }
+
+            .form-check-input {
+                transform: scale(1.2);
+                margin: 0.75rem;
+                transition: all 0.2s ease;
+            }
+        }
+
+        /* Extra small devices optimization */
+        @media (max-width: 576px) {
+            .col-md-6, .col-lg-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .candidate-card {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                padding: 0.875rem;
+                gap: 1rem;
+            }
+
+            .candidate-photo {
+                width: 60px;
+                height: 60px;
+                margin: 0;
+                flex-shrink: 0;
+            }
+
+            .candidate-info {
+                flex: 1;
+                min-width: 0; /* Prevent text overflow */
+            }
+
+            .candidate-name {
+                font-size: 0.95rem;
+                margin-bottom: 0.25rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .form-check-input {
+                position: absolute !important;
+                right: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%) scale(1.2);
+            }
+        }
+
+        /* Active states and transitions */
+        .candidate-card:active {
+            transform: scale(0.98);
+            transition: transform 0.2s ease;
+        }
+
         .candidate-card.selected {
-            border: 2px solid var(--primary);
-            background-color: var(--primary-light);
-            box-shadow: var(--card-hover-shadow);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Improved focus states for accessibility */
+        .candidate-card:focus-within {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary), 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .selection-check {
@@ -743,7 +849,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             padding: 4px 12px;
             font-size: 11px;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
@@ -1171,6 +1276,127 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     .time-separator {
         font-size: 1.5rem;
+    }
+}
+
+/* Desktop Optimizations */
+@media (min-width: 992px) {
+    .candidate-card {
+        padding: 1.5rem;
+        min-height: 300px; /* Reduced from 420px */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-width: 2px;
+        position: relative;
+        background: var(--surface);
+        border-radius: 16px;
+    }
+
+    .candidate-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    /* More compact photo */
+    .candidate-photo {
+        width: 120px; /* Reduced from 180px */
+        height: 120px; /* Reduced from 180px */
+        margin: 0 auto 1rem; /* Reduced margin */
+        border: 3px solid var(--border);
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .candidate-card.selected .candidate-photo {
+        border-color: var(--primary);
+        transform: scale(1.05);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    /* Optimized typography */
+    .candidate-name {
+        font-size: 1.25rem; /* Reduced from 1.5rem */
+        line-height: 1.3;
+        margin-bottom: 0.5rem; /* Reduced margin */
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .candidate-department {
+        font-size: 0.9rem; /* Reduced from 1.1rem */
+        margin-bottom: 0.75rem; /* Reduced margin */
+        color: var(--text-muted);
+    }
+
+    /* Manifesto button improvements */
+    .manifesto-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 6px;
+        margin-top: 0.75rem;
+        background: var(--primary-light);
+        color: var(--primary);
+        transition: all 0.2s ease;
+    }
+
+    .manifesto-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Selection check refinements */
+    .selection-check {
+        width: 32px; /* Reduced from 40px */
+        height: 32px;
+        top: 1rem;
+        right: 1rem;
+        background: var(--primary);
+        opacity: 0;
+        transform: scale(0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 8px rgba(67, 97, 238, 0.25);
+    }
+
+    .selection-check i {
+        font-size: 1.2rem; /* Reduced from 1.5rem */
+    }
+
+    /* Department badge adjustments */
+    .department-badge {
+        position: absolute;
+        bottom: 1rem; /* Reduced from 1.5rem */
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.35rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 20px;
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    /* Grid improvements */
+    .row.g-4 {
+        margin: 0 -12px;
+        gap: 1.25rem;
+    }
+
+    .col-lg-4 {
+        padding: 0 12px;
+    }
+
+    /* Selected state improvements */
+    .candidate-card.selected {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--primary), 0 12px 24px rgba(67, 97, 238, 0.15);
     }
 }
         
