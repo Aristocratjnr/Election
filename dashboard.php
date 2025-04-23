@@ -1308,6 +1308,110 @@ try {
                 toastElement.remove();
             });
         }
+
+        // Share button functionality
+        document.getElementById('shareBtn').addEventListener('click', function() {
+            const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
+            shareModal.show();
+        });
+
+        // Copy link functionality
+        document.getElementById('copyLinkBtn').addEventListener('click', function() {
+            const shareLink = document.getElementById('shareLink');
+            shareLink.select();
+            document.execCommand('copy');
+            showToast('Success', 'Link copied to clipboard!', 'success');
+        });
+
+        // Share buttons functionality
+        document.getElementById('shareEmailBtn').addEventListener('click', function() {
+            const url = document.getElementById('shareLink').value;
+            window.location.href = `mailto:?subject=SmartVote Dashboard&body=${encodeURIComponent(url)}`;
+        });
+
+        document.getElementById('shareWhatsappBtn').addEventListener('click', function() {
+            const url = document.getElementById('shareLink').value;
+            window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
+        });
+
+        document.getElementById('shareTelegramBtn').addEventListener('click', function() {
+            const url = document.getElementById('shareLink').value;
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}`, '_blank');
+        });
+
+        document.getElementById('shareTwitterBtn').addEventListener('click', function() {
+            const url = document.getElementById('shareLink').value;
+            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, '_blank');
+        });
+
+        // Export button functionality
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+            exportModal.show();
+        });
+
+        // Export submit functionality
+        document.getElementById('exportSubmitBtn').addEventListener('click', function() {
+            const format = document.querySelector('input[name="exportFormat"]:checked').value;
+            const exportStats = document.getElementById('exportStats').checked;
+            const exportStudents = document.getElementById('exportStudents').checked;
+            const exportElections = document.getElementById('exportElections').checked;
+
+            // Show loading state
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...';
+            this.disabled = true;
+
+            // Prepare export data
+            const exportData = {
+                format: format,
+                data: {
+                    stats: exportStats,
+                    students: exportStudents,
+                    elections: exportElections
+                }
+            };
+
+            // Send export request
+            fetch('export_dashboard.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(exportData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dashboard_export.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                // Show success message
+                showToast('Success', 'Export completed successfully!', 'success');
+                
+                // Hide modal
+                bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                showToast('Error', 'Failed to export data. Please try again.', 'danger');
+            })
+            .finally(() => {
+                // Reset button state
+                this.innerHTML = '<i class="bi bi-download me-2"></i>Export';
+                this.disabled = false;
+            });
+        });
     });
     </script>
     

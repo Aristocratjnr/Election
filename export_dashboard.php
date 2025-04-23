@@ -263,67 +263,195 @@ function exportExcel($data) {
 
 /**
  * Export data as PDF
- * Note: This is a simplified version. For a production environment, you would use a library like TCPDF or FPDF
  */
 function exportPDF($data) {
-    // For simplicity, we'll just export as CSV with PDF MIME type
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="smartvote-dashboard.pdf"');
-    
-    // In a real implementation, you would generate a PDF here
-    // For now, we'll just output a simple text representation
-    
-    $output = fopen('php://output', 'w');
-    
-    fwrite($output, "SMARTVOTE DASHBOARD EXPORT\n\n");
-    
-    // Write statistics
-    if (isset($data['statistics'])) {
-        fwrite($output, "DASHBOARD STATISTICS\n");
-        foreach ($data['statistics'] as $key => $value) {
-            fwrite($output, "$key: $value\n");
+    try {
+        // Check if TCPDF exists
+        if (!file_exists('vendor/tecnickcom/tcpdf/tcpdf.php')) {
+            throw new Exception('TCPDF library not found. Please run composer require tecnickcom/tcpdf');
         }
-        fwrite($output, "\n");
-    }
-    
-    // Write students
-    if (isset($data['students']) && !empty($data['students'])) {
-        fwrite($output, "STUDENTS\n");
-        // Write headers
-        fwrite($output, implode("\t", array_keys($data['students'][0])) . "\n");
-        
-        // Write data
-        foreach ($data['students'] as $student) {
-            fwrite($output, implode("\t", $student) . "\n");
-        }
-        fwrite($output, "\n");
-    }
-    
-    // Write elections
-    if (isset($data['elections']) && !empty($data['elections'])) {
-        fwrite($output, "ELECTIONS\n");
-        
-        foreach ($data['elections'] as $election) {
-            fwrite($output, "Election ID: " . $election['ID'] . "\n");
-            fwrite($output, "Name: " . $election['Name'] . "\n");
-            fwrite($output, "Description: " . $election['Description'] . "\n");
-            fwrite($output, "Start Date: " . $election['Start Date'] . "\n");
-            fwrite($output, "End Date: " . $election['End Date'] . "\n");
-            fwrite($output, "Status: " . $election['Status'] . "\n");
-            
-            if (!empty($election['Categories'])) {
-                fwrite($output, "Categories:\n");
-                fwrite($output, "ID\tName\tDescription\n");
-                
-                foreach ($election['Categories'] as $category) {
-                    fwrite($output, $category['ID'] . "\t" . $category['Name'] . "\t" . $category['Description'] . "\n");
-                }
+
+        require_once('vendor/tecnickcom/tcpdf/tcpdf.php');
+
+        // Enable error reporting
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+
+        // Create new PDF document with explicit parameters
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8');
+
+        // Set document information
+        $pdf->SetCreator('SmartVote System');
+        $pdf->SetAuthor('SmartVote Admin');
+        $pdf->SetTitle('SmartVote Dashboard Export');
+
+        // Remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set default monospaced font
+        $pdf->SetDefaultMonospacedFont('courier');
+
+        // Set margins - slightly larger to ensure content fits
+        $pdf->SetMargins(20, 20, 20);
+
+        // Set auto page breaks
+        $pdf->SetAutoPageBreak(TRUE, 20);
+
+        // Set font - using core fonts to avoid encoding issues
+        $pdf->SetFont('helvetica', '', 11);
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Title
+        $pdf->SetFont('helvetica', 'B', 20);
+        $pdf->Cell(0, 10, 'SmartVote Dashboard Report', 0, 1, 'C');
+        $pdf->Ln(10);
+
+        // Statistics Section
+        if (isset($data['statistics'])) {
+            $pdf->SetFont('helvetica', 'B', 16);
+            $pdf->Cell(0, 10, 'Dashboard Statistics', 0, 1, 'L');
+            $pdf->SetFont('helvetica', '', 11);
+            $pdf->Ln(5);
+
+            foreach ($data['statistics'] as $key => $value) {
+                // Use MultiCell for better text wrapping
+                $pdf->Cell(100, 8, $key . ':', 0, 0);
+                $pdf->MultiCell(0, 8, $value, 0, 'L');
             }
-            
-            fwrite($output, "\n");
+            $pdf->Ln(10);
         }
+
+        // Students Section
+        if (isset($data['students']) && !empty($data['students'])) {
+            $pdf->SetFont('helvetica', 'B', 16);
+            $pdf->Cell(0, 10, 'Students', 0, 1, 'L');
+            $pdf->SetFont('helvetica', '', 11);
+            $pdf->Ln(5);
+
+            // Calculate column widths based on page width
+            $pageWidth = $pdf->GetPageWidth() - 40; // Subtract margins
+            $widths = array(
+                $pageWidth * 0.1,  // ID
+                $pageWidth * 0.2,  // Name
+                $pageWidth * 0.25, // Email
+                $pageWidth * 0.2,  // Department
+                $pageWidth * 0.125, // Status
+                $pageWidth * 0.125  // Role
+            );
+
+            // Table header with background
+            $pdf->SetFillColor(240, 240, 240);
+            $pdf->SetFont('helvetica', 'B', 11);
+            $headers = array_keys($data['students'][0]);
+            
+            foreach ($headers as $index => $header) {
+                $pdf->Cell($widths[$index], 8, $header, 1, 0, 'C', true);
+            }
+            $pdf->Ln();
+
+            // Table data
+            $pdf->SetFont('helvetica', '', 10);
+            foreach ($data['students'] as $student) {
+                $pdf->SetFillColor(255, 255, 255);
+                
+                // Handle multi-line content
+                $maxHeight = 8;
+                foreach ($student as $value) {
+                    $numLines = $pdf->getNumLines($value, $widths[0]);
+                    $lineHeight = $numLines * 8;
+                    $maxHeight = max($maxHeight, $lineHeight);
+                }
+
+                foreach ($student as $index => $value) {
+                    $pdf->MultiCell($widths[$index], $maxHeight, $value, 1, 'L', false, 0);
+                }
+                $pdf->Ln($maxHeight);
+            }
+            $pdf->Ln(10);
+        }
+
+        // Elections Section
+        if (isset($data['elections']) && !empty($data['elections'])) {
+            $pdf->SetFont('helvetica', 'B', 16);
+            $pdf->Cell(0, 10, 'Elections', 0, 1, 'L');
+            
+            foreach ($data['elections'] as $election) {
+                $pdf->SetFont('helvetica', 'B', 13);
+                $pdf->Ln(5);
+                
+                // Election details in a bordered box
+                $pdf->SetFillColor(245, 245, 245);
+                $pdf->Cell(0, 8, 'Election ID: ' . $election['ID'], 1, 1, 'L', true);
+                
+                $pdf->SetFont('helvetica', '', 11);
+                $pdf->SetFillColor(255, 255, 255);
+                
+                // Use MultiCell for better text wrapping
+                $labelWidth = 40;
+                
+                $pdf->Cell($labelWidth, 8, 'Name:', 1);
+                $pdf->MultiCell(0, 8, $election['Name'], 1, 'L');
+                
+                $pdf->Cell($labelWidth, 8, 'Description:', 1);
+                $pdf->MultiCell(0, 8, $election['Description'], 1, 'L');
+                
+                $pdf->Cell($labelWidth, 8, 'Start Date:', 1);
+                $pdf->Cell(0, 8, $election['Start Date'], 1, 1, 'L');
+                
+                $pdf->Cell($labelWidth, 8, 'End Date:', 1);
+                $pdf->Cell(0, 8, $election['End Date'], 1, 1, 'L');
+                
+                $pdf->Cell($labelWidth, 8, 'Status:', 1);
+                $pdf->Cell(0, 8, $election['Status'], 1, 1, 'L');
+
+                if (!empty($election['Categories'])) {
+                    $pdf->Ln(5);
+                    $pdf->SetFont('helvetica', 'B', 12);
+                    $pdf->Cell(0, 8, 'Categories:', 0, 1);
+                    
+                    // Categories table
+                    $pdf->SetFont('helvetica', 'B', 11);
+                    $pdf->SetFillColor(240, 240, 240);
+                    
+                    // Calculate widths for categories table
+                    $catWidths = array(
+                        $pageWidth * 0.15,  // ID
+                        $pageWidth * 0.35,  // Name
+                        $pageWidth * 0.5   // Description
+                    );
+                    
+                    $pdf->Cell($catWidths[0], 8, 'ID', 1, 0, 'C', true);
+                    $pdf->Cell($catWidths[1], 8, 'Name', 1, 0, 'C', true);
+                    $pdf->Cell($catWidths[2], 8, 'Description', 1, 1, 'C', true);
+
+                    $pdf->SetFont('helvetica', '', 11);
+                    foreach ($election['Categories'] as $category) {
+                        $pdf->Cell($catWidths[0], 8, $category['ID'], 1, 0, 'L');
+                        $pdf->Cell($catWidths[1], 8, $category['Name'], 1, 0, 'L');
+                        $pdf->MultiCell($catWidths[2], 8, $category['Description'], 1, 'L');
+                    }
+                }
+                $pdf->AddPage();
+            }
+        }
+
+        // Output the PDF
+        $pdf->Output('smartvote-dashboard.pdf', 'D');
+        exit();
+    } catch (Exception $e) {
+        // Log the error
+        error_log("PDF Generation Error: " . $e->getMessage());
+        
+        // Return error response
+        header('HTTP/1.1 500 Internal Server Error');
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to generate PDF: ' . $e->getMessage()
+        ]);
+        exit();
     }
-    
-    fclose($output);
-    exit();
-} 
+}
