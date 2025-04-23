@@ -1630,3 +1630,26 @@
         font-size: 1.25rem;
     }
   }
+
+  /*--------------------------------------------------------------
+  # Container Styles
+  --------------------------------------------------------------*/
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    width: 100%;
+  }
+
+  .container-fluid {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .main-content {
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    width: 100%;
+    max-width: 1200px;
+  }

@@ -18,8 +18,8 @@ $result = $row->get_result();
     <div class="row g-3">
       <div class="col-md-12">
         <label for="category" class="form-label">Category Name</label>
-        <input type="hidden" name="election" id="election" value="<?php echo $election_id; ?>">
-        <input type="text" name="category" class="form-control" id="category" data-error-message="Category is required">
+        <input type="hidden" name="electionID" id="electionID" value="<?php echo $election_id; ?>">
+        <input type="text" name="name" class="form-control" id="name" data-error-message="Category name is required">
         <div class="invalid-feedback"></div>
       </div>
     </div>
@@ -30,58 +30,60 @@ $result = $row->get_result();
   </div>
 </form>
 
-<!-- Add Category JQuery -->
 <script>
   $('#add-category-form').submit(function(e) {
     e.preventDefault()
 
     let isValid = true;
-    $("#add-category-form").find("input, select").each(function() {
+    $("#add-category-form").find("input").each(function() {
       const input = $(this);
       const value = input.val().trim();
       const errorMessage = input.data("error-message");
-      if (value === "") {
+      if (value === "" && input.attr('name') !== 'electionID') {
         isValid = false;
-        input.addClass("is-invalid"); // Add a CSS class for invalid inputs
-        input.siblings(".invalid-feedback").text(errorMessage); // Show error message
+        input.addClass("is-invalid");
+        input.siblings(".invalid-feedback").text(errorMessage);
       } else {
-        input.removeClass("is-invalid"); // Remove the CSS class if input is valid
-        input.siblings(".invalid-feedback").text(""); // Clear error message
+        input.removeClass("is-invalid");
+        input.siblings(".invalid-feedback").text("");
       }
     });
 
     if (isValid) {
-
       $.ajax({
-        url: 'controllers/app.php?action=add_category',
+        url: 'api/save_category_fixed.php',
         method: 'POST',
         data: $(this).serialize(),
-        success: function(resp) {
-          var response = JSON.parse(resp);
-          if (response.status === 'success') {
-            location.href = response.redirect_url;
-          } else if (response.status === 'errors') {
-            $('#add-category-form').prepend('<div class="alert alert-danger">' + response.message + '</div>');
-
+        success: function(response) {
+          if (response.success) {
+            $('#addCategory').modal('hide');
+            toastr.success(response.message);
+            setTimeout(function() {
+              location.reload();
+            }, 1500);
           } else {
-            $('#add-category-form').prepend('<div class="alert alert-danger">' + response.message + '</div>');
+            toastr.error(response.message);
           }
+        },
+        error: function(xhr, status, error) {
+          toastr.error('An error occurred while saving the category');
         }
-      })
+      });
     }
-  })
-  // Real-time validation when the user enters the required field
-  $("#add-category-form").find("input, select").on("input", function() {
+  });
+
+  // Real-time validation
+  $("#add-category-form").find("input").on("input", function() {
     const input = $(this);
     const value = input.val().trim();
     const errorMessage = input.data("error-message");
 
-    if (value === "") {
-      input.addClass("is-invalid"); // Add a CSS class for invalid inputs
-      input.siblings(".invalid-feedback").text(errorMessage); // Show error message
+    if (value === "" && input.attr('name') !== 'electionID') {
+      input.addClass("is-invalid");
+      input.siblings(".invalid-feedback").text(errorMessage);
     } else {
-      input.removeClass("is-invalid"); // Remove the CSS class if input is valid
-      input.siblings(".invalid-feedback").text(""); // Clear error message
+      input.removeClass("is-invalid");
+      input.siblings(".invalid-feedback").text("");
     }
   });
 </script>

@@ -19,6 +19,19 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
+// Initialize dashboard stats if not set
+if (!isset($_SESSION['dashboard_stats'])) {
+    $_SESSION['dashboard_stats'] = [];
+}
+
+// Get fresh count of categories
+$categoriesQuery = $conn->prepare("SELECT COUNT(*) as total FROM categories");
+$categoriesQuery->execute();
+$categoriesCount = $categoriesQuery->get_result()->fetch_assoc()['total'];
+
+// Update the session variable
+$_SESSION['dashboard_stats']['total_active_categories'] = $categoriesCount;
+
 // Initialize variables
 $dashboard_stats = [
     'total_elections' => 0,

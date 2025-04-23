@@ -19,13 +19,17 @@ try {
     
     // Update categories stats
     if ($updateType === 'categories' || $updateType === 'all') {
-        $categoriesQuery = $conn->prepare("SELECT COUNT(*) as total FROM categories");
+        // Count all categories
+        $categoriesQuery = $conn->prepare("
+            SELECT COUNT(*) as total 
+            FROM categories
+        ");
         $categoriesQuery->execute();
         $categoriesCount = $categoriesQuery->get_result()->fetch_assoc()['total'];
         
         $updateData['categories'] = $categoriesCount;
         
-        // Update the session variable to reflect in the dashboard
+        // Update the session variable
         $_SESSION['dashboard_stats']['total_active_categories'] = $categoriesCount;
     }
     
@@ -44,4 +48,4 @@ try {
         'success' => false,
         'message' => 'Failed to update dashboard stats: ' . $e->getMessage()
     ]);
-} 
+}

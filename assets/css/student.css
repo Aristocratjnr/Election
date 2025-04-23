@@ -1,4 +1,4 @@
-  /* Light mode variables (default) */
+/* Light mode variables (default) */
   :root {
     --primary: #4361ee;
     --primary-light: rgba(67, 97, 238, 0.08);
@@ -1747,6 +1747,16 @@ box-shadow: 0 0 0 2px var(--primary), 0 12px 24px rgba(67, 97, 238, 0.15);
     background-color: var(--bg);
     color: var(--text);
     transition: background-color 0.3s ease, color 0.3s ease;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    width: 100%;
+}
+
+.container-fluid {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
 /* Fix header background color for specific sections */
@@ -2219,6 +2229,9 @@ html[data-bs-theme="dark"] .sticky-bottom {
     .main-content {
         margin-left: 0; /* Remove margin for sidebar */
         width: 100%;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+        max-width: 1200px;
     }
     
     /* Adjust the grid for better mobile layout */
