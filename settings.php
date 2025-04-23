@@ -232,8 +232,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Handle 2FA setup
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_2fa'])) {
-    $g = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
-    $secret = $g->generateSecret();
+    // Use OTPHP library instead of Sonata Google Authenticator
+    $otp = \OTPHP\TOTP::create();
+    $secret = $otp->getSecret();
     
     try {
         $stmt = $conn->prepare("UPDATE students SET two_factor_secret = ? WHERE studentID = ?");
@@ -256,9 +257,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_2fa'])) {
     $code = trim($_POST['verification_code']);
     
     if (!empty($_SESSION['2fa_secret'])) {
-        $g = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
+        // Use OTPHP library instead of Sonata Google Authenticator
+        $otp = \OTPHP\TOTP::create($_SESSION['2fa_secret']);
         
-        if ($g->checkCode($_SESSION['2fa_secret'], $code)) {
+        if ($otp->verify($code)) {
             try {
                 $stmt = $conn->prepare("UPDATE students SET two_factor_enabled = 1 WHERE studentID = ?");
                 $stmt->bind_param('i', $_SESSION['login_id']);
@@ -971,23 +973,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
     <!-- 2FA setup in progress -->
     <div class="text-center mb-4">
         <?php
-        $g = new \Sonata\GoogleAuthenticator\GoogleAuthenticator();
-        $qrCodeUrl = \Sonata\GoogleAuthenticator\GoogleQrUrl::generate(
-            $studentData['email'],
-            $_SESSION['2fa_secret'],
-            'SmartVote'
-        );
+        // Create a proper TOTP object with the user's email and app name
+        $otp = \OTPHP\TOTP::create($_SESSION['2fa_secret']);
+        $otp->setIssuer('SmartVote');
+        $otp->setLabel($studentData['email']);
+        
+        // Generate the provisioning URI for QR codes
+        $provisioning_uri = $otp->getProvisioningUri();
+        
+        // Create a shorter version of the secret for display
+        $secret_display = implode(' ', str_split($_SESSION['2fa_secret'], 4));
         ?>
-        <p><i class="bi bi-qr-code me-2"></i> Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
-        <div class="qr-code-container">
-            <img src="<?php echo $qrCodeUrl; ?>" class="img-fluid mb-3" style="max-width: 200px;">
+        <p><i class="bi bi-qr-code me-2"></i> Scan this QR code with your authenticator app:</p>
+        
+        <!-- Local QR code generation using qrious.js -->
+        <div class="text-center">
+            <canvas id="qrcode" style="width: 200px; height: 200px; border: 1px solid #ccc; margin: 15px auto;"></canvas>
         </div>
-        <div class="alert alert-info d-flex align-items-center">
+        
+        <div class="alert alert-info d-flex align-items-center mt-3">
             <i class="bi bi-info-circle-fill me-2"></i>
             <div>
-                Can't scan? Enter this code manually: <strong><?php echo chunk_split($_SESSION['2fa_secret'], 4, ' '); ?></strong>
+                Can't scan? Enter this code manually: <strong><?php echo $secret_display; ?></strong>
             </div>
         </div>
+        
+        <!-- Add QR code generation script -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+        <script>
+            // Generate QR code when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                var qr = new QRious({
+                    element: document.getElementById('qrcode'),
+                    size: 500,
+                    value: '<?php echo $provisioning_uri; ?>',
+                    background: '#ffffff',
+                    foreground: '#000000',
+                    level: 'H'
+                });
+            });
+        </script>
     </div>
             
             <form action="settings.php" method="POST">

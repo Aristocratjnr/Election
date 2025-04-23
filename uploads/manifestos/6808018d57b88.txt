@@ -1,0 +1,14 @@
+Remainder: Create a ticket on the invite button at team members section on Navigator. The button there isn't functional, it doesnt give any output.
+
+2. Resolved: Support Ticket Model INK:241
+	Resolved: INK:247
+
+3. Closed: INK-247
+
+4. When it takes sometime to visit the account page, it shows undefined at the profile section. Even if it's at the log out state, it shouldn't show that. it should just refresh to re-login. but in this situation, unless you reload the browser for it to send you back to the re-login page.
+
+5. Remove $NAN at tota credit limit and credit available at Credit Summary on compass.
+
+6. Remove inValid date at Total available funds
+
+7. At Banking+ on Navigator, the toggle should be Accepted not Active becauses it shows accepted at the top of the toggle. 

@@ -3,9 +3,11 @@
         "phpmailer/phpmailer": "^6.9",
         "vlucas/phpdotenv": "*",
         "google/auth": "^1.24",
-        "tecnickcom/tcpdf": "*",
+        "tecnickcom/tcpdf": "^6.9",
         "phpoffice/phpspreadsheet": "^1.29",
         "dompdf/dompdf": "^2.0",
-        "spomky-labs/otphp": "^11.2"
+        "spomky-labs/otphp": "^11.2",
+        "ezyang/htmlpurifier": "^4.18",
+        "composer/semver": "^3.4"
     }
 }

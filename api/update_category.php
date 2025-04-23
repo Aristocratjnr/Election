@@ -1,8 +1,7 @@
 <?php
-// Use dirname to resolve paths correctly regardless of where the script is included from
 $base_path = dirname(__FILE__, 2); // Go up one level from api folder
-require_once $base_path . '../configs/dbconnection.php';
-require_once $base_path . '../includes/auth_check.php';
+require_once $base_path . '/../configs/dbconnection.php';
+require_once $base_path . '/../includes/auth_check.php';
 
 header('Content-Type: application/json');
 
@@ -26,13 +25,8 @@ try {
     $categoryID = $_POST['categoryID'];
     $electionID = $_POST['electionID'];
     $categoryName = $_POST['name'];
-    
-    // Get a valid student ID (first student in the database)
-    $studentQuery = $conn->query("SELECT studentID FROM students LIMIT 1");
-    if ($studentQuery->num_rows === 0) {
-        throw new Exception('No student record found. Cannot update category.');
-    }
-    $studentID = $studentQuery->fetch_assoc()['studentID'];
+    $description = $_POST['description'] ?? null;
+    $adminID = $_SESSION['login_id'];
     
     // Check if category exists
     $checkCategory = $conn->prepare("SELECT categoryID FROM categories WHERE categoryID = ?");
@@ -64,45 +58,32 @@ try {
         throw new Exception('A category with this name already exists for the selected election');
     }
     
-    // Update category - without the description field
-    $updateCategory = $conn->prepare(
+    // Update category
+    $stmt = $conn->prepare(
         "UPDATE categories SET 
             electionID = ?, 
             name = ?, 
-            updatedBy = ? 
+            description = ?,
+            updatedBy = ?,
+            updatedAt = NOW()
         WHERE categoryID = ?"
     );
-    $updateCategory->bind_param('isii', $electionID, $categoryName, $studentID, $categoryID);
-    $updateCategory->execute();
+    $stmt->bind_param('issii', $electionID, $categoryName, $description, $adminID, $categoryID);
+    $stmt->execute();
     
-    if ($updateCategory->affected_rows >= 0) { // Using >= 0 because affected_rows might be 0 if no changes were made
-        // Get the updated category
-        $updatedCategoryQuery = $conn->prepare(
-            "SELECT c.*, e.name as election_name, s1.name as added_by_name, s2.name as updated_by_name 
-             FROM categories c
-             LEFT JOIN elections e ON c.electionID = e.electionID
-             LEFT JOIN students s1 ON c.addedBy = s1.studentID
-             LEFT JOIN students s2 ON c.updatedBy = s2.studentID
-             WHERE c.categoryID = ?"
-        );
-        $updatedCategoryQuery->bind_param('i', $categoryID);
-        $updatedCategoryQuery->execute();
-        $updatedCategory = $updatedCategoryQuery->get_result()->fetch_assoc();
-        
+    if ($stmt->affected_rows >= 0) {
         echo json_encode([
             'success' => true,
-            'message' => 'Category updated successfully',
-            'category' => $updatedCategory
+            'message' => 'Category updated successfully'
         ]);
     } else {
         throw new Exception('Failed to update category');
     }
     
 } catch (Exception $e) {
-    // Return error response
     http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
-} 
+}

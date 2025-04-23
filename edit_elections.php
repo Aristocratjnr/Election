@@ -50,8 +50,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         // Check date validity
-        $startDate = date('Y-m-d H:i:s', strtotime($_POST['startDate']));
-        $endDate = date('Y-m-d H:i:s', strtotime($_POST['endDate']));
+        $startTimestamp = strtotime($_POST['startDate']);
+        $endTimestamp = strtotime($_POST['endDate']);
+        $now = time();
+        
+        // Format dates with time component
+        $startDate = date('Y-m-d H:i:s', $startTimestamp);
+        $endDate = date('Y-m-d H:i:s', $endTimestamp);
+        
+        // Debug log the times
+        error_log("Updating election - Current time: " . date('Y-m-d H:i:s', $now));
+        error_log("Start Date: $startDate");
+        error_log("End Date: $endDate");
+        
+        // Validation for Ongoing status
+        if ($_POST['status'] === 'Ongoing') {
+            if ($startTimestamp > $now) {
+                $error_msg = 'Start date/time must be in the past or now to set status to Ongoing.';
+                header('Location: edit_elections.php?id='.$electionID.'&error=invalid_dates&message='.urlencode($error_msg));
+                exit;
+            }
+            if ($endTimestamp <= $now) {
+                $error_msg = 'End date/time must be in the future to set status to Ongoing.';
+                header('Location: edit_elections.php?id='.$electionID.'&error=invalid_dates&message='.urlencode($error_msg));
+                exit;
+            }
+        }
         
         if ($endDate < $startDate) {
             header('Location: edit_elections.php?id='.$electionID.'&error=invalid_dates');
@@ -61,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Set default visibility if not provided
         $visibility = isset($_POST['visibility']) ? $_POST['visibility'] : 'Public';
         
-        // Update election
+        // Update election with precise datetime
         $stmt = $conn->prepare("UPDATE elections SET 
             name = ?, 
             startDate = ?, 

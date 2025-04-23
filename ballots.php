@@ -105,47 +105,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         body {
             background-color: var(--light-bg);
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
         }
 
-        /* Sidebar styles */
-        .sidebar {
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            z-index: 100;
-        }
-
-        .sidebar .nav-link {
-            color: #666;
-            padding: 0.5rem 1rem;
-            margin: 0.2rem 0;
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .sidebar .nav-link:hover {
-            background-color: rgba(67, 97, 238, 0.1);
-            color: var(--primary-color);
-        }
-
-        .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .sidebar .nav-link i {
-            color: var(--primary-color);
-            transition: all 0.2s;
-        }
-
-        .sidebar .nav-link.active i,
-        .sidebar .nav-link:hover i {
-            color: inherit;
-        }
 
         /* Main content area */
         main {
             background-color: var(--light-bg);
             min-height: 100vh;
+            margin-left: 90px;
         }
 
         /* Update ballot container styles */
@@ -551,29 +519,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 992px) {
-            .sidebar {
-                position: fixed;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                z-index: 1000;
-                padding: 0;
-                overflow-x: hidden;
-                overflow-y: auto;
-                visibility: hidden;
-                width: 100%;
-                max-width: 250px;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            }
-
-            .sidebar.show {
-                visibility: visible;
-                transform: translateX(0);
-            }
-            
+       
             .preview-controls {
                 bottom: 1rem;
                 right: 1rem;
@@ -582,7 +528,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .ballot-container {
                 padding: 0 1rem;
             }
-        }
 
         @media (max-width: 576px) {
             .style-preview {
@@ -617,61 +562,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
+<?php include 'includes/sidebar.php'; ?>
     <!-- New sidebar navigation -->
     <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" style="min-height: 100vh;">
-                <div class="position-sticky pt-3">
-                    <div class="d-flex align-items-center mb-3 px-3">
-                        <img src="assets/img/logo.png" alt="Logo" style="height: 40px;" class="me-2">
-                        <h4 class="m-0 text-primary">SmartVote</h4>
-                    </div>
-                    <hr>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="dashboard.php">
-                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="elections.php">
-                                <i class="bi bi-calendar-event me-2"></i> Elections
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="ballots.php" aria-current="page">
-                                <i class="bi bi-file-earmark-text me-2"></i> Ballots
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="candidates.php">
-                                <i class="bi bi-people me-2"></i> Candidates
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="voters.php">
-                                <i class="bi bi-person-check me-2"></i> Voters
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="results.php">
-                                <i class="bi bi-bar-chart me-2"></i> Results
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="settings.php">
-                                <i class="bi bi-gear me-2"></i> Settings
-                            </a>
-                        </li>
-                    </ul>
-                    <hr>
-                    <div class="px-3">
-                        <a href="logout.php" class="btn btn-outline-danger w-100">
-                            <i class="bi bi-box-arrow-right me-2"></i> Logout
-                        </a>
-                    </div>
-                </div>
-            </nav>
+       
 
             <!-- Main content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
@@ -930,7 +824,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                                         <small class="text-muted d-block">
                                                                             <?php 
                                                                             if (!empty($candidate['department'])) {
-                                                                                echo '<i class="bi bi-building me-1"></i>' . htmlspecialchars($candidate['department']); 
+                                                                                echo '<i class="bi bi-buildings department-icon icon"></i>' . htmlspecialchars($candidate['department']); 
                                                                             }
                                                                             
                                                                             if (!empty($candidate['manifesto'])) {

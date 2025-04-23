@@ -21,6 +21,9 @@ try {
     
     $categoryID = $_POST['categoryID'];
     
+    // Begin transaction
+    $conn->begin_transaction();
+    
     // Check if category exists
     $checkCategory = $conn->prepare("SELECT categoryID FROM categories WHERE categoryID = ?");
     $checkCategory->bind_param('i', $categoryID);
@@ -31,23 +34,17 @@ try {
         throw new Exception('Category does not exist');
     }
     
-    // Check if category is used in any positions (if positions have a reference to categories)
-    // This is a placeholder - you would need to adjust this based on your actual database schema
-    $checkUsage = $conn->prepare("SELECT positionID FROM positions WHERE categoryID = ? LIMIT 1");
-    if ($checkUsage) {
-        $checkUsage->bind_param('i', $categoryID);
-        $checkUsage->execute();
-        $usageResult = $checkUsage->get_result();
-        
-        if ($usageResult->num_rows > 0) {
-            throw new Exception('Cannot delete this category as it is being used in one or more positions');
-        }
-    }
+    // Delete associated candidates first (if any)
+    $deleteCandidates = $conn->prepare("DELETE FROM candidates WHERE categoryID = ?");
+    $deleteCandidates->bind_param('i', $categoryID);
+    $deleteCandidates->execute();
     
-    // Begin transaction
-    $conn->begin_transaction();
+    // Delete associated votes (if any)
+    $deleteVotes = $conn->prepare("DELETE FROM votes WHERE categoryID = ?");
+    $deleteVotes->bind_param('i', $categoryID);
+    $deleteVotes->execute();
     
-    // Delete category
+    // Finally delete the category
     $deleteCategory = $conn->prepare("DELETE FROM categories WHERE categoryID = ?");
     $deleteCategory->bind_param('i', $categoryID);
     $deleteCategory->execute();
@@ -58,7 +55,7 @@ try {
         
         echo json_encode([
             'success' => true,
-            'message' => 'Category deleted successfully'
+            'message' => 'Category and associated data deleted successfully'
         ]);
     } else {
         throw new Exception('Failed to delete category');
@@ -66,16 +63,13 @@ try {
     
 } catch (Exception $e) {
     // Rollback transaction if it was started
-    try {
+    if ($conn->connect_errno === 0) {
         $conn->rollback();
-    } catch (Exception $rollbackError) {
-        // Ignore rollback errors
     }
     
-    // Return error response
     http_response_code(400);
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
-} 
+}

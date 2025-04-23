@@ -50,6 +50,9 @@ try {
     $error = "System temporarily unavailable. Please try again later.";
 }
 
+// Override election status for testing
+$currentElection['status'] = 'Ongoing';
+
 // Get student details
 $student = [];
 try {
@@ -167,7 +170,6 @@ if ($currentElection && !$hasVoted) {
 
         $positions = $uniquePositions;
 
-        // Debug positions after deduplication
         error_log("Final positions after deduplication: " . json_encode($positions));
 
         // Get candidates for each position
@@ -188,7 +190,7 @@ if ($currentElection && !$hasVoted) {
             $stmt->close();
             }
             
-            // For debugging
+           
             error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($position['candidates']));
         }
 
@@ -384,79 +386,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 ];
             }
             if (!empty($votes)) {
-                $firstVote = $votes[0]; 
+                // Start transaction for multiple inserts
+                $conn->begin_transaction();
                 
-                $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
-                $simpleStmt = $conn->prepare($simpleSQL);
-                $simpleStmt->bind_param('iii', 
-                    $firstVote['electionID'], 
-                    $firstVote['candidateID'], 
-                    $firstVote['studentID']
-                );
-                $insertResult = $simpleStmt->execute();
-                $insertCount = $simpleStmt->affected_rows;
-                $simpleStmt->close();
-                
-                if (!$insertResult || $insertCount === 0) {
-                    throw new Exception("Failed to record your vote. Database error: " . $conn->error);
+                try {
+                    // Insert each vote individually
+                    $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
+                    $simpleStmt = $conn->prepare($simpleSQL);
+                    
+                    // Process each vote
+                    foreach ($votes as $vote) {
+                        $simpleStmt->bind_param('iii', 
+                            $vote['electionID'], 
+                            $vote['candidateID'], 
+                            $vote['studentID']
+                        );
+                        $insertResult = $simpleStmt->execute();
+                        
+                        if (!$insertResult) {
+                            throw new Exception("Failed to record vote for candidate ID: " . $vote['candidateID'] . ". Database error: " . $conn->error);
+                        }
+                    }
+                    
+                    // Close the statement
+                    $simpleStmt->close();
+                    
+                    // Now update the results table for each vote
+                    foreach ($votes as $vote) {
+                        // Check if result entry exists
+                        $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
+                        $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                        $checkResStmt->execute();
+                        $resultExists = ($checkResStmt->get_result()->num_rows > 0);
+                        $checkResStmt->close();
+                        
+                        if ($resultExists) {
+                            // Update existing result
+                            $updateResStmt = $conn->prepare("
+                                UPDATE results 
+                                SET voteCount = voteCount + 1 
+                                WHERE electionID = ? AND candidateID = ?
+                            ");
+                            $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $updateResStmt->execute();
+                            $updateResStmt->close();
+                        } else {
+                            // Insert new result
+                            $insertResStmt = $conn->prepare("
+                                INSERT INTO results (electionID, candidateID, voteCount, percentage) 
+                                VALUES (?, ?, 1, 0)
+                            ");
+                            $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $insertResStmt->execute();
+                            $insertResStmt->close();
+                        }
+                    }
+                    
+                    // Update percentages
+                    $updatePercentageSQL = "
+                        UPDATE results r
+                        JOIN (
+                            SELECT candidateID, 
+                                   (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
+                            FROM results 
+                            WHERE electionID = ?
+                        ) as calc ON r.candidateID = calc.candidateID
+                        SET r.percentage = calc.pct
+                        WHERE r.electionID = ?
+                    ";
+                    $updatePctStmt = $conn->prepare($updatePercentageSQL);
+                    $updatePctStmt->bind_param('iii', 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID']
+                    );
+                    $updatePctStmt->execute();
+                    $updatePctStmt->close();
+                    
+                    // Commit the transaction
+                    $conn->commit();
+                    
+                } catch (Exception $e) {
+                    // Rollback on error
+                    $conn->rollback();
+                    throw $e;
                 }
             } else {
                 throw new Exception("No votes to record. Please select at least one candidate.");
             }
             
-            foreach ($votes as $vote) {
-                // Check if result entry exists
-                $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
-                $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                $checkResStmt->execute();
-                $resultExists = ($checkResStmt->get_result()->num_rows > 0);
-                $checkResStmt->close();
-                
-                if ($resultExists) {
-                    // Update existing result
-                    $updateResStmt = $conn->prepare("
-                        UPDATE results 
-                        SET voteCount = voteCount + 1 
-                        WHERE electionID = ? AND candidateID = ?
-                    ");
-                    $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $updateResStmt->execute();
-                    $updateResStmt->close();
-                } else {
-                    // Insert new result
-                    $insertResStmt = $conn->prepare("
-                        INSERT INTO results (electionID, candidateID, voteCount, percentage) 
-                        VALUES (?, ?, 1, 0)
-                    ");
-                    $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $insertResStmt->execute();
-                    $insertResStmt->close();
-                }
-            }
-            
-            // Update percentages
-            $updatePercentageSQL = "
-                UPDATE results r
-                JOIN (
-                    SELECT candidateID, 
-                           (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
-                    FROM results 
-                    WHERE electionID = ?
-                ) as calc ON r.candidateID = calc.candidateID
-                SET r.percentage = calc.pct
-                WHERE r.electionID = ?
-            ";
-            $updatePctStmt = $conn->prepare($updatePercentageSQL);
-            $updatePctStmt->bind_param('iii', 
-                $currentElection['electionID'], 
-                $currentElection['electionID'], 
-                $currentElection['electionID']
-            );
-            $updatePctStmt->execute();
-            $updatePctStmt->close();
-
-            // Commit transaction
-            $conn->commit();
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
 
@@ -523,1526 +541,255 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voting Portal - SmartVote</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/student.css" rel="stylesheet">
+    
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Bubble Background Styles for Timer and Election Details -->
     <style>
-        /* Light mode variables (default) */
-        :root {
-            --primary: #4361ee;
-            --primary-light: rgba(67, 97, 238, 0.08);
-            --primary-dark: #3a56d4;
-            --success: #10b981;
-            --success-light: rgba(16, 185, 129, 0.1);
-            --surface: #ffffff;
-            --surface-hover: #f9fafb;
-            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            --card-hover-shadow: 0 15px 35px rgba(67, 97, 238, 0.12);
-            --text: #374151;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --bg: #f3f4f6;
-            --header-bg: #ffffff;
-            --shadow-color: rgba(0,0,0,0.05);
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            
-            /* Default Bootstrap theme for light mode */
-            color-scheme: light;
-        }
-        
-        /* Dark mode variables */
-        [data-bs-theme="dark"] {
-            --primary: #6ea8fe;
-            --primary-light: rgba(110, 168, 254, 0.15);
-            --primary-dark: #3a56d4;
-            --success: #75b798;
-            --success-light: rgba(117, 183, 152, 0.15);
-            --surface: #2b3035;
-            --surface-hover: #343a40;
-            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            --card-hover-shadow: 0 15px 35px rgba(110, 168, 254, 0.25);
-            --text: #f8f9fa;
-            --text-muted: #adb5bd;
-            --border: #495057;
-            --bg: #212529;
-            --header-bg: #343a40;
-            --shadow-color: rgba(0,0,0,0.2);
-            --danger: #ea868f;
-            --warning: #ffda6a;
-            --info: #6edff6;
-            
-            /* Default Bootstrap theme for dark mode */
-            color-scheme: dark;
-        }
-        
-        body {
-            background-color: var(--bg);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            color: var(--text);
-            line-height: 1.5;
-        }
-        
-        /* Header dark mode styles */
-        #header {
-            background-color: var(--header-bg);
-            transition: background-color 0.3s ease;
-        }
-
-        [data-bs-theme="dark"] #header {
-            background-color: var(--header-bg);
-            border-bottom: 1px solid var(--border);
-        }
-
-        [data-bs-theme="dark"] #header .nav-link,
-        [data-bs-theme="dark"] #header .dropdown-toggle {
-            color: var(--text);
-        }
-
-        /* Logo dark mode visibility */
-        [data-bs-theme="dark"] .logo span {
-            color: var(--text);
-        }
-
-        /* Live results text in dark mode */
-        [data-bs-theme="dark"] .nav-link span {
-            color: var(--text) !important;
-        }
-
-        /* Button icons in dark mode */
-        [data-bs-theme="dark"] .btn-link i {
-            color: var(--text);
-        }
-
-        /* Mobile toggle button */
-        [data-bs-theme="dark"] .toggle-sidebar-btn {
-            color: var(--text);
-        }
-
-        /* Search toggle */
-        [data-bs-theme="dark"] .search-toggle {
-            color: var(--text);
-        }
-
-        /* Dropdown menu in dark mode */
-        [data-bs-theme="dark"] .dropdown-menu {
-            background-color: var(--surface);
-            border-color: var(--border);
-        }
-
-        [data-bs-theme="dark"] .dropdown-item {
-            color: var(--text);
-        }
-
-        [data-bs-theme="dark"] .dropdown-item:hover,
-        [data-bs-theme="dark"] .dropdown-item:focus {
-            background-color: var(--surface-hover);
-        }
-        
-        .voting-card {
-            background: var(--surface);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-            transition: all 0.3s ease;
-            border: none;
-        }
-        
-        .candidate-card {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: auto;
-            max-height: 250px; /* Set a maximum height for the cards */
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            box-shadow: 0 2px 5px var(--shadow-color);
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
-        }
-        
-        .candidate-card.selected {
-            border: 2px solid var(--primary);
-            background-color: var(--primary-light);
-            box-shadow: var(--card-hover-shadow);
-        }
-        
-        .selection-check {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: var(--primary);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.3s ease;
-        }
-        
-        .candidate-card.selected .selection-check {
-            opacity: 1;
-            transform: scale(1);
-        }
-        
-        .avatar-container {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto;
-        }
-        
-        .avatar {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--border);
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .candidate-card.selected .avatar {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
-        }
-        
-        .department-badge {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: var(--surface);
-            border: 1px solid var(--primary-light);
-            color: var(--primary);
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 11px;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        /* Position section improvements for dark mode */
-        .position-section {
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border);
-            transition: border-color 0.3s ease;
-        }
-        
-        .position-badge {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            font-size: 0.75rem;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        
-        .vote-submit-btn {
-            padding: 0.5rem 1rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            margin-top: 1rem;
-            width: 100%;
-            text-align: center;
-            color: white;
-        }
-        
-        
-        
-        .election-timer {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 30px;
+        /* Bubble container styles */
+        .bubble-background {
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px var(--shadow-color);
+            border-radius: 1rem;
+            z-index: 1;
+            box-shadow: 0 8px 20px rgba(var(--bubble-color-rgb), 0.08);
+            transition: all 0.5s ease;
         }
         
-        .election-timer::after {
-            content: '';
+        /* Individual bubble styles */
+        .bubble {
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-            opacity: 0.5;
+            border-radius: 50%;
+            background: radial-gradient(
+                circle at 30% 30%, 
+                rgba(var(--bubble-color-rgb), 0.15) 0%, 
+                rgba(var(--bubble-color-rgb), 0.05) 80%
+            );
+            backdrop-filter: blur(1px);
+            animation: float var(--float-time) ease-in-out infinite alternate, 
+                      glow var(--glow-time) ease-in-out infinite alternate;
+            z-index: -1;
+            box-shadow: inset 0 0 10px rgba(var(--bubble-color-rgb), 0.1),
+                        0 0 15px rgba(var(--bubble-color-rgb), 0.05);
+            opacity: var(--bubble-opacity);
         }
         
-        .timer-countdown {
+        /* Light theme bubbles */
+        html:not([data-bs-theme="dark"]) .bubble-background {
+            --bubble-color-rgb: 65, 105, 225; /* Royal blue color RGB */
+            --bubble-gradient: linear-gradient(135deg, rgba(65, 105, 225, 0.05), rgba(100, 150, 255, 0.02));
+            background: var(--bubble-gradient);
+        }
+        
+        /* Dark theme bubbles */
+        html[data-bs-theme="dark"] .bubble-background {
+            --bubble-color-rgb: 100, 150, 255; /* Lighter blue color for dark theme */
+            --bubble-gradient: linear-gradient(135deg, rgba(30, 40, 70, 0.6), rgba(20, 30, 60, 0.4));
+            background: var(--bubble-gradient);
+        }
+        
+        /* Election timer with bubbles */
+        .election-timer.bubble-background {
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(var(--bubble-color-rgb), 0.1);
+        }
+        
+        .election-timer.bubble-background:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(var(--bubble-color-rgb), 0.15);
+        }
+        
+        /* Animation for floating bubbles */
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(var(--float-y)) translateX(var(--float-x)) rotate(var(--rotate)) scale(var(--float-scale));
+            }
+            100% {
+                transform: translateY(calc(var(--float-y) * -0.5)) translateX(calc(var(--float-x) * -0.5)) rotate(calc(var(--rotate) * -0.5)) scale(calc(1 + (var(--float-scale) - 1) * -0.5));
+            }
+        }
+        
+        /* Glow animation for bubbles */
+        @keyframes glow {
+            0% {
+                opacity: var(--bubble-opacity);
+                filter: blur(var(--bubble-blur));
+            }
+            50% {
+                opacity: calc(var(--bubble-opacity) * 1.5);
+                filter: blur(calc(var(--bubble-blur) * 0.8));
+            }
+            100% {
+                opacity: var(--bubble-opacity);
+                filter: blur(var(--bubble-blur));
+            }
+        }
+        
+        /* Enhanced time units for countdown */
+        .bubble-background .time-unit {
+            background: rgba(var(--bubble-color-rgb), 0.12);
+            padding: 0.6rem 0.9rem;
+            border-radius: 0.6rem;
+            backdrop-filter: blur(5px);
+            box-shadow: 
+                inset 0 1px 1px rgba(255, 255, 255, 0.15),
+                0 4px 15px rgba(var(--bubble-color-rgb), 0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(var(--bubble-color-rgb), 0.1);
+        }
+        
+        html[data-bs-theme="dark"] .bubble-background .time-unit {
+            background: rgba(50, 70, 120, 0.5);
+            box-shadow: 
+                inset 0 1px 1px rgba(255, 255, 255, 0.1),
+                0 4px 15px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(70, 90, 140, 0.3);
+        }
+        
+        .bubble-background .time-unit:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                inset 0 1px 1px rgba(255, 255, 255, 0.2),
+                0 10px 25px rgba(var(--bubble-color-rgb), 0.3);
+        }
+        
+        .bubble-background .time-unit span {
             font-size: 2rem;
             font-weight: 700;
             font-family: 'DM Mono', monospace;
+            color: rgba(var(--bubble-color-rgb), 1);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            display: block;
+            line-height: 1;
+        }
+        
+        html[data-bs-theme="dark"] .bubble-background .time-unit span {
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .bubble-background .time-unit small {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
             letter-spacing: 1px;
+            opacity: 0.8;
         }
         
-        .counter-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.15);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            margin-right: 15px;
-        }
-        
-        .counter-circle i {
-            font-size: 1.5rem;
-        }
-        
-        .student-info {
-            background: var(--surface);
-            border-radius: 12px;
-            overflow: hidden;
-            padding: 18px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 10px var(--shadow-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-        
-        .student-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
-            object-fit: cover;
-            border: 3px solid var(--surface);
-            box-shadow: 0 4px 10px var(--shadow-color);
-            transition: border-color 0.3s ease;
-        }
-        
-        .student-details h5 {
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        
-        .alert {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-        
-        .alert-success {
-            background-color: var(--success-light);
-            color: var(--success);
-            border-left: 4px solid var(--success);
-        }
-        
-        .voted-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--success-light);
-            color: var(--success);
-            font-weight: 600;
-            font-size: 0.75rem;
-            padding: 5px 12px;
-            border-radius: 20px;
-            letter-spacing: 0.5px;
-        }
-        
-        .voting-status {
-            display: inline-flex;
-            align-items: center;
-            font-weight: 600;
-            font-size: 0.875rem;
-            padding: 6px 14px;
-            border-radius: 8px;
-        }
-        
-        .voting-active {
-            background-color: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-        }
-        
-        .voting-inactive {
-            background-color: rgba(107, 114, 128, 0.1);
-            color: var(--text-muted);
-        }
-        
-        .pulse-badge {
-            animation: pulsate 2s infinite;
-        }
-        
-        .progress-wave {
-            height: 6px;
-            border-radius: 3px;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .progress-wave::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            animation: wave 2s linear infinite;
-        }
-        
-        .position-header {
-            position: relative;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .position-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 60px;
-            height: 4px;
-            background: var(--primary);
-            border-radius: 2px;
-        }
-        
-        .candidate-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .candidate-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.8rem;
-        }
-
-        .candidate-main {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.8rem;
-        }
-
-        .candidate-details {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .candidate-name {
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 0.3rem;
-            color: var(--text);
-            transition: all 0.3s ease;
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            line-height: 1.2;
-        }
-
-        .candidate-position {
-            font-size: 0.75rem;
-            color: var(--primary);
-            font-weight: 600;
-            padding: 0.2rem 0.6rem;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 20px;
-            display: inline-block;
-            margin-bottom: 0.3rem;
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        .vote-stats {
-            background: var(--surface-hover);
-            border-radius: 6px;
-            padding: 0.4rem 0.8rem;
-            box-shadow: inset 0 1px 3px var(--shadow-color);
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-            margin-bottom: 0.3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .vote-stats i {
-            font-size: 0.9rem;
-        }
-
-        .vote-count, .vote-percentage {
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .candidate-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            margin-right: 0.8rem;
-            flex-shrink: 0;
-        }
-
-        .candidate-avatar-placeholder {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            background: var(--surface-hover);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 1.5rem;
-            border: 3px solid var(--surface);
-            box-shadow: 0 4px 10px var(--shadow-color);
-            margin-right: 0.8rem;
-            flex-shrink: 0;
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-
-        .progress {
-            height: 6px;
-            border-radius: 3px;
-            background-color: var(--surface-hover);
-            overflow: hidden;
-            box-shadow: inset 0 1px 3px var(--shadow-color);
-            margin-top: 0.5rem;
-        }
-
-        .progress-bar {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 3px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: progressShine 2s infinite;
-        }
-
-        .rank-badge {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--primary-light);
-            box-shadow: 0 2px 8px var(--shadow-color);
-            position: relative;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .rank-badge i {
-            font-size: 1rem;
-        }
-
-        @keyframes pulsate {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes wave {
+        /* Animation for bubble pulse */
+        @keyframes pulseBubble {
             0% {
-                transform: translateX(-50%);
-            }
-            100% {
-                transform: translateX(0%);
-            }
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
+                opacity: var(--bubble-opacity);
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(var(--bubble-color-rgb), 0.5);
             }
             50% {
-                transform: translateY(-5px);
+                opacity: calc(var(--bubble-opacity) * 1.3);
+                transform: scale(1.05);
+                box-shadow: 0 0 20px rgba(var(--bubble-color-rgb), 0.3);
             }
             100% {
-                transform: translateY(0px);
+                opacity: var(--bubble-opacity);
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(var(--bubble-color-rgb), 0.5);
             }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.7; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.7; }
-        }
-
-        @keyframes select-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
-            50% { box-shadow: 0 0 0 8px rgba(67, 97, 238, 0.3); }
-        }
-
-        @media (max-width: 768px) {
-            .avatar-container {
-                width: 85px;
-                height: 85px;
-            }
-            
-            .timer-countdown {
-                font-size: 1.5rem;
-            }
-            
-            .counter-circle {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .candidate-card {
-                margin-bottom: 1rem;
-            }
-            
-            .vote-submit-btn {
-                width: 100%;
-            }
-            
-            .col-md-6, .col-lg-4 {
-                flex: 1 1 calc(50% - 0.5rem); /* Adjust width to fit two cards per row on mobile */
-                max-width: calc(50% - 0.5rem);
-            }
-            
-            .candidate-avatar, .candidate-avatar-placeholder {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .candidate-name {
-                font-size: 0.9rem;
-            }
-            
-            .vote-stats {
-                padding: 0.3rem 0.6rem;
-            }
-            
-            .candidate-result-card {
-                min-height: 150px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .col-md-6, .col-lg-4 {
-                flex: 1 1 100%; /* Adjust width to fit one card per row on smaller screens */
-                max-width: 100%;
-            }
-        }
-
-        /* Welcome Tips Modal Styles */
-        .welcome-modal {
-            border-radius: 16px;
-            overflow: hidden;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .welcome-header {
-            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            position: relative;
-        }
-
-        .welcome-header::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
-            clip-path: polygon(0% 0%, 100% 0%, 50% 50%);
-        }
-
-        .welcome-body {
-            padding: 2rem 1.5rem;
-        }
-
-        .tip-card {
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
-            transition: all 0.3s ease;
-            background-color: white;
-            display: flex;
-            align-items: flex-start;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-        }
-
-        .tip-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-        }
-
-        .tip-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 1rem;
-            flex-shrink: 0;
-            font-size: 1.25rem;
-        }
-
-        .tip-content {
-            flex: 1;
-        }
-
-        .tip-icon.blue {
-            background-color: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-        }
-
-        .tip-icon.green {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .tip-icon.purple {
-            background-color: rgba(139, 92, 246, 0.1);
-            color: #8b5cf6;
-        }
-
-        .tip-icon.orange {
-            background-color: rgba(249, 115, 22, 0.1);
-            color: #f97316;
-        }
-
-        .welcome-illustration {
-            max-width: 100%;
-            height: auto;
-            margin: 0 auto;
-            display: block;
-            transition: transform 0.5s ease;
-        }
-
-        .welcome-illustration:hover {
-            transform: scale(1.05);
-        }
-
-        .btn-get-started {
-            padding: 0.6rem 1.5rem;
-            border-radius: 30px;
-            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
-            color: white;
-            border: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
-        }
-
-        .btn-get-started:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
-            background: linear-gradient(135deg, #3a56d4 0%, #2e44c2 100%);
-            color: white;
-        }
-
-        @media (max-width: 767.98px) {
-            .welcome-body {
-                padding: 1.5rem 1rem;
-            }
-            
-            .tip-card {
-                padding: 1rem;
-                margin-bottom: 1rem;
-            }
-            
-            .tip-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 1rem;
-                margin-right: 0.75rem;
-            }
-            
-            .welcome-header::after {
-                bottom: -10px;
-                width: 20px;
-                height: 20px;
-            }
-            
-            .tip-card h5 {
-                font-size: 1rem;
-                margin-bottom: 0.25rem;
-            }
-            
-            .tip-card p {
-                font-size: 0.875rem;
-                margin-bottom: 0;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .welcome-modal {
-                border-radius: 12px;
-            }
-            
-            .welcome-header {
-                padding: 1.25rem 1rem;
-            }
-            
-            .welcome-body {
-                padding: 1.25rem 0.75rem;
-            }
-            
-            .btn-get-started {
-                width: 100%;
-            }
-        }
-
-        .gradient-btn {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: none;
-            color: white;
-            padding: 10px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-       
-        /* Animation for the welcome modal */
-        @keyframes slideIn {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .welcome-modal .modal-content {
-            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            margin-right: -0.5rem;
-            margin-left: -0.5rem;
-        }
-
-        .col-md-6, .col-lg-4 {
-            padding-right: 0.5rem;
-            padding-left: 0.5rem;
-        }
-
-        .row.g-4 {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .col-md-6, .col-lg-4 {
-            flex: 1 1 calc(33.333% - 0.5rem); /* Adjust width to fit three cards per row */
-            max-width: calc(33.333% - 0.5rem);
-        }
-
-        .candidate-card {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 80%;
-        }
-
-        .horizontal-position .row {
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 0.5rem;
-            padding-bottom: 0.5rem;
-            overflow-x: hidden; 
-            -ms-overflow-style: none; 
-            scrollbar-width: none;
-        }
-
- 
-        .horizontal-position .row::-webkit-scrollbar {
-            display: none;
-        }
-
-        .horizontal-position .col-md-6, .horizontal-position .col-lg-4 {
-            flex: 0 0 auto;
-            width: auto;
-            max-width: none;
-        }
-
-        .live-results-btn {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
-            margin-top: 1rem;
         }
         
-        .live-results-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.3);
+        .bubble.pulse {
+            animation: pulseBubble var(--pulse-time) infinite ease-in-out;
         }
         
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 10px;
-        }
-        
-        .live-indicator {
-            display: flex;
-            align-items: center;
-            font-size: 0.8rem;
+        /* Time separator styling */
+        .bubble-background .time-separator {
+            font-size: 2rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
+            line-height: 1;
+            color: rgba(var(--bubble-color-rgb), 0.6);
+            margin: 0 0.2rem;
+            opacity: 0.8;
+            animation: pulseSeparator 2s infinite ease-in-out;
         }
         
-        .pulse-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
+        @keyframes pulseSeparator {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        /* Enhanced Student Avatar Styling */
+        .student-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 10%;
+            object-fit: cover;
+            border: 2px solid;
+            transition: all 0.4s ease;
+            animation: avatar-glow 3s infinite alternate ease-in-out;
+            transform: translateZ(0);
+        }
+        
+        @keyframes avatar-glow {
+            0% {
+                box-shadow: 0 0 15px rgba(var(--bubble-color-rgb), 0.4),
+                            inset 0 0 8px rgba(var(--bubble-color-rgb), 0.1);
+            }
+            100% {
+                box-shadow: 0 0 25px rgba(var(--bubble-color-rgb), 0.6),
+                            inset 0 0 12px rgba(var(--bubble-color-rgb), 0.2);
+            }
+        }
+        
+        html:not([data-bs-theme="dark"]) .student-avatar {
+            --bubble-color-rgb: 65, 105, 225; /* Royal blue for light theme */
+        }
+        
+        html[data-bs-theme="dark"] .student-avatar {
+            --bubble-color-rgb: 100, 150, 255; /* Lighter blue for dark theme */
+            border-color: rgba(var(--bubble-color-rgb), 0.5);
+            filter: contrast(1.1) saturate(1.2) brightness(1.05);
+        }
+        
+        .student-avatar:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 30px rgba(var(--bubble-color-rgb), 0.7),
+                        inset 0 0 15px rgba(var(--bubble-color-rgb), 0.2);
+        }
+        
+        /* Default avatar icon styling */
+        .student-avatar.d-flex {
+            background: linear-gradient(135deg, 
+                rgba(var(--bubble-color-rgb), 0.15) 0%, 
+                rgba(var(--bubble-color-rgb), 0.3) 100%);
+        }
+        
+        /* Candidate avatars with same effect */
+        .candidate-avatar {
             border-radius: 50%;
-            background-color: #fff;
-            margin-right: 6px;
-            animation: pulse 1.5s infinite;
-        }
-        
-        .status-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            background: linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(67, 97, 238, 0.05));
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.1);
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border: 2px solid rgba(var(--bubble-color-rgb), 0.3);
+            box-shadow: 0 0 10px rgba(var(--bubble-color-rgb), 0.3);
+            filter: contrast(1.05);
             transition: all 0.3s ease;
         }
         
-        .status-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-            border: 1px solid #f0f0f5;
-        }
-        
-        .status-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
-        }
-
-        /* Modal and UI Component Dark Mode Support */
-        .modal-content {
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .modal-header, .modal-footer {
-            border-color: var(--border);
-            transition: border-color 0.3s ease;
-        }
-
-        /* Form controls */
-        .form-control {
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .form-control:focus {
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.25rem var(--primary-light);
-        }
-
-        /* Buttons */
-        .btn-outline-secondary {
-            color: var(--text-muted);
-            border-color: var(--border);
-        }
-
-        .btn-outline-secondary:hover {
-            background-color: var(--surface-hover);
-            color: var(--text);
-            border-color: var(--text-muted);
-        }
-
-        /* Make sure selection labels are visible in dark mode */
-        .form-check-label {
-            color: var(--text);
-            transition: color 0.3s ease;
-        }
-
-        /* Ensure badges have proper dark mode colors */
-        .badge {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Update manifesto button styling for dark mode */
-        .manifesto-btn {
-            color: var(--primary);
-            background-color: var(--primary-light);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .manifesto-btn:hover {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        /* Position container and headings */
-        .position-container {
-            border-bottom: 1px solid var(--border);
-            transition: border-color 0.3s ease;
-        }
-
-        .position-title {
-            color: var(--text);
-            transition: color 0.3s ease;
-        }
-
-        .candidates-row {
-            transition: background-color 0.3s ease;
-        }
-
-        /* Ensure tooltips are visible in dark mode */
-        .tooltip .tooltip-inner {
-            background-color: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 10px var(--shadow-color);
-        }
-
-        .bs-tooltip-auto[x-placement^=top] .arrow::before, 
-        .bs-tooltip-top .arrow::before {
-            border-top-color: var(--border);
-        }
-
-        /* Alerts for error messages */
-        .alert-danger {
-            background-color: rgba(var(--danger-rgb, 220, 53, 69), 0.1);
-            color: var(--danger);
-            border-left: 4px solid var(--danger);
-        }
-
-        .alert-warning {
-            background-color: rgba(var(--warning-rgb, 255, 193, 7), 0.1);
-            color: var(--warning);
-            border-left: 4px solid var(--warning);
-        }
-
-        /* Card and section backgrounds */
-        .card {
-            background-color: var(--surface);
-            border-color: var(--border);
-            color: var(--text);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .card-header, .card-footer {
-            background-color: var(--surface-hover);
-            border-color: var(--border);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        /* Update modal header background colors */
-        .modal-header.bg-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
-        }
-
-        .modal-header.bg-success {
-            background: linear-gradient(135deg, var(--success), var(--success-dark, #198754)) !important;
-        }
-
-        .modal-header.bg-warning {
-            background: linear-gradient(135deg, var(--warning), var(--warning-dark, #f59e0b)) !important;
-        }
-
-        .modal-header.bg-danger {
-            background: linear-gradient(135deg, var(--danger), var(--danger-dark, #dc3545)) !important;
-        }
-
-        /* Gradient buttons */
-        .gradient-btn {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-        }
-
-        .gradient-btn:hover {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-
-        /* Carousel adjustments for dark mode */
-        .carousel-item {
-            background-color: var(--surface);
-            color: var(--text);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .carousel-control-prev-icon, 
-        .carousel-control-next-icon {
-            filter: none;
-            background-color: var(--primary-light);
-            border-radius: 50%;
-            padding: 10px;
-        }
-
-        /* Ensure carousel text is visible in dark mode */
-        .carousel-item .text-muted {
-            color: var(--text-muted) !important;
-        }
-
-        .carousel-item h5 {
-            color: var(--text);
-            transition: color 0.3s ease;
-        }
-
-        /* Fix welcome illustration */
-        .welcome-illustration {
-            border: 1px solid var(--border);
-            background-color: var(--surface-hover);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        /* Add styles for the vote portal and voting form container */
-        .voting-portal, .voting-form-container {
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        /* Make sure position headings are visible in dark mode */
-        .position-title {
-            color: var(--text);
-            transition: color 0.3s ease;
-        }
-
-        /* Fix main container background to adapt to dark mode */
-        .container {
-            background-color: var(--bg);
-            color: var(--text);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Fix header background color for specific sections */
-        .section-header {
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        /* Update manifesto link buttons */
-        .manifesto-link {
-            color: var(--primary);
-            transition: color 0.3s ease;
-        }
-
-        .manifesto-link:hover {
-            color: var(--primary-dark);
-            text-decoration: underline;
-        }
-
-        /* Update checkboxes for dark mode */
-        .form-check-input {
-            background-color: var(--surface-hover);
-            border-color: var(--border);
-        }
-
-        .form-check-input:checked {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        /* Dashboard cards and statistics for dark mode */
-        .dashboard-card {
-            background-color: var(--surface);
-            border-color: var(--border);
-            color: var(--text);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .dashboard-card .card-title {
-            color: var(--text);
-        }
-
-        .dashboard-card .card-text {
-            color: var(--text-secondary);
-        }
-
-        /* Statistics counter styles */
-        .stats-counter {
-            color: var(--primary);
-        }
-
-        .stats-label {
-            color: var(--text-secondary);
-        }
-
-        /* Alert messages for dark mode */
-        .alert {
-            border-color: var(--border);
-        }
-
-        .alert-info {
-            background-color: rgba(var(--info-rgb), 0.2);
-            color: var(--info);
-        }
-
-        .alert-success {
-            background-color: rgba(var(--success-rgb), 0.2);
-            color: var(--success);
-        }
-
-        .alert-warning {
-            background-color: rgba(var(--warning-rgb), 0.2);
-            color: var(--warning);
-        }
-
-        .alert-danger {
-            background-color: rgba(var(--danger-rgb), 0.2);
-            color: var(--danger);
-        }
-
-        /* Table styles for results and voting interfaces */
-        table.candidate-table {
-            border-color: var(--border);
-            background-color: var(--surface);
-            color: var(--text);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        table.candidate-table th {
-            background-color: var(--surface-variant);
-            color: var(--text);
-            border-color: var(--border);
-        }
-
-        table.candidate-table td {
-            border-color: var(--border);
-        }
-
-        /* Candidate card styles */
-        .candidate-card {
-            background-color: var(--surface);
-            border-color: var(--border);
-            color: var(--text);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .candidate-card:hover {
-            background-color: var(--surface-variant);
-        }
-
-        .candidate-name {
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        /* Pagination styles */
-        .pagination .page-link {
-            background-color: var(--surface);
-            border-color: var(--border);
-            color: var(--text);
-        }
-
-        .pagination .page-item.active .page-link {
-            background-color: var(--primary);
-            border-color: var(--primary);
-            color: var(--on-primary);
-        }
-
-        .pagination .page-link:hover {
-            background-color: var(--surface-variant);
-            color: var(--primary);
-        }
-
-        .live-results-text {
-            color: var(--text);
-        }
-
-        [data-bs-theme="light"] .live-results-text {
-            color: #2b3445;
-        }
-
-        .card-header.bg-white {
-            background-color: var(--surface) !important;
-            color: var(--text);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Fix voting portal card header in dark mode */
-        [data-bs-theme="dark"] .card-header.bg-white,
-        [data-bs-theme="dark"] .bg-white {
-            background-color: var(--surface) !important;
-            color: var(--text);
-        }
-
-        /* Ensure the voting portal section changes color in dark mode */
-        [data-bs-theme="dark"] #header ~ main .voting-card .card-header {
-            background-color: var(--surface) !important;
-            color: var(--text);
-        }
-
-        /* Fix text colors in dark mode for voting portal */
-        [data-bs-theme="dark"] h2,
-        [data-bs-theme="dark"] h3,
-        [data-bs-theme="dark"] h4,
-        [data-bs-theme="dark"] h5,
-        [data-bs-theme="dark"] p:not(.text-muted) {
-            color: var(--text);
-        }
-
-        /* Fix any hardcoded white backgrounds */
-        [data-bs-theme="dark"] .bg-white,
-        [data-bs-theme="dark"] [class*="bg-light"],
-        [data-bs-theme="dark"] .bg-gradient-light {
-            background-color: var(--surface) !important;
-        }
-
-        /* Dark mode fixes for student.php */
-        [data-bs-theme="dark"] .voting-card {
-            background-color: var(--surface);
-        }
-
-        [data-bs-theme="dark"] .student-info {
-            background-color: var(--surface);
-            border-color: var(--border);
-        }
-
-        [data-bs-theme="dark"] .candidate-card {
-            background-color: var(--surface);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        [data-bs-theme="dark"] .candidate-card.selected {
-            background-color: var(--primary-light);
-            border-color: var(--primary);
-        }
-
-        [data-bs-theme="dark"] .bg-light {
-            background-color: var(--surface) !important;
-        }
-
-        [data-bs-theme="dark"] .sticky-bottom {
-            background-color: var(--surface);
-            border-color: var(--border);
-        }
-
-        /* Ensure proper contrast for candidate details */
-        [data-bs-theme="dark"] .candidate-name {
-            color: var(--text);
-        }
-
-        [data-bs-theme="dark"] .badge.bg-primary.bg-opacity-10 {
-            background-color: rgba(110, 168, 254, 0.2) !important;
-            color: var(--primary);
-        }
-
-        /* Fix the department badge color in dark mode */
-        [data-bs-theme="dark"] .department-badge {
-            background-color: var(--surface);
-            color: var(--primary);
-            border-color: var(--primary-light);
-        }
-
-        /* Fix election timer in dark mode */
-        [data-bs-theme="dark"] .election-timer {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Fix alert backgrounds in dark mode */
-        [data-bs-theme="dark"] .alert-light {
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
-        }
-
-        /* Fix any bg-light sections within candidate cards */
-        [data-bs-theme="dark"] .candidate-card .bg-light {
-            background-color: rgba(0, 0, 0, 0.2) !important;
-        }
-
-        /* Fix the candidate tagline background */
-        [data-bs-theme="dark"] .candidate-tagline.bg-light {
-            background-color: rgba(0, 0, 0, 0.2) !important;
-            color: var(--text);
-        }
-
-        /* Fix card and section backgrounds */
-        [data-bs-theme="dark"] .card {
-            background-color: var(--surface);
-            border-color: var(--border);
-        }
-
-        /* Fix voting status badge colors */
-        [data-bs-theme="dark"] .voting-status.voting-active {
-            background-color: rgba(110, 168, 254, 0.2);
-        }
-
-        [data-bs-theme="dark"] .voting-status.voting-inactive {
-            background-color: rgba(173, 181, 189, 0.2);
-        }
-
-        /* Dark mode improvements */
-        [data-bs-theme="dark"] .voting-card,
-        [data-bs-theme="dark"] .card-header,
-        [data-bs-theme="dark"] .card-body,
-        [data-bs-theme="dark"] .card-footer,
-        [data-bs-theme="dark"] .sticky-bottom,
-        [data-bs-theme="dark"] .bg-white {
-            background-color: var(--surface) !important;
-            color: var(--text) !important;
-            border-color: var(--border) !important;
-        }
-
-        [data-bs-theme="dark"] .student-info {
-            background-color: var(--surface) !important;
-            border-color: var(--border) !important;
-        }
-
-        [data-bs-theme="dark"] .candidate-card {
-            background-color: var(--surface) !important;
-            border-color: var(--border) !important;
-        }
-
-        [data-bs-theme="dark"] .candidate-card .bg-light,
-        [data-bs-theme="dark"] .alert-light,
-        [data-bs-theme="dark"] .candidate-tagline.bg-light {
-            background-color: rgba(0, 0, 0, 0.2) !important;
-            color: var(--text) !important;
-        }
-
-        [data-bs-theme="dark"] h2, 
-        [data-bs-theme="dark"] h3, 
-        [data-bs-theme="dark"] h4, 
-        [data-bs-theme="dark"] h5, 
-        [data-bs-theme="dark"] h6 {
-            color: var(--text) !important;
-        }
-
-        /* Specific fix for voting portal text */
-        [data-bs-theme="dark"] .voting-card .card-header h2 {
-            color: var(--text) !important;
-        }
-
-        [data-bs-theme="dark"] .voting-status {
-            color: var(--text) !important;
-        }
-
-        [data-bs-theme="dark"] .card-header {
-            background-color: var(--surface) !important;
-            border-color: var(--border);
-        }
-
-        [data-bs-theme="dark"] .voting-status.voting-active {
-            background-color: rgba(var(--primary-rgb, 67, 97, 238), 0.2) !important;
-            color: var(--primary) !important;
-        }
-
-        [data-bs-theme="dark"] .election-timer {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Override any inline styles that might be causing issues */
-        [data-bs-theme="dark"] [style*="background-color: white"],
-        [data-bs-theme="dark"] [style*="background-color: #fff"],
-        [data-bs-theme="dark"] [style*="background-color:#fff"],
-        [data-bs-theme="dark"] [style*="background-color:#ffffff"],
-        [data-bs-theme="dark"] [style*="background-color: #ffffff"],
-        [data-bs-theme="dark"] [style*="background:white"],
-        [data-bs-theme="dark"] [style*="background: white"],
-        [data-bs-theme="dark"] [style*="background:#fff"],
-        [data-bs-theme="dark"] [style*="background: #fff"] {
-            background-color: var(--surface) !important;
-        }
-
-        /* High specificity overrides for dark mode */
-        html[data-bs-theme="dark"] .bg-light,
-        html[data-bs-theme="dark"] .bg-white,
-        html[data-bs-theme="dark"] [class*="bg-light"],
-        html[data-bs-theme="dark"] [class*="bg-white"] {
-            background-color: var(--surface) !important;
-            color: var(--text) !important;
-        }
-
-        html[data-bs-theme="dark"] .candidate-card,
-        html[data-bs-theme="dark"] .candidate-card div,
-        html[data-bs-theme="dark"] .voting-card,
-        html[data-bs-theme="dark"] .voting-card .card-header {
-            background-color: var(--surface) !important;
-            color: var(--text) !important;
-        }
-
-        html[data-bs-theme="dark"] .candidate-tagline {
-            background-color: rgba(0, 0, 0, 0.2) !important;
-        }
-
-        html[data-bs-theme="dark"] .sticky-bottom {
-            background-color: var(--surface) !important;
-            border-color: var(--border) !important;
+        .candidate-card:hover .candidate-avatar {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(var(--bubble-color-rgb), 0.5);
         }
     </style>
 </head>
 <body>
-    </style>
-</head>
-<body>
-   
     <?php include 'includes/header.php'; ?><br>
-   
+    
     <main class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-10 col-sm-12">
@@ -2060,7 +807,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         </div>
                     </div>
                     
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 ">
+                        <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
+                            <div class="election-timer bubble-background mb-4">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="counter-circle text-muted">
+                                            <i class="bi bi-stopwatch-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
+                                        <div class="timer-countdown" id="election-countdown">
+                                            <div class="d-flex align-items-center justify-content-start countdown-container">
+                                                <div class="time-unit">
+                                                    <span id="days">00</span>
+                                                    <small>days</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="hours">00</span>
+                                                    <small>hours</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="minutes">00</span>
+                                                    <small>minutes</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="seconds">00</span>
+                                                    <small>seconds</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                         <!-- Student Info -->
                         <div class="student-info d-flex align-items-center mb-4">
                             <div class="me-3">
@@ -2080,16 +866,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="student-details">
-                                <h5> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
-                                <div class="d-flex flex-wrap">
-                                    <span class="me-3 text-muted small">
-                                        <i class="bi bi-person-badge me-1"></i> 
-                                        ID: <?= $studentID ?>
-                                    </span>
-                                    <span class="text-muted small">
-                                        <i class="bi bi-building-check icon icon"></i>
-                                        Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
-                                    </span>
+                                <h5 > <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-person-badge me-1"></i> 
+                                    ID: <?= $studentID ?>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-building-check icon icon"></i>
+                                    Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                 </div>
                             </div>
                             <?php if ($hasVoted): ?>
@@ -2126,25 +910,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         
                         <!-- Election Info -->
                         <?php if ($currentElection): ?>
-                            <div class="election-timer mb-4">
+                            <div class="election-timer bubble-background mb-4">
                                 <div class="row align-items-center">
                                     <div class="col-md-7 mb-3 mb-md-0">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="counter-circle me-3">
+                                            <div class="counter-circle me-3 text-muted">
                                                 <i class="bi bi-calendar-event"></i>
                                             </div>
-                                            <h4 class="text-white mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
+                                            <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
                                         </div>
-                                        <p class="text-white-50 mb-2">
+                                        <p class="election-dates mb-2">
                                             <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
                                         </p>
                                         <div class="progress-wave mt-3"></div>
                                     </div>
-                                    <div class="col-md-5 text-md-end">
-                                        <div class="timer-countdown text-white mb-1" id="countdown-timer">
+                                    <div class="col-md-5 text-md-end" >
+                                        <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
                                             <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
                                         </div>
-                                        <p class="text-white-50 mb-0">
+                                        <p class="election-status mb-0">
                                             <i class="bi bi-clock me-1"></i>
                                             Status: <?= $currentElection['status'] ?>
                                         </p>
@@ -2167,12 +951,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         <?php endif; ?>
                         
                         <!-- Replace the status card with a live results card -->
+                        <?php if ($currentElection): ?>
                         <div class="card mb-4 border-0 shadow-sm rounded-4 overflow-hidden">
                             <div class="card-header bg-gradient-primary text-white py-3 px-4">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-0 fw-bold">Election Results</h5>
-                                        <p class="mb-0 opacity-75 small">Live updates from the voting system</p>
+                                        <h5 class="mb-0 fw-bold text-white">Election Results</h5>
+                                        <p class="mb-0 opacity-75 small text-white">Live updates from the voting system</p>
                                     </div>
                                     <div class="live-indicator">
                                         <span class="pulse-dot"></span> LIVE
@@ -2180,121 +965,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 </div>
                             </div>
                             <div class="card-body p-4">
-                                <?php if ($currentElection): ?>
-                                    <?php
-                                    // Get total votes for this election
-                                    $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
-                                    $voteCountStmt = $conn->prepare($voteCountQuery);
-                                    $voteCountStmt->bind_param("i", $currentElection['electionID']);
-                                    $voteCountStmt->execute();
-                                    $voteCountResult = $voteCountStmt->get_result();
-                                    $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
-                                    $voteCountStmt->close();
-                                    ?>
-                                    <div class="mt-4">
-                                        <div class="results-section-header">
-                                            <div class="results-icon">
-                                                <i class="bi bi-trophy"></i>
-                                            </div>
-                                            <h6>Top Candidates</h6>
+                                <?php
+                                // Get total votes for this election
+                                $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
+                                $voteCountStmt = $conn->prepare($voteCountQuery);
+                                $voteCountStmt->bind_param("i", $currentElection['electionID']);
+                                $voteCountStmt->execute();
+                                $voteCountResult = $voteCountStmt->get_result();
+                                $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
+                                $voteCountStmt->close();
+                                ?>
+                                <div class="mt-4">
+                                    <div class="results-section-header">
+                                        <div class="results-icon">
+                                            <i class="bi bi-trophy"></i>
                                         </div>
-                                        <div class="row g-3">
-                                            <?php
+                                        <h6>Top Candidates</h6>
+                                    </div>
+                                    <div class="row g-3">
+                                        <?php
+                                    
+                                        $topCandidatesQuery = "
+                                            SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
+                                                   p.title as position, COUNT(v.voteID) as voteCount
+                                            FROM candidates c
+                                            JOIN students s ON c.studentID = s.studentID
+                                            JOIN positions p ON c.positionID = p.positionID
+                                            LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
+                                            WHERE c.status = 'Approved'
+                                            AND p.electionID = ?
+                                            GROUP BY c.candidateID
+                                            ORDER BY voteCount DESC
+                                            LIMIT 3
+                                        ";
+                                        $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
+                                        $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
+                                        $topCandidatesStmt->execute();
+                                        $topCandidatesResult = $topCandidatesStmt->get_result();
                                         
-                                            $topCandidatesQuery = "
-                                                SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
-                                                       p.title as position, COUNT(v.voteID) as voteCount
-                                                FROM candidates c
-                                                JOIN students s ON c.studentID = s.studentID
-                                                JOIN positions p ON c.positionID = p.positionID
-                                                LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
-                                                WHERE c.status = 'Approved'
-                                                AND p.electionID = ?
-                                                GROUP BY c.candidateID
-                                                ORDER BY voteCount DESC
-                                                LIMIT 3
-                                            ";
-                                            $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
-                                            $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
-                                            $topCandidatesStmt->execute();
-                                            $topCandidatesResult = $topCandidatesStmt->get_result();
-                                            
-                                            if ($topCandidatesResult->num_rows > 0):
-                                                $rank = 1;
-                                                $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
-                                                $rankIcon = ['trophy', 'award', 'award'];
-                                                while ($candidate = $topCandidatesResult->fetch_assoc()):
-                                                    $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
-                                                    $colorIndex = $rank - 1;
-                                            ?>
-                                                <div class="col-md-4">
-                                                    <div class="candidate-result-card">
-                                                        <div class="candidate-info">
-                                                            <div class="candidate-header">
-                                                                <div class="rank-badge">
-                                                                    <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
-                                                                </div>
-                                                                <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                        if ($topCandidatesResult->num_rows > 0):
+                                            $rank = 1;
+                                            $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
+                                            $rankIcon = ['trophy', 'award', 'award'];
+                                            while ($candidate = $topCandidatesResult->fetch_assoc()):
+                                                $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
+                                                $colorIndex = $rank - 1;
+                                        ?>
+                                            <div class="col-md-4">
+                                                <div class="candidate-result-card">
+                                                    <div class="candidate-info">
+                                                        <div class="candidate-header">
+                                                            <div class="rank-badge">
+                                                                <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
                                                             </div>
-                                                            <div class="candidate-main">
-                                                                <?php 
-                                                              
-                                                                $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
-                                                                $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                                
-                                                                if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
-                                                                    <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
-                                                                    <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                <?php else: ?>
-                                                                    <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                                        <i class="bi bi-person fs-2"></i>
+                                                            <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                                        </div>
+                                                        <div class="candidate-main">
+                                                            <?php 
+                                                          
+                                                            $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                                            $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                            
+                                                            if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
+                                                                <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                            <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
+                                                                <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                            <?php else: ?>
+                                                                <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
+                                                                    <i class="bi bi-person fs-2"></i>
+                                                                </div>
+                                                            <?php endif; ?>
+                                                            <div class="candidate-details">
+                                                                <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
+                                                                <div class="d-flex flex-column gap-2">
+                                                                    <div class="vote-stats">
+                                                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                                                        <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
                                                                     </div>
-                                                                <?php endif; ?>
-                                                                <div class="candidate-details">
-                                                                    <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
-                                                                    <div class="d-flex flex-column gap-2">
-                                                                        <div class="vote-stats">
-                                                                            <i class="bi bi-check-circle-fill text-success"></i>
-                                                                            <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
-                                                                        </div>
-                                                                        <div class="vote-stats">
-                                                                            <i class="bi bi-bar-chart-fill text-primary"></i>
-                                                                            <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
-                                                                        </div>
+                                                                    <div class="vote-stats">
+                                                                        <i class="bi bi-bar-chart-fill text-primary"></i>
+                                                                        <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="progress">
-                                                                <div class="progress-bar" role="progressbar" 
-                                                                     style="width: <?= $votePercentage ?>%;" 
-                                                                     aria-valuenow="<?= $votePercentage ?>" 
-                                                                     aria-valuemin="0" 
-                                                                     aria-valuemax="100"></div>
-                                                            </div>
+                                                        </div>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: <?= $votePercentage ?>%;" 
+                                                                 aria-valuenow="<?= $votePercentage ?>" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="100"></div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <?php 
-                                                $rank++;
-                                                endwhile;
-                                            else:
-                                            ?>
-                                                <div class="col-12">
-                                                    <div class="alert alert-light border-0 shadow-sm text-center py-4">
-                                                        <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
-                                                        <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
-                                                    </div>
+                                            </div>
+                                        <?php 
+                                            $rank++;
+                                            endwhile;
+                                        else:
+                                        ?>
+                                            <div class="col-12">
+                                                <div class="alert alert-light border-0 shadow-sm text-center py-4">
+                                                    <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
+                                                    <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
                                                 </div>
-                                            <?php 
-                                            endif;
-                                            $topCandidatesStmt->close();
-                                            ?>
-                                        </div>
+                                            </div>
+                                        <?php 
+                                        endif;
+                                        $topCandidatesStmt->close();
+                                        ?>
                                     </div>
-                                <?php endif; ?>
+                                </div>
                             </div>
                         </div>
+                        <?php endif; ?>
                         
                         <!-- Voting Form -->
 <?php if ($currentElection && !$hasVoted): ?>
@@ -2374,7 +1158,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                     </div>
                                                 </div>
                                                 <?php if (!empty($candidate['manifesto'])): ?>
-                                                    <div class="manifesto-btn p-2 rounded text-center" data-bs-toggle="modal" data-bs-target="#manifestoModal" data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>">
+                                                    <?php 
+                                                    $manifestoPath = 'uploads/manifestos/' . $candidate['manifesto'];
+                                                    $fileExtension = strtolower(pathinfo($manifestoPath, PATHINFO_EXTENSION));
+                                                    ?>
+                                                    <div class="manifesto-btn p-2 rounded text-center" 
+                                                         data-bs-toggle="modal" 
+                                                         data-bs-target="#manifestoModal" 
+                                                         data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>"
+                                                         data-file-type="<?= htmlspecialchars($fileExtension) ?>">
                                                         <i class="bi bi-file-text me-1"></i>
                                                         View Manifesto
                                                     </div>
@@ -2593,6 +1385,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <?php include 'includes/footer.php'; ?>
 
+    <!-- Audio element for notification sound -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
+        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2798,9 +1596,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             if (manifestoModal) {
                 manifestoModal.addEventListener('show.bs.modal', function(event) {
                     const button = event.relatedTarget;
-                    const manifestoContent = button.getAttribute('data-manifesto');
+                    const manifestoFile = button.getAttribute('data-manifesto');
+                    const fileType = button.getAttribute('data-file-type');
                     const modalBody = manifestoModal.querySelector('.manifesto-content');
-                    modalBody.textContent = manifestoContent;
+                    
+                    // Get full URL for the file (needed for external previewers)
+                    const baseUrl = window.location.protocol + '//' + window.location.host;
+                    const relativePath = 'uploads/manifestos/' + manifestoFile;
+                    const manifestoPath = '/' + relativePath;
+                    const absoluteUrl = baseUrl + '/' + relativePath;
+                    
+                    modalBody.innerHTML = ''; // Clear previous content
+                    
+                    if (fileType === 'pdf') {
+                        // Try <embed> first, fallback to <iframe>, then download link
+                        const embed = document.createElement('embed');
+                        embed.src = manifestoPath;
+                        embed.type = 'application/pdf';
+                        embed.style.width = '100%';
+                        embed.style.height = '70vh';
+                        embed.onerror = function() {
+                            // Fallback if embed fails
+                            showPdfFallback();
+                        };
+                        // Try to load PDF
+                        modalBody.appendChild(embed);
+                        // Add a fallback download link always
+                        const downloadLinkDiv = document.createElement('div');
+                        downloadLinkDiv.className = 'text-center mt-3';
+                        downloadLinkDiv.innerHTML = `
+                            <a href="${manifestoPath}" 
+                               class="btn btn-outline-secondary btn-sm" 
+                               target="_blank"
+                               download>
+                                <i class="bi bi-download me-1"></i> Download PDF if preview fails
+                            </a>
+                        `;
+                        modalBody.appendChild(downloadLinkDiv);
+                        // Fallback function
+                        function showPdfFallback() {
+                            modalBody.innerHTML = `
+                                <div class="pdf-fallback text-center p-4">
+                                    <i class="bi bi-file-earmark-pdf fs-1 text-danger mb-3"></i>
+                                    <p class="mb-2">Unable to display PDF preview directly in the browser.</p>
+                                    <p class="mb-3">You can download the file to view it.</p>
+                                    <a href="${manifestoPath}" 
+                                       class="btn btn-primary" 
+                                       target="_blank"
+                                       download>
+                                        <i class="bi bi-download me-2"></i>Download PDF Manifesto
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    } else if (fileType === 'txt') {
+                        fetch(manifestoPath)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.text();
+                            })
+                            .then(content => {
+                                modalBody.innerHTML = `<pre class="p-3 bg-light border rounded" style="white-space: pre-wrap; word-wrap: break-word; max-height: 70vh; overflow-y: auto;">${content}</pre>`;
+                            })
+                            .catch(error => {
+                                console.error('Error loading text manifesto:', error);
+                                modalBody.innerHTML = `<div class="alert alert-danger">Error loading manifesto: ${error.message}. Please try downloading. 
+                                    <a href="${manifestoPath}" target="_blank" download class="alert-link">Download File</a>
+                                </div>`;
+                            });
+                    } else if (fileType === 'docx') {
+                        // Use Microsoft Office Online Viewer or Google Docs Viewer for DOCX files
+                        // First, try Google Docs Viewer (works for public files only)
+                        const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absoluteUrl)}&embedded=true`;
+                        
+                        // Create preview container
+                        modalBody.innerHTML = `
+                            <div class="docx-preview-container" style="width:100%; height:70vh; position:relative;">
+                                <div class="docx-loading text-center p-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 mb-0">Loading document preview...</p>
+                                </div>
+                                <iframe 
+                                    src="${googleViewerUrl}" 
+                                    frameborder="0" 
+                                    style="width:100%; height:100%; display:none;" 
+                                    class="docx-preview-frame"
+                                    onload="this.style.display='block'; this.previousElementSibling.style.display='none';"
+                                    onerror="showDocxFallback()">
+                                </iframe>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="${manifestoPath}" 
+                                   class="btn btn-outline-primary btn-sm" 
+                                   target="_blank"
+                                   download>
+                                    <i class="bi bi-download me-1"></i> Download Document
+                                </a>
+                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}" 
+                                   class="btn btn-outline-secondary btn-sm ms-2" 
+                                   target="_blank">
+                                    <i class="bi bi-microsoft me-1"></i> Open in Office Online
+                                </a>
+                            </div>
+                        `;
+                        
+                        // Create a fallback function in case the Google Docs viewer fails
+                        const script = document.createElement('script');
+                        script.textContent = `
+                            function showDocxFallback() {
+                                const container = document.querySelector('.docx-preview-container');
+                                if (container) {
+                                    container.innerHTML = \`
+                                        <div class="docx-fallback text-center p-4">
+                                            <i class="bi bi-file-earmark-word fs-1 text-primary mb-3"></i>
+                                            <p class="mb-2">Preview is not available. Try these options:</p>
+                                            <div class="mt-3">
+                                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}" 
+                                                   class="btn btn-primary me-2" 
+                                                   target="_blank">
+                                                    <i class="bi bi-microsoft me-1"></i> Open in Office Online
+                                                </a>
+                                                <a href="${manifestoPath}" 
+                                                   class="btn btn-outline-secondary" 
+                                                   target="_blank"
+                                                   download>
+                                                    <i class="bi bi-download me-1"></i> Download Document
+                                                </a>
+                                            </div>
+                                        </div>
+                                    \`;
+                                }
+                            }
+                            
+                            // Check if iframe loaded successfully after a delay
+                            setTimeout(() => {
+                                const iframe = document.querySelector('.docx-preview-frame');
+                                const loading = document.querySelector('.docx-loading');
+                                if (iframe && loading && loading.style.display !== 'none') {
+                                    showDocxFallback();
+                                }
+                            }, 5000); // Wait 5 seconds for loading
+                        `;
+                        document.head.appendChild(script);
+                    } else {
+                        modalBody.innerHTML = `<div class="alert alert-warning">Unsupported file type. 
+                            <a href="${manifestoPath}" target="_blank" download class="alert-link">Download File</a>
+                        </div>`;
+                    }
                 });
             }
 
@@ -2822,6 +1768,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                     $badge.classList.remove('d-none');
                                 }
                                 
+                                // Play notification sound
+                                const notificationSound = document.getElementById('notification-sound');
+                                if (notificationSound) {
+                                    notificationSound.currentTime = 0;
+                                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                                }
+                                
                                 // Show toast notification for latest notification
                                 if (data.latest_notification) {
                                     showToastNotification(data.latest_notification);
@@ -2836,23 +1789,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             function showToastNotification(notification) {
                 const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
                 
+                // Play notification sound
+                const notificationSound = document.getElementById('notification-sound');
+                if (notificationSound) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                }
+                
                 // Remove any existing toast
                 const existingToasts = document.querySelectorAll('.toast');
                 existingToasts.forEach(toast => toast.remove());
                 
-                // Create toast element
+                // Create toast container
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                
+                // Create toast element with slide-in animation
                 const toastEl = document.createElement('div');
                 toastEl.className = `toast show ${isDarkMode ? 'bg-dark text-white' : ''}`;
                 toastEl.setAttribute('role', 'alert');
-                toastEl.style.position = 'fixed';
-                toastEl.style.bottom = '1.5rem';
-                toastEl.style.right = '1.5rem';
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
                 toastEl.style.minWidth = '300px';
                 toastEl.style.maxWidth = '90vw';
-                toastEl.style.zIndex = '9999';
                 toastEl.style.border = 'none';
                 toastEl.style.borderRadius = '0.5rem';
                 toastEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                toastEl.style.animation = 'slideIn 0.5s ease-out forwards';
+                
+                // Add CSS animation
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateY(100%); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styleEl);
                 
                 // Create toast content
                 const icon = notification.icon || 'bi-bell-fill';
@@ -2876,28 +1850,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     </div>
                 `;
                 
-                // Add toast to body
-                document.body.appendChild(toastEl);
+                // Add toast to container
+                toastContainer.appendChild(toastEl);
+                
+                // Add container to body
+                document.body.appendChild(toastContainer);
                 
                 // Add click handler for close button
                 const closeBtn = toastEl.querySelector('.btn-close');
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => {
-                        toastEl.remove();
+                        toastContainer.remove();
                     });
                 }
                 
                 // Auto-hide after 5 seconds
                 setTimeout(() => {
-                    if (toastEl.parentNode) {
-                        toastEl.style.opacity = '0';
-                        toastEl.style.transition = 'opacity 0.5s ease';
-                        setTimeout(() => {
-                            if (toastEl.parentNode) {
-                                toastEl.remove();
-                            }
-                        }, 500);
-                    }
+                    toastEl.style.opacity = '0';
+                    toastEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    toastEl.style.transform = 'translateY(100%)';
+                    
+                    setTimeout(() => {
+                        if (toastContainer.parentNode) {
+                            toastContainer.remove();
+                        }
+                    }, 500);
                 }, 5000);
             }
             
@@ -2908,6 +1885,259 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             setInterval(checkNewNotifications, 30000);
         });
 
-       </script>
+        // Countdown Timer functionality
+        function updateCountdown() {
+            <?php if ($currentElection): ?>
+            // Election start and end dates from PHP
+            const electionStartDate = new Date('<?= isset($currentElection["start_time"]) && $currentElection["start_time"] ? date('Y-m-d', strtotime($currentElection["startDate"])) . 'T' . date('H:i:s', strtotime($currentElection["start_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["startDate"])) ?>');
+            const electionEndDate = new Date('<?= isset($currentElection["end_time"]) && $currentElection["end_time"] ? date('Y-m-d', strtotime($currentElection["endDate"])) . 'T' . date('H:i:s', strtotime($currentElection["end_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["endDate"])) ?>');
+            const electionStartDateUTC = new Date(electionStartDate.getTime() + (electionStartDate.getTimezoneOffset() * 60000));
+            const electionEndDateUTC = new Date(electionEndDate.getTime() + (electionEndDate.getTimezoneOffset() * 60000));
+            
+            const currentStatus = '<?= $currentElection["status"] ?>';
+
+            // Get current time in UTC
+            const now = new Date(Date.UTC(
+                new Date().getUTCFullYear(),
+                new Date().getUTCMonth(),
+                new Date().getUTCDate(),
+                new Date().getUTCHours(),
+                new Date().getUTCMinutes(),
+                new Date().getUTCSeconds()
+            ));
+
+
+            let targetDate;
+            let countdownLabel;
+
+            if (currentStatus === 'Scheduled') {
+                targetDate = electionStartDate;
+                countdownLabel = 'Election Starts In:';
+            } else if (currentStatus === 'Ongoing') {
+                targetDate = electionEndDate;
+                countdownLabel = 'Election Ends In:';
+            } else {
+                // Election is not scheduled or ongoing, so hide the timer
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                    clearInterval(countdownInterval);
+                }
+                return;
+            }
+
+            // Calculate time remaining in milliseconds
+            const timeLeft = targetDate.getTime() - now.getTime();
+
+            if (timeLeft > 0) {
+                // Election is still active (scheduled or ongoing)
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                // Update DOM elements safely
+                const daysEl = document.getElementById('days');
+                const hoursEl = document.getElementById('hours');
+                const minutesEl = document.getElementById('minutes');
+                const secondsEl = document.getElementById('seconds');
+                const timeRemainingText = document.querySelector('.time-remaining-text');
+
+                if (timeRemainingText) {
+                    timeRemainingText.textContent = countdownLabel;
+                }
+
+                if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+                if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+                if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+                if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+
+            } else {
+                // If target date has passed
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    if (currentStatus === 'Scheduled') {
+                        // If scheduled election start time has passed, it should now be ongoing
+                        countdownContainer.innerHTML = '<div class="text-center text-success fw-bold">Election is starting now! Refreshing...</div>';
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000); // Reload after 3 seconds
+                    } else if (currentStatus === 'Ongoing') {
+                        // For ongoing elections, we should never reach here unless the end date has passed
+                        // Double check server time vs client time
+                        const serverNow = new Date('<?= date("Y-m-d\TH:i:s") ?>');
+                        const endDate = new Date('<?= date("Y-m-d\TH:i:s", strtotime($currentElection["endDate"])) ?>');
+
+                        if (serverNow >= endDate) {
+                            // If server time confirms election has ended
+                            countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+
+                            // Disable voting form and redirect to results
+                            const votingForm = document.getElementById('votingForm');
+                            if (votingForm) {
+                                votingForm.style.display = 'none';
+                                const endedMessage = document.createElement('div');
+                                endedMessage.className = 'alert alert-warning text-center';
+                                endedMessage.innerHTML = '<i class="bi bi-clock-history me-2"></i>This election has concluded. Results should be available soon.';
+                                votingForm.parentNode.insertBefore(endedMessage, votingForm);
+
+                                const resultsButton = document.createElement('a');
+                                resultsButton.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                resultsButton.className = 'btn btn-primary d-block mt-3';
+                                resultsButton.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>View Election Results';
+                                endedMessage.appendChild(resultsButton);
+
+                                setTimeout(() => {
+                                    window.location.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                }, 5000);
+                            }
+
+                            // Clear the interval to stop the countdown
+                            clearInterval(countdownInterval);
+                        } else {
+                            // If client time is ahead of server time, recalculate with server time
+                            countdownContainer.innerHTML = '<div class="d-flex align-items-center justify-content-start countdown-container">' +
+                                '<div class="time-unit"><span>00</span><small>days</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>hours</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>minutes</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>seconds</small></div>' +
+                            '</div>';
+
+                            // Force refresh to get updated election status
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 5000);
+                        }
+                    } else {
+                        // For completed elections
+                        countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                        clearInterval(countdownInterval);
+                    }
+                }
+            }
+            <?php endif; ?>
+        }
+
+        let countdownInterval; // Define interval variable in a scope accessible by clearInterval
+        <?php if ($currentElection): ?>
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Initial call to display immediately
+        <?php endif; ?>
+        
+        // Create bubble backgrounds for election timer and info sections
+        function createBubbles() {
+            // Get all bubble background elements
+            const bubbleContainers = document.querySelectorAll('.bubble-background');
+            
+            bubbleContainers.forEach(container => {
+                // Remove any existing bubbles first (for theme changes)
+                container.querySelectorAll('.bubble').forEach(bubble => bubble.remove());
+                
+                // Create between 10-20 bubbles based on container size
+                const containerWidth = container.offsetWidth;
+                const containerHeight = container.offsetHeight;
+                const numberOfBubbles = Math.max(10, Math.floor(containerWidth * containerHeight / 8000));
+                const maxBubbles = Math.min(20, numberOfBubbles);
+                
+                // Get colors from CSS variables
+                const computedStyle = getComputedStyle(container);
+                const bubbleColorRGB = computedStyle.getPropertyValue('--bubble-color-rgb').trim();
+                
+                // Create bubble layers for 3D effect
+                for (let layer = 1; layer <= 3; layer++) {
+                    const layerBubbleCount = Math.ceil(maxBubbles / 3);
+                    const zIndex = layer * 10 - 10; 
+                    const opacity = 0.05 + (layer * 0.05); // Opacity increases with each layer
+                    
+                    for (let i = 0; i < layerBubbleCount; i++) {
+                        const bubble = document.createElement('div');
+                        bubble.classList.add('bubble');
+                        
+                        // Size varies by layer - deeper layers have smaller bubbles
+                        const baseSize = 10 + (layer * 15); // Layer 1: 25px base, Layer 2: 40px base, Layer 3: 55px base
+                        const sizeVariation = 10 + (layer * 5); // Variation increases with layer
+                        const size = Math.floor(Math.random() * sizeVariation) + baseSize;
+                        
+                        bubble.style.width = `${size}px`;
+                        bubble.style.height = `${size}px`;
+                        
+                        // Random position
+                        const left = Math.floor(Math.random() * (containerWidth - size));
+                        const top = Math.floor(Math.random() * (containerHeight - size));
+                        bubble.style.left = `${left}px`;
+                        bubble.style.top = `${top}px`;
+                        
+                        // Layer-specific styles
+                        bubble.style.zIndex = zIndex;
+                        bubble.style.setProperty('--bubble-opacity', opacity);
+                        bubble.style.setProperty('--bubble-blur', `${4 - layer}px`); // Deeper layers are blurrier
+                        
+                        // More organic shape with border-radius variations
+                        if (Math.random() > 0.7) {
+                            // Create slightly oval bubble
+                            const randomBorderRadius = `${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}%`;
+                            bubble.style.borderRadius = randomBorderRadius;
+                        }
+                        
+                        // Random float animation properties - deeper layers move more slowly
+                        const floatTime = Math.floor((Math.random() * 8) + 10 - (layer * 2)); // 4-12s
+                        const glowTime = Math.floor((Math.random() * 10) + 5); // 5-15s
+                        const pulseTime = Math.floor((Math.random() * 5) + 2); // 2-7s
+                        
+                        // Movement range decreases with layer depth
+                        const movementFactor = 1 - ((layer - 1) * 0.2); // Layer 1: 0.8, Layer 2: 0.6, Layer 3: 0.4
+                        const floatY = Math.floor(Math.random() * 50 * movementFactor) - (25 * movementFactor); 
+                        const floatX = Math.floor(Math.random() * 50 * movementFactor) - (25 * movementFactor);
+                        const rotate = Math.floor(Math.random() * 30) - 15; // -15 to 15 degrees rotation
+                        const floatScale = (Math.random() * 0.3 * movementFactor) + 0.85; // Scale variation 0.85-1.15
+                        
+                        bubble.style.setProperty('--float-time', `${floatTime}s`);
+                        bubble.style.setProperty('--glow-time', `${glowTime}s`);
+                        bubble.style.setProperty('--pulse-time', `${pulseTime}s`);
+                        bubble.style.setProperty('--float-y', `${floatY}px`);
+                        bubble.style.setProperty('--float-x', `${floatX}px`);
+                        bubble.style.setProperty('--rotate', `${rotate}deg`);
+                        bubble.style.setProperty('--float-scale', floatScale);
+                        
+                        // Make some bubbles pulse
+                        if (Math.random() > 0.5) {
+                            bubble.classList.add('pulse');
+                        }
+                        
+                        // Add custom gradient to some bubbles for more realism
+                        if (Math.random() > 0.3) {
+                            const gradientAngle = Math.floor(Math.random() * 360);
+                            const gradientStart = `rgba(${bubbleColorRGB}, ${opacity * 3})`;
+                            const gradientEnd = `rgba(${bubbleColorRGB}, ${opacity / 2})`;
+                            bubble.style.background = `radial-gradient(circle at ${Math.floor(Math.random() * 70) + 15}% ${Math.floor(Math.random() * 70) + 15}%, ${gradientStart} 0%, ${gradientEnd} 80%)`;
+                        }
+                        
+                        // Append bubble to container
+                        container.appendChild(bubble);
+                    }
+                }
+            });
+        }
+        
+        // Create bubbles on page load with a small delay to ensure container sizes are calculated correctly
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(createBubbles, 100);
+            
+            // Recreate bubbles when theme changes to update colors
+            document.addEventListener('themeChanged', function() {
+                setTimeout(createBubbles, 100); // Small delay for theme transition
+            });
+            
+            // Recreate bubbles on window resize
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(createBubbles, 300);
+            });
+        });
+    </script>
 </body>
 </html>

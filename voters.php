@@ -88,7 +88,6 @@ if ($electionID) {
         if (isset($voteData[$vote['candidateID']])) {
             $voteData[$vote['candidateID']]['votes'][] = $vote;
             $voteData[$vote['candidateID']]['voteCount']++;
-            $totalVotes++;
         }
     }
 
@@ -98,6 +97,13 @@ if ($electionID) {
     $uniqueQuery->execute();
     $uniqueResult = $uniqueQuery->get_result();
     $uniqueVoters = $uniqueResult->fetch_assoc()['count'];
+
+    // Get total votes count directly from database
+    $totalVotesQuery = $conn->prepare("SELECT COUNT(*) as count FROM votes WHERE electionID = ?");
+    $totalVotesQuery->bind_param("i", $electionID);
+    $totalVotesQuery->execute();
+    $totalVotesResult = $totalVotesQuery->get_result();
+    $totalVotes = $totalVotesResult->fetch_assoc()['count'];
 }
 ?>
 
@@ -135,7 +141,6 @@ if ($electionID) {
         .main-content {
             width: 100%;
             min-height: 100vh;
-            padding-left: 20px;
             transition: all 0.3s;
         }
         
@@ -965,13 +970,139 @@ if ($electionID) {
                                             </div>
                                         </div>
                                         <div class="d-flex gap-2">
-                                            <button class="btn btn-sm btn-outline-primary" type="button">
+                                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#statsModal<?php echo $candidate['candidateID']; ?>">
                                                 <i class="bi bi-graph-up"></i> Statistics
                                             </button>
                                             <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" 
                                                     data-bs-target="#voters<?php echo $candidate['candidateID']; ?>">
                                                 <i class="bi bi-people"></i> Show Voters
                                             </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Statistics Modal -->
+                                    <div class="modal fade" id="statsModal<?php echo $candidate['candidateID']; ?>" tabindex="-1" aria-labelledby="statsModalLabel<?php echo $candidate['candidateID']; ?>" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title" id="statsModalLabel<?php echo $candidate['candidateID']; ?>">
+                                                        <i class="bi bi-bar-chart-fill me-2"></i>
+                                                        Statistics for <?php echo htmlspecialchars($candidate['candidateName']); ?>
+                                                    </h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    <div class="row mb-4">
+                                                        <div class="col-md-6">
+                                                            <div class="card border h-100">
+                                                                <div class="card-body">
+                                                                    <h5 class="card-title">Vote Distribution</h5>
+                                                                    <div class="chart-container" style="position: relative; height:200px;">
+                                                                        <canvas id="pieChart<?php echo $candidate['candidateID']; ?>" width="100%" height="100%"></canvas>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card border h-100">
+                                                                <div class="card-body">
+                                                                    <h5 class="card-title">Vote Timeline</h5>
+                                                                    <div class="chart-container" style="position: relative; height:200px;">
+                                                                        <canvas id="lineChart<?php echo $candidate['candidateID']; ?>" width="100%" height="100%"></canvas>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <div class="card border">
+                                                                <div class="card-body text-center">
+                                                                    <h5 class="text-primary mb-1"><?php echo number_format($candidate['voteCount']); ?></h5>
+                                                                    <p class="text-muted mb-0 small">Total Votes</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="card border">
+                                                                <div class="card-body text-center">
+                                                                    <h5 class="text-primary mb-1"><?php echo $totalVotes > 0 ? round(($candidate['voteCount'] / $totalVotes) * 100) : 0; ?>%</h5>
+                                                                    <p class="text-muted mb-0 small">Percentage</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="card border">
+                                                                <div class="card-body text-center">
+                                                                    <?php
+                                                                    // Calculate votes by department
+                                                                    $departments = [];
+                                                                    foreach ($candidate['votes'] as $vote) {
+                                                                        if (isset($vote['voterDepartment'])) {
+                                                                            $dept = $vote['voterDepartment'];
+                                                                            if (!isset($departments[$dept])) {
+                                                                                $departments[$dept] = 0;
+                                                                            }
+                                                                            $departments[$dept]++;
+                                                                        }
+                                                                    }
+                                                                    
+                                                                    // Set a default department if none exists
+                                                                    $topDept = 'None';
+                                                                    
+                                                                    // Only try to get top department if we have data
+                                                                    if (!empty($departments)) {
+                                                                        arsort($departments);
+                                                                        // Get first key safely using array_keys
+                                                                        $deptKeys = array_keys($departments);
+                                                                        if (!empty($deptKeys)) {
+                                                                            $topDept = $deptKeys[0];
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                    <h5 class="text-primary mb-1"><?php echo htmlspecialchars($topDept); ?></h5>
+                                                                    <p class="text-muted mb-0 small">Top Department</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <h5 class="mt-4 mb-3">Department Distribution</h5>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-hover">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Department</th>
+                                                                    <th>Votes</th>
+                                                                    <th>Percentage</th>
+                                                                    <th>Progress</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <?php foreach ($departments as $dept => $count): ?>
+                                                                <tr>
+                                                                    <td><?php echo htmlspecialchars($dept); ?></td>
+                                                                    <td><?php echo $count; ?></td>
+                                                                    <td><?php echo $candidate['voteCount'] > 0 ? round(($count / $candidate['voteCount']) * 100) : 0; ?>%</td>
+                                                                    <td>
+                                                                        <div class="progress" style="height: 6px;">
+                                                                            <div class="progress-bar" role="progressbar" 
+                                                                                 style="width: <?php echo $candidate['voteCount'] > 0 ? ($count / $candidate['voteCount']) * 100 : 0; ?>%"></div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php endforeach; ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <button type="button" class="btn btn-primary" onclick="window.print()">
+                                                        <i class="bi bi-printer me-1"></i> Print Report
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -996,7 +1127,10 @@ if ($electionID) {
                                                                     <img src="assets/img/profile/students/<?php echo $voterPhoto; ?>" 
                                                                          class="user-avatar" 
                                                                          alt="<?php echo htmlspecialchars($vote['voterName']); ?>"
-                                                                         onerror="this.src='assets/img/aristo.png';">
+                                                                         onerror="this.src='assets/img/aristo.png';"
+                                                                         style="cursor: pointer;"
+                                                                         data-bs-toggle="modal" 
+                                                                         data-bs-target="#voterModal<?php echo $vote['studentID']; ?>">
                                                                     <span class="position-absolute bottom-0 end-0 bg-success rounded-circle p-1">
                                                                         <i class="bi bi-check-lg text-white"></i>
                                                                     </span>
@@ -1004,7 +1138,11 @@ if ($electionID) {
                                                             </div>
                                                             <div class="flex-grow-1 ms-3">
                                                                 <h6 class="mb-1 d-flex align-items-center">
-                                                                    <?php echo htmlspecialchars($vote['voterName']); ?>
+                                                                    <a href="#" class="text-decoration-none" 
+                                                                       data-bs-toggle="modal" 
+                                                                       data-bs-target="#voterModal<?php echo $vote['studentID']; ?>">
+                                                                        <?php echo htmlspecialchars($vote['voterName']); ?>
+                                                                    </a>
                                                                 </h6>
                                                                 <div class="d-flex align-items-center text-muted small">
                                                                     <i class="bi bi-buildings department-icon icon"></i>
@@ -1019,11 +1157,128 @@ if ($electionID) {
                                                                     <i class="bi bi-three-dots-vertical"></i>
                                                                 </button>
                                                                 <ul class="dropdown-menu dropdown-menu-end">
-                                                                    <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="bi bi-person-vcard me-2"></i> View Profile</a></li>
-                                                                    <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="bi bi-envelope me-2"></i> Message</a></li>
+                                                                    <li><a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#voterModal<?php echo $vote['studentID']; ?>">
+                                                                        <i class="bi bi-person-vcard me-2"></i> View Profile</a></li>
+                                                                    <li><a class="dropdown-item d-flex align-items-center" href="#">
+                                                                        <i class="bi bi-envelope me-2"></i> Message</a></li>
                                                                     <li><hr class="dropdown-divider"></li>
-                                                                    <li><a class="dropdown-item d-flex align-items-center text-danger" href="#"><i class="bi bi-x-circle me-2"></i> Invalidate Vote</a></li>
+                                                                    <li><a class="dropdown-item d-flex align-items-center text-danger" href="#">
+                                                                        <i class="bi bi-x-circle me-2"></i> Invalidate Vote</a></li>
                                                                 </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Voter Profile Modal -->
+                                                    <div class="modal fade" id="voterModal<?php echo $vote['studentID']; ?>" tabindex="-1" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header bg-light">
+                                                                    <h5 class="modal-title">
+                                                                        <i class="bi bi-person-badge me-2"></i>Voter Profile
+                                                                    </h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <div class="text-center mb-4">
+                                                                        <img src="assets/img/profile/students/<?php echo $voterPhoto; ?>" 
+                                                                             class="rounded-circle img-thumbnail mb-3" 
+                                                                             style="width: 150px; height: 150px; object-fit: cover;"
+                                                                             alt="<?php echo htmlspecialchars($vote['voterName']); ?>"
+                                                                             onerror="this.src='assets/img/aristo.png';">
+                                                                        <h4><?php echo htmlspecialchars($vote['voterName']); ?></h4>
+                                                                        <span class="badge bg-info rounded-pill">
+                                                                            <i class="bi bi-mortarboard-fill me-1"></i>
+                                                                            Student
+                                                                        </span>
+                                                                    </div>
+                                                                    
+                                                                    <div class="list-group mb-4">
+                                                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                                            <div>
+                                                                                <i class="bi bi-buildings me-2 text-primary"></i>
+                                                                                <span>Department</span>
+                                                                            </div>
+                                                                            <strong><?php echo htmlspecialchars($vote['voterDepartment']); ?></strong>
+                                                                        </div>
+                                                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                                            <div>
+                                                                                <i class="bi bi-person-fill me-2 text-primary"></i>
+                                                                                <span>Student ID</span>
+                                                                            </div>
+                                                                            <strong><?php echo $vote['studentID']; ?></strong>
+                                                                        </div>
+                                                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                                            <div>
+                                                                                <i class="bi bi-calendar-check me-2 text-primary"></i>
+                                                                                <span>Last Vote</span>
+                                                                            </div>
+                                                                            <strong><?php echo date('M j, Y g:i a', strtotime($vote['timestamp'])); ?></strong>
+                                                                        </div>
+                                                                        
+                                                                        <?php
+                                                                        // Count all votes by this voter in the election
+                                                                        $voterVoteCount = $conn->prepare("
+                                                                            SELECT COUNT(*) as count 
+                                                                            FROM votes
+                                                                            WHERE electionID = ? AND studentID = ?
+                                                                        ");
+                                                                        $voterVoteCount->bind_param("ii", $electionID, $vote['studentID']);
+                                                                        $voterVoteCount->execute();
+                                                                        $countResult = $voterVoteCount->get_result()->fetch_assoc();
+                                                                        $totalVotesByVoter = $countResult['count'];
+                                                                        ?>
+                                                                        
+                                                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                                            <div>
+                                                                                <i class="bi bi-check-circle me-2 text-primary"></i>
+                                                                                <span>Total Votes Cast</span>
+                                                                            </div>
+                                                                            <strong><?php echo $totalVotesByVoter; ?></strong>
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    <?php
+                                                                    // Get other candidates this voter voted for
+                                                                    $otherVotes = $conn->prepare("
+                                                                        SELECT c.candidateID, p.title as position, st.name as candidateName  
+                                                                        FROM votes v
+                                                                        JOIN candidates c ON v.candidateID = c.candidateID
+                                                                        JOIN positions p ON c.positionID = p.positionID
+                                                                        JOIN students st ON c.studentID = st.studentID
+                                                                        WHERE v.electionID = ? AND v.studentID = ?
+                                                                    ");
+                                                                    $otherVotes->bind_param("ii", $electionID, $vote['studentID']);
+                                                                    $otherVotes->execute();
+                                                                    $otherVotesResult = $otherVotes->get_result();
+                                                                    
+                                                                    if ($otherVotesResult->num_rows > 0):
+                                                                    ?>
+                                                                    <h6 class="mb-3"><i class="bi bi-check2-all me-1"></i>Votes Cast</h6>
+                                                                    <table class="table table-sm table-hover">
+                                                                        <thead class="table-light">
+                                                                            <tr>
+                                                                                <th>Position</th>
+                                                                                <th>Candidate</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <?php while($row = $otherVotesResult->fetch_assoc()): ?>
+                                                                            <tr>
+                                                                                <td><?php echo htmlspecialchars($row['position']); ?></td>
+                                                                                <td><?php echo htmlspecialchars($row['candidateName']); ?></td>
+                                                                            </tr>
+                                                                            <?php endwhile; ?>
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <?php endif; ?>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                    <a href="#" class="btn btn-primary">
+                                                                        <i class="bi bi-envelope me-1"></i>Contact
+                                                                    </a>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1101,6 +1356,9 @@ if ($electionID) {
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Chart.js for statistics visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Add a small delay to display fade-in effects
@@ -1146,6 +1404,119 @@ if ($electionID) {
                 });
             });
         }
+        
+        // Initialize charts for statistics modals
+        <?php foreach ($voteData as $candidate): ?>
+        // Only create charts if the modal exists
+        if (document.getElementById('pieChart<?php echo $candidate['candidateID']; ?>')) {
+            // Get department distribution for pie chart
+            <?php 
+            $departments = [];
+            foreach ($candidate['votes'] as $vote) {
+                $dept = $vote['voterDepartment'];
+                if (!isset($departments[$dept])) {
+                    $departments[$dept] = 0;
+                }
+                $departments[$dept]++;
+            }
+            ?>
+            
+            // Pie chart for department distribution
+            const pieData<?php echo $candidate['candidateID']; ?> = {
+                labels: [<?php 
+                    $labels = [];
+                    foreach ($departments as $dept => $count) {
+                        $labels[] = "'$dept'";
+                    }
+                    echo implode(',', $labels);
+                ?>],
+                datasets: [{
+                    data: [<?php echo implode(',', $departments); ?>],
+                    backgroundColor: [
+                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                        '#5a5c69', '#6610f2', '#fd7e14', '#20c9a6', '#6f42c1'
+                    ],
+                    hoverOffset: 4
+                }]
+            };
+            
+            const pieCtx<?php echo $candidate['candidateID']; ?> = document.getElementById('pieChart<?php echo $candidate['candidateID']; ?>').getContext('2d');
+            new Chart(pieCtx<?php echo $candidate['candidateID']; ?>, {
+                type: 'pie',
+                data: pieData<?php echo $candidate['candidateID']; ?>,
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Timeline chart - votes over time
+            <?php 
+            // Group votes by date for timeline
+            $timeline = [];
+            $dates = [];
+            
+            // Sort votes by timestamp
+            $sortedVotes = $candidate['votes'];
+            usort($sortedVotes, function($a, $b) {
+                return strtotime($a['timestamp']) - strtotime($b['timestamp']);
+            });
+            
+            $cumulativeCount = 0;
+            foreach ($sortedVotes as $vote) {
+                $date = date('M j', strtotime($vote['timestamp']));
+                if (!isset($timeline[$date])) {
+                    $timeline[$date] = 0;
+                    $dates[] = $date;
+                }
+                $cumulativeCount++;
+                $timeline[$date] = $cumulativeCount;
+            }
+            ?>
+            
+            const timelineData<?php echo $candidate['candidateID']; ?> = {
+                labels: [<?php echo "'" . implode("','", $dates) . "'"; ?>],
+                datasets: [{
+                    label: 'Cumulative Votes',
+                    data: [<?php echo implode(',', $timeline); ?>],
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            };
+            
+            const lineCtx<?php echo $candidate['candidateID']; ?> = document.getElementById('lineChart<?php echo $candidate['candidateID']; ?>').getContext('2d');
+            new Chart(lineCtx<?php echo $candidate['candidateID']; ?>, {
+                type: 'line',
+                data: timelineData<?php echo $candidate['candidateID']; ?>,
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        <?php endforeach; ?>
         
         // Print functionality with custom styling
         const printBtn = document.getElementById('printBtn');

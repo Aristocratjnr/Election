@@ -10,6 +10,11 @@ if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
 
 require 'configs/dbconnection.php';
 
+$topDept = 'None';
+if (!empty($departments)) {
+    reset($departments);
+    $topDept = key($departments);
+}
 
 $electionID = $_GET['election'] ?? null;
 
@@ -18,45 +23,132 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_candidate'])) {
         $studentID = $_POST['studentID'];
         $positionID = $_POST['positionID'];
-        $manifesto = $_POST['manifesto'];
+        $manifesto = $_FILES['manifesto']['name'] ?? null;
         $status = $_POST['status'];
         $photo = '';
 
-        // Handle photo upload
-        if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
-            $allowed = ['jpg', 'jpeg', 'png'];
-            $filename = $_FILES['photo']['name'];
-            $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        // Handle manifesto upload
+        if ($manifesto) {
+            $allowedManifestoExtensions = ['pdf', 'txt', 'docx'];
+            $manifestoExt = strtolower(pathinfo($manifesto, PATHINFO_EXTENSION));
             
-            if (in_array($ext, $allowed)) {
-                $new_filename = uniqid() . '.' . $ext;
-                $upload_path = 'uploads/candidates/' . $new_filename;
+            if (in_array($manifestoExt, $allowedManifestoExtensions)) {
+                $newManifestoFilename = uniqid() . '.' . $manifestoExt;
+                $manifestoUploadPath = 'uploads/manifestos/' . $newManifestoFilename;
                 
-                if (!is_dir('uploads/candidates')) {
-                    mkdir('uploads/candidates', 0777, true);
+                if (!is_dir('uploads/manifestos')) {
+                    mkdir('uploads/manifestos', 0777, true);
                 }
                 
-                if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
-                    $photo = $new_filename;
+                if (move_uploaded_file($_FILES['manifesto']['tmp_name'], $manifestoUploadPath)) {
+                    $manifesto = $newManifestoFilename;
                 }
             }
         }
-        
-        $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
-        
-        if ($stmt->execute()) {
-            $success = "Candidate added successfully!";
+
+        // Check if a candidate already exists for the Treasurer position in the selected election
+        $positionTitleQuery = $conn->query("SELECT title FROM positions WHERE positionID = '$positionID'");
+        $positionTitle = $positionTitleQuery->fetch_assoc()['title'];
+
+        if ($positionTitle == "Treasurer") {
+            $electionID = $_GET['election'] ?? null;
+            $existingCandidateQuery = $conn->prepare("SELECT COUNT(*) FROM candidates c JOIN positions p ON c.positionID = p.positionID WHERE p.title = 'Treasurer' AND p.electionID = ?");
+            $existingCandidateQuery->bind_param("i", $electionID);
+            $existingCandidateQuery->execute();
+            $existingCandidateCount = $existingCandidateQuery->get_result()->fetch_row()[0];
+
+            if ($existingCandidateCount > 0) {
+                $error = "A candidate already exists for the Treasurer position in this election.";
+            } else {
+                // Handle photo upload
+                if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+                    $allowed = ['jpg', 'jpeg', 'png'];
+                    $filename = $_FILES['photo']['name'];
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                    
+                    if (in_array($ext, $allowed)) {
+                        $new_filename = uniqid() . '.' . $ext;
+                        $upload_path = 'uploads/candidates/' . $new_filename;
+                        
+                        if (!is_dir('uploads/candidates')) {
+                            mkdir('uploads/candidates', 0777, true);
+                        }
+                        
+                        if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
+                            $photo = $new_filename;
+                        }
+                    }
+                }
+                
+                $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
+                
+                if ($stmt->execute()) {
+                    $success = "Candidate added successfully!";
+                } else {
+                    $error = "Error adding candidate: " . $conn->error;
+                }
+            }
         } else {
-            $error = "Error adding candidate: " . $conn->error;
+            // Handle photo upload
+            if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+                $allowed = ['jpg', 'jpeg', 'png'];
+                $filename = $_FILES['photo']['name'];
+                $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                
+                if (in_array($ext, $allowed)) {
+                    $new_filename = uniqid() . '.' . $ext;
+                    $upload_path = 'uploads/candidates/' . $new_filename;
+                    
+                    if (!is_dir('uploads/candidates')) {
+                        mkdir('uploads/candidates', 0777, true);
+                    }
+                    
+                    if (move_uploaded_file($_FILES['photo']['tmp_name'], $upload_path)) {
+                        $photo = $new_filename;
+                    }
+                }
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO candidates (studentID, positionID, manifesto, status, photo) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("iisss", $studentID, $positionID, $manifesto, $status, $photo);
+            
+            if ($stmt->execute()) {
+                $success = "Candidate added successfully!";
+            } else {
+                $error = "Error adding candidate: " . $conn->error;
+            }
         }
     } elseif (isset($_POST['update_candidate'])) {
         $candidateID = $_POST['candidateID'];
         $studentID = $_POST['studentID'];
         $positionID = $_POST['positionID'];
-        $manifesto = $_POST['manifesto'];
+        $manifesto = $_FILES['manifesto']['name'] ?? $_POST['current_manifesto'];
         $status = $_POST['status'];
         $photo = $_POST['current_photo'];
+
+        // Handle manifesto upload
+        if (isset($_FILES['manifesto']) && $_FILES['manifesto']['error'] === 0) {
+            $allowedManifestoExtensions = ['pdf', 'txt', 'docx'];
+            $manifestoExt = strtolower(pathinfo($_FILES['manifesto']['name'], PATHINFO_EXTENSION));
+            
+            if (in_array($manifestoExt, $allowedManifestoExtensions)) {
+                $newManifestoFilename = uniqid() . '.' . $manifestoExt;
+                $manifestoUploadPath = 'uploads/manifestos/' . $newManifestoFilename;
+                
+                if (!is_dir('uploads/manifestos')) {
+                    mkdir('uploads/manifestos', 0777, true);
+                }
+                
+                if (move_uploaded_file($_FILES['manifesto']['tmp_name'], $manifestoUploadPath)) {
+                    // Delete old manifesto if exists
+                    if ($manifesto && file_exists('uploads/manifestos/' . $manifesto)) {
+                        unlink('uploads/manifestos/' . $manifesto);
+                    }
+                    $manifesto = $newManifestoFilename;
+                }
+            }
+        }
 
         // Handle photo upload
         if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
@@ -94,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $candidateID = $_POST['candidateID'];
         
         // Get photo filename before deletion
-        $stmt = $conn->prepare("SELECT photo FROM candidates WHERE candidateID = ?");
+        $stmt = $conn->prepare("SELECT photo, manifesto FROM candidates WHERE candidateID = ?");
         $stmt->bind_param("i", $candidateID);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -103,6 +195,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Delete photo file if exists
         if ($candidate['photo'] && file_exists('uploads/candidates/' . $candidate['photo'])) {
             unlink('uploads/candidates/' . $candidate['photo']);
+        }
+
+        // Delete manifesto file if exists
+        if ($candidate['manifesto'] && file_exists('uploads/manifestos/' . $candidate['manifesto'])) {
+            unlink('uploads/manifestos/' . $candidate['manifesto']);
         }
         
         $stmt = $conn->prepare("DELETE FROM candidates WHERE candidateID = ?");
@@ -129,7 +226,8 @@ $positions = $conn->query($positionsQuery);
 
 // Base query for candidates
 $candidatesQuery = "
-    SELECT c.*, s.name as studentName, s.profilePicture, p.title as positionTitle 
+    SELECT DISTINCT c.candidateID, c.studentID, c.positionID, c.manifesto, c.status, c.photo,
+           s.name as studentName, s.profilePicture, p.title as positionTitle 
     FROM candidates c
     JOIN students s ON c.studentID = s.studentID
     LEFT JOIN positions p ON c.positionID = p.positionID
@@ -140,8 +238,8 @@ if ($electionID) {
     $candidatesQuery .= " WHERE p.electionID = $electionID";
 }
 
-// Add sorting and grouping
-$candidatesQuery .= " GROUP BY c.candidateID ORDER BY s.name ASC";
+// Add sorting
+$candidatesQuery .= " ORDER BY s.name ASC";
 
 // Get candidates
 $candidates = $conn->query($candidatesQuery);
@@ -788,81 +886,75 @@ if ($electionID) {
                                 <div class="card-body p-0">
                                     <?php if ($candidates->num_rows > 0): ?>
                                         <div class="table-responsive">
-                                            <table class="table table-hover mb-0">
-                                                <thead class="table-light">
+                                            <table class="table table-hover align-middle mb-0">
+                                                <thead>
                                                     <tr>
-                                                        <th width="80" class="text-center"><i class="bi bi-image me-1"></i> Photo</th>
-                                                        <th><i class="bi bi-person-badge me-1"></i> Candidate</th>
-                                                        <th><i class="bi bi-briefcase me-1"></i> Position</th>
-                                                        <th><i class="bi bi-shield-check me-1"></i> Status</th>
-                                                        <th width="120"><i class="bi bi-gear me-1"></i> Actions</th>
+                                                        <th style="width: 50px;">#</th>
+                                                        <th style="width: 60px;">Photo</th>
+                                                        <th>Student</th>
+                                                        <th>Position</th>
+                                                        <th>Status</th>
+                                                        <th style="width: 150px;">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    <?php $count = 1; ?>
                                                     <?php while ($candidate = $candidates->fetch_assoc()): ?>
                                                         <tr>
-                                                            <td class="text-center">
-                                                                <?php if ($candidate['photo']): ?>
-                                                                    <img src="uploads/candidates/<?= htmlspecialchars($candidate['photo'] ?? '') ?>" 
-                                                                         class="candidate-img shadow-sm" 
-                                                                         alt="<?= htmlspecialchars($candidate['studentName'] ?? '') ?>">
+                                                            <td><?= $count++ ?></td>
+                                                            <td>
+                                                                <?php if ($candidate['photo'] && file_exists('uploads/candidates/' . $candidate['photo'])): ?>
+                                                                    <img src="uploads/candidates/<?= $candidate['photo'] ?>" alt="Candidate Photo" class="candidate-img">
+                                                                <?php elseif ($candidate['profilePicture'] && file_exists('uploads/students/' . $candidate['profilePicture'])): ?>
+                                                                    <img src="uploads/students/<?= $candidate['profilePicture'] ?>" alt="Candidate Photo" class="candidate-img">
                                                                 <?php else: ?>
-                                                                    <div class="candidate-img bg-light d-flex align-items-center justify-content-center shadow-sm">
-                                                                        <i class="bi bi-person-fill text-muted"></i>
+                                                                    <div class="d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 50px; height: 50px;">
+                                                                        <i class="bi bi-person text-primary"></i>
                                                                     </div>
                                                                 <?php endif; ?>
                                                             </td>
                                                             <td>
-                                                                <div class="d-flex align-items-center">
-                                                                    <div>
-                                                                        <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($candidate['studentName'] ?? '') ?></h6>
-                                                                        <small class="text-muted d-flex justify-content-center">
-                                                                            <i class="bi bi-person-badge me-1"></i>
-                                                                            ID: <?= $candidate['studentID'] ?? '' ?>
-                                                                        </small>
-                                                                    </div>
+                                                                <div class="d-flex flex-column">
+                                                                    <span class="student-name"><?= htmlspecialchars($candidate['studentName']) ?></span>
+                                                                    <span class="student-id text-muted">ID: <?= $candidate['studentID'] ?></span>
                                                                 </div>
                                                             </td>
                                                             <td>
-                                                                <span class="position-badge d-flex align-items-center justify-content-center">
-                                                                    <i class="bi bi-award me-1"></i>
-                                                                    <?= htmlspecialchars($candidate['positionTitle'] ?? '') ?>
-                                                                </span>
+                                                                <span class="position-badge"><?= htmlspecialchars($candidate['positionTitle']) ?></span>
                                                             </td>
                                                             <td>
-                                                                <span class="status-badge bg-<?php 
-                                                                    echo $candidate['status'] === 'Approved' ? 'success' : 
-                                                                        ($candidate['status'] === 'Pending' ? 'warning' : 'danger'); 
-                                                                ?> text-white px-3 py-2 rounded-pill d-inline-flex align-items-center">
-                                                                    <?php if($candidate['status'] === 'Approved'): ?>
-                                                                        <i class="bi bi-check-circle-fill me-1"></i>
-                                                                    <?php elseif($candidate['status'] === 'Pending'): ?>
-                                                                        <i class="bi bi-hourglass-split me-1"></i>
-                                                                    <?php else: ?>
-                                                                        <i class="bi bi-x-circle-fill me-1"></i>
-                                                                    <?php endif; ?>
-                                                                    <?= htmlspecialchars($candidate['status'] ?? '') ?>
-                                                                </span>
+                                                                <?php if($candidate['status'] === 'Approved'): ?>
+                                                                    <span class="status-badge bg-success-light text-success">
+                                                                        <i class="bi bi-check-circle me-1"></i>Approved
+                                                                    </span>
+                                                                <?php elseif($candidate['status'] === 'Pending'): ?>
+                                                                    <span class="status-badge bg-warning-light text-warning">
+                                                                        <i class="bi bi-clock-history me-1"></i>Pending
+                                                                    </span>
+                                                                <?php else: ?>
+                                                                    <span class="status-badge bg-danger-light text-danger">
+                                                                        <i class="bi bi-x-circle me-1"></i>Rejected
+                                                                    </span>
+                                                                <?php endif; ?>
                                                             </td>
                                                             <td>
                                                                 <div class="d-flex gap-2">
-                                                                    <button class="btn btn-sm btn-outline-primary edit-btn rounded-pill" 
+                                                                    <button type="button" 
+                                                                            class="btn btn-sm btn-outline-primary action-btn edit-btn" 
                                                                             data-bs-toggle="modal" 
                                                                             data-bs-target="#editCandidateModal"
-                                                                            data-id="<?= $candidate['candidateID'] ?? '' ?>"
-                                                                            data-studentid="<?= $candidate['studentID'] ?? '' ?>"
-                                                                            data-positionid="<?= $candidate['positionID'] ?? '' ?>"
-                                                                            data-manifesto="<?= htmlspecialchars($candidate['manifesto'] ?? '') ?>"
-                                                                            data-status="<?= htmlspecialchars($candidate['status'] ?? '') ?>"
-                                                                            data-photo="<?= htmlspecialchars($candidate['photo'] ?? '') ?>">
+                                                                            data-id="<?= $candidate['candidateID'] ?>"
+                                                                            data-studentid="<?= $candidate['studentID'] ?>"
+                                                                            data-positionid="<?= $candidate['positionID'] ?>"
+                                                                            data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>"
+                                                                            data-status="<?= $candidate['status'] ?>"
+                                                                            data-photo="<?= $candidate['photo'] ?>">
                                                                         <i class="bi bi-pencil-square"></i>
                                                                     </button>
-                                                                    <form method="POST" class="d-inline">
-                                                                        <input type="hidden" name="candidateID" value="<?= $candidate['candidateID'] ?? '' ?>">
-                                                                        <button type="submit" name="delete_candidate" 
-                                                                                class="btn btn-sm btn-outline-danger rounded-pill" 
-                                                                                onclick="return confirm('Are you sure you want to delete this candidate?')">
-                                                                            <i class="bi bi-trash3-fill"></i>
+                                                                    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this candidate?');">
+                                                                        <input type="hidden" name="candidateID" value="<?= $candidate['candidateID'] ?>">
+                                                                        <button type="submit" name="delete_candidate" class="btn btn-sm btn-outline-danger action-btn">
+                                                                            <i class="bi bi-trash"></i>
                                                                         </button>
                                                                     </form>
                                                                 </div>
@@ -875,21 +967,14 @@ if ($electionID) {
                                     <?php else: ?>
                                         <div class="empty-state">
                                             <div class="empty-state-icon">
-                                                <i class="bi bi-people-fill fs-1 text-primary opacity-50"></i>
+                                                <i class="bi bi-person-plus"></i>
                                             </div>
                                             <h4 class="empty-state-title">No Candidates Found</h4>
                                             <p class="empty-state-text">
-                                                <i class="bi bi-info-circle-fill me-1 text-primary"></i>
-                                                <?php if ($electionID): ?>
-                                                    No candidates found for this election. Add candidates using the button below.
-                                                <?php else: ?>
-                                                    You haven't added any candidates yet. Select an election and click the button below to add your first candidate.
-                                                <?php endif; ?>
+                                                There are no candidates to display. Click the button below to add your first candidate.
                                             </p>
-                                            <button class="btn badge-count bg-primary text-white d-flex align-items-center justify-content-center mx-auto" 
-                                                   data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                                                <i class="bi bi-person-plus-fill me-2"></i>
-                                                Add Candidate
+                                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                                                <i class="bi bi-person-plus me-2"></i> Add New Candidate
                                             </button>
                                         </div>
                                     <?php endif; ?>
@@ -930,9 +1015,34 @@ if ($electionID) {
                                 <?php endwhile; ?>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="manifesto" class="form-label"><i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto</label>
-                            <textarea class="form-control rounded-3" id="manifesto" name="manifesto" rows="3" placeholder="Candidate's agenda and promises"></textarea>
+                        <div class="mb-4">
+                            <label for="manifesto" class="form-label">
+                                <i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto
+                                <small class="text-muted">(PDF, TXT, or DOCX file)</small>
+                            </label>
+                            <div class="manifesto-upload-container p-3 bg-light rounded-3 border">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 2rem;"></i>
+                                    <p class="mb-1">Drop your manifesto file here or click to browse</p>
+                                    <small class="text-muted">Supported formats: PDF, TXT, DOCX (Max size: 5MB)</small>
+                                </div>
+                                <input type="file" class="form-control" id="manifesto" name="manifesto" 
+                                    accept=".pdf,.txt,.docx" required>
+                                <div id="manifestoPreview" class="mt-3 d-none">
+                                    <div class="card">
+                                        <div class="card-header bg-light d-flex align-items-center">
+                                            <i class="bi bi-file-text me-2"></i>
+                                            <span class="file-name"></span>
+                                            <button type="button" class="btn-close ms-auto" 
+                                                onclick="clearManifestoPreview()"></button>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="preview-content" style="max-height: 300px; overflow-y: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="photo" class="form-label"><i class="bi bi-camera-fill me-1 text-primary"></i>Photo</label>
@@ -980,6 +1090,7 @@ if ($electionID) {
                 <form method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="candidateID" id="edit_candidateID">
                     <input type="hidden" name="current_photo" id="edit_current_photo">
+                    <input type="hidden" name="current_manifesto" id="edit_current_manifesto">
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label for="edit_studentID" class="form-label"><i class="bi bi-person-badge-fill me-1 text-primary"></i>Student</label>
@@ -1005,9 +1116,34 @@ if ($electionID) {
                                 <?php endwhile; ?>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label for="edit_manifesto" class="form-label"><i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto</label>
-                            <textarea class="form-control rounded-3" id="edit_manifesto" name="manifesto" rows="3"></textarea>
+                        <div class="mb-4">
+                            <label for="edit_manifesto" class="form-label">
+                                <i class="bi bi-file-earmark-text-fill me-1 text-primary"></i>Manifesto
+                                <small class="text-muted">(PDF, TXT, or DOCX file)</small>
+                            </label>
+                            <div class="manifesto-upload-container p-3 bg-light rounded-3 border">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 2rem;"></i>
+                                    <p class="mb-1">Drop your manifesto file here or click to browse</p>
+                                    <small class="text-muted">Supported formats: PDF, TXT, DOCX (Max size: 5MB)</small>
+                                </div>
+                                <input type="file" class="form-control" id="edit_manifesto" name="manifesto" 
+                                    accept=".pdf,.txt,.docx">
+                                <div id="editManifestoPreview" class="mt-3 d-none">
+                                    <div class="card">
+                                        <div class="card-header bg-light d-flex align-items-center">
+                                            <i class="bi bi-file-text me-2"></i>
+                                            <span class="file-name"></span>
+                                            <button type="button" class="btn-close ms-auto" 
+                                                onclick="clearEditManifestoPreview()"></button>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="preview-content" style="max-height: 300px; overflow-y: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="edit_photo" class="form-label"><i class="bi bi-camera-fill me-1 text-primary"></i>Photo</label>
@@ -1054,6 +1190,7 @@ if ($electionID) {
                 document.getElementById('edit_manifesto').value = this.dataset.manifesto;
                 document.getElementById('edit_status').value = this.dataset.status;
                 document.getElementById('edit_current_photo').value = this.dataset.photo;
+                document.getElementById('edit_current_manifesto').value = this.dataset.manifesto;
                 
                 // Show current photo preview
                 const preview = document.getElementById('current_photo_preview');
@@ -1092,6 +1229,16 @@ if ($electionID) {
             }
         });
 
+        // Handle manifesto upload preview for Add form
+        document.getElementById('manifesto')?.addEventListener('change', function() {
+            previewManifesto(this, 'manifestoPreview');
+        });
+
+        // Handle manifesto upload preview for Edit form
+        document.getElementById('edit_manifesto')?.addEventListener('change', function() {
+            previewManifesto(this, 'editManifestoPreview');
+        });
+
         // Image preview function
         function previewImage(input, previewId) {
             const previewContainer = document.getElementById(previewId);
@@ -1118,6 +1265,68 @@ if ($electionID) {
             }
         }
 
+        // Manifesto preview function
+        async function previewManifesto(input, previewId) {
+            const previewContainer = document.getElementById(previewId);
+            const previewContent = previewContainer.querySelector('.preview-content');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    input.value = '';
+                    return;
+                }
+
+                previewContainer.querySelector('.file-name').textContent = file.name;
+                previewContainer.classList.remove('d-none');
+
+                // Handle different file types
+                if (file.type === 'application/pdf') {
+                    // Create PDF embed element
+                    previewContent.innerHTML = `
+                        <embed src="${URL.createObjectURL(file)}" 
+                               type="application/pdf" 
+                               width="100%" 
+                               height="500px">
+                    `;
+                } else if (file.type === 'text/plain') {
+                    // Handle text files
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewContent.innerHTML = `
+                            <pre class="p-3" style="max-height: 500px; overflow-y: auto;">${e.target.result}</pre>
+                        `;
+                    }
+                    reader.readAsText(file);
+                }
+            } else {
+                previewContainer.querySelector('.file-name').textContent = '';
+                previewContent.innerHTML = '';
+                previewContainer.classList.add('d-none');
+            }
+        }
+
+        // Clear manifesto preview
+        function clearManifestoPreview() {
+            const previewContainer = document.getElementById('manifestoPreview');
+            previewContainer.querySelector('.file-name').textContent = '';
+            previewContainer.querySelector('.preview-content').textContent = '';
+            previewContainer.classList.add('d-none');
+            document.getElementById('manifesto').value = '';
+        }
+
+        // Clear edit manifesto preview
+        function clearEditManifestoPreview() {
+            const previewContainer = document.getElementById('editManifestoPreview');
+            previewContainer.querySelector('.file-name').textContent = '';
+            previewContainer.querySelector('.preview-content').textContent = '';
+            previewContainer.classList.add('d-none');
+            document.getElementById('edit_manifesto').value = '';
+        }
+
         // Show success alerts for 3 seconds then fade out
         const successAlert = document.querySelector('.alert-success');
         if (successAlert) {
@@ -1138,6 +1347,12 @@ if ($electionID) {
                 if (photoPreview) {
                     photoPreview.innerHTML = '';
                     photoPreview.classList.add('d-none');
+                }
+                const manifestoPreview = document.getElementById('manifestoPreview');
+                if (manifestoPreview) {
+                    manifestoPreview.querySelector('.file-name').textContent = '';
+                    manifestoPreview.querySelector('.preview-content').textContent = '';
+                    manifestoPreview.classList.add('d-none');
                 }
             });
         });

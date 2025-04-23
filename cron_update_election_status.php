@@ -62,17 +62,23 @@ try {
         }
     }
 
-    // Additional functionality: Create notifications for election status changes
-    $query = "SELECT electionID, name, status, startDate, endDate FROM elections 
-              WHERE (status = 'Scheduled' AND startDate <= NOW()) 
-              OR (status = 'Ongoing' AND endDate <= NOW())";
-              
-    $result = $conn->query($query);
+   
+    $currentDateTime = date('Y-m-d H:i:s');
     
-    if (!$result) {
+    // Update ongoing elections with precise datetime comparison
+    $query = "SELECT electionID, name, status, startDate, endDate FROM elections 
+              WHERE (status = 'Scheduled' AND TIMESTAMP(startDate) <= TIMESTAMP(?)) 
+              OR (status = 'Ongoing' AND TIMESTAMP(endDate) <= TIMESTAMP(?))";
+    
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $currentDateTime, $currentDateTime);
+    
+    if (!$stmt->execute()) {
         throw new Exception("Failed to fetch elections: " . $conn->error);
     }
-
+    
+    $result = $stmt->get_result();
+    
     while ($election = $result->fetch_assoc()) {
         $newStatus = '';
         $notificationTitle = '';
