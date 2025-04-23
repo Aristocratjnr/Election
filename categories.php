@@ -66,7 +66,7 @@ $pageTitle = "Election Categories";
         .main-content {
             max-width: var(--container-max-width);
             margin: 0 auto;
-            padding: 2rem 1rem;
+            padding-left: 70px;
         }
 
         /* Add these new gradient definitions */
@@ -95,11 +95,7 @@ $pageTitle = "Election Categories";
             background: white;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
+      
         .stats-card {
             padding: 1.5rem;
             height: 100%;
@@ -343,17 +339,81 @@ $pageTitle = "Election Categories";
                 font-size: 1.25rem;
             }
         }
+
+        /* DataTable and button styles */
+        .table .btn-action {
+            padding: 0.25rem 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .table .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .table .btn-action i {
+            font-size: 0.875rem;
+        }
+
+        .edit-category:hover {
+            background-color: #17a2b8;
+            color: white;
+            border-color: #17a2b8;
+        }
+
+        .delete-category:hover {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        /* Loading animation */
+        @keyframes rotating {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .rotating {
+            animation: rotating 1s linear infinite;
+        }
+
+        /* Action button hover effects */
+        .btn-action {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-action::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .btn-action:active::after {
+            width: 100px;
+            height: 100px;
+            opacity: 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid px-0">
+    <!--include header -->
+    <?php include 'includes/header.php'; ?><br><br>
+    <div class="container-fluid px-2">
+        
         <!-- Include Sidebar -->
         <?php include 'includes/sidebar.php'; ?>
 
         <div class="main-content">
             <div class="container">
                 <!-- Page Header -->
-                <div class="page-header mb-4">
+                <div class="page-header mb-1 py-5">
                     <div class="row align-items-center">
                         <div class="col">
                             <h3 class="page-title">
@@ -469,7 +529,7 @@ $pageTitle = "Election Categories";
                             <div class="col-md-4">
                                 <label class="form-label"><i class="bi bi-search me-1"></i>Search</label>
                                 <div class="input-group">
-                                    <input type="text" name="search" class="form-control" placeholder="Search categories..." 
+                                    <input type="text" name="search" id="searchCategories" class="form-control" placeholder="Search categories..." 
                                            value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="bi bi-search"></i>
@@ -484,7 +544,7 @@ $pageTitle = "Election Categories";
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle">
+                            <table class="table table-hover align-middle" id="categoriesTable">
                                 <thead>
                                     <tr>
                                         <th>Category Name</th>
@@ -542,10 +602,16 @@ $pageTitle = "Election Categories";
                                         <td><?php echo date('M j, Y', strtotime($category['createdAt'])); ?></td>
                                         <td>
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="editCategory(<?php echo $category['categoryID']; ?>)">
-                                                    <i class="bi bi-pencil"></i>
+                                                <button type="button" class="btn btn-sm btn-outline-primary edit-category" 
+                                                    data-id="<?php echo $category['categoryID']; ?>" 
+                                                    data-election-id="<?php echo $category['electionID']; ?>" 
+                                                    data-name="<?php echo htmlspecialchars($category['name']); ?>" 
+                                                   >
+                                                    <i class="bi bi-pencil-square"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteCategory(<?php echo $category['categoryID']; ?>)">
+                                                <button type="button" class="btn btn-sm btn-outline-danger delete-category" 
+                                                    data-id="<?php echo $category['categoryID']; ?>" 
+                                                    data-name="<?php echo htmlspecialchars($category['name']); ?>">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </div>
@@ -623,6 +689,12 @@ $pageTitle = "Election Categories";
                                    placeholder="Enter category name">
                             <div class="invalid-feedback">Please enter a category name</div>
                         </div>
+                        <div class="mb-4">
+                            <label for="categoryDescription" class="form-label">
+                                <i class="bi bi-info-circle me-2"></i>Category Description
+                            </label>
+                            <textarea class="form-control" id="categoryDescription" rows="3" placeholder="Enter category description"></textarea>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">
@@ -657,6 +729,10 @@ $pageTitle = "Election Categories";
                         <div class="mb-3">
                             <label class="form-label"><i class="bi bi-tag me-2"></i>Category Name</label>
                             <input type="text" class="form-control" id="editCategoryName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-info-circle me-2"></i>Category Description</label>
+                            <textarea class="form-control" id="editCategoryDescription" rows="3"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -777,7 +853,8 @@ $pageTitle = "Election Categories";
             e.preventDefault();
             
             const electionID = $('#electionID').val();
-            const categoryName = $('#categoryName').val();
+            const categoryName = $('#categoryName').val().trim();
+            const description = $('#categoryDescription').val().trim();
             
             // Form validation
             if (!electionID || !categoryName) {
@@ -787,14 +864,8 @@ $pageTitle = "Election Categories";
                 return;
             }
             
-            // Log submission data
-            console.log('Submitting category:', {
-                electionID: electionID,
-                name: categoryName
-            });
-            
             // Show loading state
-            const saveBtn = $('#saveCategory');
+            const saveBtn = $('#addCategoryForm button[type="submit"]');
             const originalText = saveBtn.html();
             saveBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
             saveBtn.prop('disabled', true);
@@ -805,10 +876,10 @@ $pageTitle = "Election Categories";
                 type: 'POST',
                 data: {
                     electionID: electionID,
-                    name: categoryName
+                    name: categoryName,
+                    description: description
                 },
                 success: function(response) {
-                    console.log('Save response:', response);
                     try {
                         const result = JSON.parse(response);
                         if (result.success) {
@@ -819,16 +890,8 @@ $pageTitle = "Election Categories";
                             $('#addCategoryForm')[0].reset();
                             $('#addCategoryModal').modal('hide');
                             
-                            // Show success animation on refresh button
-                            $('#refreshCategories').find('i').addClass('rotating');
-                            
                             // Reload categories
                             loadCategories($('#electionSelect').val());
-                            
-                            // Stop animation after a delay
-                            setTimeout(() => {
-                                $('#refreshCategories').find('i').removeClass('rotating');
-                            }, 1000);
                             
                             // Update dashboard stats
                             updateDashboardCategoryStats();
@@ -837,17 +900,12 @@ $pageTitle = "Election Categories";
                         }
                     } catch (e) {
                         showToast('Error', 'Invalid server response', 'danger');
-                        console.error('Error parsing response:', e);
                     }
-                    
-                    // Restore button state
-                    saveBtn.html(originalText);
-                    saveBtn.prop('disabled', false);
                 },
-                error: function(xhr, status, error) {
+                error: function() {
                     showToast('Error', 'Server error occurred', 'danger');
-                    console.error('AJAX error:', error, xhr.responseText);
-                    
+                },
+                complete: function() {
                     // Restore button state
                     saveBtn.html(originalText);
                     saveBtn.prop('disabled', false);
@@ -855,70 +913,87 @@ $pageTitle = "Election Categories";
             });
         });
         
+        // Reset validation state on input
+        $('#addCategoryForm input, #addCategoryForm select').on('input change', function() {
+            $(this).removeClass('is-invalid');
+        });
+
         // Handle edit button click
         $(document).on('click', '.edit-category', function() {
             const categoryId = $(this).data('id');
             const electionId = $(this).data('election-id');
             const categoryName = $(this).data('name');
+            const description = $(this).data('description') || '';
             
             // Populate edit form
             $('#editCategoryId').val(categoryId);
-            $('#editElectionID').val(electionId);
             $('#editCategoryName').val(categoryName);
+            $('#editCategoryDescription').val(description);
             
-            // Show edit modal with a small animation
-            $(this).addClass('rotating');
-            setTimeout(() => {
-                $(this).removeClass('rotating');
-                $('#editCategoryModal').modal('show');
-            }, 300);
+            // Clone options from the add category form's election dropdown
+            const electionOptions = $('#electionID').html();
+            $('#editElectionID').html(electionOptions);
+            $('#editElectionID').val(electionId);
+            
+            // Show edit modal
+            $('#editCategoryModal').modal('show');
         });
         
         // Edit category form submit
         $('#editCategoryForm').submit(function(e) {
             e.preventDefault();
             
-            const categoryID = $('#editCategoryId').val();
-            const electionID = $('#editElectionID').val();
-            const categoryName = $('#editCategoryName').val();
+            const categoryId = $('#editCategoryId').val();
+            const electionId = $('#editElectionID').val();
+            const categoryName = $('#editCategoryName').val().trim();
+            const description = $('#editCategoryDescription').val().trim();
             
             // Form validation
-            if (!electionID || !categoryName) {
-                if (!electionID) $('#editElectionID').addClass('is-invalid');
+            if (!electionId || !categoryName) {
+                if (!electionId) $('#editElectionID').addClass('is-invalid');
                 if (!categoryName) $('#editCategoryName').addClass('is-invalid');
+                showToast('Warning', 'Please fill all required fields', 'warning');
                 return;
             }
+            
+            // Show loading state
+            const updateBtn = $('#editCategoryForm button[type="submit"]');
+            const originalText = updateBtn.html();
+            updateBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...');
+            updateBtn.prop('disabled', true);
             
             // AJAX request to update category
             $.ajax({
                 url: 'api/update_category.php',
                 type: 'POST',
                 data: {
-                    categoryID: categoryID,
-                    electionID: electionID,
-                    name: categoryName
+                    categoryID: categoryId,
+                    electionID: electionId,
+                    name: categoryName,
+                    description: description
                 },
                 success: function(response) {
-                    try {
-                        const result = JSON.parse(response);
-                        if (result.success) {
-                            // Show success toast
-                            showToast('Success', 'Category updated successfully!', 'success');
-                            
-                            // Close modal
-                            $('#editCategoryModal').modal('hide');
-                            
-                            // Reload categories
-                            loadCategories($('#electionSelect').val());
-                        } else {
-                            showToast('Error', result.message || 'Failed to update category', 'danger');
-                        }
-                    } catch (e) {
-                        showToast('Error', 'Invalid server response', 'danger');
+                    if (response.success) {
+                        showToast('Success', 'Category updated successfully', 'success');
+                        $('#editCategoryModal').modal('hide');
+                        location.reload(); // Reload to show updated data
+                    } else {
+                        showToast('Error', response.message || 'Failed to update category', 'danger');
                     }
                 },
-                error: function() {
-                    showToast('Error', 'Server error occurred', 'danger');
+                error: function(xhr) {
+                    let errorMessage = 'Server error occurred';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        errorMessage = response.message || errorMessage;
+                    } catch (e) {
+                        console.error('Error parsing response:', xhr.responseText);
+                    }
+                    showToast('Error', errorMessage, 'danger');
+                },
+                complete: function() {
+                    updateBtn.html(originalText);
+                    updateBtn.prop('disabled', false);
                 }
             });
         });
@@ -928,47 +1003,45 @@ $pageTitle = "Election Categories";
             const categoryId = $(this).data('id');
             const categoryName = $(this).data('name');
             
-            // Set values in delete confirmation modal
-            $('#deleteCategoryName').text(categoryName);
-            $('#confirmDelete').data('category-id', categoryId);
-            
-            // Show delete confirmation modal
             $('#deleteCategoryModal').modal('show');
+            $('#confirmDelete').data('id', categoryId);
         });
         
-        // Confirm delete button click
+        // Confirm delete action
         $('#confirmDelete').click(function() {
-            const categoryId = $(this).data('category-id');
+            const categoryId = $(this).data('id');
             
-            // AJAX request to delete category
+            const deleteBtn = $(this);
+            const originalText = deleteBtn.html();
+            deleteBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...');
+            deleteBtn.prop('disabled', true);
+            
             $.ajax({
                 url: 'api/delete_category.php',
                 type: 'POST',
                 data: { categoryID: categoryId },
                 success: function(response) {
-                    try {
-                        const result = JSON.parse(response);
-                        if (result.success) {
-                            // Show success toast
-                            showToast('Success', 'Category deleted successfully!', 'success');
-                            
-                            // Close modal
-                            $('#deleteCategoryModal').modal('hide');
-                            
-                            // Reload categories
-                            loadCategories($('#electionSelect').val());
-                            
-                            // Update dashboard stats
-                            updateDashboardCategoryStats();
-                        } else {
-                            showToast('Error', result.message || 'Failed to delete category', 'danger');
-                        }
-                    } catch (e) {
-                        showToast('Error', 'Invalid server response', 'danger');
+                    if (response.success) {
+                        showToast('Success', 'Category deleted successfully', 'success');
+                        $('#deleteCategoryModal').modal('hide');
+                        location.reload(); // Reload to show updated data
+                    } else {
+                        showToast('Error', response.message || 'Failed to delete category', 'danger');
                     }
                 },
-                error: function() {
-                    showToast('Error', 'Server error occurred', 'danger');
+                error: function(xhr) {
+                    let errorMessage = 'Server error occurred';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        errorMessage = response.message || errorMessage;
+                    } catch (e) {
+                        console.error('Error parsing response:', xhr.responseText);
+                    }
+                    showToast('Error', errorMessage, 'danger');
+                },
+                complete: function() {
+                    deleteBtn.html(originalText);
+                    deleteBtn.prop('disabled', false);
                 }
             });
         });
