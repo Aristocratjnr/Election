@@ -1367,129 +1367,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <!-- Manifesto Modal -->
     <div class="modal fade" id="manifestoModal" tabindex="-1" aria-labelledby="manifestoModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="manifestoModalLabel">Candidate Manifesto</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-0">
+                <div class="modal-body">
                     <div class="manifesto-content p-3"></div>
+                    <div class="download-options text-center mt-3"></div>
                 </div>
                 <div class="modal-footer">
-                    <div class="d-flex justify-content-between w-100">
-                        <div class="download-options"></div>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle manifesto modal
-    const manifestoModal = document.getElementById('manifestoModal');
-    if (manifestoModal) {
-        manifestoModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const manifestoFile = button.getAttribute('data-manifesto');
-            const fileType = button.getAttribute('data-file-type');
-            const modalBody = manifestoModal.querySelector('.manifesto-content');
-            const downloadOptions = manifestoModal.querySelector('.download-options');
-            
-            // Get the full path to the manifesto file
-            const serverRoot = window.location.origin;
-            const manifestoPath = `${serverRoot}/Election/uploads/manifestos/${manifestoFile}`;
-            const encodedManifestoPath = encodeURIComponent(manifestoPath);
-            
-            // Show loading state
-            modalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-3">Loading document...</p></div>';
-            
-            if (fileType === 'pdf') {
-                // Try object tag first with fallback to iframe
-                modalBody.innerHTML = `
-                    <object data="${manifestoPath}" type="application/pdf" width="100%" height="75vh" class="pdf-viewer">
-                        <iframe src="${manifestoPath}" width="100%" height="75vh" style="border: none;">
-                            This browser does not support PDFs. Please download to view.
-                        </iframe>
-                    </object>
-                `;
-                
-                downloadOptions.innerHTML = `
-                    <div class="btn-group">
-                        <a href="${manifestoPath}" class="btn btn-primary" download>
-                            <i class="bi bi-download"></i> Download PDF
-                        </a>
-                        <a href="${manifestoPath}" class="btn btn-outline-primary" target="_blank">
-                            <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
-                        </a>
-                    </div>
-                `;
-            } else if (fileType === 'docx') {
-                const msViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedManifestoPath}`;
-                
-                modalBody.innerHTML = `
-                    <div class="ratio ratio-16x9" style="min-height: 75vh;">
-                        <iframe src="${msViewerUrl}" frameborder="0" allowfullscreen="true"></iframe>
-                    </div>
-                `;
-                
-                downloadOptions.innerHTML = `
-                    <div class="btn-group">
-                        <a href="${manifestoPath}" class="btn btn-primary" download>
-                            <i class="bi bi-download"></i> Download DOCX
-                        </a>
-                        <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodedManifestoPath}" 
-                           class="btn btn-outline-primary" 
-                           target="_blank">
-                            <i class="bi bi-box-arrow-up-right"></i> Open in Office Online
-                        </a>
-                    </div>
-                `;
-            } else if (fileType === 'txt') {
-                // Fetch and display text content
-                fetch(manifestoPath)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.text();
-                    })
-                    .then(content => {
-                        modalBody.innerHTML = `
-                            <pre class="p-4 bg-light rounded" style="max-height: 75vh; overflow-y: auto;">
-                                ${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-                            </pre>
-                        `;
-                        
-                        downloadOptions.innerHTML = `
-                            <div class="btn-group">
-                                <a href="${manifestoPath}" class="btn btn-primary" download>
-                                    <i class="bi bi-download"></i> Download Text File
-                                </a>
-                                <a href="${manifestoPath}" class="btn btn-outline-primary" target="_blank">
-                                    <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
-                                </a>
-                            </div>
-                        `;
-                    })
-                    .catch(error => {
-                        modalBody.innerHTML = `
-                            <div class="alert alert-danger m-3">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                Error loading file. Please try downloading it instead.
-                            </div>
-                        `;
-                        
-                        downloadOptions.innerHTML = `
-                            <a href="${manifestoPath}" class="btn btn-primary" download>
-                                <i class="bi bi-download"></i> Download File
-                            </a>
-                        `;
-                    });
-            }
-        });
-    }
-});</script>
 
     <?php include 'includes/footer.php'; ?>
 
@@ -1709,49 +1602,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     const modalBody = manifestoModal.querySelector('.manifesto-content');
                     const downloadOptions = manifestoModal.querySelector('.download-options');
                     
-                    // Get the full path to the manifesto file
-                    const serverRoot = window.location.origin;
-                    const manifestoPath = `${serverRoot}/Election/uploads/manifestos/${manifestoFile}`;
-                    const encodedManifestoPath = encodeURIComponent(manifestoPath);
+                    // Construct proper file paths
+                    const baseUrl = window.location.origin;
+                    const manifestoPath = `${baseUrl}/Election/uploads/manifestos/${manifestoFile}`;
+                    const localPath = `uploads/manifestos/${manifestoFile}`;
                     
                     // Show loading state
-                    modalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-3">Loading document...</p></div>';
+                    modalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-3">Loading document preview...</p></div>';
                     
                     if (fileType === 'pdf') {
                         // Try object tag first with fallback to iframe
                         modalBody.innerHTML = `
-                            <object data="${manifestoPath}" type="application/pdf" width="100%" height="75vh" class="pdf-viewer">
-                                <iframe src="${manifestoPath}" width="100%" height="75vh" style="border: none;">
-                                    This browser does not support PDFs. Please download to view.
+                            <object data="${localPath}" type="application/pdf" width="100%" height="75vh" class="pdf-viewer">
+                                <iframe src="${localPath}" width="100%" height="75vh" class="pdf-fallback" style="display:none;">
+                                    <p>This browser does not support PDF preview. 
+                                    <a href="${localPath}" download>Download the PDF</a> to view it.</p>
                                 </iframe>
                             </object>
                         `;
                         
+                        // Check if PDF viewer failed and show fallback
+                        setTimeout(() => {
+                            const object = modalBody.querySelector('object');
+                            const iframe = modalBody.querySelector('iframe');
+                            if (object && object.getBoundingClientRect().height === 0) {
+                                object.style.display = 'none';
+                                iframe.style.display = 'block';
+                            }
+                        }, 1000);
+                        
                         downloadOptions.innerHTML = `
                             <div class="btn-group">
-                                <a href="${manifestoPath}" class="btn btn-primary" download>
+                                <a href="${localPath}" class="btn btn-primary" download>
                                     <i class="bi bi-download"></i> Download PDF
                                 </a>
-                                <a href="${manifestoPath}" class="btn btn-outline-primary" target="_blank">
+                                <a href="${localPath}" class="btn btn-outline-primary" target="_blank">
                                     <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
                                 </a>
                             </div>
                         `;
                     } else if (fileType === 'docx') {
-                        const msViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedManifestoPath}`;
+                        // Use Office Online Viewer with proper URL encoding
+                        const encodedUrl = encodeURIComponent(manifestoPath);
+                        const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
                         
                         modalBody.innerHTML = `
-                            <div class="ratio ratio-16x9" style="min-height: 75vh;">
-                                <iframe src="${msViewerUrl}" frameborder="0" allowfullscreen="true"></iframe>
+                            <div class="docx-preview-container">
+                                <iframe src="${officeViewerUrl}" width="100%" height="75vh" frameborder="0">
+                                    This is an embedded <a target="_blank" href="${officeViewerUrl}">Microsoft Office</a> document.
+                                </iframe>
                             </div>
                         `;
                         
                         downloadOptions.innerHTML = `
                             <div class="btn-group">
-                                <a href="${manifestoPath}" class="btn btn-primary" download>
+                                <a href="${localPath}" class="btn btn-primary" download>
                                     <i class="bi bi-download"></i> Download DOCX
                                 </a>
-                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodedManifestoPath}" 
+                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodedUrl}" 
                                    class="btn btn-outline-primary" 
                                    target="_blank">
                                     <i class="bi bi-box-arrow-up-right"></i> Open in Office Online
@@ -1759,10 +1667,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                         `;
                     } else if (fileType === 'txt') {
-                        // Fetch and display text content
-                        fetch(manifestoPath)
+                        // Handle text files with fetch
+                        fetch(localPath)
                             .then(response => {
-                                if (!response.ok) throw new Error('Network response was not ok');
+                                if (!response.ok) throw new Error('Failed to load file');
                                 return response.text();
                             })
                             .then(content => {
@@ -1774,10 +1682,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 
                                 downloadOptions.innerHTML = `
                                     <div class="btn-group">
-                                        <a href="${manifestoPath}" class="btn btn-primary" download>
+                                        <a href="${localPath}" class="btn btn-primary" download>
                                             <i class="bi bi-download"></i> Download Text File
                                         </a>
-                                        <a href="${manifestoPath}" class="btn btn-outline-primary" target="_blank">
+                                        <a href="${localPath}" class="btn btn-outline-primary" target="_blank">
                                             <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
                                         </a>
                                     </div>
@@ -1792,7 +1700,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 `;
                                 
                                 downloadOptions.innerHTML = `
-                                    <a href="${manifestoPath}" class="btn btn-primary" download>
+                                    <a href="${localPath}" class="btn btn-primary" download>
                                         <i class="bi bi-download"></i> Download File
                                     </a>
                                 `;
@@ -1800,8 +1708,395 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
+            
+            // === NOTIFICATION FUNCTIONALITY ===
+            // Check for new notifications```javascript
+            function checkNewNotifications() {
+                const studentID = <?= $studentID ?? 0 ?>;
+                const userType = 'student';
+                
+                if (studentID > 0) {
+                    fetch('api/notifications_count.php?user_id=' + studentID + '&user_type=' + userType + '&last_check=' + new Date().toISOString())
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.count > 0) {
+                                // Update notification count in header if badge exists
+                                const $badge = document.getElementById('notification-badge');
+                                if ($badge) {
+                                    $badge.textContent = data.count;
+                                    $badge.classList.remove('d-none');
+                                }
+                                
+                                // Play notification sound
+                                const notificationSound = document.getElementById('notification-sound');
+                                if (notificationSound) {
+                                    notificationSound.currentTime = 0;
+                                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                                }
+                                
+                                // Show toast notification for latest notification
+                                if (data.latest_notification) {
+                                    showToastNotification(data.latest_notification);
+                                }
+                            }
+                        })
+                        .catch(error => console.error('Error checking notifications:', error));
+                }
+            }
+            
+            // Show toast notification
+            function showToastNotification(notification) {
+                const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                
+                // Play notification sound
+                const notificationSound = document.getElementById('notification-sound');
+                if (notificationSound) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                }
+                
+                // Remove any existing toast
+                const existingToasts = document.querySelectorAll('.toast');
+                existingToasts.forEach(toast => toast.remove());
+                
+                // Create toast container
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                
+                // Create toast element with slide-in animation
+                const toastEl = document.createElement('div');
+                toastEl.className = `toast show ${isDarkMode ? 'bg-dark text-white' : ''}`;
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+                toastEl.style.minWidth = '300px';
+                toastEl.style.maxWidth = '90vw';
+                toastEl.style.border = 'none';
+                toastEl.style.borderRadius = '0.5rem';
+                toastEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                toastEl.style.animation = 'slideIn 0.5s ease-out forwards';
+                
+                // Add CSS animation
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateY(100%); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styleEl);
+                
+                // Create toast content
+                const icon = notification.icon || 'bi-bell-fill';
+                toastEl.innerHTML = `
+                    <div class="toast-header ${isDarkMode ? 'bg-dark text-white border-secondary' : ''}">
+                        <i class="bi ${icon} me-2"></i>
+                        <strong class="me-auto">New Notification</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close ${isDarkMode ? 'btn-close-white' : ''}" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        <h6 class="mb-1">${notification.title}</h6>
+                        <p class="mb-0 ${isDarkMode ? 'text-light' : ''}">${notification.message}</p>
+                        ${notification.action_url ? `
+                            <div class="mt-2 pt-2 border-top ${isDarkMode ? 'border-secondary' : ''}">
+                                <a href="${notification.action_url}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                // Add toast to container
+                toastContainer.appendChild(toastEl);
+                
+                // Add container to body
+                document.body.appendChild(toastContainer);
+                
+                // Add click handler for close button
+                const closeBtn = toastEl.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        toastContainer.remove();
+                    });
+                }
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    toastEl.style.opacity = '0';
+                    toastEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    toastEl.style.transform = 'translateY(100%)';
+                    
+                    setTimeout(() => {
+                        if (toastContainer.parentNode) {
+                            toastContainer.remove();
+                        }
+                    }, 500);
+                }, 5000);
+            }
+            
+            // Check for notifications when page loads
+            setTimeout(checkNewNotifications, 1000);
+            
+            // Check for new notifications every 30 seconds
+            setInterval(checkNewNotifications, 30000);
+        });
+
+        // Countdown Timer functionality
+        function updateCountdown() {
+            <?php if ($currentElection): ?>
+            // Election start and end dates from PHP
+            const electionStartDate = new Date('<?= isset($currentElection["start_time"]) && $currentElection["start_time"] ? date('Y-m-d', strtotime($currentElection["startDate"])) . 'T' . date('H:i:s', strtotime($currentElection["start_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["startDate"])) ?>');
+            const electionEndDate = new Date('<?= isset($currentElection["end_time"]) && $currentElection["end_time"] ? date('Y-m-d', strtotime($currentElection["endDate"])) . 'T' . date('H:i:s', strtotime($currentElection["end_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["endDate"])) ?>');
+            const electionStartDateUTC = new Date(electionStartDate.getTime() + (electionStartDate.getTimezoneOffset() * 60000));
+            const electionEndDateUTC = new Date(electionEndDate.getTime() + (electionEndDate.getTimezoneOffset() * 60000));
+            
+            const currentStatus = '<?= $currentElection["status"] ?>';
+
+            // Get current time in UTC
+            const now = new Date(Date.UTC(
+                new Date().getUTCFullYear(),
+                new Date().getUTCMonth(),
+                new Date().getUTCDate(),
+                new Date().getUTCHours(),
+                new Date().getUTCMinutes(),
+                new Date().getUTCSeconds()
+            ));
+
+
+            let targetDate;
+            let countdownLabel;
+
+            if (currentStatus === 'Scheduled') {
+                targetDate = electionStartDate;
+                countdownLabel = 'Election Starts In:';
+            } else if (currentStatus === 'Ongoing') {
+                targetDate = electionEndDate;
+                countdownLabel = 'Election Ends In:';
+            } else {
+                // Election is not scheduled or ongoing, so hide the timer
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                    clearInterval(countdownInterval);
+                }
+                return;
+            }
+
+            // Calculate time remaining in milliseconds
+            const timeLeft = targetDate.getTime() - now.getTime();
+
+            if (timeLeft > 0) {
+                // Election is still active (scheduled or ongoing)
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                // Update DOM elements safely
+                const daysEl = document.getElementById('days');
+                const hoursEl = document.getElementById('hours');
+                const minutesEl = document.getElementById('minutes');
+                const secondsEl = document.getElementById('seconds');
+                const timeRemainingText = document.querySelector('.time-remaining-text');
+
+                if (timeRemainingText) {
+                    timeRemainingText.textContent = countdownLabel;
+                }
+
+                if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+                if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+                if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+                if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+
+            } else {
+                // If target date has passed
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    if (currentStatus === 'Scheduled') {
+                        // If scheduled election start time has passed, it should now be ongoing
+                        countdownContainer.innerHTML = '<div class="text-center text-success fw-bold">Election is starting now! Refreshing...</div>';
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000); // Reload after 3 seconds
+                    } else if (currentStatus === 'Ongoing') {
+                        // For ongoing elections, we should never reach here unless the end date has passed
+                        // Double check server time vs client time
+                        const serverNow = new Date('<?= date("Y-m-d\TH:i:s") ?>');
+                        const endDate = new Date('<?= date("Y-m-d\TH:i:s", strtotime($currentElection["endDate"])) ?>');
+
+                        if (serverNow >= endDate) {
+                            // If server time confirms election has ended
+                            countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+
+                            // Disable voting form and redirect to results
+                            const votingForm = document.getElementById('votingForm');
+                            if (votingForm) {
+                                votingForm.style.display = 'none';
+                                const endedMessage = document.createElement('div');
+                                endedMessage.className = 'alert alert-warning text-center';
+                                endedMessage.innerHTML = '<i class="bi bi-clock-history me-2"></i>This election has concluded. Results should be available soon.';
+                                votingForm.parentNode.insertBefore(endedMessage, votingForm);
+
+                                const resultsButton = document.createElement('a');
+                                resultsButton.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                resultsButton.className = 'btn btn-primary d-block mt-3';
+                                resultsButton.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>View Election Results';
+                                endedMessage.appendChild(resultsButton);
+
+                                setTimeout(() => {
+                                    window.location.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                }, 5000);
+                            }
+
+                            // Clear the interval to stop the countdown
+                            clearInterval(countdownInterval);
+                        } else {
+                            // If client time is ahead of server time, recalculate with server time
+                            countdownContainer.innerHTML = '<div class="d-flex align-items-center justify-content-start countdown-container">' +
+                                '<div class="time-unit"><span>00</span><small>days</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>hours</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>minutes</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>seconds</small></div>' +
+                            '</div>';
+
+                            // Force refresh to get updated election status
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 5000);
+                        }
+                    } else {
+                        // For completed elections
+                        countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                        clearInterval(countdownInterval);
+                    }
+                }
+            }
+            <?php endif; ?>
+        }
+
+        let countdownInterval; // Define interval variable in a scope accessible by clearInterval
+        <?php if ($currentElection): ?>
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Initial call to display immediately
+        <?php endif; ?>
+        
+        // Create bubble backgrounds for election timer and info sections
+        function createBubbles() {
+            // Get all bubble background elements
+            const bubbleContainers = document.querySelectorAll('.bubble-background');
+            
+            bubbleContainers.forEach(container => {
+                // Remove any existing bubbles first (for theme changes)
+                container.querySelectorAll('.bubble').forEach(bubble => bubble.remove());
+                
+                // Create between 10-20 bubbles based on container size
+                const containerWidth = container.offsetWidth;
+                const containerHeight = container.offsetHeight;
+                const numberOfBubbles = Math.max(10, Math.floor(containerWidth * containerHeight / 8000));
+                const maxBubbles = Math.min(20, numberOfBubbles);
+                
+                // Get colors from CSS variables
+                const computedStyle = getComputedStyle(container);
+                const bubbleColorRGB = computedStyle.getPropertyValue('--bubble-color-rgb').trim();
+                
+                // Create bubble layers for 3D effect
+                for (let layer = 1; layer <= 3; layer++) {
+                    const layerBubbleCount = Math.ceil(maxBubbles / 3);
+                    const zIndex = layer * 10 - 10; 
+                    const opacity = 0.05 + (layer * 0.05); // Opacity increases with each layer
+                    
+                    for (let i = 0; i < layerBubbleCount; i++) {
+                        const bubble = document.createElement('div');
+                        bubble.classList.add('bubble');
+                        
+                        // Size varies by layer - deeper layers have smaller bubbles
+                        const baseSize = 10 + (layer * 15); // Layer 1: 25px base, Layer 2: 40px base, Layer 3: 55px base
+                        const sizeVariation = 10 + (layer * 5); // Variation increases with layer
+                        const size = Math.floor(Math.random() * sizeVariation) + baseSize;
+                        
+                        bubble.style.width = `${size}px`;
+                        bubble.style.height = `${size}px`;
+                        
+                        // Random position
+                        const left = Math.floor(Math.random() * (containerWidth - size));
+                        const top = Math.floor(Math.random() * (containerHeight - size));
+                        bubble.style.left = `${left}px`;
+                        bubble.style.top = `${top}px`;
+                        
+                        // Layer-specific styles
+                        bubble.style.zIndex = zIndex;
+                        bubble.style.setProperty('--bubble-opacity', opacity);
+                        bubble.style.setProperty('--bubble-blur', `${4 - layer}px`); // Deeper layers are blurrier
+                        
+                        // More organic shape with border-radius variations
+                        if (Math.random() > 0.7) {
+                            // Create slightly oval bubble
+                            const randomBorderRadius = `${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}% ${Math.floor(40 + Math.random() * 20)}%`;
+                            bubble.style.borderRadius = randomBorderRadius;
+                        }
+                        
+                        // Random float animation properties - deeper layers move more slowly
+                        const floatTime = Math.floor((Math.random() * 8) + 10 - (layer * 2)); // 4-12s
+                        const glowTime = Math.floor((Math.random() * 10) + 5); // 5-15s
+                        const pulseTime = Math.floor((Math.random() * 5) + 2); // 2-7s
+                        
+                        // Movement range decreases with layer depth
+                        const movementFactor = 1 - ((layer - 1) * 0.2); // Layer 1: 0.8, Layer 2: 0.6, Layer 3: 0.4
+                        const floatY = Math.floor(Math.random() * 50 * movementFactor) - (25 * movementFactor); 
+                        const floatX = Math.floor(Math.random() * 50 * movementFactor) - (25 * movementFactor);
+                        const rotate = Math.floor(Math.random() * 30) - 15; // -15 to 15 degrees rotation
+                        const floatScale = (Math.random() * 0.3 * movementFactor) + 0.85; // Scale variation 0.85-1.15
+                        
+                        bubble.style.setProperty('--float-time', `${floatTime}s`);
+                        bubble.style.setProperty('--glow-time', `${glowTime}s`);
+                        bubble.style.setProperty('--pulse-time', `${pulseTime}s`);
+                        bubble.style.setProperty('--float-y', `${floatY}px`);
+                        bubble.style.setProperty('--float-x', `${floatX}px`);
+                        bubble.style.setProperty('--rotate', `${rotate}deg`);
+                        bubble.style.setProperty('--float-scale', floatScale);
+                        
+                        // Make some bubbles pulse
+                        if (Math.random() > 0.5) {
+                            bubble.classList.add('pulse');
+                        }
+                        
+                        // Add custom gradient to some bubbles for more realism
+                        if (Math.random() > 0.3) {
+                            const gradientAngle = Math.floor(Math.random() * 360);
+                            const gradientStart = `rgba(${bubbleColorRGB}, ${opacity * 3})`;
+                            const gradientEnd = `rgba(${bubbleColorRGB}, ${opacity / 2})`;
+                            bubble.style.background = `radial-gradient(circle at ${Math.floor(Math.random() * 70) + 15}% ${Math.floor(Math.random() * 70) + 15}%, ${gradientStart} 0%, ${gradientEnd} 80%)`;
+                        }
+                        
+                        // Append bubble to container
+                        container.appendChild(bubble);
+                    }
+                }
+            });
+        }
+        
+        // Create bubbles on page load with a small delay to ensure container sizes are calculated correctly
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(createBubbles, 100);
+            
+            // Recreate bubbles when theme changes to update colors
+            document.addEventListener('themeChanged', function() {
+                setTimeout(createBubbles, 100); // Small delay for theme transition
+            });
+            
+            // Recreate bubbles on window resize
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(createBubbles, 300);
+            });
         });
     </script>
 </body>
 </html>
-```
