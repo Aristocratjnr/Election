@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: election-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    environment:
+      - DB_HOST=database
+      - DB_NAME=ems
+      - DB_USER=ems_user
+      - DB_PASSWORD=secure_password
+    depends_on:
+      - database
+
+  database:
+    image: mysql:8.0
+    container_name: election-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ems
+      MYSQL_USER: ems_user
+      MYSQL_PASSWORD: secure_password
+      MYSQL_ROOT_PASSWORD: root_password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/EMS.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: election-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=database
+      - PMA_PORT=3306
+    depends_on:
+      - database
+
+volumes:
+  mysql_data:
