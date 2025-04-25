@@ -23,25 +23,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_candidate'])) {
         $studentID = $_POST['studentID'];
         $positionID = $_POST['positionID'];
-        $manifesto = $_FILES['manifesto']['name'] ?? null;
         $status = $_POST['status'];
         $photo = '';
+        $manifesto = null;
 
         // Handle manifesto upload
-        if ($manifesto) {
+        if (isset($_FILES['manifesto']) && $_FILES['manifesto']['error'] === 0) {
             $allowedManifestoExtensions = ['pdf', 'txt', 'docx'];
-            $manifestoExt = strtolower(pathinfo($manifesto, PATHINFO_EXTENSION));
+            $manifestoFile = $_FILES['manifesto'];
+            $manifestoExt = strtolower(pathinfo($manifestoFile['name'], PATHINFO_EXTENSION));
             
             if (in_array($manifestoExt, $allowedManifestoExtensions)) {
-                $newManifestoFilename = uniqid() . '.' . $manifestoExt;
-                $manifestoUploadPath = 'uploads/manifestos/' . $newManifestoFilename;
+                $manifestoName = uniqid() . '.' . $manifestoExt;
+                $manifestoPath = 'uploads/manifestos/' . $manifestoName;
                 
                 if (!is_dir('uploads/manifestos')) {
                     mkdir('uploads/manifestos', 0777, true);
                 }
                 
-                if (move_uploaded_file($_FILES['manifesto']['tmp_name'], $manifestoUploadPath)) {
-                    $manifesto = $newManifestoFilename;
+                if (move_uploaded_file($manifestoFile['tmp_name'], $manifestoPath)) {
+                    $manifesto = $manifestoName;
                 }
             }
         }
@@ -123,29 +124,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $candidateID = $_POST['candidateID'];
         $studentID = $_POST['studentID'];
         $positionID = $_POST['positionID'];
-        $manifesto = $_FILES['manifesto']['name'] ?? $_POST['current_manifesto'];
         $status = $_POST['status'];
         $photo = $_POST['current_photo'];
+        $manifesto = $_POST['current_manifesto'];
 
         // Handle manifesto upload
         if (isset($_FILES['manifesto']) && $_FILES['manifesto']['error'] === 0) {
             $allowedManifestoExtensions = ['pdf', 'txt', 'docx'];
-            $manifestoExt = strtolower(pathinfo($_FILES['manifesto']['name'], PATHINFO_EXTENSION));
+            $manifestoFile = $_FILES['manifesto'];
+            $manifestoExt = strtolower(pathinfo($manifestoFile['name'], PATHINFO_EXTENSION));
             
             if (in_array($manifestoExt, $allowedManifestoExtensions)) {
-                $newManifestoFilename = uniqid() . '.' . $manifestoExt;
-                $manifestoUploadPath = 'uploads/manifestos/' . $newManifestoFilename;
+                $manifestoName = uniqid() . '.' . $manifestoExt;
+                $manifestoPath = 'uploads/manifestos/' . $manifestoName;
                 
                 if (!is_dir('uploads/manifestos')) {
                     mkdir('uploads/manifestos', 0777, true);
                 }
                 
-                if (move_uploaded_file($_FILES['manifesto']['tmp_name'], $manifestoUploadPath)) {
+                if (move_uploaded_file($manifestoFile['tmp_name'], $manifestoPath)) {
                     // Delete old manifesto if exists
                     if ($manifesto && file_exists('uploads/manifestos/' . $manifesto)) {
                         unlink('uploads/manifestos/' . $manifesto);
                     }
-                    $manifesto = $newManifestoFilename;
+                    $manifesto = $manifestoName;
                 }
             }
         }
