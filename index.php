@@ -1229,7 +1229,7 @@
     <!-- / Sections:End -->
 
     <!-- Footer: Start -->
-    <foote class="landing-footer bg-body footer-text">
+    <footer class="landing-footer bg-body footer-text">
       <div class="footer-top position-relative overflow-hidden z-1">
         <img
           src="assets/img/front-pages/backgrounds/footer-bg.png"
