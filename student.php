@@ -22,11 +22,15 @@ $currentElection = null;
 $error = null;
 
 try {
-    // Fetch current or upcoming election (within 7 days)
+    // Fetch current election based on dates and status
     $stmt = $conn->prepare("
-        SELECT * FROM elections 
-        WHERE status = 'Ongoing' 
-        OR (status = 'Scheduled' AND startDate <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))
+        SELECT *, 
+            CASE 
+                WHEN NOW() BETWEEN startDate AND endDate AND status = 'Ongoing' THEN 'active'
+                ELSE 'inactive'
+            END as election_state
+        FROM elections 
+        WHERE (status = 'Ongoing' OR status = 'Scheduled')
         ORDER BY startDate ASC
         LIMIT 1
     ");
@@ -49,9 +53,6 @@ try {
     error_log("Election check error: " . $e->getMessage());
     $error = "System temporarily unavailable. Please try again later.";
 }
-
-// Override election status for testing
-$currentElection['status'] = 'Ongoing';
 
 // Get student details
 $student = [];
@@ -788,66 +789,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     </style>
 </head>
 <body>
-    <?php include 'includes/header.php'; ?><br>
-    
-    <main class="container py-5">
+    <?php include 'includes/header.php'; ?>
+      <main class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-10 col-sm-12">
                 <div class="voting-card mb-4">
                     <div class="card-header py-4 px-4 border-0">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                             <div class="mb-3 mb-md-0">
-                                <h2 class="mb-1 fw-bold"><i class="bi bi-card-checklist role-icon icon"></i>&nbsp;Voting Portal</h2>
-                                <p class="text-muted mb-0">Cast your vote for the student leadership election  <i class="bi bi-clipboard-check department-icon icon"></i></p>
+                                <h2 class="mb-0">
+                                    <i class="bi bi-card-checklist role-icon icon"></i>&nbsp;Voting Portal
+                                </h2>
+                                <p class="text-muted mb-0">Student Leadership Election System</p>
                             </div>
-                            <div class="voting-status <?= $currentElection ? 'voting-active pulse-badge' : 'voting-inactive' ?>">
-                                <i class="bi <?= $currentElection ? 'bi-broadcast' : 'bi-x-circle' ?> me-2"></i>
-                                <?= $currentElection ? 'Election in Progress' : 'No Active Election' ?>
+                            <div class="voting-status <?= isset($currentElection['election_state']) && $currentElection['election_state'] === 'active' ? 'voting-active pulse-badge' : 'voting-inactive' ?>">
+                                <i class="bi <?= isset($currentElection['election_state']) && $currentElection['election_state'] === 'active' ? 'bi-broadcast' : 'bi-x-circle' ?> me-2"></i>
+                                <?= isset($currentElection['election_state']) && $currentElection['election_state'] === 'active' ? 'Election in Progress' : 'No Active Election' ?>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="card-body p-4 ">
-                        <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
-                            <div class="election-timer bubble-background mb-4">
-                                <div class="row align-items-center">
-                                    <div class="col-auto">
-                                        <div class="counter-circle text-muted">
-                                            <i class="bi bi-stopwatch-fill"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
-                                        <div class="timer-countdown" id="election-countdown">
-                                            <div class="d-flex align-items-center justify-content-start countdown-container">
-                                                <div class="time-unit">
-                                                    <span id="days">00</span>
-                                                    <small>days</small>
-                                                </div>
-                                                <div class="time-separator ">:</div>
-                                                <div class="time-unit">
-                                                    <span id="hours">00</span>
-                                                    <small>hours</small>
-                                                </div>
-                                                <div class="time-separator ">:</div>
-                                                <div class="time-unit">
-                                                    <span id="minutes">00</span>
-                                                    <small>minutes</small>
-                                                </div>
-                                                <div class="time-separator ">:</div>
-                                                <div class="time-unit">
-                                                    <span id="seconds">00</span>
-                                                    <small>seconds</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-
-                        <!-- Student Info -->
+                    </div>                    <div class="card-body p-4">
+                        <!-- Student Info - Always visible -->
                         <div class="student-info d-flex align-items-center mb-4">
                             <div class="me-3">
                                 <?php 
@@ -866,7 +827,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="student-details">
-                                <h5 > <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
+                                <h5><i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
                                 <div class="text-muted small mb-1">
                                     <i class="bi bi-person-badge me-1"></i> 
                                     ID: <?= $studentID ?>
@@ -882,205 +843,266 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 </div>
                             <?php endif; ?>
                         </div>
-                        
-                        <!-- Status Messages -->
-                        <?php if (isset($error)): ?>
-                            <div class="alert alert-danger alert-dismissible fade show">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-exclamation-octagon-fill fs-4 me-2"></i>
-                                    <div>
-                                        <strong>Error!</strong> <?= $error ?>
-                                    </div>
+
+                        <?php if (!isset($currentElection['election_state']) || $currentElection['election_state'] !== 'active'): ?>
+                            <div class="text-center p-5">
+                                <div class="display-1 text-muted mb-4">
+                                    <i class="bi bi-calendar-x"></i>
                                 </div>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if (isset($success)): ?>
-                            <div class="alert alert-success alert-dismissible fade show">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-check-circle-fill fs-4 me-2"></i>
-                                    <div>
-                                        <strong>Success!</strong> <?= $success ?>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <!-- Election Info -->
-                        <?php if ($currentElection): ?>
-                            <div class="election-timer bubble-background mb-4">
-                                <div class="row align-items-center">
-                                    <div class="col-md-7 mb-3 mb-md-0">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="counter-circle me-3 text-muted">
-                                                <i class="bi bi-calendar-event"></i>
-                                            </div>
-                                            <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
-                                        </div>
-                                        <p class="election-dates mb-2">
-                                            <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
-                                        </p>
-                                        <div class="progress-wave mt-3"></div>
-                                    </div>
-                                    <div class="col-md-5 text-md-end" >
-                                        <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
-                                            <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
-                                        </div>
-                                        <p class="election-status mb-0">
-                                            <i class="bi bi-clock me-1"></i>
-                                            Status: <?= $currentElection['status'] ?>
-                                        </p>
-                                    </div>
+                                <p class="text-muted mb-4">
+                                    <?php if ($currentElection): ?>
+                                        Next election scheduled for: <?= date('F j, Y', strtotime($currentElection['startDate'])) ?><br>
+                                        Check back then to cast your vote.
+                                    <?php else: ?>
+                                        There is currently no ongoing or scheduled election.<br>
+                                        Please check back later or contact the administrator for more information.
+                                    <?php endif; ?>
+                                </p>
+                                <div class="mt-4">
+                                    <a href="index.php" class="btn btn-primary">
+                                        <i class="bi bi-house-door me-2"></i>Return to Home
+                                    </a>
                                 </div>
                             </div>
                         <?php else: ?>
-                            <div class="alert bg-light border-0 rounded-4 p-4 mb-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="counter-circle bg-secondary bg-opacity-10 text-secondary me-3">
-                                        <i class="bi bi-calendar-x"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1">    <i class="bi bi-people department-icon icon"></i>
-                                        No Active Election</h5>
-                                        <p class="mb-0 text-muted">There is currently no active election. Please check back later.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <!-- Replace the status card with a live results card -->
-                        <?php if ($currentElection): ?>
-                        <div class="card mb-4 border-0 shadow-sm rounded-4 overflow-hidden">
-                            <div class="card-header bg-gradient-primary text-white py-3 px-4">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5 class="mb-0 fw-bold text-white">Election Results</h5>
-                                        <p class="mb-0 opacity-75 small text-white">Live updates from the voting system</p>
-                                    </div>
-                                    <div class="live-indicator">
-                                        <span class="pulse-dot"></span> LIVE
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-4">
-                                <?php
-                                // Get total votes for this election
-                                $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
-                                $voteCountStmt = $conn->prepare($voteCountQuery);
-                                $voteCountStmt->bind_param("i", $currentElection['electionID']);
-                                $voteCountStmt->execute();
-                                $voteCountResult = $voteCountStmt->get_result();
-                                $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
-                                $voteCountStmt->close();
-                                ?>
-                                <div class="mt-4">
-                                    <div class="results-section-header">
-                                        <div class="results-icon">
-                                            <i class="bi bi-trophy"></i>
-                                        </div>
-                                        <h6>Top Candidates</h6>
-                                    </div>
-                                    <div class="row g-3">
-                                        <?php
-                                    
-                                        $topCandidatesQuery = "
-                                            SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
-                                                   p.title as position, COUNT(v.voteID) as voteCount
-                                            FROM candidates c
-                                            JOIN students s ON c.studentID = s.studentID
-                                            JOIN positions p ON c.positionID = p.positionID
-                                            LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
-                                            WHERE c.status = 'Approved'
-                                            AND p.electionID = ?
-                                            GROUP BY c.candidateID
-                                            ORDER BY voteCount DESC
-                                            LIMIT 3
-                                        ";
-                                        $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
-                                        $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
-                                        $topCandidatesStmt->execute();
-                                        $topCandidatesResult = $topCandidatesStmt->get_result();
-                                        
-                                        if ($topCandidatesResult->num_rows > 0):
-                                            $rank = 1;
-                                            $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
-                                            $rankIcon = ['trophy', 'award', 'award'];
-                                            while ($candidate = $topCandidatesResult->fetch_assoc()):
-                                                $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
-                                                $colorIndex = $rank - 1;
-                                        ?>
-                                            <div class="col-md-4">
-                                                <div class="candidate-result-card">
-                                                    <div class="candidate-info">
-                                                        <div class="candidate-header">
-                                                            <div class="rank-badge">
-                                                                <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
-                                                            </div>
-                                                            <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                            <!-- Active election content -->
+                            <div class="election-active-content">
+                                <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
+                                    <div class="election-timer bubble-background mb-4">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto">
+                                                <div class="counter-circle text-muted">
+                                                    <i class="bi bi-stopwatch-fill"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
+                                                <div class="timer-countdown" id="election-countdown">
+                                                    <div class="d-flex align-items-center justify-content-start countdown-container">
+                                                        <div class="time-unit">
+                                                            <span id="days">00</span>
+                                                            <small>days</small>
                                                         </div>
-                                                        <div class="candidate-main">
-                                                            <?php 
-                                                          
-                                                            $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
-                                                            $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                            
-                                                            if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
-                                                                <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                            <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
-                                                                <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                            <?php else: ?>
-                                                                <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                                    <i class="bi bi-person fs-2"></i>
-                                                                </div>
-                                                            <?php endif; ?>
-                                                            <div class="candidate-details">
-                                                                <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
-                                                                <div class="d-flex flex-column gap-2">
-                                                                    <div class="vote-stats">
-                                                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                                                        <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
-                                                                    </div>
-                                                                    <div class="vote-stats">
-                                                                        <i class="bi bi-bar-chart-fill text-primary"></i>
-                                                                        <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                                        <div class="time-separator ">:</div>
+                                                        <div class="time-unit">
+                                                            <span id="hours">00</span>
+                                                            <small>hours</small>
                                                         </div>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" 
-                                                                 style="width: <?= $votePercentage ?>%;" 
-                                                                 aria-valuenow="<?= $votePercentage ?>" 
-                                                                 aria-valuemin="0" 
-                                                                 aria-valuemax="100"></div>
+                                                        <div class="time-separator ">:</div>
+                                                        <div class="time-unit">
+                                                            <span id="minutes">00</span>
+                                                            <small>minutes</small>
+                                                        </div>
+                                                        <div class="time-separator ">:</div>
+                                                        <div class="time-unit">
+                                                            <span id="seconds">00</span>
+                                                            <small>seconds</small>
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
                                             </div>
-                                        <?php 
-                                            $rank++;
-                                            endwhile;
-                                        else:
-                                        ?>
-                                            <div class="col-12">
-                                                <div class="alert alert-light border-0 shadow-sm text-center py-4">
-                                                    <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
-                                                    <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
+                                        </div>
+                                    </div>                                <?php endif; ?>
+
+                                <!-- Status Messages -->
+                                <?php if (isset($error)): ?>
+                                    <div class="alert alert-danger alert-dismissible fade show">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-exclamation-octagon-fill fs-4 me-2"></i>
+                                            <div>
+                                                <strong>Error!</strong> <?= $error ?>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if (isset($success)): ?>
+                                    <div class="alert alert-success alert-dismissible fade show">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                                            <div>
+                                                <strong>Success!</strong> <?= $success ?>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <!-- Election Info -->
+                                <?php if ($currentElection): ?>
+                                    <div class="election-timer bubble-background mb-4">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-7 mb-3 mb-md-0">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="counter-circle me-3 text-muted">
+                                                        <i class="bi bi-calendar-event"></i>
+                                                    </div>
+                                                    <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
                                                 </div>
+                                                <p class="election-dates mb-2">
+                                                    <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
+                                                </p>
+                                                <div class="progress-wave mt-3"></div>
                                             </div>
-                                        <?php 
-                                        endif;
-                                        $topCandidatesStmt->close();
+                                            <div class="col-md-5 text-md-end" >
+                                                <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
+                                                    <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
+                                                </div>
+                                                <p class="election-status mb-0">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    Status: <?= $currentElection['status'] ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="alert bg-light border-0 rounded-4 p-4 mb-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="counter-circle bg-secondary bg-opacity-10 text-secondary me-3">
+                                                <i class="bi bi-calendar-x"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-1">    <i class="bi bi-people department-icon icon"></i>
+                                                No Active Election</h5>
+                                                <p class="mb-0 text-muted">There is currently no active election. Please check back later.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <!-- Replace the status card with a live results card -->
+                                <?php if ($currentElection): ?>
+                                <div class="card mb-4 border-0 shadow-sm rounded-4 overflow-hidden">
+                                    <div class="card-header bg-gradient-primary text-white py-3 px-4">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0 fw-bold text-white">Election Results</h5>
+                                                <p class="mb-0 opacity-75 small text-white">Live updates from the voting system</p>
+                                            </div>
+                                            <div class="live-indicator">
+                                                <span class="pulse-dot"></span> LIVE
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <?php
+                                        // Get total votes for this election
+                                        $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
+                                        $voteCountStmt = $conn->prepare($voteCountQuery);
+                                        $voteCountStmt->bind_param("i", $currentElection['electionID']);
+                                        $voteCountStmt->execute();
+                                        $voteCountResult = $voteCountStmt->get_result();
+                                        $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
+                                        $voteCountStmt->close();
                                         ?>
+                                        <div class="mt-4">
+                                            <div class="results-section-header">
+                                                <div class="results-icon">
+                                                    <i class="bi bi-trophy"></i>
+                                                </div>
+                                                <h6>Top Candidates</h6>
+                                            </div>
+                                            <div class="row g-3">
+                                                <?php
+                                            
+                                                $topCandidatesQuery = "
+                                                    SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
+                                                           p.title as position, COUNT(v.voteID) as voteCount
+                                                    FROM candidates c
+                                                    JOIN students s ON c.studentID = s.studentID
+                                                    JOIN positions p ON c.positionID = p.positionID
+                                                    LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
+                                                    WHERE c.status = 'Approved'
+                                                    AND p.electionID = ?
+                                                    GROUP BY c.candidateID
+                                                    ORDER BY voteCount DESC
+                                                    LIMIT 3
+                                                ";
+                                                $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
+                                                $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
+                                                $topCandidatesStmt->execute();
+                                                $topCandidatesResult = $topCandidatesStmt->get_result();
+                                                
+                                                if ($topCandidatesResult->num_rows > 0):
+                                                    $rank = 1;
+                                                    $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
+                                                    $rankIcon = ['trophy', 'award', 'award'];
+                                                    while ($candidate = $topCandidatesResult->fetch_assoc()):
+                                                        $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
+                                                        $colorIndex = $rank - 1;
+                                                ?>
+                                                    <div class="col-md-4">
+                                                        <div class="candidate-result-card">
+                                                            <div class="candidate-info">
+                                                                <div class="candidate-header">
+                                                                    <div class="rank-badge">
+                                                                        <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
+                                                                    </div>
+                                                                    <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                                                </div>
+                                                                <div class="candidate-main">
+                                                                    <?php 
+                                                                  
+                                                                    $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                                                    $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                                    
+                                                                    if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
+                                                                        <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                                    <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
+                                                                        <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                                    <?php else: ?>
+                                                                        <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
+                                                                            <i class="bi bi-person fs-2"></i>
+                                                                        </div>
+                                                                    <?php endif; ?>
+                                                                    <div class="candidate-details">
+                                                                        <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
+                                                                        <div class="d-flex flex-column gap-2">
+                                                                            <div class="vote-stats">
+                                                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                                                                <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
+                                                                            </div>
+                                                                            <div class="vote-stats">
+                                                                                <i class="bi bi-bar-chart-fill text-primary"></i>
+                                                                                <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="progress">
+                                                                    <div class="progress-bar" role="progressbar" 
+                                                                         style="width: <?= $votePercentage ?>%;" 
+                                                                         aria-valuenow="<?= $votePercentage ?>" 
+                                                                         aria-valuemin="0" 
+                                                                         aria-valuemax="100"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php 
+                                                    $rank++;
+                                                    endwhile;
+                                                else:
+                                                ?>
+                                                    <div class="col-12">
+                                                        <div class="alert alert-light border-0 shadow-sm text-center py-4">
+                                                            <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
+                                                            <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
+                                                        </div>
+                                                    </div>
+                                                <?php 
+                                                endif;
+                                                $topCandidatesStmt->close();
+                                                ?>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <!-- Voting Form -->
+                                <?php endif; ?>
+                                
+                                <!-- Voting Form -->
 <?php if ($currentElection && !$hasVoted): ?>
     <form id="votingForm" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
         <?php foreach ($positions as $index => $position): ?>
@@ -1204,7 +1226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     </div>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
     </main><br><br><br>
 
     <!-- Welcome Tips Modal -->
@@ -1398,6 +1420,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     
     <script>
          document.addEventListener('DOMContentLoaded', function() {
+            // Only initialize election-related features if there's an active election
+            <?php if ($currentElection): ?>
+                startCountdown();
+                // ...existing code...
+            <?php endif; ?>
+
             // Initialize theme from localStorage
             const currentTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', currentTheme);
@@ -1710,7 +1738,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             }
             
             // === NOTIFICATION FUNCTIONALITY ===
-            // Check for new notifications```javascript
+            // Check for new notifications
             function checkNewNotifications() {
                 const studentID = <?= $studentID ?? 0 ?>;
                 const userType = 'student';
