@@ -363,7 +363,7 @@ CREATE TABLE `students` (
   `dateOfBirth` date NOT NULL,
   `department` varchar(100) NOT NULL,
   `contactNumber` varchar(15) DEFAULT NULL,
-  `registrationDate` date NOT NULL DEFAULT current_timestamp(),
+  `registrationDate` DATETIME NOT NULL DEFAULT current_timestamp(),
   `status` enum('Active','Inactive') DEFAULT 'Active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `role` enum('student','admin') DEFAULT 'student',
