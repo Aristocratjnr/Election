@@ -269,8 +269,7 @@
       }
     });
     </script>    <?php include 'includes/scripts.php'; ?>
-    
-    <!-- PWA Service Worker Registration -->
+      <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -279,6 +278,14 @@
                         console.log('ServiceWorker registered: ', registration);
                     })
                     .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+    
+    <!-- PWA Install Prompt -->
+    <script src="assets/js/install-prompt.js"></script>
                         console.log('ServiceWorker registration failed: ', error);
                     });
             });
