@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: formData,
             processData: false,
             contentType: false,
-            dataType: 'json' // Let jQuery parse the JSON automatically
+            dataType: 'json' 
           })
           .done(function(response) {
             // response is already parsed as JSON by jQuery

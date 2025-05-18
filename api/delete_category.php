@@ -1,45 +1,75 @@
 <?php
 require_once '../configs/dbconnection.php';
-require_once '../configs/session.php';
+require_once '../includes/auth_check.php';
+header('Content-Type: application/json');
 
 // Check if user is admin
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+    http_response_code(403);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Unauthorized access'
+    ]);
     exit();
 }
-
-// Check if category ID is provided
-if (!isset($_POST['categoryID'])) {
-    echo json_encode(['success' => false, 'message' => 'Category ID is required']);
-    exit();
-}
-
-$categoryID = $_POST['categoryID'];
 
 try {
-    // Check if category exists
-    $checkStmt = $conn->prepare("SELECT categoryID FROM categories WHERE categoryID = ?");
-    $checkStmt->bind_param("i", $categoryID);
-    $checkStmt->execute();
-    
-    if ($checkStmt->get_result()->num_rows === 0) {
-        echo json_encode(['success' => false, 'message' => 'Category not found']);
-        exit();
+    // Validate request data
+    if (!isset($_POST['categoryID']) || empty($_POST['categoryID'])) {
+        throw new Exception('Category ID is required');
     }
     
-    // Delete the category
-    $stmt = $conn->prepare("DELETE FROM categories WHERE categoryID = ?");
-    $stmt->bind_param("i", $categoryID);
+    $categoryID = $_POST['categoryID'];
     
-    if ($stmt->execute()) {
+    // Begin transaction
+    $conn->begin_transaction();
+    
+    // Check if category exists
+    $checkCategory = $conn->prepare("SELECT categoryID FROM categories WHERE categoryID = ?");
+    $checkCategory->bind_param('i', $categoryID);
+    $checkCategory->execute();
+    $categoryResult = $checkCategory->get_result();
+    
+    if ($categoryResult->num_rows === 0) {
+        throw new Exception('Category does not exist');
+    }
+    
+    // Delete associated candidates first (if any)
+    $deleteCandidates = $conn->prepare("DELETE FROM candidates WHERE categoryID = ?");
+    $deleteCandidates->bind_param('i', $categoryID);
+    $deleteCandidates->execute();
+    
+    // Delete associated votes (if any)
+    $deleteVotes = $conn->prepare("DELETE FROM votes WHERE categoryID = ?");
+    $deleteVotes->bind_param('i', $categoryID);
+    $deleteVotes->execute();
+    
+    // Finally delete the category
+    $deleteCategory = $conn->prepare("DELETE FROM categories WHERE categoryID = ?");
+    $deleteCategory->bind_param('i', $categoryID);
+    $deleteCategory->execute();
+    
+    if ($deleteCategory->affected_rows > 0) {
+        // Commit transaction
+        $conn->commit();
+        
         echo json_encode([
-            'success' => true, 
-            'message' => 'Category deleted successfully'
+            'success' => true,
+            'message' => 'Category and associated data deleted successfully'
         ]);
     } else {
-        throw new Exception("Failed to delete category");
+        throw new Exception('Failed to delete category');
     }
+    
 } catch (Exception $e) {
-    error_log("Error in delete_category.php: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Failed to delete category: ' . $e->getMessage()]);
+    // Rollback transaction if it was started
+    if ($conn->connect_errno === 0) {
+        $conn->rollback();
+    }
+    
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 }

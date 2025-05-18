@@ -1,30 +1,51 @@
 <?php
 require_once '../configs/dbconnection.php';
-require_once '../configs/session.php';
+require_once '../includes/auth_check.php';
 header('Content-Type: application/json');
 
 // Check if user is admin
 if (!isset($_SESSION['login_id']) || $_SESSION['role'] !== 'admin') {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+    http_response_code(403);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Unauthorized access'
+    ]);
     exit();
 }
 
 try {
-    // Update category count
-    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM categories");
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $count = $result->fetch_assoc()['total'];
+    $updateType = isset($_POST['update_type']) ? $_POST['update_type'] : 'all';
+    $updateData = [];
     
-    $_SESSION['dashboard_stats']['total_active_categories'] = $count;
+    // Update categories stats
+    if ($updateType === 'categories' || $updateType === 'all') {
+        // Count all categories
+        $categoriesQuery = $conn->prepare("
+            SELECT COUNT(*) as total 
+            FROM categories
+        ");
+        $categoriesQuery->execute();
+        $categoriesCount = $categoriesQuery->get_result()->fetch_assoc()['total'];
+        
+        $updateData['categories'] = $categoriesCount;
+        
+        // Update the session variable
+        $_SESSION['dashboard_stats']['total_active_categories'] = $categoriesCount;
+    }
+    
+    // For future expansion - update other dashboard stats based on update_type
     
     echo json_encode([
         'success' => true,
-        'stats' => [
-            'total_active_categories' => $count
-        ]
+        'message' => 'Dashboard stats updated successfully',
+        'data' => $updateData
     ]);
+    
 } catch (Exception $e) {
-    error_log("Error in update_dashboard_stats.php: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Failed to update dashboard stats']);
+    // Return error response
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Failed to update dashboard stats: ' . $e->getMessage()
+    ]);
 }
