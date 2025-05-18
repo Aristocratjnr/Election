@@ -1597,3 +1597,17 @@ try {
      <?php include 'includes/footer.php'; ?>
 </body>
 </html>
+<script src="assets/js/install-prompt.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/Election/sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful');
+                })
+                .catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+        });
+    }
+</script>

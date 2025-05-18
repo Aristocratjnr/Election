@@ -4,9 +4,13 @@ const ASSETS_TO_CACHE = [
   '/Election/index.php',
   '/Election/login.php',
   '/Election/student.php',
+  '/Election/dashboard.php',
   '/Election/assets/css/student.css',
+  '/Election/assets/css/dashboard.css',
   '/Election/assets/js/main.js',
+  '/Election/assets/js/dashboard.js',
   '/Election/assets/img/favicon/favicon.ico',
+  '/Election/assets/img/favicon/apple-touch-icon.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
   'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap'
