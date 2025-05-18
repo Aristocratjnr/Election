@@ -11,6 +11,13 @@ document.body.appendChild(installPrompt);
 
 let deferredPrompt;
 
+// Check if app is already installed
+window.addEventListener('load', () => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        return;
+    }
+});
+
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -21,7 +28,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
         installBtn.classList.add('d-none');
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
         deferredPrompt = null;
         
         if (outcome === 'accepted') {

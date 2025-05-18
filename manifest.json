@@ -3,9 +3,13 @@
   "short_name": "SmartVote",
   "description": "Student Leadership Election System",
   "start_url": "/Election/index.php",
+  "scope": "/Election/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#4169E1",
+  "prefer_related_applications": false,
+  "categories": ["education", "utilities"],
   "icons": [
     {
       "src": "assets/img/favicon/android-chrome-192x192.png",
