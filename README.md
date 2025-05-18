@@ -37,6 +37,7 @@ The **Election Management System (EMS)** is a web-based platform designed to str
 ### **Frontend:**
 - HTML5
 - CSS3
+- Bootstrap
 - JavaScript (ECMAScript 7)
 
 ### **Backend:**
@@ -50,16 +51,18 @@ The **Election Management System (EMS)** is a web-based platform designed to str
 
 ### **Security:**
 - SSL Encryption
+- Reset Password linked via Mail
 - Google Authenticator for 2FA
 
 ### **Notifications:**
 - **Email:** PHPMailer
+- **Device:** Customized api for push notifications with sound.
 - **SMS:** Arkesel SMS Gateway
 
 ## Installation
 ### **Prerequisites**
 Ensure you have the following installed:
-- PHP 8.4
+- PHP 8.2
 - MySQL Server
 - Apache/Nginx Server
 

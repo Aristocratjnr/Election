@@ -22,15 +22,11 @@ $currentElection = null;
 $error = null;
 
 try {
-    // Fetch current election based on dates and status
+    // Fetch current or upcoming election (within 7 days)
     $stmt = $conn->prepare("
-        SELECT *, 
-            CASE 
-                WHEN NOW() BETWEEN startDate AND endDate AND status = 'Ongoing' THEN 'active'
-                ELSE 'inactive'
-            END as election_state
-        FROM elections 
-        WHERE (status = 'Ongoing' OR status = 'Scheduled')
+        SELECT * FROM elections 
+        WHERE status = 'Ongoing' 
+        OR (status = 'Scheduled' AND startDate <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))
         ORDER BY startDate ASC
         LIMIT 1
     ");
@@ -53,6 +49,9 @@ try {
     error_log("Election check error: " . $e->getMessage());
     $error = "System temporarily unavailable. Please try again later.";
 }
+
+// Override election status for testing
+$currentElection['status'] = 'Ongoing';
 
 // Get student details
 $student = [];
@@ -790,25 +789,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 </head>
 <body>
     <?php include 'includes/header.php'; ?><br>
-      <main class="container py-5">
+    
+    <main class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-10 col-sm-12">
                 <div class="voting-card mb-4">
                     <div class="card-header py-4 px-4 border-0">
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                             <div class="mb-3 mb-md-0">
-                                <h2 class="mb-0">
-                                    <i class="bi bi-card-checklist role-icon icon"></i>&nbsp;Voting Portal
-                                </h2>
-                                <p class="text-muted mb-0">Student Leadership Election System</p>
+                                <h2 class="mb-1 fw-bold"><i class="bi bi-card-checklist role-icon icon"></i>&nbsp;Voting Portal</h2>
+                                <p class="text-muted mb-0">Cast your vote for the student leadership election  <i class="bi bi-clipboard-check department-icon icon"></i></p>
                             </div>
-                            <div class="voting-status <?= isset($currentElection['election_state']) && $currentElection['election_state'] === 'active' ? 'voting-active pulse-badge' : 'voting-inactive' ?>">
-                                <i class="bi <?= isset($currentElection['election_state']) && $currentElection['election_state'] === 'active' ? 'bi-broadcast' : 'bi-x-circle' ?> me-2"></i>
-                                <?= isset($currentElection['election_state']) && $currentElection['election_state'] === 'active' ? 'Election in Progress' : 'No Active Election' ?>
+                            <div class="voting-status <?= $currentElection ? 'voting-active pulse-badge' : 'voting-inactive' ?>">
+                                <i class="bi <?= $currentElection ? 'bi-broadcast' : 'bi-x-circle' ?> me-2"></i>
+                                <?= $currentElection ? 'Election in Progress' : 'No Active Election' ?>
                             </div>
                         </div>
-                    </div>                    <div class="card-body p-4">
-                        <!-- Student Info - Always visible -->
+                    </div>
+                    
+                    <div class="card-body p-4 ">
+                        <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
+                            <div class="election-timer bubble-background mb-4">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="counter-circle text-muted">
+                                            <i class="bi bi-stopwatch-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
+                                        <div class="timer-countdown" id="election-countdown">
+                                            <div class="d-flex align-items-center justify-content-start countdown-container">
+                                                <div class="time-unit">
+                                                    <span id="days">00</span>
+                                                    <small>days</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="hours">00</span>
+                                                    <small>hours</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="minutes">00</span>
+                                                    <small>minutes</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="seconds">00</span>
+                                                    <small>seconds</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Student Info -->
                         <div class="student-info d-flex align-items-center mb-4">
                             <div class="me-3">
                                 <?php 
@@ -827,7 +866,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="student-details">
-                                <h5><i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
+                                <h5 > <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
                                 <div class="text-muted small mb-1">
                                     <i class="bi bi-person-badge me-1"></i> 
                                     ID: <?= $studentID ?>
@@ -843,266 +882,205 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 </div>
                             <?php endif; ?>
                         </div>
-
-                        <?php if (!isset($currentElection['election_state']) || $currentElection['election_state'] !== 'active'): ?>
-                            <div class="text-center p-5">
-                                <div class="display-1 text-muted mb-4">
-                                    <i class="bi bi-calendar-x"></i>
+                        
+                        <!-- Status Messages -->
+                        <?php if (isset($error)): ?>
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-exclamation-octagon-fill fs-4 me-2"></i>
+                                    <div>
+                                        <strong>Error!</strong> <?= $error ?>
+                                    </div>
                                 </div>
-                                <p class="text-muted mb-4">
-                                    <?php if ($currentElection): ?>
-                                        Next election scheduled for: <?= date('F j, Y', strtotime($currentElection['startDate'])) ?><br>
-                                        Check back then to cast your vote.
-                                    <?php else: ?>
-                                        There is currently no ongoing or scheduled election.<br>
-                                        Please check back later or contact the administrator for more information.
-                                    <?php endif; ?>
-                                </p>
-                                <div class="mt-4">
-                                    <a href="index.php" class="btn btn-primary">
-                                        <i class="bi bi-house-door me-2"></i>Return to Home
-                                    </a>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php if (isset($success)): ?>
+                            <div class="alert alert-success alert-dismissible fade show">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                                    <div>
+                                        <strong>Success!</strong> <?= $success ?>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <!-- Election Info -->
+                        <?php if ($currentElection): ?>
+                            <div class="election-timer bubble-background mb-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-7 mb-3 mb-md-0">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="counter-circle me-3 text-muted">
+                                                <i class="bi bi-calendar-event"></i>
+                                            </div>
+                                            <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
+                                        </div>
+                                        <p class="election-dates mb-2">
+                                            <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
+                                        </p>
+                                        <div class="progress-wave mt-3"></div>
+                                    </div>
+                                    <div class="col-md-5 text-md-end" >
+                                        <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
+                                            <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
+                                        </div>
+                                        <p class="election-status mb-0">
+                                            <i class="bi bi-clock me-1"></i>
+                                            Status: <?= $currentElection['status'] ?>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         <?php else: ?>
-                            <!-- Active election content -->
-                            <div class="election-active-content">
-                                <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
-                                    <div class="election-timer bubble-background mb-4">
-                                        <div class="row align-items-center">
-                                            <div class="col-auto">
-                                                <div class="counter-circle text-muted">
-                                                    <i class="bi bi-stopwatch-fill"></i>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
-                                                <div class="timer-countdown" id="election-countdown">
-                                                    <div class="d-flex align-items-center justify-content-start countdown-container">
-                                                        <div class="time-unit">
-                                                            <span id="days">00</span>
-                                                            <small>days</small>
-                                                        </div>
-                                                        <div class="time-separator ">:</div>
-                                                        <div class="time-unit">
-                                                            <span id="hours">00</span>
-                                                            <small>hours</small>
-                                                        </div>
-                                                        <div class="time-separator ">:</div>
-                                                        <div class="time-unit">
-                                                            <span id="minutes">00</span>
-                                                            <small>minutes</small>
-                                                        </div>
-                                                        <div class="time-separator ">:</div>
-                                                        <div class="time-unit">
-                                                            <span id="seconds">00</span>
-                                                            <small>seconds</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
-                                            </div>
-                                        </div>
-                                    </div>                                <?php endif; ?>
-
-                                <!-- Status Messages -->
-                                <?php if (isset($error)): ?>
-                                    <div class="alert alert-danger alert-dismissible fade show">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-exclamation-octagon-fill fs-4 me-2"></i>
-                                            <div>
-                                                <strong>Error!</strong> <?= $error ?>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            <div class="alert bg-light border-0 rounded-4 p-4 mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="counter-circle bg-secondary bg-opacity-10 text-secondary me-3">
+                                        <i class="bi bi-calendar-x"></i>
                                     </div>
-                                <?php endif; ?>
-                                
-                                <?php if (isset($success)): ?>
-                                    <div class="alert alert-success alert-dismissible fade show">
-                                        <div class="d-flex align-items-center">
-                                            <i class="bi bi-check-circle-fill fs-4 me-2"></i>
-                                            <div>
-                                                <strong>Success!</strong> <?= $success ?>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    <div>
+                                        <h5 class="mb-1">    <i class="bi bi-people department-icon icon"></i>
+                                        No Active Election</h5>
+                                        <p class="mb-0 text-muted">There is currently no active election. Please check back later.</p>
                                     </div>
-                                <?php endif; ?>
-                                
-                                <!-- Election Info -->
-                                <?php if ($currentElection): ?>
-                                    <div class="election-timer bubble-background mb-4">
-                                        <div class="row align-items-center">
-                                            <div class="col-md-7 mb-3 mb-md-0">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <div class="counter-circle me-3 text-muted">
-                                                        <i class="bi bi-calendar-event"></i>
-                                                    </div>
-                                                    <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
-                                                </div>
-                                                <p class="election-dates mb-2">
-                                                    <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
-                                                </p>
-                                                <div class="progress-wave mt-3"></div>
-                                            </div>
-                                            <div class="col-md-5 text-md-end" >
-                                                <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
-                                                    <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
-                                                </div>
-                                                <p class="election-status mb-0">
-                                                    <i class="bi bi-clock me-1"></i>
-                                                    Status: <?= $currentElection['status'] ?>
-                                                </p>
-                                            </div>
-                                        </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <!-- Replace the status card with a live results card -->
+                        <?php if ($currentElection): ?>
+                        <div class="card mb-4 border-0 shadow-sm rounded-4 overflow-hidden">
+                            <div class="card-header bg-gradient-primary text-white py-3 px-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-white">Election Results</h5>
+                                        <p class="mb-0 opacity-75 small text-white">Live updates from the voting system</p>
                                     </div>
-                                <?php else: ?>
-                                    <div class="alert bg-light border-0 rounded-4 p-4 mb-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="counter-circle bg-secondary bg-opacity-10 text-secondary me-3">
-                                                <i class="bi bi-calendar-x"></i>
-                                            </div>
-                                            <div>
-                                                <h5 class="mb-1">    <i class="bi bi-people department-icon icon"></i>
-                                                No Active Election</h5>
-                                                <p class="mb-0 text-muted">There is currently no active election. Please check back later.</p>
-                                            </div>
-                                        </div>
+                                    <div class="live-indicator">
+                                        <span class="pulse-dot"></span> LIVE
                                     </div>
-                                <?php endif; ?>
-                                
-                                <!-- Replace the status card with a live results card -->
-                                <?php if ($currentElection): ?>
-                                <div class="card mb-4 border-0 shadow-sm rounded-4 overflow-hidden">
-                                    <div class="card-header bg-gradient-primary text-white py-3 px-4">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h5 class="mb-0 fw-bold text-white">Election Results</h5>
-                                                <p class="mb-0 opacity-75 small text-white">Live updates from the voting system</p>
-                                            </div>
-                                            <div class="live-indicator">
-                                                <span class="pulse-dot"></span> LIVE
-                                            </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <?php
+                                // Get total votes for this election
+                                $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
+                                $voteCountStmt = $conn->prepare($voteCountQuery);
+                                $voteCountStmt->bind_param("i", $currentElection['electionID']);
+                                $voteCountStmt->execute();
+                                $voteCountResult = $voteCountStmt->get_result();
+                                $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
+                                $voteCountStmt->close();
+                                ?>
+                                <div class="mt-4">
+                                    <div class="results-section-header">
+                                        <div class="results-icon">
+                                            <i class="bi bi-trophy"></i>
                                         </div>
+                                        <h6>Top Candidates</h6>
                                     </div>
-                                    <div class="card-body p-4">
+                                    <div class="row g-3">
                                         <?php
-                                        // Get total votes for this election
-                                        $voteCountQuery = "SELECT COUNT(DISTINCT studentID) as totalVotes FROM votes WHERE electionID = ?";
-                                        $voteCountStmt = $conn->prepare($voteCountQuery);
-                                        $voteCountStmt->bind_param("i", $currentElection['electionID']);
-                                        $voteCountStmt->execute();
-                                        $voteCountResult = $voteCountStmt->get_result();
-                                        $voteCount = $voteCountResult->fetch_assoc()['totalVotes'];
-                                        $voteCountStmt->close();
+                                    
+                                        $topCandidatesQuery = "
+                                            SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
+                                                   p.title as position, COUNT(v.voteID) as voteCount
+                                            FROM candidates c
+                                            JOIN students s ON c.studentID = s.studentID
+                                            JOIN positions p ON c.positionID = p.positionID
+                                            LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
+                                            WHERE c.status = 'Approved'
+                                            AND p.electionID = ?
+                                            GROUP BY c.candidateID
+                                            ORDER BY voteCount DESC
+                                            LIMIT 3
+                                        ";
+                                        $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
+                                        $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
+                                        $topCandidatesStmt->execute();
+                                        $topCandidatesResult = $topCandidatesStmt->get_result();
+                                        
+                                        if ($topCandidatesResult->num_rows > 0):
+                                            $rank = 1;
+                                            $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
+                                            $rankIcon = ['trophy', 'award', 'award'];
+                                            while ($candidate = $topCandidatesResult->fetch_assoc()):
+                                                $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
+                                                $colorIndex = $rank - 1;
                                         ?>
-                                        <div class="mt-4">
-                                            <div class="results-section-header">
-                                                <div class="results-icon">
-                                                    <i class="bi bi-trophy"></i>
-                                                </div>
-                                                <h6>Top Candidates</h6>
-                                            </div>
-                                            <div class="row g-3">
-                                                <?php
-                                            
-                                                $topCandidatesQuery = "
-                                                    SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
-                                                           p.title as position, COUNT(v.voteID) as voteCount
-                                                    FROM candidates c
-                                                    JOIN students s ON c.studentID = s.studentID
-                                                    JOIN positions p ON c.positionID = p.positionID
-                                                    LEFT JOIN votes v ON c.candidateID = v.candidateID AND v.electionID = ?
-                                                    WHERE c.status = 'Approved'
-                                                    AND p.electionID = ?
-                                                    GROUP BY c.candidateID
-                                                    ORDER BY voteCount DESC
-                                                    LIMIT 3
-                                                ";
-                                                $topCandidatesStmt = $conn->prepare($topCandidatesQuery);
-                                                $topCandidatesStmt->bind_param("ii", $currentElection['electionID'], $currentElection['electionID']);
-                                                $topCandidatesStmt->execute();
-                                                $topCandidatesResult = $topCandidatesStmt->get_result();
-                                                
-                                                if ($topCandidatesResult->num_rows > 0):
-                                                    $rank = 1;
-                                                    $rankClass = ['text-gold', 'text-silver', 'text-bronze'];
-                                                    $rankIcon = ['trophy', 'award', 'award'];
-                                                    while ($candidate = $topCandidatesResult->fetch_assoc()):
-                                                        $votePercentage = $voteCount > 0 ? round(($candidate['voteCount'] / $voteCount) * 100, 1) : 0;
-                                                        $colorIndex = $rank - 1;
-                                                ?>
-                                                    <div class="col-md-4">
-                                                        <div class="candidate-result-card">
-                                                            <div class="candidate-info">
-                                                                <div class="candidate-header">
-                                                                    <div class="rank-badge">
-                                                                        <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
-                                                                    </div>
-                                                                    <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                            <div class="col-md-4">
+                                                <div class="candidate-result-card">
+                                                    <div class="candidate-info">
+                                                        <div class="candidate-header">
+                                                            <div class="rank-badge">
+                                                                <i class="bi bi-<?= $rankIcon[$colorIndex] ?> <?= $rankClass[$colorIndex] ?>"></i>
+                                                            </div>
+                                                            <span class="candidate-position"><?= htmlspecialchars($candidate['position'] ?? 'Candidate') ?></span>
+                                                        </div>
+                                                        <div class="candidate-main">
+                                                            <?php 
+                                                          
+                                                            $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                                            $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                            
+                                                            if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
+                                                                <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                            <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
+                                                                <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
+                                                            <?php else: ?>
+                                                                <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
+                                                                    <i class="bi bi-person fs-2"></i>
                                                                 </div>
-                                                                <div class="candidate-main">
-                                                                    <?php 
-                                                                  
-                                                                    $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
-                                                                    $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                                                    
-                                                                    if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
-                                                                        <img src="<?= $candidateCustPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                    <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
-                                                                        <img src="<?= $candidateStdPhotoPath ?>" class="candidate-avatar" alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                                                    <?php else: ?>
-                                                                        <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                                            <i class="bi bi-person fs-2"></i>
-                                                                        </div>
-                                                                    <?php endif; ?>
-                                                                    <div class="candidate-details">
-                                                                        <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
-                                                                        <div class="d-flex flex-column gap-2">
-                                                                            <div class="vote-stats">
-                                                                                <i class="bi bi-check-circle-fill text-success"></i>
-                                                                                <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
-                                                                            </div>
-                                                                            <div class="vote-stats">
-                                                                                <i class="bi bi-bar-chart-fill text-primary"></i>
-                                                                                <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
-                                                                            </div>
-                                                                        </div>
+                                                            <?php endif; ?>
+                                                            <div class="candidate-details">
+                                                                <h6 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h6>
+                                                                <div class="d-flex flex-column gap-2">
+                                                                    <div class="vote-stats">
+                                                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                                                        <span class="vote-count"><?= number_format($candidate['voteCount']) ?> votes</span>
                                                                     </div>
-                                                                </div>
-                                                                <div class="progress">
-                                                                    <div class="progress-bar" role="progressbar" 
-                                                                         style="width: <?= $votePercentage ?>%;" 
-                                                                         aria-valuenow="<?= $votePercentage ?>" 
-                                                                         aria-valuemin="0" 
-                                                                         aria-valuemax="100"></div>
+                                                                    <div class="vote-stats">
+                                                                        <i class="bi bi-bar-chart-fill text-primary"></i>
+                                                                        <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                <?php 
-                                                    $rank++;
-                                                    endwhile;
-                                                else:
-                                                ?>
-                                                    <div class="col-12">
-                                                        <div class="alert alert-light border-0 shadow-sm text-center py-4">
-                                                            <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
-                                                            <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: <?= $votePercentage ?>%;" 
+                                                                 aria-valuenow="<?= $votePercentage ?>" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="100"></div>
                                                         </div>
                                                     </div>
-                                                <?php 
-                                                endif;
-                                                $topCandidatesStmt->close();
-                                                ?>
+                                                </div>
                                             </div>
-                                        </div>
+                                        <?php 
+                                            $rank++;
+                                            endwhile;
+                                        else:
+                                        ?>
+                                            <div class="col-12">
+                                                <div class="alert alert-light border-0 shadow-sm text-center py-4">
+                                                    <i class="bi bi-bar-chart text-primary fs-3 mb-3"></i>
+                                                    <p class="mb-0">No votes have been cast yet. Results will appear here once voting begins.</p>
+                                                </div>
+                                            </div>
+                                        <?php 
+                                        endif;
+                                        $topCandidatesStmt->close();
+                                        ?>
                                     </div>
                                 </div>
-                                <?php endif; ?>
-                                
-                                <!-- Voting Form -->
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <!-- Voting Form -->
 <?php if ($currentElection && !$hasVoted): ?>
     <form id="votingForm" method="POST" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
         <?php foreach ($positions as $index => $position): ?>
@@ -1226,7 +1204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     </div>
                 </div>
             </div>
-        <?php endif; ?>
+        </div>
     </main><br><br><br>
 
     <!-- Welcome Tips Modal -->
@@ -1397,7 +1375,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 </div>
                 <div class="modal-body">
                     <div class="manifesto-content p-3"></div>
-                    <div class="download-options text-center mt-3"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -1420,12 +1397,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     
     <script>
          document.addEventListener('DOMContentLoaded', function() {
-            // Only initialize election-related features if there's an active election
-            <?php if ($currentElection): ?>
-                startCountdown();
-                // ...existing code...
-            <?php endif; ?>
-
             // Initialize theme from localStorage
             const currentTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', currentTheme);
@@ -1628,115 +1599,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     const manifestoFile = button.getAttribute('data-manifesto');
                     const fileType = button.getAttribute('data-file-type');
                     const modalBody = manifestoModal.querySelector('.manifesto-content');
-                    const downloadOptions = manifestoModal.querySelector('.download-options');
                     
-                    // Construct proper file paths
-                    const baseUrl = window.location.origin;
-                    const manifestoPath = `${baseUrl}/Election/uploads/manifestos/${manifestoFile}`;
-                    const localPath = `uploads/manifestos/${manifestoFile}`;
+                    // Get full URL for the file (needed for external previewers)
+                    const baseUrl = window.location.protocol + '//' + window.location.host;
+                    const relativePath = 'uploads/manifestos/' + manifestoFile;
+                    const manifestoPath = '/' + relativePath;
+                    const absoluteUrl = baseUrl + '/' + relativePath;
                     
-                    // Show loading state
-                    modalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-3">Loading document preview...</p></div>';
+                    modalBody.innerHTML = ''; // Clear previous content
                     
                     if (fileType === 'pdf') {
-                        // Try object tag first with fallback to iframe
-                        modalBody.innerHTML = `
-                            <object data="${localPath}" type="application/pdf" width="100%" height="75vh" class="pdf-viewer">
-                                <iframe src="${localPath}" width="100%" height="75vh" class="pdf-fallback" style="display:none;">
-                                    <p>This browser does not support PDF preview. 
-                                    <a href="${localPath}" download>Download the PDF</a> to view it.</p>
-                                </iframe>
-                            </object>
+                        // Try <embed> first, fallback to <iframe>, then download link
+                        const embed = document.createElement('embed');
+                        embed.src = manifestoPath;
+                        embed.type = 'application/pdf';
+                        embed.style.width = '100%';
+                        embed.style.height = '70vh';
+                        embed.onerror = function() {
+                            // Fallback if embed fails
+                            showPdfFallback();
+                        };
+                        // Try to load PDF
+                        modalBody.appendChild(embed);
+                        // Add a fallback download link always
+                        const downloadLinkDiv = document.createElement('div');
+                        downloadLinkDiv.className = 'text-center mt-3';
+                        downloadLinkDiv.innerHTML = `
+                            <a href="${manifestoPath}" 
+                               class="btn btn-outline-secondary btn-sm" 
+                               target="_blank"
+                               download>
+                                <i class="bi bi-download me-1"></i> Download PDF if preview fails
+                            </a>
                         `;
-                        
-                        // Check if PDF viewer failed and show fallback
-                        setTimeout(() => {
-                            const object = modalBody.querySelector('object');
-                            const iframe = modalBody.querySelector('iframe');
-                            if (object && object.getBoundingClientRect().height === 0) {
-                                object.style.display = 'none';
-                                iframe.style.display = 'block';
-                            }
-                        }, 1000);
-                        
-                        downloadOptions.innerHTML = `
-                            <div class="btn-group">
-                                <a href="${localPath}" class="btn btn-primary" download>
-                                    <i class="bi bi-download"></i> Download PDF
-                                </a>
-                                <a href="${localPath}" class="btn btn-outline-primary" target="_blank">
-                                    <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
-                                </a>
-                            </div>
-                        `;
-                    } else if (fileType === 'docx') {
-                        // Use Office Online Viewer with proper URL encoding
-                        const encodedUrl = encodeURIComponent(manifestoPath);
-                        const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
-                        
-                        modalBody.innerHTML = `
-                            <div class="docx-preview-container">
-                                <iframe src="${officeViewerUrl}" width="100%" height="75vh" frameborder="0">
-                                    This is an embedded <a target="_blank" href="${officeViewerUrl}">Microsoft Office</a> document.
-                                </iframe>
-                            </div>
-                        `;
-                        
-                        downloadOptions.innerHTML = `
-                            <div class="btn-group">
-                                <a href="${localPath}" class="btn btn-primary" download>
-                                    <i class="bi bi-download"></i> Download DOCX
-                                </a>
-                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodedUrl}" 
-                                   class="btn btn-outline-primary" 
-                                   target="_blank">
-                                    <i class="bi bi-box-arrow-up-right"></i> Open in Office Online
-                                </a>
-                            </div>
-                        `;
+                        modalBody.appendChild(downloadLinkDiv);
+                        // Fallback function
+                        function showPdfFallback() {
+                            modalBody.innerHTML = `
+                                <div class="pdf-fallback text-center p-4">
+                                    <i class="bi bi-file-earmark-pdf fs-1 text-danger mb-3"></i>
+                                    <p class="mb-2">Unable to display PDF preview directly in the browser.</p>
+                                    <p class="mb-3">You can download the file to view it.</p>
+                                    <a href="${manifestoPath}" 
+                                       class="btn btn-primary" 
+                                       target="_blank"
+                                       download>
+                                        <i class="bi bi-download me-2"></i>Download PDF Manifesto
+                                    </a>
+                                </div>
+                            `;
+                        }
                     } else if (fileType === 'txt') {
-                        // Handle text files with fetch
-                        fetch(localPath)
+                        fetch(manifestoPath)
                             .then(response => {
-                                if (!response.ok) throw new Error('Failed to load file');
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
                                 return response.text();
                             })
                             .then(content => {
-                                modalBody.innerHTML = `
-                                    <pre class="p-4 bg-light rounded" style="max-height: 75vh; overflow-y: auto;">
-                                        ${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-                                    </pre>
-                                `;
-                                
-                                downloadOptions.innerHTML = `
-                                    <div class="btn-group">
-                                        <a href="${localPath}" class="btn btn-primary" download>
-                                            <i class="bi bi-download"></i> Download Text File
-                                        </a>
-                                        <a href="${localPath}" class="btn btn-outline-primary" target="_blank">
-                                            <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
-                                        </a>
-                                    </div>
-                                `;
+                                modalBody.innerHTML = `<pre class="p-3 bg-light border rounded" style="white-space: pre-wrap; word-wrap: break-word; max-height: 70vh; overflow-y: auto;">${content}</pre>`;
                             })
                             .catch(error => {
-                                modalBody.innerHTML = `
-                                    <div class="alert alert-danger m-3">
-                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                        Error loading file. Please try downloading it instead.
-                                    </div>
-                                `;
-                                
-                                downloadOptions.innerHTML = `
-                                    <a href="${localPath}" class="btn btn-primary" download>
-                                        <i class="bi bi-download"></i> Download File
-                                    </a>
-                                `;
+                                console.error('Error loading text manifesto:', error);
+                                modalBody.innerHTML = `<div class="alert alert-danger">Error loading manifesto: ${error.message}. Please try downloading. 
+                                    <a href="${manifestoPath}" target="_blank" download class="alert-link">Download File</a>
+                                </div>`;
                             });
+                    } else if (fileType === 'docx') {
+                        // Use Microsoft Office Online Viewer or Google Docs Viewer for DOCX files
+                        // First, try Google Docs Viewer (works for public files only)
+                        const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absoluteUrl)}&embedded=true`;
+                        
+                        // Create preview container
+                        modalBody.innerHTML = `
+                            <div class="docx-preview-container" style="width:100%; height:70vh; position:relative;">
+                                <div class="docx-loading text-center p-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 mb-0">Loading document preview...</p>
+                                </div>
+                                <iframe 
+                                    src="${googleViewerUrl}" 
+                                    frameborder="0" 
+                                    style="width:100%; height:100%; display:none;" 
+                                    class="docx-preview-frame"
+                                    onload="this.style.display='block'; this.previousElementSibling.style.display='none';"
+                                    onerror="showDocxFallback()">
+                                </iframe>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="${manifestoPath}" 
+                                   class="btn btn-outline-primary btn-sm" 
+                                   target="_blank"
+                                   download>
+                                    <i class="bi bi-download me-1"></i> Download Document
+                                </a>
+                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}" 
+                                   class="btn btn-outline-secondary btn-sm ms-2" 
+                                   target="_blank">
+                                    <i class="bi bi-microsoft me-1"></i> Open in Office Online
+                                </a>
+                            </div>
+                        `;
+                        
+                        // Create a fallback function in case the Google Docs viewer fails
+                        const script = document.createElement('script');
+                        script.textContent = `
+                            function showDocxFallback() {
+                                const container = document.querySelector('.docx-preview-container');
+                                if (container) {
+                                    container.innerHTML = \`
+                                        <div class="docx-fallback text-center p-4">
+                                            <i class="bi bi-file-earmark-word fs-1 text-primary mb-3"></i>
+                                            <p class="mb-2">Preview is not available. Try these options:</p>
+                                            <div class="mt-3">
+                                                <a href="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(absoluteUrl)}" 
+                                                   class="btn btn-primary me-2" 
+                                                   target="_blank">
+                                                    <i class="bi bi-microsoft me-1"></i> Open in Office Online
+                                                </a>
+                                                <a href="${manifestoPath}" 
+                                                   class="btn btn-outline-secondary" 
+                                                   target="_blank"
+                                                   download>
+                                                    <i class="bi bi-download me-1"></i> Download Document
+                                                </a>
+                                            </div>
+                                        </div>
+                                    \`;
+                                }
+                            }
+                            
+                            // Check if iframe loaded successfully after a delay
+                            setTimeout(() => {
+                                const iframe = document.querySelector('.docx-preview-frame');
+                                const loading = document.querySelector('.docx-loading');
+                                if (iframe && loading && loading.style.display !== 'none') {
+                                    showDocxFallback();
+                                }
+                            }, 5000); // Wait 5 seconds for loading
+                        `;
+                        document.head.appendChild(script);
+                    } else {
+                        modalBody.innerHTML = `<div class="alert alert-warning">Unsupported file type. 
+                            <a href="${manifestoPath}" target="_blank" download class="alert-link">Download File</a>
+                        </div>`;
                     }
                 });
             }
-            
+
             // === NOTIFICATION FUNCTIONALITY ===
             // Check for new notifications
             function checkNewNotifications() {
