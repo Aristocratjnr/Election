@@ -12,6 +12,7 @@ The **Election Management System (EMS)** is a web-based platform designed to str
 - Responsive UI for mobile and desktop users
 - Audit logs and election history
 - Election activation and deactivation
+- Progressive Web App (PWA) integration for offline access and mobile installation
 
 ## System Summary
 
@@ -38,6 +39,8 @@ The **Election Management System (EMS)** is a web-based platform designed to str
 - HTML5
 - CSS3
 - JavaScript (ECMAScript 7)
+- Progressive Web App (PWA) features
+- Service Workers for offline functionality
 
 ### **Backend:**
 - PHP 8.4
@@ -89,6 +92,23 @@ Ensure you have the following installed:
 
 ### **Voters**
 - Securely log in, cast votes, and view real-time election results.
+- Install as a mobile app via the PWA functionality for convenient access.
+
+## Progressive Web App (PWA)
+The Election Management System implements PWA technology, providing the following benefits:
+
+### **Features:**
+- **Offline Access:** Access key features even with poor or no internet connection.
+- **Installation:** Install SmartVote as an app on mobile devices and desktops.
+- **App-like Experience:** Enjoy a native app-like experience with full-screen mode and home screen access.
+- **Automatic Updates:** Always get the latest version without manual updates.
+- **Improved Performance:** Faster loading times and smoother interactions through cached resources.
+
+### **How to Install:**
+1. Open the application in a modern browser (Chrome, Edge, Safari, etc.)
+2. Look for the "Install App" button in the interface
+3. Follow the on-screen prompts to install the application
+4. Access SmartVote directly from your device's home screen or app drawer
 
 ## Contact
 For inquiries, reach out to:
