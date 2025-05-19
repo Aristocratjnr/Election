@@ -2204,5 +2204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 resizeTimeout = setTimeout(createBubbles, 300);
             });
         });
-    </script>    </body>
+    </script>    <!-- PWA Installation -->
+    <script src="assets/js/install-prompt.js"></script>
+</body>
 </html>
