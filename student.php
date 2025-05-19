@@ -540,6 +540,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voting Portal - SmartVote</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4169E1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SmartVote">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/img/favicon/apple-touch-icon.png">
+    
+    <!-- Existing CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/student.css" rel="stylesheet">
     
@@ -1389,11 +1399,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <audio id="notification-sound" preload="auto">
         <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
         <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- Bootstrap JS Bundle with Popper -->
+    </audio>    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>        // PWA Install Prompt
+        let deferredPrompt;
+        const installButton = document.createElement('button');
+        installButton.style.display = 'none';
+        installButton.className = 'btn btn-sm btn-primary position-fixed bottom-0 end-0 m-3 d-flex align-items-center rounded-pill shadow-sm';
+        installButton.innerHTML = '<i class="bi bi-download me-1"></i><span class="d-none d-sm-inline">Install App</span>';
+        installButton.style.zIndex = '1030';
+        document.body.appendChild(installButton);
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show the install button
+            installButton.style.display = 'flex';
+
+            installButton.addEventListener('click', async () => {
+                // Hide the install button
+                installButton.style.display = 'none';
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                // Optionally, send analytics event with outcome of user choice
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+            });
+        });
+
+        // If the app is already installed, hide the install button
+        window.addEventListener('appinstalled', () => {
+            installButton.style.display = 'none';
+            deferredPrompt = null;
+            // Optionally, show a success message
+            const toast = document.createElement('div');
+            toast.className = 'toast position-fixed bottom-0 end-0 m-4';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <strong class="me-auto">SmartVote Installed</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    SmartVote has been successfully installed on your device!
+                </div>
+            `;
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+        });
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/Election/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered: ', registration);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
     
     <script>
          document.addEventListener('DOMContentLoaded', function() {
@@ -2135,9 +2214,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             let resizeTimeout;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(createBubbles, 300);
-            });
+                resizeTimeout = setTimeout(createBubbles, 300);            });
         });
     </script>
+    
+    <!-- PWA Installation -->
+    <script src="scripts/install-prompt.js"></script>
 </body>
 </html>

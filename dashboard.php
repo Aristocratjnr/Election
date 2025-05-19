@@ -1593,7 +1593,22 @@ try {
         letter-spacing: 2px;
         font-weight: bold;
     }
-    </style>
-     <?php include 'includes/footer.php'; ?>
+    </style>     <?php include 'includes/footer.php'; ?>
+    
+    <!-- PWA Installation -->
+    <script src="scripts/install-prompt.js"></script>
 </body>
 </html>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/Election/sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful');
+                })
+                .catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+        });
+    }
+</script>
