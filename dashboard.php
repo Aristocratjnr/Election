@@ -1593,11 +1593,12 @@ try {
         letter-spacing: 2px;
         font-weight: bold;
     }
-    </style>
-     <?php include 'includes/footer.php'; ?>
+    </style>     <?php include 'includes/footer.php'; ?>
+    
+    <!-- PWA Installation -->
+    <script src="scripts/install-prompt.js"></script>
 </body>
 </html>
-<script src="assets/js/install-prompt.js"></script>
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

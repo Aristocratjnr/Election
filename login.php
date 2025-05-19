@@ -285,7 +285,7 @@
     </script>
     
     <!-- PWA Install Prompt -->
-    <script src="assets/js/install-prompt.js"></script>
+    <script src="scripts/install-prompt.js"></script>
                         console.log('ServiceWorker registration failed: ', error);
                     });
             });
