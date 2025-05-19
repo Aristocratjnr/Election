@@ -1535,6 +1535,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 }
             });
             
+            
             // Add click handlers to candidate cards
             document.querySelectorAll('.candidate-card').forEach(card => {
                 card.addEventListener('click', function(e) {
@@ -1613,9 +1614,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 const candidateCard = selectedCandidate.closest('.candidate-card');
                                 const candidateName = candidateCard.querySelector('.candidate-name').textContent;
                                 summaryHTML += `<div class="list-group-item">
-                                    <h6 class="mb-1">${positionTitle}</h6>
-                                    <p class="mb-0">${candidateName}</p>
-                                </div>`;
+                <h6 class="mb-1">${positionTitle}</h6>
+                <p class="mb-0">${candidateName}</p>
+            </div>`;
                             }
                         });
                         summaryHTML += '</div>';
