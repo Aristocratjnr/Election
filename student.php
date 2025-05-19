@@ -1427,13 +1427,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- PWA Service Worker Registration -->
-    <script>
-        // PWA Install Prompt
+    <script>        // PWA Install Prompt
         let deferredPrompt;
         const installButton = document.createElement('button');
         installButton.style.display = 'none';
-        installButton.className = 'btn btn-primary position-fixed bottom-0 end-0 m-4 d-flex align-items-center';
-        installButton.innerHTML = '<i class="bi bi-download me-2"></i>Install SmartVote';
+        installButton.className = 'btn btn-sm btn-primary position-fixed bottom-0 end-0 m-3 d-flex align-items-center rounded-pill shadow-sm';
+        installButton.innerHTML = '<i class="bi bi-download me-1"></i><span class="d-none d-sm-inline">Install App</span>';
+        installButton.style.zIndex = '1030';
         document.body.appendChild(installButton);
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -2205,6 +2205,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             });
         });
     </script>    <!-- PWA Installation -->
-    <script src="assets/js/install-prompt.js"></script>
+    <script src="scripts/install-prompt.js"></script>
 </body>
 </html>

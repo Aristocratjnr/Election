@@ -44,10 +44,26 @@ async function handleInstallClick() {
         if (outcome === 'accepted') {
             showInstallSuccess();
         }
-    } catch (error) {
-        console.error('Install prompt error:', error);
-        // Show error message to user
-        const errorToast = showToast('Installation Error', 'Failed to install the app. Please try again.', 'error');
+    } catch (error) {        console.error('Install prompt error:', error);
+        // Show error message using a toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast position-fixed bottom-0 end-0 m-4';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.innerHTML = `
+            <div class="toast-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong class="me-auto">Installation Error</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                Failed to install the app. Please try again.
+            </div>
+        `;
+        document.body.appendChild(toast);
+        const errorToast = new bootstrap.Toast(toast);
+        errorToast.show();
     } finally {
         deferredPrompt = null;
     }
