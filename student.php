@@ -679,81 +679,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             height: 100%;
             position: relative;
             overflow: hidden;
+            touch-action: manipulation;
         }
 
-        /* Mobile-specific card styles */
+        /* Responsive grid improvements */
+        .row.g-4 {
+            margin: 0 -8px;
+        }
+
+        .col-md-6, .col-lg-4 {
+            padding: 0 8px;
+        }
+
+        /* Mobile optimizations */
         @media (max-width: 768px) {
-            .row.g-4 {
-                margin: 0 -8px;
-            }
-            
             .col-md-6, .col-lg-4 {
-                padding: 0 8px;
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 12px;
             }
-            
+
             .candidate-card {
+                display: flex;
+                align-items: center;
+                text-align: left;
                 padding: 1rem;
-                margin-bottom: 0.75rem;
-                touch-action: manipulation; /* Improve touch response */
+                gap: 1rem;
+                min-height: auto;
             }
 
             .candidate-photo {
                 width: 70px;
                 height: 70px;
-                margin: 0 auto 0.75rem;
-                border: 2px solid var(--border);
-            }
-
-            .candidate-name {
-                font-size: 1rem;
-                line-height: 1.3;
-                margin-bottom: 0.5rem;
-            }
-
-            .candidate-department {
-                font-size: 0.85rem;
-                opacity: 0.8;
-            }
-
-            .candidate-manifesto {
-                font-size: 0.9rem;
-                margin-top: 0.75rem;
-                line-height: 1.4;
-            }
-
-            .form-check-input {
-                transform: scale(1.2);
-                margin: 0.75rem;
-                transition: all 0.2s ease;
-            }
-        }
-
-        /* Extra small devices optimization */
-        @media (max-width: 576px) {
-            .col-md-6, .col-lg-4 {
-                flex: 0 0 100%;
-                max-width: 100%;
-                margin-bottom: 1rem;
-            }
-            
-            .candidate-card {
-                display: flex;
-                align-items: center;
-                text-align: left;
-                padding: 0.875rem;
-                gap: 1rem;
-            }
-
-            .candidate-photo {
-                width: 60px;
-                height: 60px;
                 margin: 0;
                 flex-shrink: 0;
+                border: 2px solid var(--border);
             }
 
             .candidate-info {
                 flex: 1;
-                min-width: 0; /* Prevent text overflow */
+                min-width: 0;
             }
 
             .candidate-name {
@@ -764,18 +729,622 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 text-overflow: ellipsis;
             }
 
-            .form-check-input {
-                position: absolute !important;
-                right: 0.75rem;
+            .candidate-department {
+                font-size: 0.85rem;
+                opacity: 0.8;
+            }
+
+            .candidate-manifesto {
+                font-size: 0.9rem;
+                line-height: 1.4;
+                margin-top: 0.5rem;
+            }
+
+            .selection-check {
+                position: absolute;
+                right: 1rem;
                 top: 50%;
-                transform: translateY(-50%) scale(1.2);
+                transform: translateY(-50%) scale(1);
+            }
+
+            .form-check-input {
+                transform: scale(1.1);
+                margin: 0.5rem;
             }
         }
 
-        /* Active states and transitions */
-        .candidate-card:active {
-            transform: scale(0.98);
-            transition: transform 0.2s ease;
+        /* Tablet optimization */
+        @media (min-width: 769px) and (max-width: 991px) {
+            .col-md-6, .col-lg-4 {
+                flex: 0 0 50%;
+                max-width: 50%;
+                margin-bottom: 16px;
+            }
+        }
+
+        /* Touch device improvements */
+        @media (hover: none) {
+            .candidate-card {
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .candidate-card:active {
+                transform: scale(0.98);
+                transition: transform 0.2s ease;
+            }
+        }
+
+        /* Dark mode optimizations */
+        [data-bs-theme="dark"] .candidate-card {
+            background-color: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        [data-bs-theme="dark"] .candidate-card.selected {
+            background-color: var(--primary-light) !important;
+            border-color: var(--primary) !important;
+        }
+        
+        /* Student details styles */
+        .student-details {
+            margin-bottom: 0.5rem;
+        }
+
+        .student-details h5,
+        .student-details p,
+        .student-details .text-muted,
+        .student-details .department-icon {
+            transition: color 0.3s ease;
+        }
+
+        [data-bs-theme="dark"] .student-details h5,
+        [data-bs-theme="dark"] .student-details p,
+        [data-bs-theme="dark"] .student-details .profile-icon,
+        [data-bs-theme="dark"] .student-details span {
+            color: var(--text) !important;
+        }
+
+        [data-bs-theme="dark"] .student-details .text-muted {
+            color: rgba(255, 255, 255, 0.75) !important;
+        }
+
+        /* Light mode text colors */
+        [data-bs-theme="light"] .student-details h5 {
+            color: #2B3445;
+        }
+
+        [data-bs-theme="light"] .student-details p,
+        [data-bs-theme="light"] .student-details span {
+            color: #4B5563;
+        }
+
+        [data-bs-theme="light"] .student-details .text-muted {
+            color: #6c757d !important;
+        }
+
+        .student-info {
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            padding: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .student-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 3px solid var(--surface);
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: border-color 0.3s ease;
+        }
+        
+        .student-details h5 {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        
+        .alert-success {
+            background-color: var(--success-light);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+        
+        .voted-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--success-light);
+            color: var(--success);
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+        
+        .voting-status {
+            display: inline-flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 6px 14px;
+            border-radius: 8px;
+        }
+        
+        .voting-active {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+        
+        .voting-inactive {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--text-muted);
+        }
+        
+        .pulse-badge {
+            animation: pulsate 2s infinite;
+        }
+        
+        .progress-wave {
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-wave::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: wave 2s linear infinite;
+        }
+        
+        .position-header {
+            position: relative;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .position-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        .candidate-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+        }
+
+        .candidate-main {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .candidate-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .candidate-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            color: var(--text);
+            transition: all 0.3s ease;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.2;
+        }
+
+        .candidate-position {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 0.3rem;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .vote-stats {
+            background: var(--surface-hover);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            box-shadow: inset 0 1px 3px var(--shadow-color);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .vote-stats i {
+            font-size: 0.9rem;
+        }
+
+        .vote-count, .vote-percentage {
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .candidate-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            margin-right: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .candidate-avatar-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            background: var(--surface-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.5rem;
+            border: 3px solid var(--surface);
+            box-shadow: 0 4px 10px var(--shadow-color);
+            margin-right: 0.8rem;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .progress {
+            height: 6px;
+            border-radius: 3px;
+            background-color: var(--surface-hover);
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px var(--shadow-color);
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+
+        .rank-badge {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--primary-light);
+            box-shadow: 0 2px 8px var(--shadow-color);
+            position: relative;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .rank-badge i {
+            font-size: 1rem;
+        }
+
+        @keyframes pulsate {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes wave {
+            0% {
+                transform: translateX(-50%);
+            }
+            100% {
+                transform: translateX(0%);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+
+        @keyframes select-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+            50% { box-shadow: 0 0 0 8px rgba(67, 97, 238, 0.3); }
+        }
+
+        @media (max-width: 768px) {
+            .avatar-container {
+                width: 85px;
+                height: 85px;
+            }
+            
+            .timer-countdown {
+                font-size: 1.2rem;
+            }
+            
+            .counter-circle {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .candidate-card {
+                margin-bottom: 1rem;
+            }
+            
+            .vote-submit-btn {
+                width: 100%;
+            }
+            
+            .col-md-6, .col-lg-4 {
+                flex: 1 1 calc(50% - 0.5rem); /* Adjust width to fit two cards per row on mobile */
+                max-width: calc(50% - 0.5rem);
+            }
+            
+            .candidate-avatar, .candidate-avatar-placeholder {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .candidate-name {
+                font-size: 0.9rem;
+            }
+            
+            .vote-stats {
+                padding: 0.3rem 0.6rem;
+            }
+            
+            .candidate-result-card {
+                min-height: 150px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .col-md-6, .col-lg-4 {
+                flex: 1 1 80%; 
+                max-width: 80%;
+            }
+        }
+
+        /* Welcome Tips Modal Styles */
+        .welcome-modal {
+            border-radius: 16px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-header {
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .welcome-header::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            clip-path: polygon(0% 0%, 100% 0%, 50% 50%);
+        }
+
+        .welcome-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .tip-card {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            transition: all 0.3s ease;
+            background-color: white;
+            display: flex;
+            align-items: flex-start;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .tip-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .tip-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
+
+        .tip-content {
+            flex: 1;
+        }
+
+        .tip-icon.blue {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .tip-icon.green {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .tip-icon.purple {
+            background-color: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .tip-icon.orange {
+            background-color: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+        }
+
+        .welcome-illustration {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .welcome-illustration:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-get-started {
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+            color: white;
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-get-started:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+            background: linear-gradient(135deg, #3a56d4 0%, #2e44c2 100%);
+            color: white;
+        }
+
+        @media (max-width: 767.98px) {
+            .welcome-body {
+                padding: 1.5rem 1rem;
+            }
+            
+            .tip-card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .tip-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+                margin-right: 0.75rem;
+            }
+            
+            .welcome-header::after {
+                bottom: -10px;
+                width: 20px;
+                height: 20px;
+            }
+            
+            .tip-card h5 {
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .tip-card p {
+                font-size: 0.875rem;
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .welcome-modal {
+                border-radius: 12px;
+            }
+            
+            .welcome-header {
+                padding: 1.25rem 1rem;
+            }
+            
+            .welcome-body {
+                padding: 1.25rem 0.75rem;
+            }
+            
+            .btn-get-started {
+                width: 100%;
+            }
+        }
+
+        .gradient-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .candidate-card.selected {
@@ -1491,6 +2060,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         box-shadow: 0 0 0 2px var(--primary), 0 12px 24px rgba(67, 97, 238, 0.15);
     }
 }
+
+        .student-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px var(--shadow-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
         
         .student-details {
             margin-bottom: 0.5rem;
@@ -2053,6 +2632,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transition: all 0.3s ease;
         }
 
+
         /* PWA Install Button Styles */
         .install-btn {
             padding: 10px 20px;
@@ -2210,6 +2790,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
+        }
+
         .status-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
@@ -2882,7 +3464,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             .col-md-6, .col-lg-4 {
                 flex: 1 1 100%;
                 max-width: 100%;
-                margin-bottom: 1rem;
+                margin-bottom: 12px;
             }
             
             .voting-card {
@@ -2911,7 +3493,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         
         @keyframes buttonPulse {
             0% { transform: scale(1); }
-            50% { transform: scale(0.95); }
+            50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
         
