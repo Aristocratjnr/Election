@@ -793,7 +793,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
     <div class="container py-5">
         <div class="settings-container">
             <div class="page-header d-flex justify-content-between align-items-center">
-                <h2 class="mb-0"><i class="bi bi-gear-fill me-2 text-primary"></i> Account Settings</h2>
+                <h2 class="mb-0"><i class="bi bi-gear-fill me-2 text-primary"></i> Settings</h2>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="student.php"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a></li>

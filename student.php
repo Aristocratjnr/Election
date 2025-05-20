@@ -547,10 +547,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        /* Light mode variables (default) */
-        :root {
+        /* Light mode variables (default) */        :root {
             --primary: #4361ee;
-            --primary-light: rgba(67, 97, 238, 0.08);
+            --primary-light: rgba(67, 97, 238, 0.15);  /* Increased opacity for better visibility */
             --primary-dark: #3a56d4;
             --success: #10b981;
             --success-light: rgba(16, 185, 129, 0.1);
@@ -575,7 +574,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         /* Dark mode variables */
         [data-bs-theme="dark"] {
             --primary: #6ea8fe;
-            --primary-light: rgba(110, 168, 254, 0.15);
+            --primary-light: rgba(67, 97, 238, 0.15); 
             --primary-dark: #3a56d4;
             --success: #75b798;
             --success-light: rgba(117, 183, 152, 0.15);
@@ -668,7 +667,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             transition: all 0.3s ease;
             border: none;
         }
-        
+        .voting-active {
+        background: var(--primary-light);
+        box-shadow: 0 2px 4px rgba(67, 97, 238, 0.1);
+        color: var(--primary);
+        border: 1px solid rgba(67, 97, 238, 0.2);
+        }
+
+        .candidate-position {
+            background: var(--primary-light);
+            box-shadow: 0 2px 4px rgba(67, 97, 238, 0.1);
+        }
         /* Core candidate card styles */
         .candidate-card {
             background-color: var(--surface);
