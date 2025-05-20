@@ -22,11 +22,10 @@ $currentElection = null;
 $error = null;
 
 try {
-    // Fetch current or upcoming election (within 7 days)
+    // Fetch only current ongoing election
     $stmt = $conn->prepare("
         SELECT * FROM elections 
-        WHERE status = 'Ongoing' 
-        OR (status = 'Scheduled' AND startDate <= DATE_ADD(CURDATE(), INTERVAL 7 DAY))
+        WHERE status = 'Ongoing'
         ORDER BY startDate ASC
         LIMIT 1
     ");
@@ -50,8 +49,7 @@ try {
     $error = "System temporarily unavailable. Please try again later.";
 }
 
-// Override election status for testing
-$currentElection['status'] = 'Ongoing';
+// Remove the override of election status - we want the actual status
 
 // Get student details
 $student = [];
