@@ -423,3 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 </div>
+
+<!-- PWA Manifest and Theme Color -->
+<link rel="manifest" href="/Election/manifest.json">
+<meta name="theme-color" content="#4e73df">

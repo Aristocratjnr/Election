@@ -1,10 +1,12 @@
 const CACHE_NAME = 'smartvote-v1';
+const OFFLINE_URL = '/Election/offline.html';
 const ASSETS_TO_CACHE = [
   '/Election/',
   '/Election/index.php',
   '/Election/login.php',
   '/Election/student.php',
   '/Election/dashboard.php',
+  '/Election/offline.html', // offline fallback
   '/Election/assets/css/student.css',
   '/Election/assets/css/dashboard.css',
   '/Election/assets/js/main.js',
@@ -19,9 +21,8 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(ASSETS_TO_CACHE);
-      })
+      .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -40,27 +41,27 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Handle navigation requests (HTML pages)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => response)
+        .catch(() => caches.match(OFFLINE_URL))
+    );
+    return;
+  }
+  // Handle other requests
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch new version
-        return response || fetch(event.request)
-          .then((response) => {
-            // Check if response is valid
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clone the response
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          });
-      })
+      .then((response) => response || fetch(event.request)
+        .then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+          return networkResponse;
+        })
+      )
   );
 });
