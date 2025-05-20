@@ -95,9 +95,9 @@
         }
         
         html[data-bs-theme="dark"] .bubble-background .time-unit {
-            background: rgba(50, 70, 120, 0.5);
+            background: rgba(58, 59, 61, 0.5);
             box-shadow: 
-                inset 0 1px 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 1px rgba(35, 34, 34, 0.1),
                 0 4px 15px rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(70, 90, 140, 0.3);
         }
@@ -1497,7 +1497,7 @@
     right: -20px;
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(223, 181, 181, 0.5);
     border-radius: 50%;
     opacity: 0.2;
     animation: bubble-move 8s infinite ease-in-out;
@@ -1510,7 +1510,7 @@
     left: -15px;
     width: 30px;
     height: 30px;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(147, 123, 123, 0.5);
     border-radius: 50%;
     opacity: 0.15;
     animation: bubble-move 7s infinite ease-in-out reverse;
@@ -1564,8 +1564,8 @@
 
 /* Dark mode adjustments for countdown */
 [data-bs-theme="dark"] .time-unit {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(26, 26, 26, 0.1);
+    border-color: rgba(30, 30, 30, 0.15);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -1574,11 +1574,11 @@
 }
 
 [data-bs-theme="dark"] .time-unit small {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(45, 43, 43, 0.6);
 }
 
 [data-bs-theme="dark"] .time-separator {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(52, 50, 50, 0.5);
 }
 
 /* Bubble pop animation styles */
