@@ -3136,10 +3136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                     $voteCountStmt->close();
                                     ?>
                                     <div class="mt-4">
-                                        <div class="results-section-header">
-                                            <div class="results-icon">
-                                                <i class="bi bi-trophy"></i>
-                                            </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6>Top Candidates</h6>
                                         </div>
                                         <div class="row g-3">
