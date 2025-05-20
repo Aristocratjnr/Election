@@ -1001,7 +1001,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             margin-bottom: 0.3rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.2rem;
         }
 
         .vote-stats i {
@@ -3393,7 +3393,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         /* Ensure text visibility in light theme */
         [data-bs-theme="light"] .voting-status {
-            color: #2B3445;
+            color: #4B0082;
         }
 
         /* Make the student details slightly smaller */
@@ -3792,7 +3792,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                                         </div>
                                                                         <div class="vote-stats">
                                                                             <i class="bi bi-bar-chart-fill text-primary"></i>
-                                                                            <span class="vote-percentage"><?= $votePercentage ?>% of votes</span>
+                                                                            <span class="vote-percentage"><?= $votePercentage ?>% votes</span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
