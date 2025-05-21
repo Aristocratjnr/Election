@@ -102,9 +102,8 @@ function formatBlockData($data) {
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-
         :root {
             --primary: #3498db;
             --primary-dark: #2980b9;
@@ -121,18 +120,65 @@ function formatBlockData($data) {
             --blockchain-purple: #6c5ce7;
             --blockchain-gradient: linear-gradient(135deg, #6c5ce7, #0984e3);
             --blockchain-gradient-2: linear-gradient(135deg, #00b894, #0984e3);
-        }
-          body {
-            background-color: #f7f9fc;
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            
+            /* New blockchain explorer specific colors */
+            --explorer-bg: #f8fafd;
+            --explorer-card-bg: #ffffff;
+            --explorer-border: #e9ecef;
+            --explorer-text: #212529;
+            --explorer-text-muted: #6c757d;
+            --explorer-hash-bg: #f8fafd;
+            --explorer-block-heading: #495057;
+            --explorer-accent: #3b82f6;
         }
         
-        .header {
-            background: var(--blockchain-gradient);
+        body {
+            background-color: var(--explorer-bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        /* Typography adjustments */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        p {
+            line-height: 1.6;
+        }
+
+        .fw-bold {
+            letter-spacing: -0.02em;
+        }
+
+        .form-label {
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        .btn {
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+          .header {
+            background: var(--primary);
             color: white;
-            padding: 1.5rem 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 1rem 0;
             margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.75rem 0;
+            }
+            .header h1 {
+                font-size: 1.25rem;
+            }
+            .header p {
+                font-size: 0.875rem;
+            }
         }
         
         .block-card {
@@ -153,15 +199,17 @@ function formatBlockData($data) {
         .block-card.vote {
             border: none;
             background: linear-gradient(135deg, #fff 85%, var(--blockchain-green) 85%);
-        }
-          .block-hash {
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
+        }          .block-hash {
+            font-family: 'Inter', monospace;
             font-size: 0.9rem;
             background-color: #f8f9fd;
             padding: 0.75rem;
             border-radius: 0.5rem;
             word-break: break-all;
             border: 1px solid #e9ecef;
+            letter-spacing: 0;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
         }
         .block-hash.genesis {
             background-color: var(--blockchain-purple);
@@ -249,19 +297,21 @@ function formatBlockData($data) {
             font-size: 2rem;
             color: white;
         }
-        
-        .stats-value {
-            font-size: 2rem;
-            font-weight: 400;
+          .stats-value {
+            font-size: 2.5rem;
+            font-weight: 700;
             margin-bottom: 0.25rem;
             text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            letter-spacing: -0.03em;
+            line-height: 1;
         }
         
         .stats-label {
-            font-size: 1rem;
+            font-size: 0.875rem;
             opacity: 0.9;
-            font-weight: 400;
-            letter-spacing: 0.5px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
         /* Add custom card styles */
@@ -304,32 +354,147 @@ function formatBlockData($data) {
             font-weight: 600;
         }
         
-        .bg-purple {
-            background-color: var(--blockchain-purple) !important;
+        /* New blockchain explorer styles */
+        .blockchain-explorer {
+            background: var(--explorer-bg);
+            border-radius: 0.5rem;
+        }
+        
+        .blockchain-timeline {
+            position: relative;
+            padding: 1rem 0;
+        }
+        
+        .blockchain-timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, var(--explorer-accent) 10%, var(--explorer-accent) 90%, transparent);
+            transform: translateX(-50%);
+            z-index: 0;
+            display: none; /* Hidden for horizontal layout */
+        }
+        
+        .blockchain-block-card {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .blockchain-block-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .block-card {
+            border-radius: 0.75rem;
+            border: 1px solid var(--explorer-border) !important;
+            background: var(--explorer-card-bg) !important;
+            overflow: hidden;
+        }
+        
+        .block-badge {
+            background: var(--explorer-hash-bg);
+            border: 1px solid var(--explorer-border);
+            color: var(--explorer-text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .block-hash {
+            font-family: 'JetBrains Mono', monospace !important;
+            word-break: break-all;
+            background: var(--explorer-hash-bg) !important;
+            border: 1px solid var(--explorer-border) !important;
+            border-radius: 0.375rem;
+            padding: 0.5rem !important;
+            color: var(--explorer-text) !important;
+            font-size: 0.75rem !important;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .block-hash:hover {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        
+        .block-icon {
+            background: var(--explorer-hash-bg);
+            color: var(--explorer-accent);
+        }
+        
+        .block-header {
+            border-bottom: 1px solid var(--explorer-border);
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .blockchain-arrow .bi {
+            color: var(--explorer-accent);
+            filter: drop-shadow(0 1px 3px rgba(59, 130, 246, 0.3));
+        }
+        
+        .block-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .block-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            color: var(--explorer-text-muted);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .block-data-table th {
+            font-weight: 500;
+            color: var(--explorer-text-muted);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-top: none;
+        }
+        
+        .block-data-table td {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .explorer-heading {
+            color: var(--explorer-block-heading);
+            font-weight: 600;
+        }
+        
+        .explorer-tag {
+            font-family: 'JetBrains Mono', monospace;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
     </style>
 </head>
 
 <body>    <div class="header">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <div class="me-3">
-                        <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-link-45deg fs-2"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="h3 mb-0 fw-bold">Blockchain Vote Verification</h1>
-                        <p class="mb-0 text-white text-opacity-75">Verify and validate votes using blockchain technology</p>
-                    </div>
+            <div class="row align-items-center">
+                <div class="col-md-8 mb-2 mb-md-0">
+                    <h1 class="mb-1">Blockchain Vote Verification</h1>
+                    <p class="mb-0">Verify and validate votes using blockchain technology</p>
                 </div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="dashboard.php" class="text-white text-decoration-none">Home</a></li>
-                        <li class="breadcrumb-item text-white active" aria-current="page">Blockchain Verification</li>
-                    </ol>
-                </nav>
+                <div class="col-md-4">
+                    <nav aria-label="breadcrumb" class="d-flex justify-content-md-end">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="dashboard.php" class="text-white text-decoration-none">Home</a></li>
+                            <li class="breadcrumb-item text-white active" aria-current="page">Blockchain Verification</li>
+                        </ol>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
@@ -401,11 +566,11 @@ function formatBlockData($data) {
         </div>
         
         <?php if ($electionID && isset($electionDetails)): ?>            <!-- Blockchain Stats Cards -->
-            <div class="row mb-4">
+            <div class="row mb-4" data-aos="fade-up">
                 <div class="col-12">
                     <div class="d-flex align-items-center mb-3">
-                        <div style="width: 40px; height: 40px; background: var(--blockchain-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; margin-right: 15px;">
-                            <i class="bi bi-bar-chart-fill"></i>
+                        <div class="card-icon bg-primary-gradient me-3">
+                            <i class="bi bi-bar-chart-fill text-white"></i>
                         </div>
                         <h5 class="mb-0 fw-bold">
                             Blockchain Statistics for: <span class="text-primary"><?php echo htmlspecialchars($electionDetails['name']); ?></span>
@@ -683,132 +848,207 @@ function formatBlockData($data) {
                 </div>
             <?php endif; ?>
             
-            <?php endif; ?>
-             <!-- Blockchain View -->
+            <?php endif; ?>            <!-- Blockchain View -->
             <?php if ($action === 'view' && !empty($blockchainData)): ?>
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header bg-primary text-white">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-3">
-                                            <i class="bi bi-link-45deg fs-3"></i>
-                                        </div>
-                                        <div>
-                                            <h5 class="mb-0">Blockchain Data</h5>
-                                            <small class="opacity-75">Full blockchain record for this election</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-white text-dark">
-                                        <i class="bi bi-layers me-1"></i> <?php echo count($blockchainData); ?> Blocks
-                                    </span>
-                                </div>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-0 blockchain-explorer">
+                <div class="card-header bg-white py-3 px-4 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 rounded-circle me-3 block-icon">
+                                <i class="bi bi-box-seam-fill fs-4"></i>
                             </div>
-                            <div class="card-body">
-                                <div class="alert alert-light mb-4">
-                                    <div class="d-flex">
-                                        <i class="bi bi-info-circle-fill text-primary fs-4 me-3"></i>
+                            <div>
+                                <h4 class="mb-0 fw-bold explorer-heading">Blockchain Explorer</h4>
+                                <p class="text-muted mb-0 small">Election ID: <?php echo $electionID; ?> - <?php echo htmlspecialchars($electionDetails['name']); ?></p>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="badge bg-light text-dark border ms-3"><i class="bi bi-layers me-1"></i> <?php echo count($blockchainData); ?> Total Blocks</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-light border mb-4">
+                        <div class="d-flex">
+                            <i class="bi bi-info-circle text-primary me-3 fs-4"></i>
+                            <div>
+                                <h6 class="mb-1 fw-bold">About This Blockchain</h6>
+                                <p class="mb-0">This is a visual representation of the complete election blockchain. Each block contains a unique hash, data, and a link to the previous block forming an immutable chain of votes.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="blockchain-timeline d-flex flex-nowrap overflow-auto py-3" style="gap: 1.5rem;">
+                    <?php foreach ($blockchainData as $index => $block): ?>                        <?php 
+                        $blockData = formatBlockData($block['vote_data']);
+                        $isGenesis = isset($blockData['type']) && $blockData['type'] === 'Genesis Block';
+                        $blockAge = time() - strtotime($block['timestamp']);
+                        $timeAgo = ($blockAge < 60) ? 'just now' : 
+                                  (($blockAge < 3600) ? floor($blockAge/60) . ' min ago' : 
+                                  (($blockAge < 86400) ? floor($blockAge/3600) . ' hr ago' : 
+                                  floor($blockAge/86400) . ' days ago'));
+                        ?>
+                        <div class="blockchain-block-card position-relative px-2" style="min-width: 350px; max-width: 380px;">
+                            <div class="block-card mb-0 border shadow-sm">
+                                <!-- Block Header -->
+                                <div class="block-header p-3 bg-light bg-opacity-50">
+                                    <div class="d-flex align-items-center justify-content-between">
                                         <div>
-                                            <p class="mb-0">Each block contains encrypted vote data and is cryptographically linked to the previous block, ensuring data integrity.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <h5 class="fw-bold mb-3 text-primary">
-                                    <i class="bi bi-diagram-3 me-2"></i> Blockchain Structure
-                                </h5>
-                                
-                                <?php foreach ($blockchainData as $index => $block): ?>
-                                    <?php 
-                                    $blockData = formatBlockData($block['vote_data']);
-                                    $isGenesis = isset($blockData['type']) && $blockData['type'] === 'Genesis Block';
-                                    ?>
-                                    
-                                    <div class="block-card <?php echo $isGenesis ? 'genesis' : 'vote'; ?> mb-3">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <div class="d-flex align-items-center">
-                                                    <?php if ($isGenesis): ?>
-                                                        <div class="me-3 p-2 rounded bg-purple bg-opacity-10 text-purple">
-                                                            <i class="bi bi-stars"></i>
-                                                        </div>
-                                                        <h5 class="mb-0 fw-bold">Genesis Block</h5>
-                                                    <?php else: ?>
-                                                        <div class="me-3 p-2 rounded bg-success bg-opacity-10 text-success">
-                                                            <i class="bi bi-check2-circle"></i>
-                                                        </div>
-                                                        <h5 class="mb-0 fw-bold">Vote Block</h5>
-                                                    <?php endif; ?>
-                                                </div>
-                                                <span class="badge bg-dark bg-opacity-10">Block #<?php echo $block['block_id']; ?></span>
-                                            </div>
-                                            
-                                            <div class="mb-4">
-                                                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-key me-1"></i> Cryptographic Data</h6>
-                                                <div class="row g-2">
-                                                    <div class="col-md-6">
-                                                        <div class="p-2 rounded bg-light">
-                                                            <small class="text-muted d-block">Block Hash:</small>
-                                                            <div class="block-hash"><?php echo $block['block_hash']; ?></div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="col-md-6">
-                                                        <div class="p-2 rounded bg-light">
-                                                            <small class="text-muted d-block">Previous Hash:</small>
-                                                            <div class="block-hash"><?php echo $block['previous_hash'] ? $block['previous_hash'] : '<span class="badge bg-purple bg-opacity-10 text-purple">NULL (Genesis)</span>'; ?></div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="col-md-3 col-6">
-                                                        <div class="p-2 rounded bg-light">
-                                                            <small class="text-muted d-block">Nonce:</small>
-                                                            <div class="fw-bold"><?php echo $block['nonce']; ?></div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class="col-md-3 col-6">
-                                                        <div class="p-2 rounded bg-light">
-                                                            <small class="text-muted d-block">Timestamp:</small>
-                                                            <div>
-                                                                <div class="fw-bold"><?php echo date('H:i:s', strtotime($block['timestamp'])); ?></div>
-                                                                <small><?php echo date('M j, Y', strtotime($block['timestamp'])); ?></small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div>
-                                                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-database me-1"></i> Block Data</h6>
-                                                <?php if (is_array($blockData)): ?>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm">
-                                                            <tbody>
-                                                                <?php foreach ($blockData as $key => $value): ?>
-                                                                    <tr>
-                                                                        <th style="width: 150px;" class="text-muted"><?php echo ucfirst($key); ?></th>
-                                                                        <td><?php echo $value; ?></td>
-                                                                    </tr>
-                                                                <?php endforeach; ?>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi <?php echo $isGenesis ? 'bi-diamond-fill' : 'bi-box-fill'; ?> me-2 text-<?php echo $isGenesis ? 'warning' : 'primary'; ?>"></i>
+                                                <h6 class="mb-0 fw-bold text-<?php echo $isGenesis ? 'warning' : 'dark'; ?>">
+                                                    <?php echo $isGenesis ? 'Genesis Block' : 'Block'; ?> #<?php echo $block['block_id']; ?>
+                                                </h6>
+                                                <?php if ($isGenesis): ?>
+                                                    <span class="badge bg-warning text-dark ms-2 explorer-tag">Genesis</span>
                                                 <?php endif; ?>
                                             </div>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-clock me-1"></i> <?php echo $timeAgo; ?>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="small fw-bold text-secondary"><?php echo date('M j, Y', strtotime($block['timestamp'])); ?></div>
+                                            <div class="text-muted small"><?php echo date('H:i:s', strtotime($block['timestamp'])); ?> UTC</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Block Content -->
+                                <div class="p-3">
+                                    <!-- Hash -->
+                                    <div class="block-section">
+                                        <div class="block-section-title d-flex justify-content-between">
+                                            <span><i class="bi bi-key-fill me-1"></i> Block Hash</span>
+                                        </div>
+                                        <div class="block-hash" title="<?php echo $block['block_hash']; ?>">
+                                            <?php echo $block['block_hash']; ?>
                                         </div>
                                     </div>
                                     
-                                    <?php if ($index < count($blockchainData) - 1): ?>
-                                        <div class="block-link"></div>
-                                    <?php endif; ?>
-                                <?php endforeach; ?>
+                                    <!-- Previous Hash -->
+                                    <div class="block-section">
+                                        <div class="block-section-title">
+                                            <i class="bi bi-link-45deg me-1"></i> Previous Block Hash
+                                        </div>
+                                        <?php if ($block['previous_hash']): ?>
+                                            <div class="block-hash" title="<?php echo $block['previous_hash']; ?>">
+                                                <?php echo $block['previous_hash']; ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="text-center py-1">
+                                                <span class="badge bg-light text-secondary border explorer-tag">NULL (Genesis)</span>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <!-- Technical Details -->
+                                    <div class="block-section">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <div class="block-section-title">
+                                                    <i class="bi bi-dice-5 me-1"></i> Nonce
+                                                </div>
+                                                <div class="block-badge px-2 py-1 text-center rounded">
+                                                    <?php echo $block['nonce']; ?>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="block-section-title">
+                                                    <i class="bi bi-clock-history me-1"></i> Timestamp
+                                                </div>
+                                                <div class="block-badge px-2 py-1 text-center rounded">
+                                                    <?php echo strtotime($block['timestamp']); ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Transaction Data -->
+                                    <div class="block-section">
+                                        <div class="block-section-title">
+                                            <i class="bi bi-database-fill me-1"></i> Data
+                                        </div>
+                                        <?php if (is_array($blockData)): ?>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm block-data-table mb-0 border">
+                                                    <tbody>
+                                                        <?php foreach ($blockData as $key => $value): ?>
+                                                            <tr>
+                                                                <th><?php echo ucfirst($key); ?></th>
+                                                                <td class="text-break"><?php echo $value; ?></td>
+                                                            </tr>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <?php if ($index < count($blockchainData) - 1): ?>
+                                <div class="blockchain-arrow d-flex flex-column align-items-center" style="position: absolute; right: -25px; top: 50%; transform: translateY(-50%); z-index: 2;">
+                                    <i class="bi bi-arrow-right fs-3 text-primary"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>                    <?php endforeach; ?>
+                    </div>
+                    
+                    <!-- Blockchain Explorer Legend -->
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 p-1 rounded bg-light">
+                                        <i class="bi bi-diamond-fill text-warning"></i>
+                                    </div>
+                                    <div class="small">
+                                        <strong>Genesis Block</strong> - The first block in the chain
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 p-1 rounded bg-light">
+                                        <i class="bi bi-box-fill text-primary"></i>
+                                    </div>
+                                    <div class="small">
+                                        <strong>Vote Block</strong> - Contains vote transaction data
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 p-1 rounded bg-light">
+                                        <i class="bi bi-arrow-right text-primary"></i>
+                                    </div>
+                                    <div class="small">
+                                        <strong>Chain Link</strong> - Shows block connections
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            <?php endif; ?>
+                
+                <div class="card-footer bg-light py-3 px-4 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i> Scroll horizontally to view all blocks
+                        </div>
+                        <div>
+                            <a href="?election=<?php echo $electionID; ?>&action=validate" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-shield-check me-1"></i> Validate Chain
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
         
         
         <?php if (!empty($message)): ?>

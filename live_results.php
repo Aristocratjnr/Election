@@ -704,43 +704,40 @@ try {
                             <?php if (isset($_GET['vote_success']) || isset($_SESSION['vote_success'])): ?>
                             <?php 
                             // Get the vote ID for verification
-                            $voteID = $_GET['vote_id'] ?? $_SESSION['last_vote_id'] ?? 0;
+                            $voteID = isset($_SESSION['last_vote_id']) ? $_SESSION['last_vote_id'] : (isset($_GET['vote_id']) ? $_GET['vote_id'] : null);
                             ?>
                             <div class="alert alert-success alert-dismissible fade show">
-                                <div class="d-flex">
-                                    <div class="me-3">
-                                        <i class="bi bi-check-circle-fill fs-1"></i>
-                                    </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill fs-4 me-2"></i>
                                     <div>
-                                        <h5><strong>Success!</strong> Your vote has been securely recorded.</h5>
-                                        <p>Thank you for participating in this election! Your vote has been secured with blockchain technology.</p>
-                                        
-                                        <?php if ($voteID > 0): ?>
-                                        <div class="mt-2">
-                                            <a href="blockchain_verify.php?election=<?= htmlspecialchars($currentElection['electionID']) ?>&action=verify&vote=<?= htmlspecialchars($voteID) ?>" 
-                                               class="btn btn-sm btn-outline-success">
-                                                <i class="bi bi-shield-check me-1"></i> Verify My Vote
+                                        <h5 class="mb-2">Vote Successfully Recorded!</h5>
+                                        <?php if ($voteID): ?>
+                                            <div class="mb-2">Your Vote ID is: <strong><?php echo htmlspecialchars($voteID); ?></strong></div>
+                                            <small class="text-muted d-block">Please save this ID - you can use it to verify your vote in the blockchain.</small>
+                                            <a href="blockchain_verify.php?election=<?php echo htmlspecialchars($electionID); ?>&action=verify&vote=<?php echo htmlspecialchars($voteID); ?>" 
+                                               class="btn btn-sm btn-outline-success mt-2">
+                                                <i class="bi bi-shield-check"></i> Verify My Vote
                                             </a>
-                                            <a href="blockchain_learn.php" class="btn btn-sm btn-link text-success">
-                                                <i class="bi bi-info-circle me-1"></i> How does blockchain voting work?
-                                            </a>
-                                        </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="removeVoteSuccess()"></button>
                             </div>
                             <script>
-                            function removeVoteSuccess() {                                // Remove vote_success and vote_id parameters from URL
+                            function removeVoteSuccess() {
+                                // Remove vote_success parameter from URL
                                 if (window.history && window.history.replaceState) {
                                     var url = window.location.href;
                                     url = url.replace(/[&?]vote_success=1/, '');
-                                    url = url.replace(/[&?]vote_id=\d+/, '');
                                     window.history.replaceState({}, document.title, url);
                                 }
-                                <?php unset($_SESSION['vote_success']); ?>
+                                <?php 
+                                // Clear the session variables
+                                unset($_SESSION['vote_success']); 
+                                unset($_SESSION['last_vote_id']);
+                                ?>
                             }
-                            // Auto-hide after 10 seconds
+                            // Auto-hide after 30 seconds to give user time to save the ID
                             setTimeout(function() {
                                 const alertElement = document.querySelector('.alert-success');
                                 if (alertElement) {
@@ -748,7 +745,7 @@ try {
                                     bsAlert.close();
                                     removeVoteSuccess();
                                 }
-                            }, 10000);
+                            }, 30000);
                             </script>
                             <?php endif; ?>
                             

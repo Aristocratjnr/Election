@@ -37,11 +37,16 @@ function getExampleBlock() {
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
-    <style>
-        .blockchain-diagram {
+    <style>        .blockchain-diagram {
             background-color: #f8f9fa;
             border-radius: 8px;
-            padding: 2rem;
+            padding: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .blockchain-diagram {
+                padding: 2rem;
+            }
         }
         
         .block {
@@ -50,26 +55,55 @@ function getExampleBlock() {
             border-radius: 8px;
             padding: 1rem;
             position: relative;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        @media (max-width: 767px) {
+            .block {
+                margin-bottom: 3rem;
+            }
+            .block:last-child {
+                margin-bottom: 1.5rem;
+            }
         }
         
         .block-arrow {
             position: absolute;
-            bottom: -1.5rem;
+            bottom: -2.5rem;
             left: 50%;
             transform: translateX(-50%);
             color: #6c757d;
             font-size: 1.5rem;
         }
+
+        @media (max-width: 767px) {
+            .block-arrow {
+                transform: translateX(-50%) rotate(0deg);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .block-arrow {
+                right: -1.5rem;
+                left: auto;
+                top: 50%;
+                bottom: auto;
+                transform: translateY(-50%) rotate(-90deg);
+            }
+        }
         
         .hash {
-            font-family: monospace;
+            font-family: 'Inter', monospace;
             background-color: #e9ecef;
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
             font-size: 0.85rem;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        
         .tamper-alert {
             background-color: #f8d7da;
             border: 1px solid #f5c2c7;
@@ -95,7 +129,7 @@ function getExampleBlock() {
     
     <main id="main" class="main">
         <div class="pagetitle">
-            <h1>Understanding Blockchain Voting Security</h1>
+            <h1>Understanding Blockchain Voting</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="<?php echo $isAdmin ? 'dashboard.php' : 'student.php'; ?>">Home</a></li>

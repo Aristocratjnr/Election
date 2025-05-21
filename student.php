@@ -492,6 +492,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
 
+            // Store last vote ID in session for verification purposes
+            $_SESSION['last_vote_id'] = $voteID;
+            $_SESSION['vote_success'] = true;
+
             // Send notification
             $notification = "Thank you for voting in the " . htmlspecialchars($currentElection['name']) . " election";
             $stmt = $conn->prepare("
@@ -1384,7 +1388,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 if (studentID > 0) {
                     fetch('api/notifications_count.php?user_id=' + studentID + '&user_type=' + userType + '&last_check=' + new Date().toISOString())
                         .then(response => response.json())
-                        .then(data => {
+                        .then((data) => {
                             if (data.count > 0) {
                                 // Update notification count in header if badge exists
                                 const $badge = document.getElementById('notification-badge');
