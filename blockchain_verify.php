@@ -104,7 +104,7 @@ function formatBlockData($data) {
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
+          :root {
             --primary: #3498db;
             --primary-dark: #2980b9;
             --secondary: #6c757d;
@@ -120,20 +120,8 @@ function formatBlockData($data) {
             --blockchain-purple: #6c5ce7;
             --blockchain-gradient: linear-gradient(135deg, #6c5ce7, #0984e3);
             --blockchain-gradient-2: linear-gradient(135deg, #00b894, #0984e3);
-            
-            /* New blockchain explorer specific colors */
-            --explorer-bg: #f8fafd;
-            --explorer-card-bg: #ffffff;
-            --explorer-border: #e9ecef;
-            --explorer-text: #212529;
-            --explorer-text-muted: #6c757d;
-            --explorer-hash-bg: #f8fafd;
-            --explorer-block-heading: #495057;
-            --explorer-accent: #3b82f6;
-        }
-        
-        body {
-            background-color: var(--explorer-bg);
+        }          body {
+            background-color: #f7f9fc;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             letter-spacing: -0.01em;
         }
@@ -182,23 +170,24 @@ function formatBlockData($data) {
         }
         
         .block-card {
-            border: none;
+            position: relative;
             border-radius: 1rem;
-            overflow: hidden;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            background: var(--card-bg);
             transition: all 0.3s ease;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
-            margin-bottom: 1.25rem;
-            background-color: white;
         }
-        
+
+
         .block-card.genesis {
-            border: none;
-            background: linear-gradient(135deg, #fff 85%, var(--blockchain-purple) 85%);
+            background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
+            color: white;
         }
-        
+
         .block-card.vote {
-            border: none;
-            background: linear-gradient(135deg, #fff 85%, var(--blockchain-green) 85%);
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+            color: white;
         }          .block-hash {
             font-family: 'Inter', monospace;
             font-size: 0.9rem;
@@ -217,12 +206,23 @@ function formatBlockData($data) {
         }
         .block-link {
             position: relative;
-            height: 50px;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: center;
+            height: 30px;
+            margin: -15px 0;
         }
-          .block-link::before {
+
+        .block-link::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(67,97,238,0.5), rgba(67,97,238,0.3));
+            animation: pulse-line 2s infinite;
+        }
+        
+        .block-link::before {
             content: '';
             position: absolute;
             top: 0;
@@ -258,71 +258,90 @@ function formatBlockData($data) {
             letter-spacing: 1px;
         }
         
-        .blockchain-stats {
-            background: var(--blockchain-gradient);
+        .bg-primary-gradient {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark, #0a58ca) 100%);
             color: white;
-            border-radius: 1.5rem;
-            padding: 1.75rem;
-            box-shadow: 0 12px 24px rgba(108, 92, 231, 0.15);
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
         }
-        
-        .blockchain-stats::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 80%;
-            height: 80%;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            z-index: -1;
+
+        .bg-success-gradient {
+            background: linear-gradient(135deg, var(--success-color) 0%, var(--success-dark, #146c43) 100%);
+            color: white;
         }
-          .stats-icon {
-            width: 10px;
-            height: 10px;
-            background-color: rgba(255,255,255,0.15);
-            border-radius: 20px;
+
+        .bg-info-gradient {
+            background: linear-gradient(135deg, var(--info-color) 0%, var(--info-dark, #0891b2) 100%);
+            color: white;
+        }
+
+        .bg-warning-gradient {
+            background: linear-gradient(135deg, var(--warning-color) 0%, var(--warning-dark, #d97706) 100%);
+            color: white;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
         }
-        .stats-icon i {
-            font-size: 2rem;
+
+        .card-icon i {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .blockchain-stats {
+            padding: 1.5rem;
+            border-radius: 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
             color: white;
         }
-          .stats-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            letter-spacing: -0.03em;
-            line-height: 1;
+
+        .blockchain-stats .stats-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background: rgba(255,255,255,0.2);
         }
-        
-        .stats-label {
+
+        .blockchain-stats .stats-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .blockchain-stats .stats-label {
             font-size: 0.875rem;
-            opacity: 0.9;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            opacity: 0.8;
         }
-        
-        /* Add custom card styles */
+
         .custom-card {
             border: none;
             border-radius: 1rem;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            overflow: hidden;
+            background-color: var(--card-bg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
         }
-        
-    
+
         
         /* Add button styles */
         .btn {
@@ -484,8 +503,8 @@ function formatBlockData($data) {
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8 mb-2 mb-md-0">
-                    <h1 class="mb-1">Blockchain Vote Verification</h1>
-                    <p class="mb-0">Verify and validate votes using blockchain technology</p>
+                    <h1 class="display-6 font-weight-bold mb-3 text-primary">Blockchain Vote Verification</h1>
+                    <p class="lead text-muted mb-0">Verify and validate votes using blockchain technology</p>
                 </div>
                 <div class="col-md-4">
                     <nav aria-label="breadcrumb" class="d-flex justify-content-md-end">
@@ -501,15 +520,14 @@ function formatBlockData($data) {
       <div class="container pb-5">
         <div class="row mb-4">
             <div class="col-md-12">
-                <div class="custom-card">
+                <div class="custom-card card">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-4">
-                            <div style="width: 48px; height: 48px; background: var(--blockchain-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: white;">
+                            <div style="width: 48px; height: 48px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: white;">
                                 <i class="bi bi-shield-check fs-4"></i>
                             </div>
-                            <h5 class="card-title mb-0 fw-bold">Vote Verification System</h5>
+                            <h5 class="mb-0">Vote Verification System</h5>
                         </div>
-                        
                         <div class="p-3 rounded-4 mb-4" style="background: rgba(255,255,255,0.1);">
                             <p class="mb-0">
                                 This system allows you to verify the integrity of votes using blockchain technology. 
@@ -522,7 +540,7 @@ function formatBlockData($data) {
                           <form method="GET" class="row g-3">
                             <div class="col-md-6">
                                 <div class="p-4 rounded-4 h-100" >
-                                    <label class="form-label fw-bold text-primary mb-3">
+                                    <label class="form-label fw-bold  mb-3">
                                         <div class="d-flex align-items-center">
                                             <i class="bi bi-calendar-event me-2" style="font-size: 1.2rem;"></i>
                                             <span>Select Election</span>
@@ -542,7 +560,7 @@ function formatBlockData($data) {
                             
                             <div class="col-md-6">
                                 <div class="p-4 rounded-4 h-100" >
-                                    <label class="form-label fw-bold text-primary mb-3">
+                                    <label class="form-label fw-bold mb-3">
                                         <div class="d-flex align-items-center">
                                             <i class="bi bi-search me-2" style="font-size: 1.2rem;"></i>
                                             <span>Verify a Vote</span>
@@ -550,7 +568,7 @@ function formatBlockData($data) {
                                     </label>
                                     <div class="input-group">
                                         <input type="hidden" name="action" value="verify">
-                                        <input type="text" name="vote" class="form-control form-control-md shadow-sm border-0" 
+                                        <input type="text" name="vote" class="" 
                                             style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;" 
                                             placeholder="Enter Vote ID" aria-label="Vote ID" value="<?php echo $voteID ?? ''; ?>">
                                         <button class="btn btn-primary" type="submit">
@@ -569,8 +587,8 @@ function formatBlockData($data) {
             <div class="row mb-4" data-aos="fade-up">
                 <div class="col-12">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="card-icon bg-primary-gradient me-3">
-                            <i class="bi bi-bar-chart-fill text-white"></i>
+                        <div class="card-icon me-3">
+                            <i class="bi bi-bar-chart-fill"></i>
                         </div>
                         <h5 class="mb-0 fw-bold">
                             Blockchain Statistics for: <span class="text-primary"><?php echo htmlspecialchars($electionDetails['name']); ?></span>
