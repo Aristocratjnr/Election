@@ -700,24 +700,42 @@ try {
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <?php elseif ($currentElection): ?>
-                            
-                            <!-- Show vote success message -->
+                              <!-- Show vote success message -->
                             <?php if (isset($_GET['vote_success']) || isset($_SESSION['vote_success'])): ?>
+                            <?php 
+                            // Get the vote ID for verification
+                            $voteID = $_GET['vote_id'] ?? $_SESSION['last_vote_id'] ?? 0;
+                            ?>
                             <div class="alert alert-success alert-dismissible fade show">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="bi bi-check-circle-fill fs-1"></i>
+                                    </div>
                                     <div>
-                                        <strong>Success!</strong> Your vote has been successfully recorded. Thank you for participating in the election!
+                                        <h5><strong>Success!</strong> Your vote has been securely recorded.</h5>
+                                        <p>Thank you for participating in this election! Your vote has been secured with blockchain technology.</p>
+                                        
+                                        <?php if ($voteID > 0): ?>
+                                        <div class="mt-2">
+                                            <a href="blockchain_verify.php?election=<?= htmlspecialchars($currentElection['electionID']) ?>&action=verify&vote=<?= htmlspecialchars($voteID) ?>" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-shield-check me-1"></i> Verify My Vote
+                                            </a>
+                                            <a href="blockchain_learn.php" class="btn btn-sm btn-link text-success">
+                                                <i class="bi bi-info-circle me-1"></i> How does blockchain voting work?
+                                            </a>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="removeVoteSuccess()"></button>
                             </div>
                             <script>
-                            function removeVoteSuccess() {
-                                // Remove vote_success parameter from URL
+                            function removeVoteSuccess() {                                // Remove vote_success and vote_id parameters from URL
                                 if (window.history && window.history.replaceState) {
                                     var url = window.location.href;
                                     url = url.replace(/[&?]vote_success=1/, '');
+                                    url = url.replace(/[&?]vote_id=\d+/, '');
                                     window.history.replaceState({}, document.title, url);
                                 }
                                 <?php unset($_SESSION['vote_success']); ?>

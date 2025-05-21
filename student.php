@@ -2,6 +2,10 @@
 session_start();
 require 'configs/dbconnection.php';
 require 'configs/session.php';
+require_once('classes/Blockchain.php'); // Add Blockchain class
+
+// Initialize blockchain
+$blockchain = new Blockchain($conn);
 
 // Set proper error reporting
 error_reporting(E_ALL);
@@ -391,8 +395,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     // Insert each vote individually
                     $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
                     $simpleStmt = $conn->prepare($simpleSQL);
-                    
-                    // Process each vote
+                      // Process each vote
                     foreach ($votes as $vote) {
                         $simpleStmt->bind_param('iii', 
                             $vote['electionID'], 
@@ -403,6 +406,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         
                         if (!$insertResult) {
                             throw new Exception("Failed to record vote for candidate ID: " . $vote['candidateID'] . ". Database error: " . $conn->error);
+                        }
+                        
+                        // Get the ID of the inserted vote for blockchain
+                        $voteID = $conn->insert_id;
+                        
+                        // Add the vote to the blockchain
+                        if (!$blockchain->addVote(
+                            $vote['electionID'],
+                            $vote['studentID'],
+                            $vote['candidateID'],
+                            $voteID
+                        )) {
+                            throw new Exception("Failed to secure vote in blockchain for candidate ID: " . $vote['candidateID']);
                         }
                     }
                     
@@ -1679,10 +1695,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
                                 setTimeout(() => {
                                     window.location.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
-                                }, 5000);
+                                }, 3000);
                             }
-
-                            // Clear the interval to stop the countdown
                             clearInterval(countdownInterval);
                         } else {
                             // If client time is ahead of server time, recalculate with server time

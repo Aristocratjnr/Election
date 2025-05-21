@@ -1497,7 +1497,7 @@
     right: -20px;
     width: 40px;
     height: 40px;
-    background: rgba(223, 181, 181, 0.5);
+    background: rgba(33, 82, 142, 0.5);
     border-radius: 50%;
     opacity: 0.2;
     animation: bubble-move 8s infinite ease-in-out;
@@ -1510,7 +1510,7 @@
     left: -15px;
     width: 30px;
     height: 30px;
-    background: rgba(147, 123, 123, 0.5);
+    background: rgba(10, 71, 94, 0.5);
     border-radius: 50%;
     opacity: 0.15;
     animation: bubble-move 7s infinite ease-in-out reverse;
