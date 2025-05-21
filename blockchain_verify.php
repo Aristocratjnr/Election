@@ -151,7 +151,7 @@ function formatBlockData($data) {
             letter-spacing: -0.01em;
         }
           .header {
-            background: var(--primary);
+            background: var(--primary-gradient);
             color: white;
             padding: 1rem 0;
             margin-bottom: 2rem;
@@ -504,7 +504,7 @@ function formatBlockData($data) {
                     <h1 class="display-6 font-weight-bold mb-3 text-primary">Blockchain Vote Verification</h1>
                     <p class="lead text-muted mb-0">Verify and validate votes using blockchain technology</p>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3 bg-primary text-white rounded-4 p-1 ">
                     <nav aria-label="breadcrumb" class="d-flex justify-content-md-end">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="login.php" class="text-white text-decoration-none">Home</a></li>
@@ -517,7 +517,7 @@ function formatBlockData($data) {
     </div>
       <div class="container pb-5">
         <div class="row mb-4">
-            <div class="col-md-12">
+            <div class="col-md-10 col-lg-8 mx-auto">
                 <div class="custom-card card">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-4">

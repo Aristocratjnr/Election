@@ -86,7 +86,7 @@ if ($blockchainEnabled) {
     <?php include 'includes/header.php'; ?>
     
     <main id="main" class="main">
-        <div class="pagetitle">
+        <div class="display-7">
             <h1>Blockchain Security Setup</h1>
             <nav>
                 <ol class="breadcrumb">
