@@ -37,7 +37,8 @@ function getExampleBlock() {
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
-    <style>        .blockchain-diagram {
+    <style>        
+    .blockchain-diagram {
             background-color: #f8f9fa;
             border-radius: 8px;
             padding: 1rem;

@@ -402,9 +402,7 @@ function formatBlockData($data) {
             transition: all 0.2s ease;
         }
         
-        .blockchain-block-card:hover {
-            transform: translateY(-5px);
-        }
+        
         
         .block-card {
             border-radius: 0.75rem;
@@ -509,7 +507,7 @@ function formatBlockData($data) {
                 <div class="col-md-4">
                     <nav aria-label="breadcrumb" class="d-flex justify-content-md-end">
                         <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="dashboard.php" class="text-white text-decoration-none">Home</a></li>
+                            <li class="breadcrumb-item"><a href="login.php" class="text-white text-decoration-none">Home</a></li>
                             <li class="breadcrumb-item text-white active" aria-current="page">Blockchain Verification</li>
                         </ol>
                     </nav>
@@ -523,20 +521,17 @@ function formatBlockData($data) {
                 <div class="custom-card card">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-4">
-                            <div style="width: 48px; height: 48px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: white;">
-                                <i class="bi bi-shield-check fs-4"></i>
+                            <div class="card-icon me-3">
+                                <i class="bi bi-shield-lock"></i>
                             </div>
-                            <h5 class="mb-0">Vote Verification System</h5>
+                            <h5 class="mb-0 fw-bold">Blockchain Vote Verification</h5>
                         </div>
-                        <div class="p-3 rounded-4 mb-4" style="background: rgba(255,255,255,0.1);">
                             <p class="mb-0">
                                 This system allows you to verify the integrity of votes using blockchain technology. 
-                                Select an election below to explore its blockchain data and verify the authenticity of votes.<br>
-                                <a href="blockchain_learn.php" class="ms-2 btn btn-sm btn-primary">
+                                <a href="blockchain_learn.php" class="ms-2 btn btn-sm btn-outline-primary">
                                     <i class="bi bi-info-circle me-1"></i> Learn how blockchain works
                                 </a>
                             </p>
-                        </div>
                           <form method="GET" class="row g-3">
                             <div class="col-md-6">
                                 <div class="p-4 rounded-4 h-100" >
@@ -546,7 +541,7 @@ function formatBlockData($data) {
                                             <span>Select Election</span>
                                         </div>
                                     </label>
-                                    <select name="election" class="form-select form-select-md shadow-sm border-0" style="border-radius: 10px;" onchange="this.form.submit()">
+                                    <select name="election" class="form-select form-select-md" style="border-radius: 10px;" onchange="this.form.submit()">
                                         <option value="">Choose an election...</option>
                                         <?php while ($election = $elections->fetch_assoc()): ?>
                                             <option value="<?php echo $election['electionID']; ?>" <?php echo (isset($electionID) && $electionID == $election['electionID']) ? 'selected' : ''; ?>>
@@ -557,7 +552,6 @@ function formatBlockData($data) {
                                     </select>
                                 </div>
                             </div>
-                            
                             <div class="col-md-6">
                                 <div class="p-4 rounded-4 h-100" >
                                     <label class="form-label fw-bold mb-3">
@@ -571,7 +565,7 @@ function formatBlockData($data) {
                                         <input type="text" name="vote" class="" 
                                             style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;" 
                                             placeholder="Enter Vote ID" aria-label="Vote ID" value="<?php echo $voteID ?? ''; ?>">
-                                        <button class="btn btn-primary" type="submit">
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">
                                             <i class="bi bi-check-circle me-1"></i> Verify
                                         </button>
                                     </div>
@@ -583,15 +577,15 @@ function formatBlockData($data) {
             </div>
         </div>
         
-        <?php if ($electionID && isset($electionDetails)): ?>            <!-- Blockchain Stats Cards -->
+        <?php if ($electionID && isset($electionDetails)): ?>          
             <div class="row mb-4" data-aos="fade-up">
                 <div class="col-12">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="card-icon me-3">
+                        <div class=" me-3">
                             <i class="bi bi-bar-chart-fill"></i>
                         </div>
                         <h5 class="mb-0 fw-bold">
-                            Blockchain Statistics for: <span class="text-primary"><?php echo htmlspecialchars($electionDetails['name']); ?></span>
+                            Blockchain Statistics for: <span class="text-secondary"><?php echo htmlspecialchars($electionDetails['name']); ?></span>
                         </h5>
                     </div>
                 </div>
@@ -669,17 +663,15 @@ function formatBlockData($data) {
                 <div class="col-12">
                     <div class="card custom-card">
                         <div class="card-body p-4">
-                            <h6 class="mb-3 fw-bold text-primary"><i class="bi bi-gear-fill me-2"></i>Blockchain Actions</h6>
+                            <h6 class="mb-3"><i class="bi bi-gear-fill me-2"></i>Blockchain Actions</h6>
                             <div class="d-flex flex-wrap gap-3">
-                                <a href="?election=<?php echo $electionID; ?>&action=view" class="btn btn-primary btn-md">
+                                <a href="?election=<?php echo $electionID; ?>&action=view" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-eye-fill me-2"></i> View Blockchain
                                 </a>
-                                <a href="?election=<?php echo $electionID; ?>&action=validate" class="btn btn-success btn-md">
+                                <a href="?election=<?php echo $electionID; ?>&action=validate" class="btn btn-sm btn-outline-success">
                                     <i class="bi bi-shield-check me-2"></i> Validate Blockchain
                                 </a>
-                                <button type="button" class="btn btn-info btn-md text-white" style="background-color: var(--blockchain-blue);" data-bs-toggle="modal" data-bs-target="#explainBlockchainModal">
-                                    <i class="bi bi-question-circle-fill me-2"></i> How It Works
-                                </button>
+                                
                             </div>
                         </div>
                     </div>
