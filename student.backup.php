@@ -50,6 +50,9 @@ try {
     $error = "System temporarily unavailable. Please try again later.";
 }
 
+// Override election status for testing
+$currentElection['status'] = 'Ongoing';
+
 // Get student details
 $student = [];
 try {
@@ -65,33 +68,113 @@ try {
 $positions = [];
 if ($currentElection && !$hasVoted) {
     try {
-        // Get positions for current election - IMPROVED QUERY
-        $stmt = $conn->prepare("
-            SELECT positionID, title, description, maxVotes
-            FROM positions 
-            WHERE electionID = ?
-            ORDER BY display_order, positionID ASC
-        ");
-        $stmt->bind_param('i', $currentElection['electionID']);
-        $stmt->execute();
-        $positions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        // Fetch positions and candidates in a single query
+        $positionsSql = "
+            SELECT p.positionID, p.title, p.description, p.maxVotes, p.display_order,
+                   c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
+                   s.name, s.department, s.profilePicture
+            FROM positions p 
+            LEFT JOIN candidates c ON p.positionID = c.positionID AND c.status = 'Approved'
+            LEFT JOIN students s ON c.studentID = s.studentID
+            WHERE p.electionID = ? 
+            ORDER BY p.display_order, p.positionID ASC, s.name ASC
+        ";
+        $positionsStmt = $conn->prepare($positionsSql);
+        $positionsStmt->bind_param("i", $currentElection['electionID']);
+        $positionsStmt->execute();
+        $result = $positionsStmt->get_result();
+        $positionsStmt->close();
 
-        // Filter out duplicate positions by title (case-insensitive)
-        $uniquePositions = [];
-        $seenTitles = [];
-        foreach ($positions as $position) {
-            $title = strtolower($position['title']);
-            if (!isset($seenTitles[$title])) {
-                $uniquePositions[] = $position;
-                $seenTitles[$title] = true;
+        // Process the results
+        $positions = [];
+        $seenPositions = [];
+        while ($row = $result->fetch_assoc()) {
+            $positionID = $row['positionID'];
+            $lowerTitle = strtolower($row['title']);
+            
+            // Create candidate array if we have candidate data
+            $candidate = null;
+            if ($row['candidateID']) {
+                $candidate = [
+                    'candidateID' => $row['candidateID'],
+                    'studentID' => $row['studentID'],
+                    'photo' => $row['photo'],
+                    'manifesto' => $row['manifesto'],
+                    'status' => $row['status'],
+                    'name' => $row['name'],
+                    'department' => $row['department'],
+                    'profilePicture' => $row['profilePicture']
+                ];
+            }
+
+            if (!isset($seenPositions[$lowerTitle])) {
+                // New position
+                $position = [
+                    'positionID' => $positionID,
+                    'title' => $row['title'],
+                    'description' => $row['description'],
+                    'maxVotes' => $row['maxVotes'],
+                    'display_order' => $row['display_order'],
+                    'candidates' => $candidate ? [$candidate] : []
+                ];
+                $positions[] = $position;
+                $seenPositions[$lowerTitle] = count($positions) - 1;
+            } else {
+                // Existing position, add candidate if we have one
+                if ($candidate) {
+                    $positions[$seenPositions[$lowerTitle]]['candidates'][] = $candidate;
+                }
             }
         }
+
+        // Sort positions by display_order
+        usort($positions, function($a, $b) {
+            return $a['display_order'] - $b['display_order'];
+        });
+
+        // Debug positions
+        foreach ($positions as $position) {
+            error_log("Final Position: {$position['title']} - Candidates: " . count($position['candidates']));
+        }
+
+        // First, let's check for exact duplicates in the database
+        $positionTitles = [];
+        foreach ($positions as $position) {
+            $positionTitles[] = $position['title'];
+        }
+        $duplicateTitles = array_diff_assoc($positionTitles, array_unique($positionTitles));
+        if (!empty($duplicateTitles)) {
+            error_log("Found duplicate titles in database: " . json_encode($duplicateTitles));
+        }
+
+        // Deduplicate positions by title (case-insensitive) and ensure proper order
+        $uniquePositions = [];
+        $seenPositionTitles = [];
+
+        foreach ($positions as $position) {
+            $lowerTitle = strtolower(trim($position['title']));
+            if (!in_array($lowerTitle, $seenPositionTitles)) {
+                $seenPositionTitles[] = $lowerTitle;
+                $uniquePositions[] = $position;
+            } else {
+                // If we find a duplicate, merge its candidates with the existing position
+                $existingIndex = array_search($lowerTitle, array_map('strtolower', array_column($uniquePositions, 'title')));
+                if ($existingIndex !== false && isset($position['candidates'])) {
+                    $uniquePositions[$existingIndex]['candidates'] = array_merge(
+                        $uniquePositions[$existingIndex]['candidates'] ?? [],
+                        $position['candidates']
+                    );
+                }
+            }
+        }
+
         $positions = $uniquePositions;
 
-        // Get candidates for each position - IMPROVED QUERY
+        error_log("Final positions after deduplication: " . json_encode($positions));
+
+        // Get candidates for each position
         foreach ($positions as &$position) {
-            // Use a clearer query that avoids potential issues with status
+            if (!isset($position['candidates'])) {
             $stmt = $conn->prepare("
                 SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
                        s.name, s.department, s.profilePicture
@@ -105,9 +188,146 @@ if ($currentElection && !$hasVoted) {
             $stmt->execute();
             $position['candidates'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
+            }
+            
+           
+            error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($position['candidates']));
+        }
+
+        // First, let's check the database directly for duplicate positions
+        $checkDuplicatesSql = "
+            SELECT title, COUNT(*) as count 
+            FROM positions 
+            WHERE electionID = ? 
+            GROUP BY LOWER(title) 
+            HAVING count > 1
+        ";
+        $checkDuplicatesStmt = $conn->prepare($checkDuplicatesSql);
+        $checkDuplicatesStmt->bind_param("i", $currentElection['electionID']);
+        $checkDuplicatesStmt->execute();
+        $duplicates = $checkDuplicatesStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $checkDuplicatesStmt->close();
+
+        if (!empty($duplicates)) {
+            error_log("Found duplicate positions in database: " . json_encode($duplicates));
+            // If we find duplicates, we need to clean them up
+            foreach ($duplicates as $duplicate) {
+                // For each duplicate title, keep the one with the lowest positionID and merge candidates
+                $title = $duplicate['title'];
+                
+                // Get all positions with this title
+                $getDuplicatesSql = "
+                    SELECT positionID, title 
+                    FROM positions 
+                    WHERE electionID = ? 
+                    AND LOWER(title) = LOWER(?)
+                    ORDER BY positionID ASC
+                ";
+                $getDuplicatesStmt = $conn->prepare($getDuplicatesSql);
+                $getDuplicatesStmt->bind_param("is", $currentElection['electionID'], $title);
+                $getDuplicatesStmt->execute();
+                $duplicatePositions = $getDuplicatesStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+                $getDuplicatesStmt->close();
+                
+                if (count($duplicatePositions) > 1) {
+                    // Keep the first one (lowest positionID)
+                    $keepPositionID = $duplicatePositions[0]['positionID'];
+                    
+                    // Update candidates from other positions to point to the kept position
+                    $updateCandidatesSql = "
+                        UPDATE candidates 
+                        SET positionID = ? 
+                        WHERE positionID IN (
+                            SELECT positionID 
+                            FROM positions 
+                            WHERE electionID = ? 
+                            AND LOWER(title) = LOWER(?)
+                            AND positionID != ?
+                        )
+                    ";
+                    $updateCandidatesStmt = $conn->prepare($updateCandidatesSql);
+                    $updateCandidatesStmt->bind_param("iisi", $keepPositionID, $currentElection['electionID'], $title, $keepPositionID);
+                    $updateCandidatesStmt->execute();
+                    $updateCandidatesStmt->close();
+                    
+                    // Delete the duplicate positions
+                    $deleteDuplicatesSql = "
+                        DELETE FROM positions 
+                        WHERE electionID = ? 
+                        AND LOWER(title) = LOWER(?) 
+                        AND positionID != ?
+                    ";
+                    $deleteDuplicatesStmt = $conn->prepare($deleteDuplicatesSql);
+                    $deleteDuplicatesStmt->bind_param("isi", $currentElection['electionID'], $title, $keepPositionID);
+                    $deleteDuplicatesStmt->execute();
+                    $deleteDuplicatesStmt->close();
+                }
+            }
+        }
+
+        // Now fetch positions again after cleanup
+        $positionsSql = "
+            SELECT DISTINCT p.positionID, p.title, p.description, p.maxVotes, p.display_order 
+            FROM positions p 
+            WHERE p.electionID = ? 
+            ORDER BY p.display_order, p.positionID ASC
+        ";
+        $positionsStmt = $conn->prepare($positionsSql);
+        $positionsStmt->bind_param("i", $currentElection['electionID']);
+        $positionsStmt->execute();
+        $positions = $positionsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $positionsStmt->close();
+
+        // Get candidates for each position
+        foreach ($positions as $key => $position) {
+            $stmt = $conn->prepare("
+                SELECT c.candidateID, c.studentID, c.photo, c.manifesto, c.status,
+                       s.name, s.department, s.profilePicture
+                FROM candidates c
+                JOIN students s ON c.studentID = s.studentID
+                WHERE c.positionID = ? 
+                AND c.status = 'Approved'
+                ORDER BY s.name ASC
+            ");
+            $stmt->bind_param('i', $position['positionID']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $candidates = $result->fetch_all(MYSQLI_ASSOC);
+            $positions[$key]['candidates'] = $candidates;
+            $stmt->close();
             
             // For debugging
-            error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($position['candidates']));
+            error_log("Position ID: {$position['positionID']} - Title: {$position['title']} - Candidate count: " . count($candidates));
+        }
+
+        // Double check for any remaining duplicates in memory and merge candidates
+        $seenPositionTitles = [];
+        $uniquePositions = [];
+        foreach ($positions as $position) {
+            $lowerTitle = strtolower($position['title']);
+            if (!in_array($lowerTitle, $seenPositionTitles)) {
+                $seenPositionTitles[] = $lowerTitle;
+                $uniquePositions[] = $position;
+            } else {
+                // If we find a duplicate, merge its candidates with the existing position
+                $existingIndex = array_search($lowerTitle, array_map('strtolower', array_column($uniquePositions, 'title')));
+                if ($existingIndex !== false && isset($position['candidates'])) {
+                    if (!isset($uniquePositions[$existingIndex]['candidates'])) {
+                        $uniquePositions[$existingIndex]['candidates'] = [];
+                    }
+                    $uniquePositions[$existingIndex]['candidates'] = array_merge(
+                        $uniquePositions[$existingIndex]['candidates'],
+                        $position['candidates']
+                    );
+                }
+            }
+        }
+
+        $positions = $uniquePositions;
+
+        // Debug positions after final processing
+        foreach ($positions as $position) {
+            error_log("Final Position: {$position['title']} - Candidates: " . count($position['candidates'] ?? []));
         }
     } catch (Exception $e) {
         error_log("Positions fetch error: " . $e->getMessage());
@@ -121,9 +341,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         $error = "You cannot vote at this time.";
     } else {
         try {
-            // Do not start transaction yet - we need to check for a special case first
-            
-            // Check for existing votes - we need to know if this student has already voted
+           
             $hasVotedBefore = false;
             $checkStmt = $conn->prepare("SELECT COUNT(*) as vote_count FROM votes WHERE electionID = ? AND studentID = ?");
             $checkStmt->bind_param('ii', $currentElection['electionID'], $studentID);
@@ -133,11 +351,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 $hasVotedBefore = ($checkResult->fetch_assoc()['vote_count'] > 0);
             }
             $checkStmt->close();
-            
-            // DIRECT SQL APPROACH: If student has voted before, we need to completely delete all their votes first
+           
             if ($hasVotedBefore) {
-                // This SQL delete should happen OUTSIDE the transaction so it's guaranteed to complete
-                // before we try to insert new votes
+                
                 $deleteSQL = "DELETE FROM votes WHERE electionID = ? AND studentID = ?";
                 $deleteStmt = $conn->prepare($deleteSQL);
                 $deleteStmt->bind_param('ii', $currentElection['electionID'], $studentID);
@@ -152,111 +368,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 usleep(500000); // 0.5 seconds
             }
             
-            // NOW start the transaction for inserting new votes
             $conn->begin_transaction();
 
             // Validate selections
             $votes = [];
             foreach ($positions as $position) {
-                if (!isset($_POST['position_' . $position['positionID']]) || empty($_POST['position_' . $position['positionID']])) {
+                if (!isset($_POST['vote_' . $position['positionID']]) || empty($_POST['vote_' . $position['positionID']])) {
                     throw new Exception("Please select a candidate for all positions.");
                 }
 
-                $selectedCandidates = $_POST['position_' . $position['positionID']];
-                if (count($selectedCandidates) > $position['maxVotes']) {
-                    throw new Exception("You can only select up to " . $position['maxVotes'] . " candidates for " . $position['title']);
-                }
-
-                // Remove duplicates
-                $selectedCandidates = array_unique($selectedCandidates);
-                
-                foreach ($selectedCandidates as $candidateID) {
-                    $votes[] = [
-                        'electionID' => $currentElection['electionID'],
-                        'candidateID' => (int)$candidateID,
-                        'studentID' => $studentID
-                    ];
-                }
+                $selectedCandidate = $_POST['vote_' . $position['positionID']];
+               
+                $votes[] = [
+                    'electionID' => $currentElection['electionID'],
+                    'candidateID' => (int)$selectedCandidate,
+                    'studentID' => $studentID
+                ];
             }
-            
-            // SUPER SIMPLE APPROACH: One query, one vote record with just the first candidate
-            // This works around the unique key constraint while still registering the vote
             if (!empty($votes)) {
-                $firstVote = $votes[0]; // Just take the first vote
+                // Start transaction for multiple inserts
+                $conn->begin_transaction();
                 
-                $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
-                $simpleStmt = $conn->prepare($simpleSQL);
-                $simpleStmt->bind_param('iii', 
-                    $firstVote['electionID'], 
-                    $firstVote['candidateID'], 
-                    $firstVote['studentID']
-                );
-                $insertResult = $simpleStmt->execute();
-                $insertCount = $simpleStmt->affected_rows;
-                $simpleStmt->close();
-                
-                if (!$insertResult || $insertCount === 0) {
-                    throw new Exception("Failed to record your vote. Database error: " . $conn->error);
+                try {
+                    // Insert each vote individually
+                    $simpleSQL = "INSERT INTO votes (electionID, candidateID, studentID, timestamp) VALUES (?, ?, ?, NOW())";
+                    $simpleStmt = $conn->prepare($simpleSQL);
+                    
+                    // Process each vote
+                    foreach ($votes as $vote) {
+                        $simpleStmt->bind_param('iii', 
+                            $vote['electionID'], 
+                            $vote['candidateID'], 
+                            $vote['studentID']
+                        );
+                        $insertResult = $simpleStmt->execute();
+                        
+                        if (!$insertResult) {
+                            throw new Exception("Failed to record vote for candidate ID: " . $vote['candidateID'] . ". Database error: " . $conn->error);
+                        }
+                    }
+                    
+                    // Close the statement
+                    $simpleStmt->close();
+                    
+                    // Now update the results table for each vote
+                    foreach ($votes as $vote) {
+                        // Check if result entry exists
+                        $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
+                        $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                        $checkResStmt->execute();
+                        $resultExists = ($checkResStmt->get_result()->num_rows > 0);
+                        $checkResStmt->close();
+                        
+                        if ($resultExists) {
+                            // Update existing result
+                            $updateResStmt = $conn->prepare("
+                                UPDATE results 
+                                SET voteCount = voteCount + 1 
+                                WHERE electionID = ? AND candidateID = ?
+                            ");
+                            $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $updateResStmt->execute();
+                            $updateResStmt->close();
+                        } else {
+                            // Insert new result
+                            $insertResStmt = $conn->prepare("
+                                INSERT INTO results (electionID, candidateID, voteCount, percentage) 
+                                VALUES (?, ?, 1, 0)
+                            ");
+                            $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
+                            $insertResStmt->execute();
+                            $insertResStmt->close();
+                        }
+                    }
+                    
+                    // Update percentages
+                    $updatePercentageSQL = "
+                        UPDATE results r
+                        JOIN (
+                            SELECT candidateID, 
+                                   (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
+                            FROM results 
+                            WHERE electionID = ?
+                        ) as calc ON r.candidateID = calc.candidateID
+                        SET r.percentage = calc.pct
+                        WHERE r.electionID = ?
+                    ";
+                    $updatePctStmt = $conn->prepare($updatePercentageSQL);
+                    $updatePctStmt->bind_param('iii', 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID'], 
+                        $currentElection['electionID']
+                    );
+                    $updatePctStmt->execute();
+                    $updatePctStmt->close();
+                    
+                    // Commit the transaction
+                    $conn->commit();
+                    
+                } catch (Exception $e) {
+                    // Rollback on error
+                    $conn->rollback();
+                    throw $e;
                 }
             } else {
                 throw new Exception("No votes to record. Please select at least one candidate.");
             }
             
-            // Store all vote data in the results table instead
-            // This bypasses the unique key constraint by using a different table
-            foreach ($votes as $vote) {
-                // Check if result entry exists
-                $checkResStmt = $conn->prepare("SELECT resultID FROM results WHERE electionID = ? AND candidateID = ?");
-                $checkResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                $checkResStmt->execute();
-                $resultExists = ($checkResStmt->get_result()->num_rows > 0);
-                $checkResStmt->close();
-                
-                if ($resultExists) {
-                    // Update existing result
-                    $updateResStmt = $conn->prepare("
-                        UPDATE results 
-                        SET voteCount = voteCount + 1 
-                        WHERE electionID = ? AND candidateID = ?
-                    ");
-                    $updateResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $updateResStmt->execute();
-                    $updateResStmt->close();
-                } else {
-                    // Insert new result
-                    $insertResStmt = $conn->prepare("
-                        INSERT INTO results (electionID, candidateID, voteCount, percentage) 
-                        VALUES (?, ?, 1, 0)
-                    ");
-                    $insertResStmt->bind_param('ii', $vote['electionID'], $vote['candidateID']);
-                    $insertResStmt->execute();
-                    $insertResStmt->close();
-                }
-            }
-            
-            // Update percentages
-            $updatePercentageSQL = "
-                UPDATE results r
-                JOIN (
-                    SELECT candidateID, 
-                           (voteCount / (SELECT SUM(voteCount) FROM results WHERE electionID = ?)) * 100 as pct
-                    FROM results 
-                    WHERE electionID = ?
-                ) as calc ON r.candidateID = calc.candidateID
-                SET r.percentage = calc.pct
-                WHERE r.electionID = ?
-            ";
-            $updatePctStmt = $conn->prepare($updatePercentageSQL);
-            $updatePctStmt->bind_param('iii', 
-                $currentElection['electionID'], 
-                $currentElection['electionID'], 
-                $currentElection['electionID']
-            );
-            $updatePctStmt->execute();
-            $updatePctStmt->close();
-
-            // Commit transaction
-            $conn->commit();
             $success = "Your vote has been successfully recorded!";
             $hasVoted = true;
 
@@ -271,8 +489,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             $stmt->execute();
             $stmt->close();
             
-            // Also insert a special tracking record to indicate this student has voted in this election
-            // This can be used for participation tracking without the unique key constraint issues
             try {
                 $conn->query("
                     CREATE TABLE IF NOT EXISTS election_participation (
@@ -296,8 +512,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 error_log("Participation tracking error: " . $e->getMessage());
             }
             
-            // Create a cache invalidation flag using a session variable
-            // instead of using the system_events table that doesn't exist
+          
             $_SESSION['vote_cache_updated'] = time();
             $_SESSION['vote_success'] = true;
             $_SESSION['vote_timestamp'] = time();
@@ -326,6 +541,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voting Portal - SmartVote</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
@@ -357,44 +575,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         /* Dark mode variables */
         [data-bs-theme="dark"] {
             --primary: #6ea8fe;
-            --primary-light: rgba(110, 168, 254, 0.2);
+            --primary-light: rgba(110, 168, 254, 0.15);
             --primary-dark: #3a56d4;
-            --success: #82ca9d;
-            --success-light: rgba(130, 202, 157, 0.2);
-            --surface: #1e1e2d;
-            --surface-hover: #2a2a3c;
-            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            --success: #75b798;
+            --success-light: rgba(117, 183, 152, 0.15);
+            --surface: #2b3035;
+            --surface-hover: #343a40;
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             --card-hover-shadow: 0 15px 35px rgba(110, 168, 254, 0.25);
-            --text: #e9ecef;
+            --text: #f8f9fa;
             --text-muted: #adb5bd;
-            --border: #2d2d3d;
-            --bg: #151521;
-            --header-bg: #1e1e2d;
-            --shadow-color: rgba(0, 0, 0, 0.25);
-        }
-
-        [data-bs-theme="dark"] .student-info {
-            background: linear-gradient(145deg, var(--surface) 0%, var(--surface-hover) 100%);
-            border: 1px solid var(--border);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        [data-bs-theme="dark"] .time-unit {
-            background: rgba(110, 168, 254, 0.15);
-            border: 1px solid rgba(110, 168, 254, 0.25);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        [data-bs-theme="dark"] .voting-status.voting-active {
-            background: rgba(110, 168, 254, 0.15);
-            border: 1px solid rgba(110, 168, 254, 0.25);
-            color: var(--primary);
-        }
-
-        [data-bs-theme="dark"] .candidate-card {
-            background-color: var(--surface);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border);
+            --border: #495057;
+            --bg: #212529;
+            --header-bg: #343a40;
+            --shadow-color: rgba(0,0,0,0.2);
+            --danger: #ea868f;
+            --warning: #ffda6a;
+            --info: #6edff6;
+            
+            /* Default Bootstrap theme for dark mode */
+            color-scheme: dark;
         }
         
         body {
@@ -469,24 +669,130 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             border: none;
         }
         
+        /* Core candidate card styles */
         .candidate-card {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: auto;
-            max-height: 250px; /* Set a maximum height for the cards */
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            box-shadow: 0 2px 5px var(--shadow-color);
             background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        /* Mobile-specific card styles */
+        @media (max-width: 768px) {
+            .row.g-4 {
+                margin: 0 -8px;
+            }
+            
+            .col-md-6, .col-lg-4 {
+                padding: 0 8px;
+            }
+            
+            .candidate-card {
+                padding: 1rem;
+                margin-bottom: 0.75rem;
+                touch-action: manipulation; /* Improve touch response */
+            }
+
+            .candidate-photo {
+                width: 70px;
+                height: 70px;
+                margin: 0 auto 0.75rem;
+                border: 2px solid var(--border);
+            }
+
+            .candidate-name {
+                font-size: 1rem;
+                line-height: 1.3;
+                margin-bottom: 0.5rem;
+            }
+
+            .candidate-department {
+                font-size: 0.85rem;
+                opacity: 0.8;
+            }
+
+            .candidate-manifesto {
+                font-size: 0.9rem;
+                margin-top: 0.75rem;
+                line-height: 1.4;
+            }
+
+            .form-check-input {
+                transform: scale(1.2);
+                margin: 0.75rem;
+                transition: all 0.2s ease;
+            }
+        }
+
+        /* Extra small devices optimization */
+        @media (max-width: 576px) {
+            .col-md-6, .col-lg-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .candidate-card {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                padding: 0.875rem;
+                gap: 1rem;
+            }
+
+            .candidate-photo {
+                width: 60px;
+                height: 60px;
+                margin: 0;
+                flex-shrink: 0;
+            }
+
+            .candidate-info {
+                flex: 1;
+                min-width: 0; /* Prevent text overflow */
+            }
+
+            .candidate-name {
+                font-size: 0.95rem;
+                margin-bottom: 0.25rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .form-check-input {
+                position: absolute !important;
+                right: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%) scale(1.2);
+            }
+        }
+
+        /* Active states and transitions */
+        .candidate-card:active {
+            transform: scale(0.98);
+            transition: transform 0.2s ease;
+        }
+
         .candidate-card.selected {
-            border: 2px solid var(--primary);
-            background-color: var(--primary-light);
-            box-shadow: var(--card-hover-shadow);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Improved focus states for accessibility */
+        .candidate-card:focus-within {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary), 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .selection-check {
@@ -543,7 +849,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             padding: 4px 12px;
             font-size: 11px;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
@@ -581,62 +886,566 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             color: white;
         }
         
-        
-        
         .election-timer {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px var(--shadow-color);
-        }
+    background: #E3E9FF;
+    color: #4B5563;  /* Dark gray for better contrast */
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.15);
+    backdrop-filter: blur(8px);
+    border: 2px solid #C5D1FF;
+}
+
+.election-timer h2,
+.election-timer h3,
+.election-timer h4 {
+    color: #374151;  /* Darker gray for headings */
+    margin-bottom: 0.5rem;
+}
+
+.election-timer p {
+    color: #6B7280;  /* Medium gray for regular text */
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .election-title {
+    color: #4B5563;  /* Dark gray for title */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.election-timer .election-date {
+    color: #6B7280;  /* Medium gray for dates */
+    font-size: 0.95rem;
+}
+
+.election-timer .election-status {
+    color: #6B7280;  /* Medium gray for status */
+    font-weight: 500;
+}
+
+.timer-countdown {
+    color: #374151;  /* Darker gray for countdown */
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* Dark mode improvements for countdown timer and election details */
+[data-bs-theme="dark"] .election-timer {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .election-timer h2,
+[data-bs-theme="dark"] .election-timer h3,
+[data-bs-theme="dark"] .election-timer h4,
+[data-bs-theme="dark"] .election-timer p,
+[data-bs-theme="dark"] .election-timer .election-title,
+[data-bs-theme="dark"] .election-timer .election-date,
+[data-bs-theme="dark"] .election-timer .election-status,
+[data-bs-theme="dark"] .timer-countdown {
+    color: var(--text);
+}
+
+[data-bs-theme="dark"] .time-unit {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+}
+
+[data-bs-theme="dark"] .time-unit span {
+    color: var(--primary);
+}
+
+[data-bs-theme="dark"] .time-unit small {
+    color: var(--text-secondary);
+}
+
+[data-bs-theme="dark"] .election-details {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.timer-remaining {
+    color: #4B5563;  /* Consistent gray color for the timer text */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.timer-end-date {
+    color: #4B5563;  /* Same gray for the end date */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.election-results-container h3,
+.election-results-container p {
+    color: #4B5563;  /* Consistent gray for results text */
+}
+
+.live-updates-badge {
+    color: #4B5563;  /* Same gray for live updates text */
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Additional dark theme overrides */
+[data-bs-theme="dark"] .timer-remaining,
+[data-bs-theme="dark"] .timer-end-date,
+[data-bs-theme="dark"] .election-results-container h3,
+[data-bs-theme="dark"] .election-results-container p,
+[data-bs-theme="dark"] .live-updates-badge {
+    color: #E5E7EB;  /* Light gray for dark theme */
+}
+
+.election-timer h4,
+.election-timer h5,
+.election-timer .time-remaining-text {
+    color: #6B7280;  /* Medium gray for headers and time remaining text */
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .election-date {
+    color: #6B7280;  /* Medium gray for date */
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.live-results-header {
+    color: #6B7280;  /* Medium gray for live results text */
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.live-updates-text {
+    color: #6B7280;  /* Medium gray for live updates text */
+    font-size: 0.875rem;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .election-timer h4,
+[data-bs-theme="dark"] .election-timer h5,
+[data-bs-theme="dark"] .election-timer .time-remaining-text,
+[data-bs-theme="dark"] .election-timer .election-date,
+[data-bs-theme="dark"] .live-results-header,
+[data-bs-theme="dark"] .live-updates-text {
+    color: rgba(255, 255, 255, 0.7);  /* Light gray with opacity for dark theme */
+}
+
+.election-timer .time-remaining-text {
+    color: #4B5563;  /* Dark gray for "Time Remaining" text */
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .end-date {
+    color: #4B5563;  /* Dark gray for the end date */
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.election-results-header {
+    color: #4B5563;  /* Dark gray for "Election Results" */
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.live-updates-text {
+    color: #4B5563;  /* Dark gray for "Live updates" text */
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .election-timer .time-remaining-text,
+[data-bs-theme="dark"] .election-timer .end-date,
+[data-bs-theme="dark"] .election-results-header,
+[data-bs-theme="dark"] .live-updates-text {
+    color: rgba(255, 255, 255, 0.9);  /* Light color for dark theme */
+}
+
+.election-timer .time-remaining {
+    color: #4B5563;  /* Dark gray for "Time Remaining" text */
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.election-timer .end-date-text {
+    color: #4B5563;  /* Dark gray for the May 1, 2025 date */
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.election-results-section h3 {
+    color: #4B5563;  /* Dark gray for "Election Results" */
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.live-updates-indicator {
+    color: #4B5563;  /* Dark gray for "Live updates" text */
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .election-timer .time-remaining-text,
+[data-bs-theme="dark"] .election-timer .end-date-text,
+[data-bs-theme="dark"] .election-results-section h3,
+[data-bs-theme="dark"] .live-updates-indicator {
+    color: rgba(255, 255, 255, 0.9);  /* Light color for dark theme */
+}
+
+.time-remaining-text,
+.end-date-text,
+.election-results-heading,
+.live-updates-description {
+    color: #4B5563;  /* Dark gray for better visibility */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.election-results-section h3,
+.election-results-section .live-updates-text {
+    color: #4B5563;  /* Dark gray for better visibility */
+}
+
+/* Specific styles for each element */
+.time-remaining-heading {
+    color: #4B5563;  /* Dark gray */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.election-end-date {
+    color: #4B5563;  /* Dark gray */
+    font-size: 1rem;
+}
+
+.election-results-title {
+    color: #4B5563;  /* Dark gray */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.live-updates-indicator {
+    color: #4B5563;  /* Dark gray */
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .time-remaining-text,
+[data-bs-theme="dark"] .end-date-text,
+[data-bs-theme="dark"] .election-results-heading,
+[data-bs-theme="dark"] .live-updates-description,
+[data-bs-theme="dark"] .election-results-section h3,
+[data-bs-theme="dark"] .election-results-section .live-updates-text,
+[data-bs-theme="dark"] .time-remaining-heading,
+[data-bs-theme="dark"] .election-end-date,
+[data-bs-theme="dark"] .election-results-title,
+[data-bs-theme="dark"] .live-updates-indicator {
+    color: #E5E7EB;  /* Light gray for dark theme */
+}
+
+.time-remaining,
+.election-status-text,
+.election-title-text,
+.live-updates-caption {
+    color: #4B5563;  /* Consistent dark gray for text elements */
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.status-text,
+.date-text {
+    color: #6B7280;  /* Medium gray for secondary text */
+    font-size: 0.95rem;
+}
+
+.timer-text {
+    color: #374151;  /* Darker gray for important text */
+    font-weight: 600;
+}
+
+/* Dark theme overrides */
+[data-bs-theme="dark"] .time-remaining,
+[data-bs-theme="dark"] .election-status-text,
+[data-bs-theme="dark"] .election-title-text,
+[data-bs-theme="dark"] .live-updates-caption,
+[data-bs-theme="dark"] .status-text,
+[data-bs-theme="dark"] .date-text,
+[data-bs-theme="dark"] .timer-text {
+    color: #E5E7EB;  /* Light gray for dark theme */
+}
+
+/* Countdown Timer styles */
+.countdown-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(67, 97, 238, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 100px;
+    border: 1px solid rgba(67, 97, 238, 0.2);
+    box-shadow: 0 2px 6px rgba(67, 97, 238, 0.08);
+    transition: all 0.3s ease;
+}
+
+.time-unit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(67, 97, 238, 0.15);
+}
+
+.time-unit span {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: 'DM Mono', monospace;
+    line-height: 1;
+}
+
+.time-unit small {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.time-separator {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    line-height: 1;
+    margin-top: -10px;
+}
+
+/* Dark mode adjustments for countdown */
+[data-bs-theme="dark"] .time-unit {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .time-unit span {
+    color: var(--primary);
+}
+
+[data-bs-theme="dark"] .time-unit small {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+[data-bs-theme="dark"] .time-separator {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 576px) {
+    .time-unit {
+        min-width: 60px;
+        padding: 6px 10px;
+    }
+
+    .time-unit span {
+        font-size: 1.5rem;
+    }
+
+    .time-separator {
+        font-size: 1.5rem;
+    }
+}
+
+/* Desktop Optimizations */
+@media (min-width: 992px) {
+    .candidate-card {
+        padding: 1.5rem;
+        min-height: 300px; /* Reduced from 420px */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-width: 2px;
+        position: relative;
+        background: var(--surface);
+        border-radius: 16px;
+    }
+
+    .candidate-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    /* More compact photo */
+    .candidate-photo {
+        width: 120px; /* Reduced from 180px */
+        height: 120px; /* Reduced from 180px */
+        margin: 0 auto 1rem; /* Reduced margin */
+        border: 3px solid var(--border);
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .candidate-card.selected .candidate-photo {
+        border-color: var(--primary);
+        transform: scale(1.05);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    /* Optimized typography */
+    .candidate-name {
+        font-size: 1.25rem; /* Reduced from 1.5rem */
+        line-height: 1.3;
+        margin-bottom: 0.5rem; /* Reduced margin */
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .candidate-department {
+        font-size: 0.9rem; /* Reduced from 1.1rem */
+        margin-bottom: 0.75rem; /* Reduced margin */
+        color: var(--text-muted);
+    }
+
+    /* Manifesto button improvements */
+    .manifesto-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 6px;
+        margin-top: 0.75rem;
+        background: var(--primary-light);
+        color: var(--primary);
+        transition: all 0.2s ease;
+    }
+
+    .manifesto-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Selection check refinements */
+    .selection-check {
+        width: 32px; /* Reduced from 40px */
+        height: 32px;
+        top: 1rem;
+        right: 1rem;
+        background: var(--primary);
+        opacity: 0;
+        transform: scale(0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 8px rgba(67, 97, 238, 0.25);
+    }
+
+    .selection-check i {
+        font-size: 1.2rem; /* Reduced from 1.5rem */
+    }
+
+    /* Department badge adjustments */
+    .department-badge {
+        position: absolute;
+        bottom: 1rem; /* Reduced from 1.5rem */
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.35rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 20px;
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    /* Grid improvements */
+    .row.g-4 {
+        margin: 0 -12px;
+        gap: 1.25rem;
+    }
+
+    .col-lg-4 {
+        padding: 0 12px;
+    }
+
+    /* Selected state improvements */
+    .candidate-card.selected {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--primary), 0 12px 24px rgba(67, 97, 238, 0.15);
+    }
+}
         
-        .election-timer::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-            opacity: 0.5;
+        .student-details {
+            margin-bottom: 0.5rem;
         }
-        
-        .timer-countdown {
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 1px;
+
+        .student-details h5,
+        .student-details p,
+        .student-details .text-muted,
+        .student-details .department-icon {
+            transition: color 0.3s ease;
         }
-        
-        .counter-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.15);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            margin-right: 15px;
+
+        [data-bs-theme="dark"] .student-details h5,
+        [data-bs-theme="dark"] .student-details p,
+        [data-bs-theme="dark"] .student-details .profile-icon,
+        [data-bs-theme="dark"] .student-details span {
+            color: var(--text) !important;
         }
-        
-        .counter-circle i {
-            font-size: 1.5rem;
+
+        [data-bs-theme="dark"] .student-details .text-muted {
+            color: rgba(255, 255, 255, 0.75) !important;
         }
-        
+
+        /* Light mode text colors */
+        [data-bs-theme="light"] .student-details h5 {
+            color: #2B3445;
+        }
+
+        [data-bs-theme="light"] .student-details p,
+        [data-bs-theme="light"] .student-details span {
+            color: #4B5563;
+        }
+
+        [data-bs-theme="light"] .student-details .text-muted {
+            color: #6c757d !important;
+        }
+
         .student-info {
             background: var(--surface);
             border-radius: 12px;
             overflow: hidden;
-            padding: 18px;
+            padding: 16px;
             border: 1px solid var(--border);
             box-shadow: 0 2px 10px var(--shadow-color);
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        
+
         .student-avatar {
             width: 70px;
             height: 70px;
@@ -929,7 +1738,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             }
             
             .timer-countdown {
-                font-size: 1.5rem;
+                font-size: 1.2rem;
             }
             
             .counter-circle {
@@ -970,8 +1779,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         @media (max-width: 576px) {
             .col-md-6, .col-lg-4 {
-                flex: 1 1 100%; /* Adjust width to fit one card per row on smaller screens */
-                max-width: 100%;
+                flex: 1 1 80%; 
+                max-width: 80%;
             }
         }
 
@@ -1259,7 +2068,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: #fff;
+            background-color: var(--success);
             margin-right: 6px;
             animation: pulse 1.5s infinite;
         }
@@ -1282,9 +2091,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
-            border: 1px solid #f0f0f5;
-        }
-        
         .status-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
@@ -1718,7 +2524,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
         /* Fix election timer in dark mode */
         [data-bs-theme="dark"] .election-timer {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: rgba(255, 255, 255, 0.2);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
@@ -1853,15 +2659,134 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             background-color: var(--surface) !important;
             border-color: var(--border) !important;
         }
+
+        /* Light theme updates */
+        [data-bs-theme="light"] .student-details h5 {
+            color: #2B3445;
+            font-size: 0.95rem;
+        }
+
+        [data-bs-theme="light"] .student-details p,
+        [data-bs-theme="light"] .student-details .text-muted {
+            color: #4B5563 !important;
+            font-size: 0.813rem;
+        }
+
+        [data-bs-theme="light"] .voting-card .card-header h2 {
+            color: #2B3445;
+        }
+
+        [data-bs-theme="light"] .text-muted {
+            color: #6B7280 !important;
+        }
+
+        [data-bs-theme="light"] p {
+            color: #4B5563;
+        }
+
+        [data-bs-theme="light"] .position-title,
+        [data-bs-theme="light"] .candidate-name,
+        [data-bs-theme="light"] h3,
+        [data-bs-theme="light"] h4,
+        [data-bs-theme="light"] h5 {
+            color: #2B3445;
+        }
+
+        /* Ensure text visibility in light theme */
+        [data-bs-theme="light"] .voting-status {
+            color: #2B3445;
+        }
+
+        /* Make the student details slightly smaller */
+        .student-details h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: inherit;
+        }
+
+        .student-details p,
+        .student-details .text-muted {
+            font-size: 0.813rem;
+            margin-bottom: 0;
+        }
+
+        .student-details .department-icon {
+            font-size: 0.875rem;
+        }
+
+        .election-title {
+            color: #4B5563;  /* Dark gray for title */
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .election-dates {
+            color: #6B7280;  /* Medium gray for dates */
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .election-status {
+            color: #6B7280;  /* Same gray for status */
+            font-weight: 500;
+        }
+
+        /* Ensure text colors in dark theme */
+        [data-bs-theme="dark"] .election-title,
+        [data-bs-theme="dark"] .election-dates,
+        [data-bs-theme="dark"] .election-status {
+            color: #E5E7EB;
+        }
+
+        /* Update responsive styles to remove sidebar/ficon */
+        @media (max-width: 992px) {
+            .sidebar {
+                display: none; /* Hide sidebar completely on mobile */
+            }
+            
+            .mobile-header {
+                display: none; /* Hide mobile header */
+            }
+            
+            .mobile-toggle {
+                display: none; /* Hide mobile toggle button */
+            }
+            
+            .sidebar-overlay {
+                display: none; /* Hide sidebar overlay */
+            }
+            
+            .container {
+                padding-left: 15px; /* Reset container padding */
+                padding-right: 15px;
+                width: 100%;
+                max-width: none;
+            }
+            
+            .main-content {
+                margin-left: 0; /* Remove margin for sidebar */
+                width: 100%;
+            }
+            
+            /* Adjust the grid for better mobile layout */
+            .col-md-6, .col-lg-4 {
+                flex: 1 1 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .voting-card {
+                margin: 0;
+                border-radius: 12px;
+            }
+        }
     </style>
 </head>
 <body>
-    </style>
-</head>
-<body>
-   
     <?php include 'includes/header.php'; ?><br>
-   
+    
     <main class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-7 col-md-10 col-sm-12">
@@ -1879,7 +2804,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                         </div>
                     </div>
                     
-                    <div class="card-body p-4">
+                    <div class="card-body p-4 ">
+                        <?php if ($currentElection && $currentElection['status'] === 'Ongoing'): ?>
+                            <div class="election-timer mb-4">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="counter-circle text-muted">
+                                            <i class="bi bi-stopwatch-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h6 class="mb-2 text-muted "><i class="bi bi-calendar-event me-1"></i>Time Remaining:</h6>
+                                        <div class="timer-countdown" id="election-countdown">
+                                            <div class="d-flex align-items-center justify-content-start countdown-container">
+                                                <div class="time-unit">
+                                                    <span id="days">00</span>
+                                                    <small>days</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="hours">00</span>
+                                                    <small>hours</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="minutes">00</span>
+                                                    <small>minutes</small>
+                                                </div>
+                                                <div class="time-separator ">:</div>
+                                                <div class="time-unit">
+                                                    <span id="seconds">00</span>
+                                                    <small>seconds</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="election-date mt-2 mb-0  alight-item-center justify-content-center"><i class="bi bi-calendar-event me-1"></i>Ends on: <?= date('F j, Y', strtotime($currentElection['endDate'])) ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                         <!-- Student Info -->
                         <div class="student-info d-flex align-items-center mb-4">
                             <div class="me-3">
@@ -1899,16 +2863,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <?php endif; ?>
                             </div>
                             <div class="student-details">
-                                <h5> <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
-                                <div class="d-flex flex-wrap">
-                                    <span class="me-3 text-muted small">
-                                        <i class="bi bi-person-badge me-1"></i> 
-                                        ID: <?= $studentID ?>
-                                    </span>
-                                    <span class="text-muted small">
-                                        <i class="bi bi-building-check icon"></i>
-                                        Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
-                                    </span>
+                                <h5 > <i class="bi bi-person-vcard profile-icon icon"></i>&nbsp;<?= htmlspecialchars($student['name'] ?? 'Student') ?></h5>
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-person-badge me-1"></i> 
+                                    ID: <?= $studentID ?>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-building-check icon icon"></i>
+                                    Department: <?= htmlspecialchars($student['department'] ?? 'Department') ?>
                                 </div>
                             </div>
                             <?php if ($hasVoted): ?>
@@ -1949,21 +2911,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                 <div class="row align-items-center">
                                     <div class="col-md-7 mb-3 mb-md-0">
                                         <div class="d-flex align-items-center mb-2">
-                                            <div class="counter-circle me-3">
+                                            <div class="counter-circle me-3 text-muted">
                                                 <i class="bi bi-calendar-event"></i>
                                             </div>
-                                            <h4 class="text-white mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
+                                            <h4 class="election-title mb-0"><?= htmlspecialchars($currentElection['name']) ?></h4>
                                         </div>
-                                        <p class="text-white-50 mb-2">
+                                        <p class="election-dates mb-2">
                                             <?= date('F j, Y', strtotime($currentElection['startDate'])) ?> to <?= date('F j, Y', strtotime($currentElection['endDate'])) ?>
                                         </p>
                                         <div class="progress-wave mt-3"></div>
                                     </div>
-                                    <div class="col-md-5 text-md-end">
-                                        <div class="timer-countdown text-white mb-1" id="countdown-timer">
+                                    <div class="col-md-5 text-md-end" >
+                                        <div class="timer-countdown text-white-20 mb-1 text-muted" id="countdown-timer">
                                             <?= date('M j, Y', strtotime($currentElection['endDate'])) ?>
                                         </div>
-                                        <p class="text-white-50 mb-0">
+                                        <p class="election-status mb-0">
                                             <i class="bi bi-clock me-1"></i>
                                             Status: <?= $currentElection['status'] ?>
                                         </p>
@@ -1990,8 +2952,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                             <div class="card-header bg-gradient-primary text-white py-3 px-4">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 class="mb-0 fw-bold">Election Results</h5>
-                                        <p class="mb-0 opacity-75 small">Live updates from the voting system</p>
+                                        <h5 class="mb-0 fw-bold text-white">Election Results</h5>
+                                        <p class="mb-0 opacity-75 small text-white">Live updates from the voting system</p>
                                     </div>
                                     <div class="live-indicator">
                                         <span class="pulse-dot"></span> LIVE
@@ -2019,7 +2981,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                         </div>
                                         <div class="row g-3">
                                             <?php
-                                            // Get top candidates by vote count - SIMPLIFIED QUERY
+                                        
                                             $topCandidatesQuery = "
                                                 SELECT c.candidateID, c.photo, s.name, s.profilePicture, 
                                                        p.title as position, COUNT(v.voteID) as voteCount
@@ -2057,7 +3019,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                                                             </div>
                                                             <div class="candidate-main">
                                                                 <?php 
-                                                                // First check for candidate photo in uploads/candidates directory
+                                                              
                                                                 $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
                                                                 $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
                                                                 
@@ -2154,56 +3116,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                     
                     <div class="row g-4">
                         <?php foreach ($position['candidates'] as $candidate): ?>
-                            <div class="col-md-6 col-lg-4 col-xl-3">
-                                <div class="candidate-card h-100 shadow-sm rounded-3 overflow-hidden position-relative"
-                                     onclick="selectCandidate(this, <?= $position['positionID'] ?>, <?= $candidate['candidateID'] ?>, <?= $position['maxVotes'] ?>)">
-                                    <div class="bg-light p-3 text-center position-relative">
-                                        <div class="avatar-container mx-auto mb-3 position-relative">
-                                            <?php 
-                                            // First check for candidate photo in uploads/candidates directory
-                                            $candidateCustPhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
-                                            $candidateStdPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
-                                            
-                                            if (!empty($candidate['photo']) && file_exists($candidateCustPhotoPath)): ?>
-                                                <img src="<?= $candidateCustPhotoPath ?>" 
-                                                     class="avatar" 
-                                                     alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                            <?php elseif (!empty($candidate['profilePicture']) && file_exists($candidateStdPhotoPath)): ?>
-                                                <img src="<?= $candidateStdPhotoPath ?>" 
-                                                     class="avatar" 
-                                                     alt="<?= htmlspecialchars($candidate['name']) ?>">
-                                            <?php else: ?>
-                                                <div class="avatar bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary">
-                                                    <i class="bi bi-person fs-2"></i>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="candidate-card mb-3 position-relative">
+                                    <div class="form-check">
+                                        <input class="form-check-input position-absolute" type="radio" 
+                                               name="vote_<?= $position['positionID'] ?>" 
+                                               value="<?= $candidate['candidateID'] ?>" 
+                                               id="candidate_<?= $candidate['candidateID'] ?>"
+                                               required>
+                                        <label class="form-check-label w-100" for="candidate_<?= $candidate['candidateID'] ?>">
+                                            <div class="candidate-info">
+                                                <div class="candidate-main mb-3">
+                                                    <?php 
+                                                    $candidatePhotoPath = 'uploads/candidates/' . htmlspecialchars($candidate['photo'] ?? '');
+                                                    $studentPhotoPath = 'assets/img/profile/students/' . htmlspecialchars($candidate['profilePicture'] ?? '');
+                                                    
+                                                    if (!empty($candidate['photo']) && file_exists($candidatePhotoPath)): ?>
+                                                        <img src="<?= $candidatePhotoPath ?>" class="candidate-avatar" alt="Candidate Photo">
+                                                    <?php elseif (!empty($candidate['profilePicture']) && file_exists($studentPhotoPath)): ?>
+                                                        <img src="<?= $studentPhotoPath ?>" class="candidate-avatar" alt="Student Photo">
+                                                    <?php else: ?>
+                                                        <div class="candidate-avatar-placeholder">
+                                                            <i class="bi bi-person"></i>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <div class="candidate-details">
+                                                        <h5 class="candidate-name"><?= htmlspecialchars($candidate['name']) ?></h5>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
+                                                            <?= htmlspecialchars($position['title']) ?>
+                                                        </span>
+                                                        <?php if (!empty($candidate['department'])): ?>
+                                                            <div class="department-badge">
+                                                                <i class="bi bi-buildings department-icon icon"></i>
+                                                                <?= htmlspecialchars($candidate['department']) ?>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
-                                            <?php endif; ?>
-                                            
-                                            <!-- Selection indicator -->
-                                            <div class="selection-check">
-                                                <i class="bi bi-check2"></i>
+                                                <?php if (!empty($candidate['manifesto'])): ?>
+                                                    <div class="manifesto-btn p-2 rounded text-center" data-bs-toggle="modal" data-bs-target="#manifestoModal" data-manifesto="<?= htmlspecialchars($candidate['manifesto']) ?>">
+                                                        <i class="bi bi-file-text me-1"></i>
+                                                        View Manifesto
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
-                                        </div>
+                                        </label>
                                     </div>
-                                
-                                    <div class="p-3 text-center position-relative">
-                                        <h5 class="candidate-name mb-1"><?= htmlspecialchars($candidate['name']) ?></h5>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
-                                            <?= htmlspecialchars($candidate['department']) ?>
-                                        </span>
-                                        <div class="candidate-tagline bg-light p-2 rounded small mb-2">
-                                            <?= htmlspecialchars($candidate['manifesto'] ?? 'No manifesto provided') ?>
-                                        </div>
-                                        <div class="d-flex justify-content-center small text-muted">
-                                            <span class="me-2">
-                                                <i class="bi bi-person-check"></i> Candidate
-                                            </span>
-                                        </div>
+                                    <div class="selection-check">
+                                        <i class="bi bi-check-circle-fill"></i>
                                     </div>
-                                    
-                                    <input type="checkbox" 
-                                           name="position_<?= $position['positionID'] ?>[]" 
-                                           value="<?= $candidate['candidateID'] ?>" 
-                                           class="d-none position-checkbox">
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -2392,14 +3354,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         </div>
     </div>
 
+    <!-- Manifesto Modal -->
+    <div class="modal fade" id="manifestoModal" tabindex="-1" aria-labelledby="manifestoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="manifestoModalLabel">Candidate Manifesto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="manifesto-content p-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include 'includes/footer.php'; ?>
+
+    <!-- Audio element for notification sound -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
+        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+         document.addEventListener('DOMContentLoaded', function() {
             // Initialize theme from localStorage
             const currentTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', currentTheme);
@@ -2430,143 +3416,457 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
                 }
             });
             
-            // Set checkbox state when candidate card is clicked
+            // Add click handlers to candidate cards
             document.querySelectorAll('.candidate-card').forEach(card => {
                 card.addEventListener('click', function(e) {
-                    // Only process click on the card itself, not on its children
-                    if (e.target.closest('.manifesto-btn') || e.target.closest('a') || e.target.tagName === 'INPUT') {
+                    // Don't process clicks on links or buttons
+                    if (e.target.closest('a') || e.target.closest('button')) {
                         return;
                     }
                     
-                    // Find the checkbox
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    const isMultiple = checkbox.getAttribute('data-multiple') === 'true';
-                    const positionId = checkbox.getAttribute('data-position');
+                    const radioButton = this.querySelector('input[type="radio"]');
                     
-                    // If it's not a multiple selection position, uncheck all other checkboxes in this group
-                    if (!isMultiple) {
-                        document.querySelectorAll(`input[data-position="${positionId}"]`).forEach(cb => {
-                            if (cb !== checkbox) {
-                                cb.checked = false;
-                                cb.closest('.candidate-card').classList.remove('selected');
-                            }
-                        });
-                    }
-                    
-                    // Toggle checkbox
-                    checkbox.checked = !checkbox.checked;
+                    // Toggle radio button
+                    radioButton.checked = true;
                     
                     // Toggle selected class
-                    this.classList.toggle('selected', checkbox.checked);
-                    
-                    // Enforce max votes if needed
-                    if (isMultiple) {
-                        const maxVotes = parseInt(checkbox.getAttribute('data-max-votes'));
-                        const checkedBoxes = document.querySelectorAll(`input[data-position="${positionId}"]:checked`).length;
-                        
-                        if (checkedBoxes > maxVotes) {
-                            checkbox.checked = false;
-                            this.classList.remove('selected');
-                            
-                            // Show warning
-                            const alertMessage = `You can only select up to ${maxVotes} candidate(s) for this position.`;
-                            
-                            // Create bootstrap alert
-                            const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-warning alert-dismissible fade show mt-3';
-                            alertDiv.setAttribute('role', 'alert');
-                            alertDiv.innerHTML = `
-                                <i class="bi bi-exclamation-triangle-fill"></i> ${alertMessage}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            `;
-                            
-                            // Find the position container and insert alert
-                            const positionContainer = this.closest('.position-container');
-                            if (positionContainer) {
-                                if (positionContainer.querySelector('.alert')) {
-                                    positionContainer.querySelector('.alert').remove();
-                                }
-                                positionContainer.querySelector('.candidates-row').before(alertDiv);
-                                
-                                // Auto dismiss after 3 seconds
-                                setTimeout(() => {
-                                    if (alertDiv.parentNode) {
-                                        const bsAlert = new bootstrap.Alert(alertDiv);
-                                        bsAlert.close();
-                                    }
-                                }, 3000);
-                            }
-                        }
-                    }
+                    document.querySelectorAll('.candidate-card').forEach(card => card.classList.remove('selected'));
+                    this.classList.add('selected');
                 });
             });
             
-            // Handle manifesto button click to open modal
-            document.querySelectorAll('.manifesto-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const candidateName = this.getAttribute('data-name');
-                    const candidateManifesto = this.getAttribute('data-manifesto');
-                    
-                    // Update modal content
-                    const modal = document.getElementById('manifestoModal');
-                    modal.querySelector('.modal-title').textContent = `${candidateName}'s Manifesto`;
-                    modal.querySelector('.modal-body').innerHTML = `<p>${candidateManifesto || 'No manifesto available.'}</p>`;
-                    
-                    // Show modal
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
-                });
-            });
-            
-            // Vote form validation
-            const voteForm = document.getElementById('voteForm');
-            if (voteForm) {
-                voteForm.addEventListener('submit', function(e) {
-                    // Check if at least one candidate is selected for each position
-                    const positionContainers = document.querySelectorAll('.position-container');
+            // Handle vote button click
+            const voteBtn = document.getElementById('voteBtn');
+            if (voteBtn) {
+                voteBtn.addEventListener('click', function() {
+                    // Validate selections
+                    const positions = document.querySelectorAll('.position-section');
                     let isValid = true;
+                    let missingPositions = [];
                     
-                    positionContainers.forEach(container => {
-                        const positionId = container.getAttribute('data-position-id');
-                        const selectedCandidates = container.querySelectorAll(`input[data-position="${positionId}"]:checked`).length;
-                        
-                        if (selectedCandidates === 0) {
-                            isValid = false;
+                    positions.forEach(position => {
+                        const radioButtons = position.querySelectorAll('input[type="radio"]');
+                        if (radioButtons.length > 0) {  // Only validate if position has candidates
+                            const positionId = radioButtons[0].name.split('_')[1];
+                            const selectedCandidate = position.querySelector(`input[name="vote_${positionId}"]:checked`);
                             
-                            // Add error message
-                            if (!container.querySelector('.alert')) {
-                                const alertDiv = document.createElement('div');
-                                alertDiv.className = 'alert alert-danger alert-dismissible fade show mt-3';
-                                alertDiv.setAttribute('role', 'alert');
-                                alertDiv.innerHTML = `
-                                    <i class="bi bi-exclamation-triangle-fill"></i> Please select at least one candidate for this position.
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                `;
-                                
-                                container.querySelector('.candidates-row').before(alertDiv);
+                            if (!selectedCandidate) {
+                                isValid = false;
+                                const positionTitle = position.querySelector('h3').textContent.trim();
+                                missingPositions.push(positionTitle);
                             }
                         }
                     });
                     
                     if (!isValid) {
-                        e.preventDefault();
-                        // Scroll to the first error
-                        const firstError = document.querySelector('.alert-danger');
-                        if (firstError) {
-                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Show error alert
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                        alertDiv.setAttribute('role', 'alert');
+                        alertDiv.innerHTML = `
+                            <i class="bi bi-exclamation-triangle-fill"></i> Please select candidates for the following positions: ${missingPositions.join(', ')}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        const votingCard = document.querySelector('.voting-card');
+                        if (votingCard) {
+                            if (votingCard.querySelector('.alert')) {
+                                votingCard.querySelector('.alert').remove();
+                            }
+                            votingCard.querySelector('.card-body').prepend(alertDiv);
                         }
-                    } else {
-                        // Show loading state
-                        const submitBtn = voteForm.querySelector('button[type="submit"]');
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+                        return;
+                    }
+                    
+                    // Show confirmation modal
+                    const confirmationModal = new bootstrap.Modal(document.getElementById('voteConfirmationModal'));
+                    confirmationModal.show();
+                    
+                    // Update vote summary
+                    const summaryDiv = document.getElementById('voteReviewSummary');
+                    if (summaryDiv) {
+                        let summaryHTML = '<div class="list-group">';
+                        positions.forEach(position => {
+                            const positionTitle = position.querySelector('h3').textContent;
+                            const selectedCandidate = position.querySelector('input[type="radio"]:checked');
+                            
+                            if (selectedCandidate) {
+                                const candidateCard = selectedCandidate.closest('.candidate-card');
+                                const candidateName = candidateCard.querySelector('.candidate-name').textContent;
+                                summaryHTML += `<div class="list-group-item">
+                                    <h6 class="mb-1">${positionTitle}</h6>
+                                    <p class="mb-0">${candidateName}</p>
+                                </div>`;
+                            }
+                        });
+                        summaryHTML += '</div>';
+                        summaryDiv.innerHTML = summaryHTML;
                     }
                 });
             }
+            
+            // Handle final submission
+            const finalSubmitBtn = document.getElementById('finalSubmitBtn');
+            if (finalSubmitBtn) {
+                finalSubmitBtn.addEventListener('click', function() {
+                    const form = document.getElementById('votingForm');
+                    if (form) {
+                        // Add submit_vote parameter
+                        const submitInput = document.createElement('input');
+                        submitInput.type = 'hidden';
+                        submitInput.name = 'submit_vote';
+                        submitInput.value = '1';
+                        form.appendChild(submitInput);
+                        
+                        // Show loading state
+                        this.disabled = true;
+                        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
+                        
+                        // Submit the form
+                        form.submit();
+                    }
+                });
+            }
+
+            // Handle form submission
+            const votingForm = document.getElementById('votingForm');
+            if (votingForm) {
+                votingForm.addEventListener('submit', function(e) {
+                    // Always prevent default submission - we'll handle it through the finalSubmitBtn
+                    e.preventDefault();
+                    
+                    // Validate selections
+                    const positions = document.querySelectorAll('.position-section');
+                    let isValid = true;
+                    let missingPositions = [];
+                    
+                    positions.forEach(position => {
+                        const radioButtons = position.querySelectorAll('input[type="radio"]');
+                        if (radioButtons.length > 0) {  // Only validate if position has candidates
+                            const positionId = radioButtons[0].name.split('_')[1];
+                            const selectedCandidate = position.querySelector(`input[name="vote_${positionId}"]:checked`);
+                            
+                            if (!selectedCandidate) {
+                                isValid = false;
+                                const positionTitle = position.querySelector('h3').textContent.trim();
+                                missingPositions.push(positionTitle);
+                            }
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        // Show error alert
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                        alertDiv.setAttribute('role', 'alert');
+                        alertDiv.innerHTML = `
+                            <i class="bi bi-exclamation-triangle-fill"></i> Please select candidates for the following positions: ${missingPositions.join(', ')}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        const votingCard = document.querySelector('.voting-card');
+                        if (votingCard) {
+                            if (votingCard.querySelector('.alert')) {
+                                votingCard.querySelector('.alert').remove();
+                            }
+                            votingCard.querySelector('.card-body').prepend(alertDiv);
+                        }
+                        return;
+                    }
+                    
+                    // Show confirmation modal
+                    const confirmationModal = new bootstrap.Modal(document.getElementById('voteConfirmationModal'));
+                    confirmationModal.show();
+                });
+            }
+
+            // Handle manifesto modal
+            const manifestoModal = document.getElementById('manifestoModal');
+            if (manifestoModal) {
+                manifestoModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const manifestoContent = button.getAttribute('data-manifesto');
+                    const modalBody = manifestoModal.querySelector('.manifesto-content');
+                    modalBody.textContent = manifestoContent;
+                });
+            }
+
+            // === NOTIFICATION FUNCTIONALITY ===
+            // Check for new notifications
+            function checkNewNotifications() {
+                const studentID = <?= $studentID ?? 0 ?>;
+                const userType = 'student';
+                
+                if (studentID > 0) {
+                    fetch('api/notifications_count.php?user_id=' + studentID + '&user_type=' + userType + '&last_check=' + new Date().toISOString())
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.count > 0) {
+                                // Update notification count in header if badge exists
+                                const $badge = document.getElementById('notification-badge');
+                                if ($badge) {
+                                    $badge.textContent = data.count;
+                                    $badge.classList.remove('d-none');
+                                }
+                                
+                                // Play notification sound
+                                const notificationSound = document.getElementById('notification-sound');
+                                if (notificationSound) {
+                                    notificationSound.currentTime = 0;
+                                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                                }
+                                
+                                // Show toast notification for latest notification
+                                if (data.latest_notification) {
+                                    showToastNotification(data.latest_notification);
+                                }
+                            }
+                        })
+                        .catch(error => console.error('Error checking notifications:', error));
+                }
+            }
+            
+            // Show toast notification
+            function showToastNotification(notification) {
+                const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                
+                // Play notification sound
+                const notificationSound = document.getElementById('notification-sound');
+                if (notificationSound) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch(error => console.error('Error playing notification sound:', error));
+                }
+                
+                // Remove any existing toast
+                const existingToasts = document.querySelectorAll('.toast');
+                existingToasts.forEach(toast => toast.remove());
+                
+                // Create toast container
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                
+                // Create toast element with slide-in animation
+                const toastEl = document.createElement('div');
+                toastEl.className = `toast show ${isDarkMode ? 'bg-dark text-white' : ''}`;
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+                toastEl.style.minWidth = '300px';
+                toastEl.style.maxWidth = '90vw';
+                toastEl.style.border = 'none';
+                toastEl.style.borderRadius = '0.5rem';
+                toastEl.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                toastEl.style.animation = 'slideIn 0.5s ease-out forwards';
+                
+                // Add CSS animation
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateY(100%); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(styleEl);
+                
+                // Create toast content
+                const icon = notification.icon || 'bi-bell-fill';
+                toastEl.innerHTML = `
+                    <div class="toast-header ${isDarkMode ? 'bg-dark text-white border-secondary' : ''}">
+                        <i class="bi ${icon} me-2"></i>
+                        <strong class="me-auto">New Notification</strong>
+                        <small>Just now</small>
+                        <button type="button" class="btn-close ${isDarkMode ? 'btn-close-white' : ''}" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        <h6 class="mb-1">${notification.title}</h6>
+                        <p class="mb-0 ${isDarkMode ? 'text-light' : ''}">${notification.message}</p>
+                        ${notification.action_url ? `
+                            <div class="mt-2 pt-2 border-top ${isDarkMode ? 'border-secondary' : ''}">
+                                <a href="${notification.action_url}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                // Add toast to container
+                toastContainer.appendChild(toastEl);
+                
+                // Add container to body
+                document.body.appendChild(toastContainer);
+                
+                // Add click handler for close button
+                const closeBtn = toastEl.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        toastContainer.remove();
+                    });
+                }
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    toastEl.style.opacity = '0';
+                    toastEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    toastEl.style.transform = 'translateY(100%)';
+                    
+                    setTimeout(() => {
+                        if (toastContainer.parentNode) {
+                            toastContainer.remove();
+                        }
+                    }, 500);
+                }, 5000);
+            }
+            
+            // Check for notifications when page loads
+            setTimeout(checkNewNotifications, 1000);
+            
+            // Check for new notifications every 30 seconds
+            setInterval(checkNewNotifications, 30000);
         });
+
+        // Countdown Timer functionality
+        function updateCountdown() {
+            <?php if ($currentElection): ?>
+            // Election start and end dates from PHP
+            const electionStartDate = new Date('<?= isset($currentElection["start_time"]) && $currentElection["start_time"] ? date('Y-m-d', strtotime($currentElection["startDate"])) . 'T' . date('H:i:s', strtotime($currentElection["start_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["startDate"])) ?>');
+            const electionEndDate = new Date('<?= isset($currentElection["end_time"]) && $currentElection["end_time"] ? date('Y-m-d', strtotime($currentElection["endDate"])) . 'T' . date('H:i:s', strtotime($currentElection["end_time"])) : date('Y-m-d\TH:i:s', strtotime($currentElection["endDate"])) ?>');
+            const electionStartDateUTC = new Date(electionStartDate.getTime() + (electionStartDate.getTimezoneOffset() * 60000));
+            const electionEndDateUTC = new Date(electionEndDate.getTime() + (electionEndDate.getTimezoneOffset() * 60000));
+            
+            const currentStatus = '<?= $currentElection["status"] ?>';
+
+            // Get current time in UTC
+            const now = new Date(Date.UTC(
+                new Date().getUTCFullYear(),
+                new Date().getUTCMonth(),
+                new Date().getUTCDate(),
+                new Date().getUTCHours(),
+                new Date().getUTCMinutes(),
+                new Date().getUTCSeconds()
+            ));
+
+
+            let targetDate;
+            let countdownLabel;
+
+            if (currentStatus === 'Scheduled') {
+                targetDate = electionStartDate;
+                countdownLabel = 'Election Starts In:';
+            } else if (currentStatus === 'Ongoing') {
+                targetDate = electionEndDate;
+                countdownLabel = 'Election Ends In:';
+            } else {
+                // Election is not scheduled or ongoing, so hide the timer
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                    clearInterval(countdownInterval);
+                }
+                return;
+            }
+
+            // Calculate time remaining in milliseconds
+            const timeLeft = targetDate.getTime() - now.getTime();
+
+            if (timeLeft > 0) {
+                // Election is still active (scheduled or ongoing)
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                // Update DOM elements safely
+                const daysEl = document.getElementById('days');
+                const hoursEl = document.getElementById('hours');
+                const minutesEl = document.getElementById('minutes');
+                const secondsEl = document.getElementById('seconds');
+                const timeRemainingText = document.querySelector('.time-remaining-text');
+
+                if (timeRemainingText) {
+                    timeRemainingText.textContent = countdownLabel;
+                }
+
+                if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+                if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+                if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+                if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
+
+            } else {
+                // If target date has passed
+                const countdownContainer = document.getElementById('election-countdown');
+                if (countdownContainer) {
+                    if (currentStatus === 'Scheduled') {
+                        // If scheduled election start time has passed, it should now be ongoing
+                        countdownContainer.innerHTML = '<div class="text-center text-success fw-bold">Election is starting now! Refreshing...</div>';
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 3000); // Reload after 3 seconds
+                    } else if (currentStatus === 'Ongoing') {
+                        // For ongoing elections, we should never reach here unless the end date has passed
+                        // Double check server time vs client time
+                        const serverNow = new Date('<?= date("Y-m-d\TH:i:s") ?>');
+                        const endDate = new Date('<?= date("Y-m-d\TH:i:s", strtotime($currentElection["endDate"])) ?>');
+
+                        if (serverNow >= endDate) {
+                            // If server time confirms election has ended
+                            countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+
+                            // Disable voting form and redirect to results
+                            const votingForm = document.getElementById('votingForm');
+                            if (votingForm) {
+                                votingForm.style.display = 'none';
+                                const endedMessage = document.createElement('div');
+                                endedMessage.className = 'alert alert-warning text-center';
+                                endedMessage.innerHTML = '<i class="bi bi-clock-history me-2"></i>This election has concluded. Results should be available soon.';
+                                votingForm.parentNode.insertBefore(endedMessage, votingForm);
+
+                                const resultsButton = document.createElement('a');
+                                resultsButton.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                resultsButton.className = 'btn btn-primary d-block mt-3';
+                                resultsButton.innerHTML = '<i class="bi bi-bar-chart-fill me-2"></i>View Election Results';
+                                endedMessage.appendChild(resultsButton);
+
+                                setTimeout(() => {
+                                    window.location.href = 'live_results.php?election=<?= $currentElection["electionID"] ?>';
+                                }, 5000);
+                            }
+
+                            // Clear the interval to stop the countdown
+                            clearInterval(countdownInterval);
+                        } else {
+                            // If client time is ahead of server time, recalculate with server time
+                            countdownContainer.innerHTML = '<div class="d-flex align-items-center justify-content-start countdown-container">' +
+                                '<div class="time-unit"><span>00</span><small>days</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>hours</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>minutes</small></div>' +
+                                '<div class="time-separator">:</div>' +
+                                '<div class="time-unit"><span>00</span><small>seconds</small></div>' +
+                            '</div>';
+
+                            // Force refresh to get updated election status
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 5000);
+                        }
+                    } else {
+                        // For completed elections
+                        countdownContainer.innerHTML = '<div class="text-center text-warning fw-bold">Election has ended</div>';
+                        clearInterval(countdownInterval);
+                    }
+                }
+            }
+            <?php endif; ?>
+        }
+
+        let countdownInterval; // Define interval variable in a scope accessible by clearInterval
+        <?php if ($currentElection): ?>
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Initial call to display immediately
+        <?php endif; ?>
     </script>
 </body>
 </html>

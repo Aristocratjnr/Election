@@ -81,8 +81,7 @@ if (empty($userData)) {
                         </button>
                     </li>
                     
-                                <!-- Live Results Tab - Improved UI -->
-                <li class="nav-item mx-1">
+                                <!-- Live Results Tab - Improved UI -->                <li class="nav-item mx-1">
                     <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
                     href="live_results.php"
                     style="transition: all 0.3s ease;"
@@ -97,11 +96,29 @@ if (empty($userData)) {
                             </span>
                         </span>
                         
-                        <!-- Text with subtle animation - using CSS variables instead of fixed color -->
-                        <span class="d-none d-md-inline fw-medium live-results-text">
-                            Live Results
+                        <!-- Text with subtle animation - using CSS variables instead of fixed color -->                        <span class="d-none d-md-inline fw-medium live-results-text">
+                            Live Results                        </span>
+                        
+                    </a>
+                </li>
+                
+                <!-- Blockchain Verification Link -->
+                <li class="nav-item mx-1">
+                    <a class="nav-link d-flex align-items-center position-relative px-3 py-2 rounded-3" 
+                    href="blockchain_verify.php"
+                    style="transition: all 0.3s ease;"
+                    onmouseover="this.style.backgroundColor='rgba(67, 97, 238, 0.1)';"
+                    onmouseout="this.style.backgroundColor='transparent';">
+                        
+                        <!-- Blockchain Icon -->
+                        <span class="position-relative">
+                            <i class="bi bi-shield-lock-fill fs-5 me-2" style="color: var(--primary);"></i>
                         </span>
                         
+                        <!-- Text -->
+                        <span class="d-none d-md-inline fw-medium">
+                            Verify Votes
+                        </span>
                     </a>
                 </li>
                     
@@ -423,3 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 </div>
+
+<!-- PWA Manifest and Theme Color -->
+<link rel="manifest" href="/Election/manifest.json">
+<meta name="theme-color" content="#4e73df">

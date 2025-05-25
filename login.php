@@ -286,10 +286,6 @@
     
     <!-- PWA Install Prompt -->
     <script src="scripts/install-prompt.js"></script>
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            });
-        }
-    </script>
+                    
   </body>
 </html>

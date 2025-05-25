@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>You're Offline | Election Portal</title>
+  <link rel="stylesheet" href="/Election/assets/vendor/css/core.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primary: #4e73df;
+      --primary-dark: #3b5bb5;
+      --text-main: #212529;
+      --text-secondary: #6c757d;
+      --bg-main: #f8f9fc;
+      --warning: #f6c23e;
+      --success: #1cc88a;
+      --danger: #e74a3b;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      padding: 1.5rem;
+      background-image: linear-gradient(to bottom right, rgba(78, 115, 223, 0.05), rgba(78, 115, 223, 0.1));
+    }
+    
+    .container {
+      max-width: 480px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--primary);
+    }
+    
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      color: var(--warning);
+    }
+    
+    .feature-icon {
+      margin-right: 0.5rem;
+      color: var(--primary);
+    }
+    
+    .connection-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      background: rgba(231, 74, 59, 0.1);
+      padding: 0.75rem;
+      border-radius: 6px;
+    }
+    
+    .status-icon {
+      color: var(--danger);
+      font-size: 1.25rem;
+      margin-right: 0.5rem;
+    }
+    
+    .status-text {
+      font-weight: 500;
+      color: var(--danger);
+    }
+    
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+    
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+    }
+    
+    .troubleshooting {
+      background: rgba(78, 115, 223, 0.05);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+      border-left: 3px solid var(--primary);
+    }
+    
+    .troubleshooting h2 {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+    
+    .troubleshooting ul {
+      padding-left: 1.25rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    
+    .troubleshooting li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(78, 115, 223, 0.3);
+      margin: 0 0.5rem 0.5rem 0;
+      min-width: 160px;
+    }
+    
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(78, 115, 223, 0.35);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(78, 115, 223, 0.25);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(78, 115, 223, 0.05);
+      color: var(--primary-dark);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+    }
+    
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.75rem;
+      }
+      
+      .icon {
+        font-size: 3rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <i class="bi bi-wifi-off icon"></i>
+    
+    <h1>You're Currently Offline</h1>
+    <p>The Election Portal requires an internet connection. Please check your connection and try again.</p>
+    
+    <div class="connection-status">
+      <span class="status-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+      <span class="status-text">No Internet Connection</span>
+    </div>
+    
+    <div class="troubleshooting">
+      <h2><i class="bi bi-tools feature-icon"></i>Troubleshooting Tips:</h2>
+      <ul>
+        <li><i class="bi bi-wifi feature-icon"></i>Check your Wi-Fi or cellular data connection</li>
+        <li><i class="bi bi-arrow-clockwise feature-icon"></i>Try refreshing the page once your connection is restored</li>
+        <li><i class="bi bi-router feature-icon"></i>If using Wi-Fi, try moving closer to your router</li>
+        <li><i class="bi bi-power feature-icon"></i>Restart your device if the problem persists</li>
+      </ul>
+    </div>
+    
+    <div class="actions">
+      <button onclick="window.location.reload()" class="btn"><i class="bi bi-arrow-repeat"></i>&nbsp;Retry</button>
+      <a href="/Election/" class="btn btn-secondary"><i class="bi bi-house-door"></i></a>
+    </div>
+  </div>
+
+  <script>
+    // Check connection status and refresh page when back online
+    window.addEventListener('online', () => {
+      document.querySelector('.status-icon i').classList.remove('bi-exclamation-triangle-fill');
+      document.querySelector('.status-icon i').classList.add('bi-check-circle-fill');
+      document.querySelector('.status-icon').style.color = 'var(--success)';
+      document.querySelector('.status-text').textContent = 'Connection Restored!';
+      document.querySelector('.status-text').style.color = 'var(--success)';
+      document.querySelector('.connection-status').style.background = 'rgba(28, 200, 138, 0.1)';
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    });
+    
+    // Add visual feedback when retry button is clicked
+    document.querySelector('.btn').addEventListener('click', function() {
+      const btnIcon = this.querySelector('i');
+      btnIcon.classList.remove('bi-arrow-repeat');
+      btnIcon.classList.add('bi-hourglass-split');
+      btnIcon.classList.add('pulse-animation');
+      this.textContent = ' Checking connection...';
+      this.prepend(btnIcon);
+      
+      setTimeout(() => {
+        btnIcon.classList.remove('bi-hourglass-split');
+        btnIcon.classList.remove('pulse-animation');
+        btnIcon.classList.add('bi-arrow-repeat');
+        this.textContent = ' Retry Connection';
+        this.prepend(btnIcon);
+      }, 1500);
+    });
+    
+    // Add pulse animation to the wifi-off icon
+    document.querySelector('.icon').classList.add('pulse-animation');
+  </script>
+</body>
+</html>
