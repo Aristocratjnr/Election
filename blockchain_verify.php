@@ -7,8 +7,16 @@ if (!isset($_SESSION['login_id'])) {
     exit;
 }
 
+// Set security headers
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("X-Frame-Options: SAMEORIGIN");
+header("Referrer-Policy: strict-origin-when-cross-origin");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:;");
+
 require_once 'configs/dbconnection.php';
 require_once 'classes/Blockchain.php';
+require_once 'includes/csrf_protection.php';
 
 // Check if user is admin or student
 $isAdmin = isset($_SESSION['isAdmin']) && $_SESSION['isAdmin'] === true;
@@ -20,14 +28,23 @@ $blockchain = new Blockchain($conn);
 $elections = $conn->query("SELECT * FROM elections ORDER BY startDate DESC");
 
 // Initialize variables
-$electionID = $_GET['election'] ?? null;
-$action = $_GET['action'] ?? null;
-$voteID = $_GET['vote'] ?? null;
+$electionID = isset($_GET['election']) ? filter_var($_GET['election'], FILTER_VALIDATE_INT) : null;
+$action = isset($_GET['action']) ? filter_var($_GET['action'], FILTER_SANITIZE_SPECIAL_CHARS) : null;
+$voteID = isset($_GET['vote']) ? filter_var($_GET['vote'], FILTER_VALIDATE_INT) : null;
 $message = '';
 $blockchainData = [];
 $validationResult = [];
 $verificationResult = [];
 $stats = [];
+
+// CSRF token validation for actions
+if ($action && (!isset($_GET['csrf_token']) || !validateCSRFToken($_GET['csrf_token']))) {
+    // Only apply strict CSRF checking for actions that modify data
+    if (in_array($action, ['validate', 'verify'])) {
+        $message = "Invalid security token. Please try again.";
+        $action = null;
+    }
+}
 
 // Handle actions
 if ($electionID) {
@@ -97,407 +114,18 @@ function formatBlockData($data) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blockchain Verification - SmartVote</title>
     <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
+    <link href="assets/css/blockchain-verify.css" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-          :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #6c757d;
-            --success: #2ecc71;
-            --success-dark: #27ae60;
-            --info: #00cec9;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --light: #f8f9fa;
-            --dark: #2d3436;
-            --blockchain-green: #00b894;
-            --blockchain-blue: #0984e3;
-            --blockchain-purple: #6c5ce7;
-            --blockchain-gradient: linear-gradient(135deg, #6c5ce7, #0984e3);
-            --blockchain-gradient-2: linear-gradient(135deg, #00b894, #0984e3);
-        }          body {
-            background-color: #f7f9fc;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            letter-spacing: -0.01em;
-        }
-
-        /* Typography adjustments */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-        }
-
-        p {
-            line-height: 1.6;
-        }
-
-        .fw-bold {
-            letter-spacing: -0.02em;
-        }
-
-        .form-label {
-            font-weight: 500;
-            letter-spacing: -0.01em;
-        }
-
-        .btn {
-            font-weight: 500;
-            letter-spacing: -0.01em;
-        }
-          .header {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 1rem 0;
-            margin-bottom: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                padding: 0.75rem 0;
-            }
-            .header h1 {
-                font-size: 1.25rem;
-            }
-            .header p {
-                font-size: 0.875rem;
-            }
-        }
-        
-        .block-card {
-            position: relative;
-            border-radius: 1rem;
-            border: 1px solid var(--border-color);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            background: var(--card-bg);
-            transition: all 0.3s ease;
-        }
-
-
-        .block-card.genesis {
-            background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
-            color: white;
-        }
-
-        .block-card.vote {
-            background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
-            color: white;
-        }          .block-hash {
-            font-family: 'Inter', monospace;
-            font-size: 0.9rem;
-            background-color: #f8f9fd;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            word-break: break-all;
-            border: 1px solid #e9ecef;
-            letter-spacing: 0;
-            font-variant-numeric: tabular-nums;
-            font-feature-settings: "tnum";
-        }
-        .block-hash.genesis {
-            background-color: var(--blockchain-purple);
-            color: white;
-        }
-        .block-link {
-            position: relative;
-            height: 30px;
-            margin: -15px 0;
-        }
-
-        .block-link::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(67,97,238,0.5), rgba(67,97,238,0.3));
-            animation: pulse-line 2s infinite;
-        }
-        
-        .block-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            height: 80%;
-            width: 3px;
-            background: var(--blockchain-gradient-2);
-            border-radius: 3px;
-        }
-        
-        .block-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--blockchain-gradient-2);
-            box-shadow: 0 2px 8px rgba(0, 184, 148, 0.5);
-            animation: pulseGlow 3s infinite;
-        }
-        
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 184, 148, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); }
-        }
-          .verification-pill {
-            padding: 0.5rem 1.5rem;
-            font-weight: 700;
-            border-radius: 2rem;
-            display: inline-block;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-            letter-spacing: 1px;
-        }
-        
-        .bg-primary-gradient {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark, #0a58ca) 100%);
-            color: white;
-        }
-
-        .bg-success-gradient {
-            background: linear-gradient(135deg, var(--success-color) 0%, var(--success-dark, #146c43) 100%);
-            color: white;
-        }
-
-        .bg-info-gradient {
-            background: linear-gradient(135deg, var(--info-color) 0%, var(--info-dark, #0891b2) 100%);
-            color: white;
-        }
-
-        .bg-warning-gradient {
-            background: linear-gradient(135deg, var(--warning-color) 0%, var(--warning-dark, #d97706) 100%);
-            color: white;
-        }
-
-        .card-icon {
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            font-size: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .card-icon i {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .blockchain-stats {
-            padding: 1.5rem;
-            border-radius: 1rem;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-            color: white;
-        }
-
-        .blockchain-stats .stats-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            background: rgba(255,255,255,0.2);
-        }
-
-        .blockchain-stats .stats-value {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .blockchain-stats .stats-label {
-            font-size: 0.875rem;
-            opacity: 0.8;
-        }
-
-        .custom-card {
-            border: none;
-            border-radius: 1rem;
-            overflow: hidden;
-            background-color: var(--card-bg);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        
-        /* Add button styles */
-        .btn {
-            border-radius: 0.75rem;
-            padding: 0.6rem 1.5rem;
-            font-weight: 200;
-            text-transform: capitalize;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-        
-        .btn-primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-        
-        .btn-success {
-            background-color: var(--success);
-            border-color: var(--success);
-        }
-        .btn-info {
-            background-color: var(--info);
-            border-color: var(--info);
-        }
-        /* Badge styling */
-        .badge {
-            padding: 0.5em 1em;
-            border-radius: 0.5rem;
-            font-weight: 600;
-        }
-        
-        /* New blockchain explorer styles */
-        .blockchain-explorer {
-            background: var(--explorer-bg);
-            border-radius: 0.5rem;
-        }
-        
-        .blockchain-timeline {
-            position: relative;
-            padding: 1rem 0;
-        }
-        
-        .blockchain-timeline::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            width: 1px;
-            background: linear-gradient(to bottom, transparent, var(--explorer-accent) 10%, var(--explorer-accent) 90%, transparent);
-            transform: translateX(-50%);
-            z-index: 0;
-            display: none; /* Hidden for horizontal layout */
-        }
-        
-        .blockchain-block-card {
-            position: relative;
-            transition: all 0.2s ease;
-        }
-        
-        
-        
-        .block-card {
-            border-radius: 0.75rem;
-            border: 1px solid var(--explorer-border) !important;
-            background: var(--explorer-card-bg) !important;
-            overflow: hidden;
-        }
-        
-        .block-badge {
-            background: var(--explorer-hash-bg);
-            border: 1px solid var(--explorer-border);
-            color: var(--explorer-text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        
-        .block-hash {
-            font-family: 'JetBrains Mono', monospace !important;
-            word-break: break-all;
-            background: var(--explorer-hash-bg) !important;
-            border: 1px solid var(--explorer-border) !important;
-            border-radius: 0.375rem;
-            padding: 0.5rem !important;
-            color: var(--explorer-text) !important;
-            font-size: 0.75rem !important;
-            line-height: 1.2;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .block-hash:hover {
-            white-space: normal;
-            word-wrap: break-word;
-        }
-        
-        .block-icon {
-            background: var(--explorer-hash-bg);
-            color: var(--explorer-accent);
-        }
-        
-        .block-header {
-            border-bottom: 1px solid var(--explorer-border);
-            padding-bottom: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
-        
-        .blockchain-arrow .bi {
-            color: var(--explorer-accent);
-            filter: drop-shadow(0 1px 3px rgba(59, 130, 246, 0.3));
-        }
-        
-        .block-section {
-            margin-bottom: 0.75rem;
-        }
-        
-        .block-section-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05rem;
-            color: var(--explorer-text-muted);
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-        
-        .block-data-table th {
-            font-weight: 500;
-            color: var(--explorer-text-muted);
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            border-top: none;
-        }
-        
-        .block-data-table td {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-        }
-        
-        .explorer-heading {
-            color: var(--explorer-block-heading);
-            font-weight: 600;
-        }
-        
-        .explorer-tag {
-            font-family: 'JetBrains Mono', monospace;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-    </style>
+   
 </head>
 
-<body>    <div class="header">
+<body>   
+     <div class="header">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8 mb-2 mb-md-0">
@@ -531,8 +159,8 @@ function formatBlockData($data) {
                                 <a href="blockchain_learn.php" class="ms-2 btn btn-sm btn-outline-primary">
                                     <i class="bi bi-info-circle me-1"></i> Learn how blockchain works
                                 </a>
-                            </p>
-                          <form method="GET" class="row g-3">
+                            </p>                          <form method="GET" class="row g-3">
+                            <?php echo generateCSRFTokenField(); ?>
                             <div class="col-md-6">
                                 <div class="p-4 rounded-4 h-100" >
                                     <label class="form-label fw-bold  mb-3">
@@ -544,15 +172,14 @@ function formatBlockData($data) {
                                     <select name="election" class="form-select form-select-md" style="border-radius: 10px;" onchange="this.form.submit()">
                                         <option value="">Choose an election...</option>
                                         <?php while ($election = $elections->fetch_assoc()): ?>
-                                            <option value="<?php echo $election['electionID']; ?>" <?php echo (isset($electionID) && $electionID == $election['electionID']) ? 'selected' : ''; ?>>
+                                            <option value="<?php echo htmlspecialchars($election['electionID']); ?>" <?php echo (isset($electionID) && $electionID == $election['electionID']) ? 'selected' : ''; ?>>
                                                 <?php echo htmlspecialchars($election['name']); ?>
-                                                <span class="text-muted">(<?php echo $election['status']; ?>)</span>
+                                                <span class="text-muted">(<?php echo htmlspecialchars($election['status']); ?>)</span>
                                             </option>
                                         <?php endwhile; ?>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
+                            </div>                            <div class="col-md-6">
                                 <div class="p-4 rounded-4 h-100" >
                                     <label class="form-label fw-bold mb-3">
                                         <div class="d-flex align-items-center">
@@ -562,9 +189,10 @@ function formatBlockData($data) {
                                     </label>
                                     <div class="input-group">
                                         <input type="hidden" name="action" value="verify">
-                                        <input type="text" name="vote" class="" 
+                                        <input type="text" name="vote" class="form-control" 
                                             style="border-top-left-radius: 10px; border-bottom-left-radius: 10px;" 
-                                            placeholder="Enter Vote ID" aria-label="Vote ID" value="<?php echo $voteID ?? ''; ?>">
+                                            placeholder="Enter Vote ID" aria-label="Vote ID" value="<?php echo htmlspecialchars($voteID ?? ''); ?>"
+                                            pattern="[0-9]+" title="Please enter a numeric vote ID">
                                         <button class="btn btn-sm btn-outline-primary" type="submit">
                                             <i class="bi bi-check-circle me-1"></i> Verify
                                         </button>
@@ -657,18 +285,17 @@ function formatBlockData($data) {
                         </div>
                     </div>
                 </div>
-            </div>
-              <!-- Action Buttons -->
+            </div>            <!-- Action Buttons -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card custom-card">
                         <div class="card-body p-4">
                             <h6 class="mb-3"><i class="bi bi-gear-fill me-2"></i>Blockchain Actions</h6>
                             <div class="d-flex flex-wrap gap-3">
-                                <a href="?election=<?php echo $electionID; ?>&action=view" class="btn btn-sm btn-outline-primary">
+                                <a href="?election=<?php echo htmlspecialchars($electionID); ?>&action=view&csrf_token=<?php echo generateCSRFToken(); ?>" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-eye-fill me-2"></i> View Blockchain
                                 </a>
-                                <a href="?election=<?php echo $electionID; ?>&action=validate" class="btn btn-sm btn-outline-success">
+                                <a href="?election=<?php echo htmlspecialchars($electionID); ?>&action=validate&csrf_token=<?php echo generateCSRFToken(); ?>" class="btn btn-sm btn-outline-success">
                                     <i class="bi bi-shield-check me-2"></i> Validate Blockchain
                                 </a>
                                 
@@ -813,11 +440,10 @@ function formatBlockData($data) {
                                         <div class="bg-light p-3 rounded mb-4">
                                             <div class="row align-items-center">
                                                 <div class="col-md-6">
-                                                    <h6 class="text-muted mb-1">Block Reference</h6>
-                                                    <p class="mb-0 fw-bold">Block ID: <?php echo $verificationResult['block_id']; ?></p>
+                                                    <h6 class="text-muted mb-1">Block Reference</h6>                                                    <p class="mb-0 fw-bold">Block ID: <?php echo htmlspecialchars($verificationResult['block_id']); ?></p>
                                                 </div>
                                                 <div class="col-md-6 text-md-end mt-2 mt-md-0">
-                                                    <a href="?election=<?php echo $electionID; ?>&action=view" class="btn btn-sm btn-primary">
+                                                    <a href="?election=<?php echo htmlspecialchars($electionID); ?>&action=view&csrf_token=<?php echo generateCSRFToken(); ?>" class="btn btn-sm btn-primary">
                                                         <i class="bi bi-box me-1"></i> View in Blockchain
                                                     </a>
                                                 </div>
@@ -1044,12 +670,11 @@ function formatBlockData($data) {
                 </div>
                 
                 <div class="card-footer bg-light py-3 px-4 border-top">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
+                    <div class="d-flex justify-content-between align-items-center">                        <div class="text-muted small">
                             <i class="bi bi-info-circle me-1"></i> Scroll horizontally to view all blocks
                         </div>
                         <div>
-                            <a href="?election=<?php echo $electionID; ?>&action=validate" class="btn btn-sm btn-outline-primary">
+                            <a href="?election=<?php echo htmlspecialchars($electionID); ?>&action=validate&csrf_token=<?php echo generateCSRFToken(); ?>" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-shield-check me-1"></i> Validate Chain
                             </a>
                         </div>

@@ -85,8 +85,7 @@ class Blockchain {
         
         return true;
     }
-    
-    /**
+      /**
      * Add a new vote to the blockchain
      * 
      * @param int $electionID The election ID
@@ -97,6 +96,16 @@ class Blockchain {
      */
     public function addVote($electionID, $studentID, $candidateID, $voteID) {
         try {
+            // Input validation
+            $electionID = filter_var($electionID, FILTER_VALIDATE_INT);
+            $studentID = filter_var($studentID, FILTER_VALIDATE_INT);
+            $candidateID = filter_var($candidateID, FILTER_VALIDATE_INT);
+            $voteID = filter_var($voteID, FILTER_VALIDATE_INT);
+            
+            if (!$electionID || !$studentID || !$candidateID || !$voteID) {
+                throw new Exception("Invalid input parameters");
+            }
+            
             // Make sure genesis block exists
             $this->createGenesisBlock($electionID);
             
@@ -118,8 +127,12 @@ class Blockchain {
             
             // Prepare vote data - do not include the student ID directly in the blockchain
             // Instead use a one-way hash of the student ID + salt to maintain voter privacy
-            $salt = bin2hex(random_bytes(16));
+            $salt = bin2hex(random_bytes(32)); // Increased from 16 to 32 bytes
             $anonymizedVoter = hash('sha256', $studentID . $salt);
+            
+            // Get current timestamp with microseconds for added entropy
+            $timestamp = microtime(true);
+            $formattedTime = date('Y-m-d H:i:s', (int)$timestamp);
             
             $data = [
                 'type' => 'vote',
@@ -128,8 +141,10 @@ class Blockchain {
                 'candidate_id' => $candidateID,
                 'voter_hash' => $anonymizedVoter,
                 'salt' => $salt, // Store salt for verification (can't reverse the hash)
-                'timestamp' => date('Y-m-d H:i:s'),
-                'ip_hash' => hash('sha256', $_SERVER['REMOTE_ADDR']) // Store hashed IP for audit
+                'timestamp' => $formattedTime,
+                'ip_hash' => hash('sha256', $_SERVER['REMOTE_ADDR']), // Store hashed IP for audit
+                'user_agent_hash' => hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'), // Add browser fingerprint
+                'created_at_micro' => $timestamp // Store precise timestamp with microseconds
             ];
             
             $jsonData = json_encode($data);
@@ -146,6 +161,28 @@ class Blockchain {
             
             if (!$stmt->execute()) {
                 throw new Exception("Failed to insert block: " . $stmt->error);
+            }
+            
+            // Verify the block was added correctly
+            $blockID = $this->conn->insert_id;
+            $verifyStmt = $this->conn->prepare(
+                "SELECT * FROM blockchain_blocks WHERE block_id = ?"
+            );
+            $verifyStmt->bind_param("i", $blockID);
+            $verifyStmt->execute();
+            $verifyResult = $verifyStmt->get_result();
+            
+            if ($verifyResult->num_rows === 0) {
+                throw new Exception("Failed to verify block after insertion");
+            }
+            
+            $addedBlock = $verifyResult->fetch_assoc();
+            $verifyHash = $this->calculateHash($addedBlock['vote_data'], $addedBlock['previous_hash'], $addedBlock['nonce']);
+            
+            if ($verifyHash !== $addedBlock['block_hash']) {
+                // This should never happen, but if it does, we have a serious issue
+                error_log("Critical blockchain error: Block hash verification failed immediately after insertion");
+                throw new Exception("Block hash verification failed");
             }
             
             return true;
@@ -167,26 +204,44 @@ class Blockchain {
     public function calculateHash($data, $previousHash, $nonce) {
         return hash('sha256', $previousHash . $data . $nonce);
     }
-    
-    /**
+      /**
      * Simplified proof of work implementation
      * Finds a nonce that produces a hash with leading zeros
      * 
      * @param string $data The block data
      * @param string $previousHash The previous block's hash
-     * @param int $difficulty The number of leading zeros required (default: 2)
+     * @param int $difficulty The number of leading zeros required (default: 4)
      * @return int The nonce that satisfies the difficulty requirement
      */
-    private function proofOfWork($data, $previousHash, $difficulty = 2) {
+    private function proofOfWork($data, $previousHash, $difficulty = 4) {
         $target = str_repeat("0", $difficulty);
         $nonce = 0;
+        $maxAttempts = 1000000; // Safety limit
+        $attempts = 0;
         
-        while (true) {
+        while ($attempts < $maxAttempts) {
             $hash = $this->calculateHash($data, $previousHash, $nonce);
             if (substr($hash, 0, $difficulty) === $target) {
                 break;
             }
             $nonce++;
+            $attempts++;
+        }
+        
+        if ($attempts >= $maxAttempts) {
+            error_log("Warning: Maximum proof of work attempts reached for blockchain");
+            // Fall back to a simpler difficulty if we hit the limit
+            $difficulty = 2;
+            $target = str_repeat("0", $difficulty);
+            $nonce = 0;
+            
+            while (true) {
+                $hash = $this->calculateHash($data, $previousHash, $nonce);
+                if (substr($hash, 0, $difficulty) === $target) {
+                    break;
+                }
+                $nonce++;
+            }
         }
         
         return $nonce;
@@ -277,8 +332,7 @@ class Blockchain {
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-    
-    /**
+      /**
      * Verify if a specific vote exists in the blockchain
      * 
      * @param int $electionID The election ID
@@ -286,6 +340,19 @@ class Blockchain {
      * @return array Result with verification status
      */
     public function verifyVote($electionID, $voteID) {
+        // Input validation
+        $electionID = filter_var($electionID, FILTER_VALIDATE_INT);
+        $voteID = filter_var($voteID, FILTER_VALIDATE_INT);
+        
+        if (!$electionID || !$voteID) {
+            return [
+                'exists' => false,
+                'valid' => false,
+                'block_id' => null,
+                'message' => 'Invalid input parameters'
+            ];
+        }
+        
         $result = [
             'exists' => false,
             'valid' => false,
@@ -293,46 +360,131 @@ class Blockchain {
             'message' => ''
         ];
         
-        // Find the block containing this vote
-        $stmt = $this->conn->prepare("
-            SELECT * FROM blockchain_blocks 
-            WHERE election_id = ? AND JSON_EXTRACT(vote_data, '$.vote_id') = ?
-        ");
-        $stmt->bind_param("ii", $electionID, $voteID);
-        $stmt->execute();
-        $block = $stmt->get_result()->fetch_assoc();
-        
-        if (!$block) {
-            $result['message'] = "Vote ID $voteID not found in blockchain for election ID $electionID";
+        try {
+            // Find the block containing this vote
+            $stmt = $this->conn->prepare("
+                SELECT * FROM blockchain_blocks 
+                WHERE election_id = ? AND JSON_EXTRACT(vote_data, '$.vote_id') = ?
+            ");
+            $stmt->bind_param("ii", $electionID, $voteID);
+            $stmt->execute();
+            $block = $stmt->get_result()->fetch_assoc();
+            
+            if (!$block) {
+                $result['message'] = "Vote ID $voteID not found in blockchain for election ID $electionID";
+                return $result;
+            }
+            
+            $result['exists'] = true;
+            $result['block_id'] = $block['block_id'];
+            
+            // Recalculate hash to verify block integrity
+            $recalculatedHash = $this->calculateHash(
+                $block['vote_data'], 
+                $block['previous_hash'], 
+                $block['nonce']
+            );
+            
+            if ($recalculatedHash !== $block['block_hash']) {
+                $result['message'] = "Vote found but block integrity is compromised!";
+                
+                // Log the tampering attempt
+                error_log("Blockchain tampering detected: Block {$block['block_id']} hash mismatch for election $electionID");
+                
+                return $result;
+            }
+            
+            // Verify the previous and next blocks to ensure chain integrity
+            $prevNextValid = $this->verifyAdjacentBlocks($block['block_id'], $electionID);
+            if (!$prevNextValid) {
+                $result['message'] = "Vote found but blockchain chain links are compromised!";
+                return $result;
+            }
+            
+            // Check if this block is part of a valid chain
+            $chainValidation = $this->validateChain($electionID);
+            if (!$chainValidation['valid']) {
+                $result['message'] = "Vote found but blockchain integrity is compromised!";
+                return $result;
+            }
+            
+            $result['valid'] = true;
+            $result['message'] = "Vote ID $voteID verified successfully in the blockchain.";
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("Error verifying vote: " . $e->getMessage());
+            $result['message'] = "Error verifying vote: Internal server error";
             return $result;
         }
-        
-        $result['exists'] = true;
-        $result['block_id'] = $block['block_id'];
-        
-        // Recalculate hash to verify block integrity
-        $recalculatedHash = $this->calculateHash(
-            $block['vote_data'], 
-            $block['previous_hash'], 
-            $block['nonce']
-        );
-        
-        if ($recalculatedHash !== $block['block_hash']) {
-            $result['message'] = "Vote found but block integrity is compromised!";
-            return $result;
+    }
+    
+    /**
+     * Verify the integrity of blocks adjacent to a given block
+     * 
+     * @param int $blockID The block ID to check
+     * @param int $electionID The election ID
+     * @return bool True if adjacent blocks are valid
+     */
+    private function verifyAdjacentBlocks($blockID, $electionID) {
+        try {
+            // Get the current block
+            $stmt = $this->conn->prepare("SELECT * FROM blockchain_blocks WHERE block_id = ? AND election_id = ?");
+            $stmt->bind_param("ii", $blockID, $electionID);
+            $stmt->execute();
+            $currentBlock = $stmt->get_result()->fetch_assoc();
+            
+            if (!$currentBlock) {
+                return false;
+            }
+            
+            // Check previous block if not genesis
+            if ($currentBlock['previous_hash']) {
+                $prevStmt = $this->conn->prepare("SELECT * FROM blockchain_blocks WHERE block_hash = ? AND election_id = ?");
+                $prevStmt->bind_param("si", $currentBlock['previous_hash'], $electionID);
+                $prevStmt->execute();
+                $prevBlock = $prevStmt->get_result()->fetch_assoc();
+                
+                if (!$prevBlock) {
+                    return false;
+                }
+                
+                // Verify previous block's hash
+                $recalcPrevHash = $this->calculateHash(
+                    $prevBlock['vote_data'], 
+                    $prevBlock['previous_hash'], 
+                    $prevBlock['nonce']
+                );
+                
+                if ($recalcPrevHash !== $prevBlock['block_hash']) {
+                    return false;
+                }
+            }
+            
+            // Check next block if exists
+            $nextStmt = $this->conn->prepare("SELECT * FROM blockchain_blocks WHERE previous_hash = ? AND election_id = ?");
+            $nextStmt->bind_param("si", $currentBlock['block_hash'], $electionID);
+            $nextStmt->execute();
+            $nextBlock = $nextStmt->get_result()->fetch_assoc();
+            
+            if ($nextBlock) {
+                // Verify next block's hash
+                $recalcNextHash = $this->calculateHash(
+                    $nextBlock['vote_data'], 
+                    $nextBlock['previous_hash'], 
+                    $nextBlock['nonce']
+                );
+                
+                if ($recalcNextHash !== $nextBlock['block_hash']) {
+                    return false;
+                }
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error verifying adjacent blocks: " . $e->getMessage());
+            return false;
         }
-        
-        // Check if this block is part of a valid chain
-        $chainValidation = $this->validateChain($electionID);
-        if (!$chainValidation['valid']) {
-            $result['message'] = "Vote found but blockchain integrity is compromised!";
-            return $result;
-        }
-        
-        $result['valid'] = true;
-        $result['message'] = "Vote ID $voteID verified successfully in the blockchain.";
-        
-        return $result;
     }
     
     /**
