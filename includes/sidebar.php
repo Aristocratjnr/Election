@@ -763,28 +763,12 @@ if (!empty($profile_pic)) {
                 <i class="bi bi-sliders"></i>
                 <span>Preferences</span>
               </a>
-            </li>            <li class="submenu-item <?= ($current_script === 'activity.php') ? 'active' : '' ?>">
+            </li>
+            <li class="submenu-item <?= ($current_script === 'activity.php') ? 'active' : '' ?>">
               <a href="activity.php">
                 <i class="bi bi-activity"></i>
                 <span>Activity Log</span>
                 <span class="badge bg-danger rounded-pill ms-auto">New</span>
-              </a>
-            </li>            <li class="submenu-item <?= ($current_script === 'admin_blockchain_setup.php') ? 'active' : '' ?>">
-              <a href="admin_blockchain_setup.php">
-                <i class="bi bi-shield-check"></i>
-                <span>Blockchain Security</span>
-                <?php 
-                // Safely check if blockchain table exists (only if database connection is available)
-                if (isset($conn) && $conn): 
-                    $blockchainEnabled = false;
-                    $result = $conn->query("SHOW TABLES LIKE 'blockchain_blocks'");
-                    if ($result && $result->num_rows === 0): 
-                ?>
-                <span class="badge bg-warning rounded-pill ms-auto">Setup</span>
-                <?php 
-                    endif;
-                endif; 
-                ?>
               </a>
             </li>
           </ul>
