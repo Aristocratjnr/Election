@@ -12,7 +12,7 @@
  * @version 1.0
  */
 
-// Set execution time limit
+// Set execution time limit to 5 minutes
 set_time_limit(300);
 
 // Enable error reporting for debugging
@@ -60,50 +60,38 @@ try {
         foreach ($result['errors'] as $index => $error) {
             logMessage("Error {$index}: {$error}", 'ERROR');
         }
-    }
-
-   
+    }   
+    // Now create notifications for elections that changed status
     $currentDateTime = date('Y-m-d H:i:s');
     
-    // Update ongoing elections with precise datetime comparison
+    // Query elections that have just changed status
     $query = "SELECT electionID, name, status, startDate, endDate FROM elections 
-              WHERE (status = 'Scheduled' AND TIMESTAMP(startDate) <= TIMESTAMP(?)) 
-              OR (status = 'Ongoing' AND TIMESTAMP(endDate) <= TIMESTAMP(?))";
+              WHERE (status = 'Ongoing' AND DATE_FORMAT(startDate, '%Y-%m-%d %H:%i:%s') >= DATE_SUB(?, INTERVAL 5 MINUTE)) 
+              OR (status = 'Completed' AND DATE_FORMAT(endDate, '%Y-%m-%d %H:%i:%s') >= DATE_SUB(?, INTERVAL 5 MINUTE))";
     
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ss", $currentDateTime, $currentDateTime);
     
     if (!$stmt->execute()) {
-        throw new Exception("Failed to fetch elections: " . $conn->error);
+        throw new Exception("Failed to fetch elections for notifications: " . $conn->error);
     }
     
     $result = $stmt->get_result();
     
     while ($election = $result->fetch_assoc()) {
-        $newStatus = '';
         $notificationTitle = '';
         $notificationMessage = '';
         
-        // Determine new status and notification message
-        if ($election['status'] === 'Scheduled' && strtotime($election['startDate']) <= time()) {
-            $newStatus = 'Ongoing';
+        // Determine notification message based on current status
+        if ($election['status'] === 'Ongoing') {
             $notificationTitle = "Election Started";
             $notificationMessage = "The election '{$election['name']}' has started. You can now cast your vote!";
-        } elseif ($election['status'] === 'Ongoing' && strtotime($election['endDate']) <= time()) {
-            $newStatus = 'Completed';
+        } elseif ($election['status'] === 'Completed') {
             $notificationTitle = "Election Ended";
             $notificationMessage = "The election '{$election['name']}' has ended. Results will be available soon.";
         }
         
-        if ($newStatus) {
-            // Update election status
-            $updateStmt = $conn->prepare("UPDATE elections SET status = ? WHERE electionID = ?");
-            $updateStmt->bind_param("si", $newStatus, $election['electionID']);
-            
-            if (!$updateStmt->execute()) {
-                throw new Exception("Failed to update election status: " . $updateStmt->error);
-            }
-            
+        if ($notificationTitle) {
             // Create notifications for all students
             $studentQuery = "SELECT studentID, role FROM students WHERE status = 'Active'";
             $studentResult = $conn->query($studentQuery);
