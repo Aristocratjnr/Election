@@ -162,26 +162,30 @@ function sendReminderEmail($email, $name, $electionName, $startDate, $startTime,
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com';
+        $mail->Host = $_ENV['SMTP_HOST'];
         $mail->SMTPAuth = true;
         $mail->Username = $_ENV['SMTP_EMAIL'];
         $mail->Password = $_ENV['SMTP_PASSWORD'];
-        $mail->SMTPSecure = $_ENV['SMTP_SECURE'] ?? 'ssl';
-        $mail->Port = $_ENV['SMTP_PORT'] ?? 465;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = intval($_ENV['SMTP_PORT']);
+        
+        // Enable debug output when running from CLI
+        if (php_sapi_name() === 'cli') {
+            $mail->SMTPDebug = 2;
+        }
         
         // Recipients
-        $mail->setFrom($_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@smartvote.com', 'SmartVote EMS');
+        $mail->setFrom($_ENV['SMTP_FROM_EMAIL'], 'SmartVote EMS');
         $mail->addAddress($email, $name);
         
         // Content
         $mail->isHTML(true);
         $mail->Subject = "REMINDER: $electionName Election Tomorrow";
         
-        // Generate voter portal URL
         $baseUrl = isset($_ENV['BASE_URL']) ? $_ENV['BASE_URL'] : 'https://smartvote.42web.io';
         $voteUrl = "$baseUrl/student.php";
         
-        // Professional HTML email template
+      
         $mail->Body = <<<HTML
 <!DOCTYPE html>
 <html lang="en">

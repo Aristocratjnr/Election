@@ -1,0 +1,90 @@
+{
+  "name": "SmartVote - Election Management System",
+  "short_name": "SmartVote",
+  "description": "Secure and efficient student election management platform",
+  "start_url": "/Election/index.php",
+  "scope": "/Election/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8f9fc",
+  "theme_color": "#4e73df",
+  "prefer_related_applications": false,
+  "categories": ["education", "utilities"],
+  "id": "smartvote_ems_v2",
+  "version": "2.0",
+  "dir": "ltr",
+  "lang": "en",
+  "display_override": ["standalone", "fullscreen", "minimal-ui", "window-controls-overlay"],
+  "icons": [
+    {
+      "src": "assets/img/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/img/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/img/favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple-touch-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cast Vote",
+      "url": "/Election/student.php",
+      "description": "Go directly to voting",
+      "icons": [{ "src": "assets/img/favicon/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Results", 
+      "url": "/Election/results.php",
+      "description": "Check election results",
+      "icons": [{ "src": "assets/img/favicon/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "url": "/Election/dashboard.php",
+      "description": "Access your dashboard",
+      "icons": [{ "src": "assets/img/favicon/android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+smartvote",
+      "url": "/Election/%s"
+    }
+  ],
+  "related_applications": [],
+  "screenshots": [
+    {
+      "src": "assets/img/screenshots/voting.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Voting Interface"
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "share_target": {
+    "action": "/Election/share.php",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

@@ -141,7 +141,6 @@ if ($electionID) {
         .main-content {
             width: 100%;
             min-height: 100vh;
-            padding-left: 20px;
             transition: all 0.3s;
         }
         

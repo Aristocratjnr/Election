@@ -700,14 +700,25 @@ try {
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         <?php elseif ($currentElection): ?>
-                            
-                            <!-- Show vote success message -->
+                              <!-- Show vote success message -->
                             <?php if (isset($_GET['vote_success']) || isset($_SESSION['vote_success'])): ?>
+                            <?php 
+                            // Get the vote ID for verification
+                            $voteID = isset($_SESSION['last_vote_id']) ? $_SESSION['last_vote_id'] : (isset($_GET['vote_id']) ? $_GET['vote_id'] : null);
+                            ?>
                             <div class="alert alert-success alert-dismissible fade show">
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-check-circle-fill fs-4 me-2"></i>
                                     <div>
-                                        <strong>Success!</strong> Your vote has been successfully recorded. Thank you for participating in the election!
+                                        <h5 class="mb-2">Vote Successfully Recorded!</h5>
+                                        <?php if ($voteID): ?>
+                                            <div class="mb-2">Your Vote ID is: <strong><?php echo htmlspecialchars($voteID); ?></strong></div>
+                                            <small class="text-muted d-block">Please save this ID - you can use it to verify your vote in the blockchain.</small>
+                                            <a href="blockchain_verify.php?election=<?php echo htmlspecialchars($electionID); ?>&action=verify&vote=<?php echo htmlspecialchars($voteID); ?>" 
+                                               class="btn btn-sm btn-outline-success mt-2">
+                                                <i class="bi bi-shield-check"></i> Verify My Vote
+                                            </a>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="removeVoteSuccess()"></button>
@@ -720,9 +731,13 @@ try {
                                     url = url.replace(/[&?]vote_success=1/, '');
                                     window.history.replaceState({}, document.title, url);
                                 }
-                                <?php unset($_SESSION['vote_success']); ?>
+                                <?php 
+                                // Clear the session variables
+                                unset($_SESSION['vote_success']); 
+                                unset($_SESSION['last_vote_id']);
+                                ?>
                             }
-                            // Auto-hide after 10 seconds
+                            // Auto-hide after 30 seconds to give user time to save the ID
                             setTimeout(function() {
                                 const alertElement = document.querySelector('.alert-success');
                                 if (alertElement) {
@@ -730,7 +745,7 @@ try {
                                     bsAlert.close();
                                     removeVoteSuccess();
                                 }
-                            }, 10000);
+                            }, 30000);
                             </script>
                             <?php endif; ?>
                             

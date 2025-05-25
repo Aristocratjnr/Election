@@ -6,6 +6,8 @@
         "tecnickcom/tcpdf": "^6.9",
         "phpoffice/phpspreadsheet": "^4.2",
         "dompdf/dompdf": "^2.0",
-        "spomky-labs/otphp": "^11.2"
+        "spomky-labs/otphp": "^11.2",
+        "ezyang/htmlpurifier": "^4.18",
+        "composer/semver": "^3.4"
     }
 }
