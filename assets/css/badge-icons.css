@@ -1,0 +1,83 @@
+/* Enhanced Badge Styling */
+.badge-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 68px;
+    height: 68px;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.badge-icon:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Badge backgrounds */
+.bg-label-primary {
+    background-color: rgba(105, 108, 255, 0.16) !important;
+    border-color: rgba(105, 108, 255, 0.4);
+}
+
+.bg-label-success {
+    background-color: rgba(113, 221, 55, 0.16) !important;
+    border-color: rgba(113, 221, 55, 0.4);
+}
+
+.bg-label-info {
+    background-color: rgba(3, 195, 236, 0.16) !important;
+    border-color: rgba(3, 195, 236, 0.4);
+}
+
+.bg-label-warning {
+    background-color: rgba(255, 171, 0, 0.16) !important;
+    border-color: rgba(255, 171, 0, 0.4);
+}
+
+/* Enhanced SVG styling */
+.badge-icon svg {
+    filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+.security-shield-svg {
+    filter: drop-shadow(0px 2px 4px rgba(105, 108, 255, 0.5));
+}
+
+.gdpr-svg {
+    filter: drop-shadow(0px 2px 4px rgba(113, 221, 55, 0.5));
+}
+
+.blockchain-svg {
+    filter: drop-shadow(0px 2px 4px rgba(3, 195, 236, 0.5));
+}
+
+.uptime-svg {
+    filter: drop-shadow(0px 2px 4px rgba(255, 171, 0, 0.5));
+}
+
+/* Make SVGs more visible in dark mode */
+[data-bs-theme="dark"] .badge-icon {
+    border-width: 2px;
+}
+
+[data-bs-theme="dark"] .badge-icon svg {
+    filter: drop-shadow(0px 2px 5px rgba(255, 255, 255, 0.25));
+}
+
+[data-bs-theme="dark"] .security-shield-svg {
+    filter: drop-shadow(0px 2px 6px rgba(105, 108, 255, 0.7));
+}
+
+[data-bs-theme="dark"] .gdpr-svg {
+    filter: drop-shadow(0px 2px 6px rgba(113, 221, 55, 0.7));
+}
+
+[data-bs-theme="dark"] .blockchain-svg {
+    filter: drop-shadow(0px 2px 6px rgba(3, 195, 236, 0.7));
+}
+
+[data-bs-theme="dark"] .uptime-svg {
+    filter: drop-shadow(0px 2px 6px rgba(255, 171, 0, 0.7));
+}

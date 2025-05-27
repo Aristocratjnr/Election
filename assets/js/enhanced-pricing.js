@@ -325,48 +325,39 @@ document.addEventListener('DOMContentLoaded', function() {
         ? 'Hide Feature Comparison' 
         : 'View Full Feature Comparison';
     });
-  }
-  
-  // Add FAQ section if it doesn't exist
-  if (pricingSection && !document.querySelector('.pricing-faq')) {
-    const faqContainer = document.createElement('div');
-    faqContainer.classList.add('container', 'pricing-faq');
+  }    // Add Success Stories showcase if it doesn't exist
+  if (pricingSection && !document.querySelector('.pricing-success-stories')) {
+    const successContainer = document.createElement('div');
+    successContainer.classList.add('container', 'pricing-success-stories');
     
-    const faqTitle = document.createElement('h3');
-    faqTitle.classList.add('pricing-faq-title');
-    faqTitle.textContent = 'Frequently Asked Questions';
+    const successTitle = document.createElement('h3');
+    successTitle.classList.add('pricing-success-title');
+    successTitle.textContent = 'Success Stories & Impact';
     
-    const faqList = document.createElement('div');
-    faqList.classList.add('pricing-faq-list');
-      // FAQ items
-    const faqItems = [
+    const testimonialList = document.createElement('div');
+    testimonialList.classList.add('pricing-testimonials-list');
+      // Success story items with metrics
+    const successStories = [
       {
-        question: 'What type of organizations can use this system?',
-        answer: `<p>Our Election Management System is designed for a wide range of organizations including:</p>
-                <ul>
-                  <li><strong>Educational institutions</strong> - universities, colleges, and schools</li>
-                  <li><strong>Student councils & unions</strong> - for campus-wide elections</li>
-                  <li><strong>Professional associations</strong> - for board elections</li>
-                  <li><strong>Corporate boards</strong> - for shareholder voting</li>
-                  <li><strong>Government agencies</strong> - for public elections</li>
-                  <li><strong>Non-profit organizations</strong> - for leadership selection</li>
-                </ul>
-                <p>The system is highly flexible and can be adapted to various election needs and scales.</p>`
+        title: 'University-Wide Election Success',
+        organization: 'State University System',
+        metrics: {
+          voterTurnout: '94%',
+          timeReduction: '75%',
+          votesProcessed: '50,000+'
+        },
+        impact: 'Achieved highest voter turnout in university history with zero reported security incidents',
+        image: 'assets/img/success/university-case.svg'
+      },
+      {        name: 'David Chen',
+        role: 'Election Commissioner',
+        organization: 'National Bar Association',
+        quote: 'The Enterprise plan features helped us manage complex board elections seamlessly. The support team was exceptional in customizing the system to our needs.',
+        rating: 5,
+        avatar: 'assets/img/avatars/commissioner.jpg'
       },
       {
-        question: 'How secure is the platform?',
-        answer: `<p>Security is our <strong>top priority</strong>. Our comprehensive approach includes:</p>
-                <ul>
-                  <li>End-to-end encryption for all data</li>
-                  <li>Two-factor authentication (2FA)</li>
-                  <li>IP monitoring and geolocation verification</li>
-                  <li>Detailed audit logs and transparency reports</li>
-                  <li>Regular security audits and penetration testing</li>
-                </ul>
-                <p>Our Team and Enterprise plans include enhanced security features such as advanced access controls, customizable authentication workflows, and comprehensive audit trails to ensure election integrity.</p>`
-      },
-      {
-        question: 'Can I upgrade my plan later?',
+        name: 'Emily Rodriguez',
         answer: `<p>Yes, you can upgrade your plan at any time as your organization's needs grow.</p>
                 <p>When you upgrade:</p>
                 <ul>
@@ -376,21 +367,16 @@ document.addEventListener('DOMContentLoaded', function() {
                   <li>Immediate access to all new features</li>
                 </ul>
                 <p>You can manage your subscription from your account dashboard or contact our support team for assistance.</p>`
+      },      {
+        name: 'Michael Thompson',
+        role: 'IT Director',
+        organization: 'City Government',
+        quote: 'The blockchain verification and security features give us complete confidence in the integrity of our election results. A game-changer for digital voting.',
+        rating: 5,
+        avatar: 'assets/img/avatars/it-director.jpg'
       },
       {
-        question: 'Do you offer custom development for specific needs?',
-        answer: `<p>Yes, for Enterprise customers, we offer tailored development services including:</p>
-                <ul>
-                  <li>Custom user interfaces branded to your organization</li>
-                  <li>Integration with existing systems (SSO, LMS, SIS, etc.)</li>
-                  <li>Custom reporting and analytics dashboards</li>
-                  <li>Specialized voting methods or election rules</li>
-                  <li>Advanced security configurations for specific compliance needs</li>
-                </ul>
-                <p>Our team works closely with you to understand your requirements and develop solutions that meet your unique election processes and workflows.</p>`
-      },
-      {
-        question: 'Is there a trial period available?',
+        name: 'Lisa Park',
         answer: `<p>Yes, we offer flexible options to try our platform:</p>
                 <ul>
                   <li>A comprehensive 14-day free trial for our Team plan</li>
@@ -425,29 +411,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 </ul>
                 <p>You can select the verification method that best suits your organization's security requirements and user experience needs.</p>`
       }
-    ];
-    
-    // Create FAQ items
-    faqItems.forEach((item, index) => {
-      const faqItem = document.createElement('div');
-      faqItem.classList.add('pricing-faq-item');
-      if (index === 0) faqItem.classList.add('active');
+    ];    // Create Success Story cards with animation
+    successStories.forEach((story, index) => {
+      const storyCard = document.createElement('div');
+      storyCard.classList.add('pricing-success-card');
       
-      const faqQuestion = document.createElement('div');
-      faqQuestion.classList.add('pricing-faq-question');
-      faqQuestion.textContent = item.question;
+      const storyContent = document.createElement('div');
+      storyContent.classList.add('success-content');
       
-      const faqIcon = document.createElement('i');
-      faqIcon.classList.add('bx', 'bx-chevron-down', 'pricing-faq-icon');
-      faqQuestion.appendChild(faqIcon);
-        const faqAnswer = document.createElement('div');
-      faqAnswer.classList.add('pricing-faq-answer');
-      faqAnswer.innerHTML = item.answer; // Use innerHTML instead of textContent to render HTML
-      if (index === 0) faqAnswer.style.maxHeight = faqAnswer.scrollHeight + 'px';
+      // Create metrics grid
+      const metricsGrid = document.createElement('div');
+      metricsGrid.classList.add('success-metrics-grid');
       
-      faqItem.appendChild(faqQuestion);
-      faqItem.appendChild(faqAnswer);
-      faqList.appendChild(faqItem);
+      Object.entries(story.metrics).forEach(([key, value]) => {
+        const metricItem = document.createElement('div');
+        metricItem.classList.add('success-metric-item');
+        metricItem.innerHTML = `
+          <div class="metric-value">${value}</div>
+          <div class="metric-label">${key.replace(/([A-Z])/g, ' $1').toLowerCase()}</div>
+        `;
+        metricsGrid.appendChild(metricItem);
+      });const testimonialInfo = document.createElement('div');
+      testimonialInfo.classList.add('pricing-testimonial-info');
+      testimonialInfo.innerHTML = `
+        <div class="pricing-testimonial-avatar">
+          <img src="${item.avatar}" alt="${item.name}" onError="this.src='assets/img/avatars/default.jpg'">
+        </div>
+        <div class="pricing-testimonial-meta">
+          <h4>${item.name}</h4>
+          <p class="role">${item.role}</p>
+          <p class="organization">${item.organization}</p>
+          <div class="rating">
+            ${'★'.repeat(item.rating)}${'☆'.repeat(5-item.rating)}
+          </div>
+        </div>
+      `;
+      
+      testimonialContent.appendChild(testimonialQuote);
+      testimonialContent.appendChild(testimonialInfo);
+      testimonialItem.appendChild(testimonialContent);
+      testimonialList.appendChild(testimonialItem);
         // Toggle FAQ accordion with improved animation
       faqQuestion.addEventListener('click', function() {
         const isActive = faqItem.classList.contains('active');
@@ -482,16 +485,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
+      testimonialContainer.appendChild(testimonialTitle);
+    testimonialContainer.appendChild(testimonialList);
     
-    faqContainer.appendChild(faqTitle);
-    faqContainer.appendChild(faqList);
-    
-    // Add FAQ section after comparison container
+    // Add Testimonials section after comparison container
     const comparisonContainer = document.querySelector('.pricing-comparison-container');
     if (comparisonContainer) {
-      comparisonContainer.after(faqContainer);
+      comparisonContainer.after(testimonialContainer);
     } else {
-      pricingSection.appendChild(faqContainer);
+      pricingSection.appendChild(testimonialContainer);
     }
+
+    // Add animation to testimonials as they scroll into view
+    const observerOptions = {
+      threshold: 0.2,
+      rootMargin: '0px'
+    };
+
+    const testimonialObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+          testimonialObserver.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.pricing-testimonial-item').forEach(item => {
+      testimonialObserver.observe(item);
+    });
   }
 });
