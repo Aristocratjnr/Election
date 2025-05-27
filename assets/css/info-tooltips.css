@@ -1,0 +1,246 @@
+/* Tooltip Information Cards */
+.info-tooltip {
+  position: relative;
+  display: inline-block;
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+
+.info-tooltip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+  font-size: 10px;
+  transition: all 0.3s ease;
+}
+
+.info-tooltip:hover .info-tooltip-icon {
+  background: var(--bs-primary);
+  color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.info-tooltip-content {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  min-width: 250px;
+  max-width: 300px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 100;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+  pointer-events: none;
+}
+
+.info-tooltip:hover .info-tooltip-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.info-tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #fff;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+}
+
+.info-tooltip-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--bs-primary);
+  font-size: 0.9rem;
+}
+
+.info-tooltip-description {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--bs-body-color);
+  margin-bottom: 0.75rem;
+}
+
+.info-tooltip-list {
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-tooltip-list-item {
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.info-tooltip-list-item::before {
+  content: '•';
+  position: absolute;
+  left: -0.5rem;
+  color: var(--bs-primary);
+}
+
+.info-tooltip-footer {
+  font-size: 0.75rem;
+  color: var(--bs-body-color);
+  opacity: 0.8;
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+/* Info card variation */
+.info-card {
+  position: relative;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  border-color: rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: var(--bs-primary);
+  transition: all 0.3s ease;
+}
+
+.info-card:hover::before {
+  width: 7px;
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.info-card-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+  margin-right: 1rem;
+  font-size: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover .info-card-icon {
+  background: var(--bs-primary);
+  color: #fff;
+  transform: scale(1.1) rotate(5deg);
+}
+
+.info-card-title {
+  font-weight: 600;
+  margin-bottom: 0;
+  color: var(--bs-body-color);
+}
+
+.info-card-content {
+  color: var(--bs-body-color);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.info-card-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--bs-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.info-card-link-icon {
+  margin-left: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.info-card:hover .info-card-link-icon {
+  transform: translateX(3px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+  .info-tooltip-content {
+    min-width: 200px;
+  }
+  
+  .info-card {
+    padding: 1rem;
+  }
+  
+  .info-card-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .info-tooltip-content {
+  background: var(--bs-body-bg);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .info-tooltip-content::after {
+  border-top-color: var(--bs-body-bg);
+}
+
+[data-bs-theme="dark"] .info-card {
+  background: var(--bs-body-bg);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Print styles */
+@media print {
+  .info-tooltip-icon {
+    display: none;
+  }
+  
+  .info-card {
+    break-inside: avoid;
+    border: 1px solid #ddd;
+    box-shadow: none !important;
+  }
+  
+  .info-card::before {
+    display: none;
+  }
+}

@@ -46,9 +46,8 @@
     <link rel="stylesheet" href="assets/css/success-stories.css" />    <link rel="stylesheet" href="assets/css/enhanced-pricing.css" />
     <link rel="stylesheet" href="assets/css/badge-icons.css" />
     <script src="assets/vendor/js/helpers.js"></script>
-    <script src="assets/vendor/js/template-customizer.js"></script>
-
-    <script src="assets/js/front-config.js"></script>
+    <script src="assets/vendor/js/template-customizer.js"></script>    <script src="assets/js/front-config.js"></script>
+    <script src="assets/js/scroll-progress.js"></script>
   </head>
 
   <body>
