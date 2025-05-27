@@ -37,10 +37,13 @@
 
     <link rel="stylesheet" href="assets/vendor/css/pages/front-page.css" />
 
-    <link rel="stylesheet" href="assets/vendor/libs/nouislider/nouislider.css" />
-    <link rel="stylesheet" href="assets/vendor/libs/swiper/swiper.css" />    <link rel="stylesheet" href="assets/vendor/css/pages/front-page-landing.css" />
+    <link rel="stylesheet" href="assets/vendor/libs/nouislider/nouislider.css" />    <link rel="stylesheet" href="assets/vendor/libs/swiper/swiper.css" />    <link rel="stylesheet" href="assets/vendor/css/pages/front-page-landing.css" />
     <link rel="stylesheet" href="assets/css/modern-ui.css" />
     <link rel="stylesheet" href="assets/css/improved-footer.css" />
+    <link rel="stylesheet" href="assets/css/enhanced-reviews.css" />
+    <link rel="stylesheet" href="assets/css/enhanced-navbar.css" />
+    <link rel="stylesheet" href="assets/css/hero.css" />
+    <link rel="stylesheet" href="assets/css/enhanced-pricing.css" />
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="assets/vendor/js/template-customizer.js"></script>
 
@@ -77,7 +80,7 @@
     <!-- Brand & Mobile Toggle -->
     <a class="navbar-brand d-flex align-items-center" href="landing-page.html">
       <img src="assets/img/favicon/favicon.ico" alt="logo" width="30" height="30" class="me-2">
-      <span class="d-none d-sm-inline fw-bold">SmartVote</span>
+      <span class="d-none d-sm-inline fw-bold brand-text">SmartVote</span>
     </a>
     
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
@@ -88,6 +91,15 @@
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
+          <a class="nav-link" href="#landingFeatures">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#landingReviews">Reviews</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#landingPricing">Pricing</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="login.php" target="_blank">Admin</a>
         </li>
       </ul>
@@ -95,12 +107,12 @@
       <!-- Right Side Items -->
       <ul class="navbar-nav ms-auto align-items-center">
         <!-- Theme Switcher -->
-        <li class="nav-item dropdown me-3">
+        <li class="nav-item dropdown me-3 theme-switch-wrapper">
           <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bx fs-5 me-2 theme-icon"></i>
             <span class="d-none d-lg-inline">Theme</span>
           </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+          <ul class="dropdown-menu dropdown-menu-end enhanced-dropdown" aria-labelledby="themeDropdown">
             <li>
               <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="light">
                 <i class="bx bx-sun me-2"></i>
@@ -124,11 +136,11 @@
 
         <!-- Auth Buttons -->
         <li class="nav-item d-flex flex-wrap gap-2">
-          <a href="login.php" class="btn btn-primary" target="_blank">
+          <a href="login.php" class="btn btn-primary navbar-cta" target="_blank">
             <i class="bx bx-log-in-circle d-none d-lg-inline me-1"></i>
             <span>Login</span>
           </a>
-          <a href="register.php" class="btn btn-success" target="_blank">
+          <a href="register.php" class="btn btn-success auth-btn" target="_blank">
             <i class="bx bx-user-plus d-none d-lg-inline me-1"></i>
             <span>Register</span>
           </a>
@@ -140,51 +152,32 @@
 <!-- Navbar: End -->
 
     <!-- Sections:Start -->
-
     <div data-bs-spy="scroll" class="scrollspy-example">
       <!-- Hero: Start -->
       <section id="hero-animation">
-        <div id="landingHero" class="section-py landing-hero position-relative">
-          <img
-            src="assets/img/front-pages/backgrounds/hero-bg.png"
-            alt="hero background"
-            class="position-absolute top-0 start-50 translate-middle-x object-fit-cover w-100 h-100"
-            data-speed="1" />
+        <div id="landingHero" class="landing-hero">
+        
+          <div class="hero-bg-pattern"></div>
+
           <div class="container">
-            <div class="hero-text-box text-center position-relative">
-              <h1 class="text-primary hero-title display-6 fw-extrabold">
-              One platform to manage all your elections
+            <div class="hero-content">
+              <h1 class="hero-title">
+                Transform <span>Election Management</span><br>
+                with Smart Technology
               </h1>
-              <h2 class="hero-sub-title h6 mb-6">
-              Secure, transparent, and efficient election management system <br class="d-none d-lg-block" />
-              for educational institution of all sizes.
-              </h2>
-              <div class="landing-hero-btn d-inline-block position-relative">
-                <span class="hero-btn-item position-absolute d-none d-md-flex fw-medium"
-                  >Try it out
-                  <img
-                    src="assets/img/front-pages/icons/Join-community-arrow.png"
-                    alt="Join community arrow"
-                    class="scaleX-n1-rtl"
-                /></span>
-                <a href="register.php" class="btn btn-primary btn-lg">Get early access</a>
-              </div>
-            </div><br><br>
-            <div id="heroDashboardAnimation" class="hero-animation-img">
-              <a href="../vertical-menu-template/app-ecommerce-dashboard.html" target="_blank">
-                <div id="heroAnimationImg" class="position-relative hero-dashboard-img">
-                  <img
-                    src="assets/img/front-pages/landing-page/hero-dashboard-light.png"
-                    alt="hero dashboard"
-                    class="animation-img"
-                    data-app-light-img="front-pages/landing-page/hero-dashboard-light.png"
-                    data-app-dark-img="front-pages/landing-page/hero-dashboard-dark.png" />
-                </div>
+              <p class="hero-subtitle">
+                A secure, transparent, and efficient voting system designed for<br class="d-none d-lg-block">
+                modern educational institutions. Experience the future of elections.
+              </p>
+              <a href="register.php" class="btn btn-primary hero-cta">
+                Get Started Now
+                <i class="bx bx-right-arrow-alt hero-cta-arrow"></i>
               </a>
             </div>
+          <div class="scroll-down-indicator">
+            <div class="scroll-down-arrow"></div>
           </div>
         </div>
-        <div class="landing-hero-blank"></div>
       </section>
       <section id="landingFeatures" class="section-py landing-features">
         <div class="container">
@@ -290,15 +283,18 @@
       <!-- Useful features: End -->
 
       <!-- Real customers reviews: Start -->
-      <section id="landingReviews" class="section-py bg-body landing-reviews pb-0">
+      <section id="landingReviews" class="section-py bg-body landing-reviews pb-0 position-relative">
+        <!-- Decorative background elements -->
+        <div class="reviews-bg-element reviews-bg-element-1"></div>
+        <div class="reviews-bg-element reviews-bg-element-2"></div>
         <!-- What people say slider: Start -->
         <div class="container">
           <div class="row align-items-center gx-0 gy-4 g-lg-5 mb-5 pb-md-5">
-            <div class="col-md-6 col-lg-5 col-xl-3">
-              <div class="mb-4">
-                <span class="badge bg-label-primary">Real Customers Reviews</span>
+            <div class="col-md-6 col-lg-5 col-xl-4">
+              <div class="mb-4 reviews-badge-container">
+                <span class="badge bg-label-primary reviews-badge">Real Customers Reviews</span>
               </div>
-              <h4 class="mb-1">
+              <h2 class="mb-3 reviews-title">
                 <span class="position-relative fw-extrabold z-1"
                   >What people say
                   <img
@@ -306,68 +302,79 @@
                     alt="laptop charging"
                     class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
                 </span>
-              </h4>
-              <p class="mb-5 mb-md-12">
+              </h2>
+              <p class="mb-5 mb-md-6 reviews-subtitle">
                 See what our customers have to<br class="d-none d-xl-block" />
-                say about their experience.
+                say about their experience with SmartVote.
               </p>
               <div class="landing-reviews-btns">
-                <button id="reviews-previous-btn" class="btn btn-icon btn-label-primary reviews-btn me-3" type="button">
+                <button id="reviews-previous-btn" class="btn btn-icon btn-primary reviews-btn me-3 shadow-sm" type="button">
                   <i class="icon-base bx bx-chevron-left icon-md scaleX-n1-rtl"></i>
                 </button>
-                <button id="reviews-next-btn" class="btn btn-icon btn-label-primary reviews-btn" type="button">
+                <button id="reviews-next-btn" class="btn btn-icon btn-primary reviews-btn shadow-sm" type="button">
                   <i class="icon-base bx bx-chevron-right icon-md scaleX-n1-rtl"></i>
                 </button>
               </div>
             </div>
-            <div class="col-md-6 col-lg-7 col-xl-9">
+            <div class="col-md-6 col-lg-7 col-xl-8">
               <div class="swiper-reviews-carousel overflow-hidden">
                 <div class="swiper" id="swiper-reviews">
                   <div class="swiper-wrapper">
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          
-                          <p>
-                          The Election Management System has completely transformed how we run our university student council elections. The process is now more transparent, secure, and efficient than ever before
-                          </p>
-                          <div class="text-warning mb-4">
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
                           </div>
+                          <p class="review-text mb-4">
+                          The Election Management System has completely transformed how we run our university student council elections. The process is now more transparent, secure, and efficient than ever before.
+                          </p>
+                          <div class="text-warning mb-4 review-stars">
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                            
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-primary">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Sarah Afrifa</h6>
+                              <h6 class="mb-0 fw-semibold">Sarah Afrifa</h6>
                               <p class="small text-body-secondary mb-0">SRC Organizer</p>
-                             
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "As a city election commissioner, I needed a reliable system that could handle thousands of voters. This platform delivered beyond expectations with its robust security features and real-time reporting."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
-                          </div>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                           
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-info">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Emmanuel Danso</h6>
+                              <h6 class="mb-0 fw-semibold">Emmanuel Danso</h6>
                               <p class="small text-body-secondary mb-0">SRC President</p>
-                             
                             </div>
                           </div>
                         </div>
@@ -375,45 +382,59 @@
                     </div>
                   
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "The analytics and reporting features have been invaluable for our organization. We can now make data-driven decisions about our election processes and improve voter engagement."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bx-star"></i>
-                          </div>
-                          <div class="d-flex align-items-center">
+                          </div>                         
+                           <div class="d-flex align-items-center">
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-success">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Lilian Maryes</h6>
-                              <p class="small text-body-secondary mb-0"> SRC Secretary</p>
-                           
+                              <h6 class="mb-0 fw-semibold">Lilian Maryes</h6>
+                              <p class="small text-body-secondary mb-0">SRC Secretary</p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "Setting up our corporate board elections used to be a logistical nightmare. With this system, we've cut preparation time by 70% and increased participation rates significantly."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
-                          </div>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                            
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-warning">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Gloria Adams</h6>
+                              <h6 class="mb-0 fw-semibold">Gloria Adams</h6>
                               <p class="small text-body-secondary mb-0">SRC Vice President</p>
                             </div>
                           </div>
@@ -421,21 +442,29 @@
                       </div>
                     </div>
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-    
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "The accessibility features of this platform have allowed us to include voters with disabilities in our election process like never before. It's truly an inclusive solution."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bx-star"></i>
-                          </div>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                              <h6 class="mb-0">Joseph Appiah</h6>
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-danger">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
+                            <div>
+                              <h6 class="mb-0 fw-semibold">Joseph Appiah</h6>
                               <p class="small text-body-secondary mb-0">Lecturer</p>
                             </div>
                           </div>
@@ -443,8 +472,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="swiper-button-next"></div>
-                  <div class="swiper-button-prev"></div>
+                  <div class="swiper-pagination reviews-pagination mt-5"></div>
                 </div>
               </div>
             </div>
@@ -454,6 +482,7 @@
         </div>
     
       </section>
+      <!-- Real customers reviews: End -->
       <section id="landingTeam" class="section-py landing-team">
         <div class="container">
           <div class="text-center mb-4">
@@ -534,37 +563,36 @@
             </div>
           </div>
         </div>
-      </section>
-      <section id="landingPricing" class="section-py bg-body landing-pricing">
+      </section>      <section id="landingPricing" class="section-py bg-body landing-pricing">
         <div class="container">
-          <div class="text-center mb-4">
-            <span class="badge bg-label-primary">Pricing Plans</span>
+          <div class="text-center mb-4 pricing-header">
+            <span class="badge bg-label-primary pricing-badge">Pricing Plans</span>
           </div>
-          <h4 class="text-center mb-1">
-            <span class="position-relative fw-extrabold z-1"
+          <h4 class="text-center mb-1 pricing-title">
+            <span class="position-relative fw-extrabold z-1 pricing-title-highlight"
               >Tailored pricing plans
               <img
                 src="assets/img/front-pages/icons/section-title-icon.png"
                 alt="laptop charging"
                 class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
             </span>
-            designed for all educational institution
+            designed for all educational institutions
           </h4>
-          <p class="text-center pb-2 mb-7">
+          <p class="text-center pb-2 mb-7 pricing-subtitle">
           Choose the perfect plan for your election needs, from small organizations to large-scale educational elections
           </p>
           <div class="text-center mb-12">
             <div class="position-relative d-inline-block pt-3 pt-md-0">
-              <label class="switch switch-sm switch-primary me-0">
-                <span class="switch-label fs-6 text-body me-3">Pay Monthly</span>
+              <label class="switch switch-sm switch-primary me-0 pricing-toggle-container">
+                <span class="switch-label fs-6 text-body me-3 pricing-toggle-label monthly active">Pay Monthly</span>
                 <input type="checkbox" class="switch-input price-duration-toggler" checked />
-                <span class="switch-toggle-slider">
+                <span class="switch-toggle-slider pricing-toggle-switch toggled">
                   <span class="switch-on"></span>
                   <span class="switch-off"></span>
                 </span>
-                <span class="switch-label fs-6 text-body ms-3">Pay Annual</span>
+                <span class="switch-label fs-6 text-body ms-3 pricing-toggle-label annual active">Pay Annual</span>
               </label>
-              <div class="pricing-plans-item position-absolute d-flex">
+              <div class="pricing-plans-item position-absolute d-flex pricing-save-badge">
                 <img
                   src="assets/img/front-pages/icons/pricing-plans-arrow.png"
                   alt="pricing plans arrow"
@@ -932,30 +960,28 @@
                     <svg width="65" height="65" viewBox="0 0 65 65" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
                         opacity="0.2"
-                        d="M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C38.1 54.0288 35.625 58.5288 32.5 58.5288C29.375 58.5288 27 54.0788 24.075 52.8538C21.15 51.6288 16.425 53.2038 14.125 50.9038Z"
+                        d="M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C37.6 53.9663 35.125 58.4663 32 58.4663C28.875 58.4663 26.5 54.0163 23.575 52.7913C20.65 51.5663 15.925 53.1413 13.625 50.8413Z"
                         fill="currentColor" />
                       <path
-                        d="M43.5 26.5288L28.825 40.5288L21.5 33.5288M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C38.1 54.0288 35.625 58.5288 32.5 58.5288C29.375 58.5288 27 54.0788 24.075 52.8538C21.15 51.6288 16.425 53.2038 14.125 50.9038Z"
+                        d="M43.5 26.5288L28.825 40.5288L21.5 33.5288M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C37.6 53.9663 35.125 58.4663 32 58.4663C28.875 58.4663 26.5 54.0163 23.575 52.7913C20.65 51.5663 15.925 53.1413 13.625 50.8413Z"
                         stroke="currentColor"
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round" />
-                    </svg>
-                  </div>
-                  <h3 class="mb-0">100%</h3>
-                  <p class="fw-medium mb-0">
-                    Money Back<br />
-                    Guarantee
-                  </p>
-                </div>
+                </svg>
               </div>
+              <h5 class="mb-2">100%</h5>
+              <p class="features-icon-description">
+                Money Back<br />
+                Guarantee
+              </p>
             </div>
           </div>
         </div>
       </section>
-    
+      <!-- Fun facts: Start -->
 
-   <!-- FAQ: Start -->
+      <!-- FAQ: Start -->
 <section id="landingFAQ" class="section-py bg-body landing-faq">
   <div class="container">
     <div class="text-center mb-4">
@@ -1333,7 +1359,7 @@
             </div>
             <div class="col-md-6">
               <div class="d-flex justify-content-center justify-content-md-end align-items-center">
-                <span class="footer-bottom-text me-3">Made with <i class="bx bxs-heart text-danger" aria-hidden="true"></i> by Obuobi Ayim David</span>
+                <span class="footer-bottom-text me-3">Developed by Obuobi Ayim David</span>
                 <a href="https://www.github.com/aristocratjnr" class="social-icon social-icon-fancy" target="_blank" rel="noopener" aria-label="GitHub">
                   <i class="bx bxl-github"></i>
                 </a>
@@ -1381,6 +1407,7 @@
     <script src="assets/js/front-main.js"></script>    <!-- Page JS -->
     <script src="assets/js/front-page-landing.js"></script>
     <script src="assets/js/footer-interactions.js"></script>
+    <script src="assets/js/enhanced-reviews.js"></script>
     <!-- Theme Switcher JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1390,46 +1417,74 @@ document.addEventListener('DOMContentLoaded', function() {
     if (storedTheme) {
       return storedTheme;
     }
+    // Check system preference
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   };
 
-  // Set the theme
+  // Set the theme with smooth transition
   const setTheme = (theme) => {
+    const root = document.documentElement;
     if (theme === 'auto') {
-      document.documentElement.setAttribute('data-bs-theme', 
-        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      );
-    } else {
-      document.documentElement.setAttribute('data-bs-theme', theme);
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     
-    // Update icon
+    // Add transition class for smooth color changes
+    root.classList.add('theme-transition');
+    root.setAttribute('data-bs-theme', theme);
+    
+    // Update theme-specific elements
+    const header = document.getElementById('header');
+    if (header) {
+      if (theme === 'dark') {
+        header.classList.remove('bg-white');
+        header.classList.add('bg-dark');
+      } else {
+        header.classList.remove('bg-dark');
+        header.classList.add('bg-white');
+      }
+    }
+
+    // Store theme preference
+    if (theme !== 'auto') {
+      localStorage.setItem('theme', theme);
+    }
+
+    // Update theme icon
     const themeIcon = document.querySelector('.theme-icon');
     if (themeIcon) {
-      themeIcon.className = theme === 'dark' ? 'bx bx-moon fs-5 me-2 theme-icon' : 'bx bx-sun fs-5 me-2 theme-icon';
+      themeIcon.className = `bx ${theme === 'dark' ? 'bx-moon' : 'bx-sun'} fs-5 me-2 theme-icon`;
     }
     
     // Update active state in dropdown
     document.querySelectorAll('.theme-item').forEach(item => {
       item.classList.toggle('active', item.getAttribute('data-bs-theme-value') === theme);
     });
+
+    // Remove transition class after colors have changed
+    setTimeout(() => {
+      root.classList.remove('theme-transition');
+    }, 300);
+
+    // Dispatch theme change event
+    document.dispatchEvent(new CustomEvent('themeChanged', { 
+      detail: { theme: theme }
+    }));
   };
 
   // Initialize theme
   setTheme(getPreferredTheme());
 
   // Watch for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (localStorage.getItem('theme') === 'auto') {
       setTheme('auto');
     }
   });
 
-  // Handle theme selection
+  // Handle theme selection from dropdown
   document.querySelectorAll('[data-bs-theme-value]').forEach(item => {
     item.addEventListener('click', () => {
       const theme = item.getAttribute('data-bs-theme-value');
-      localStorage.setItem('theme', theme);
       setTheme(theme);
     });
   });
@@ -1437,6 +1492,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- Custom Footer Styling -->
+
 <style>
 /* Footer Customizations for Landing Page */
 .landing-footer {
@@ -1554,6 +1610,82 @@ document.addEventListener('DOMContentLoaded', function() {
           behavior: 'smooth'
         });
       });
+    }  });
+</script>
+
+<!-- Enhanced UI Scripts -->
+<script src="assets/js/enhanced-navbar.js"></script>
+<script src="assets/js/enhanced-pricing.js"></script>
+<script>
+  // Initialize enhanced hero section
+  document.addEventListener('DOMContentLoaded', function() {
+    const heroSection = document.getElementById('landingHero');
+    if (heroSection) {
+      heroSection.classList.add('enhanced-hero');
+      
+      // Add animated background
+      const animatedBg = document.createElement('div');
+      animatedBg.classList.add('hero-animated-bg');
+      heroSection.prepend(animatedBg);
+      
+      // Add background pattern
+      const bgPattern = document.createElement('div');
+      bgPattern.classList.add('hero-bg-pattern');
+      heroSection.prepend(bgPattern);
+      
+      // Enhance hero content
+      const heroTextBox = heroSection.querySelector('.hero-text-box');
+      if (heroTextBox) {
+        heroTextBox.classList.add('hero-content');
+        
+        // Enhance hero title
+        const heroTitle = heroTextBox.querySelector('.hero-title');
+        if (heroTitle) {
+          heroTitle.innerHTML = heroTitle.textContent.replace(
+            'One platform to manage all your elections',
+            '<span>One platform</span> to manage all your elections'
+          );
+        }
+        
+        // Enhance hero subtitle
+        const heroSubTitle = heroTextBox.querySelector('.hero-sub-title');
+        if (heroSubTitle) {
+          heroSubTitle.classList.add('hero-subtitle');
+        }
+        
+        // Enhance CTA button
+        const heroCta = heroTextBox.querySelector('.btn-primary');
+        if (heroCta) {
+          heroCta.classList.add('hero-cta');
+          heroCta.innerHTML = heroCta.textContent + '<i class="bx bx-right-arrow-alt hero-cta-arrow"></i>';
+        }
+      }
+      
+      // Add floating elements
+      for (let i = 1; i <= 4; i++) {
+        const floatingElement = document.createElement('div');
+        floatingElement.classList.add('floating-element', `floating-element-${i}`);
+        heroSection.appendChild(floatingElement);
+      }
+      
+      // Add scroll down indicator
+      const scrollIndicator = document.createElement('div');
+      scrollIndicator.classList.add('scroll-down-indicator');
+      scrollIndicator.innerHTML = `
+        <div class="scroll-down-text">Scroll down</div>
+        <div class="scroll-down-arrow"></div>
+      `;
+      heroSection.appendChild(scrollIndicator);
+      
+      // Add wave divider
+      const waveDiv = document.createElement('div');
+      waveDiv.classList.add('hero-wave');
+      waveDiv.innerHTML = `
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+        </svg>
+      `;
+      heroSection.appendChild(waveDiv);
     }
   });
 </script>

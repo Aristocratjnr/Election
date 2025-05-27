@@ -1,0 +1,242 @@
+/* Enhanced Reviews Section Styles */
+.landing-reviews {
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(180deg, var(--bs-body-bg) 0%, rgba(var(--bs-primary-rgb), 0.05) 100%);
+  padding: 4rem 0;
+}
+
+.reviews-bg-element {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.08;
+  z-index: 0;
+  transition: all 0.6s ease;
+  filter: blur(40px);
+}
+
+.reviews-bg-element-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--bs-primary);
+  top: -100px;
+  left: -150px;
+}
+
+.reviews-bg-element-2 {
+  width: 300px;
+  height: 300px;
+  background: var(--bs-info);
+  bottom: 0;
+  right: -100px;
+}
+
+.reviews-badge-container {
+  position: relative;
+}
+
+.reviews-badge {
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 3px 10px rgba(var(--bs-primary-rgb), 0.15);
+  transform: translateY(0);
+  transition: transform 0.3s ease;
+}
+
+.reviews-badge:hover {
+  transform: translateY(-3px);
+}
+
+.reviews-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.reviews-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.reviews-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.reviews-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.review-card {
+  border-radius: 20px;
+  border: none;
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(var(--bs-primary-rgb), 0.1);
+  padding: 2rem;
+}
+
+.review-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 0;
+  background: linear-gradient(to bottom, var(--bs-primary), var(--bs-info));
+  transition: height 0.7s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+.review-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.review-card:hover::before {
+  height: 100%;
+}
+
+.review-quote {
+  position: relative;
+}
+
+.review-quote-icon {
+  font-size: 2.5rem;
+  opacity: 0.2;
+  transition: all 0.3s ease;
+  color: var(--bs-primary);
+}
+
+.review-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--bs-body-color);
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+.review-text::after {
+  content: '"';
+  position: absolute;
+  bottom: -10px;
+  right: 0;
+  font-size: 3rem;
+  font-family: serif;
+  color: rgba(var(--bs-primary-rgb), 0.1);
+  line-height: 0;
+}
+
+.review-stars {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+.review-avatar {
+  width: 56px;
+  height: 56px;
+  border: 3px solid rgba(var(--bs-primary-rgb), 0.2);
+  border-radius: 50%;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+  background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
+  padding: 2px;
+}
+
+.review-avatar img {
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.review-card:hover .review-avatar {
+  transform: scale(1.1);
+  box-shadow: 0 3px 12px rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.swiper-slide {
+  height: auto;
+  padding: 1rem 0.5rem;
+}
+
+.reviews-pagination {
+  position: relative;
+  bottom: 0 !important;
+  margin-top: 2rem;
+}
+
+.swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  background: rgba(var(--bs-primary-rgb), 0.3);
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--bs-primary);
+  width: 30px;
+  border-radius: 5px;
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .review-card {
+  background-color: var(--bs-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .reviews-bg-element-1 {
+  opacity: 0.1;
+}
+
+[data-bs-theme="dark"] .reviews-bg-element-2 {
+  opacity: 0.1;
+}
+
+[data-bs-theme="dark"] .review-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .reviews-title {
+    font-size: 1.75rem;
+  }
+  
+  .reviews-subtitle {
+    font-size: 1rem;
+  }
+  
+  .review-card {
+    margin-bottom: 1rem;
+  }
+  
+  .reviews-bg-element {
+    display: none;
+  }
+}
+
+/* Animation for Swiper pagination bullets */
+@keyframes bulletExpand {
+  from {
+    width: 10px;
+  }
+  to {
+    width: 30px;
+  }
+}
+
+.swiper-pagination-bullet-active {
+  animation: bulletExpand 0.3s forwards;
+}

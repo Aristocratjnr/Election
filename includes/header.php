@@ -333,47 +333,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const lightIcon = document.querySelector('.theme-icon-light');
     const darkIcon = document.querySelector('.theme-icon-dark');
     
-    // Get stored theme or default to light
-    const currentTheme = localStorage.getItem('theme') || 'light';
+    // Get stored theme or default to system preference
+    const currentTheme = localStorage.getItem('theme') || 
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     
     // Apply theme on page load
     document.documentElement.setAttribute('data-bs-theme', currentTheme);
     
     // Update header background color based on theme
-    updateHeaderStyles(currentTheme);
-    
-    // Update the toggle button icon based on current theme
-    if (currentTheme === 'dark') {
-        lightIcon.classList.add('d-none');
-        darkIcon.classList.remove('d-none');
-    } else {
-        darkIcon.classList.add('d-none');
-        lightIcon.classList.remove('d-none');
-    }
-    
-    // Toggle theme when button is clicked
-    themeToggleBtn.addEventListener('click', function() {
-        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
-        // Update theme
-        document.documentElement.setAttribute('data-bs-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        
-        // Update header styles based on new theme
-        updateHeaderStyles(newTheme);
-        
-        // Toggle icon visibility
-        lightIcon.classList.toggle('d-none');
-        darkIcon.classList.toggle('d-none');
-        
-        // Custom event for other scripts to update their UI
-        document.dispatchEvent(new CustomEvent('themeChanged', { 
-            detail: { theme: newTheme }
-        }));
-    });
-    
-    // Function to update header styles based on theme
     function updateHeaderStyles(theme) {
         const header = document.getElementById('header');
         if (!header) return;
@@ -382,36 +349,63 @@ document.addEventListener('DOMContentLoaded', function() {
             header.classList.remove('bg-white');
             header.classList.add('bg-dark');
             
-            // Ensure all header elements use the correct color
+            // Update text colors for dark mode
             header.querySelectorAll('.nav-link, .logo span, .nav-profile span, .btn-link').forEach(el => {
                 el.style.color = 'var(--text)';
             });
-            
-            // Fix logo color
-            const logoSpan = header.querySelector('.logo span');
-            if (logoSpan) logoSpan.style.color = 'var(--text)';
-            
-            // Fix live results text
-            const liveResultsText = header.querySelector('.nav-link span[style*="color"]');
-            if (liveResultsText) liveResultsText.style.color = 'var(--text)';
         } else {
             header.classList.remove('bg-dark');
             header.classList.add('bg-white');
             
-            // Reset colors
-            header.querySelectorAll('.nav-link, .btn-link').forEach(el => {
-                el.style.removeProperty('color');
+            // Reset text colors for light mode
+            header.querySelectorAll('.nav-link, .logo span, .nav-profile span, .btn-link').forEach(el => {
+                el.style.color = '';
             });
-            
-            // Reset logo color
-            const logoSpan = header.querySelector('.logo span');
-            if (logoSpan) logoSpan.style.removeProperty('color');
-            
-            // Reset live results text
-            const liveResultsText = header.querySelector('.nav-link span[style*="color"]');
-            if (liveResultsText) liveResultsText.style.color = '#2b3445';
+        }
+
+        // Update icons visibility
+        if (theme === 'dark') {
+            lightIcon.classList.add('d-none');
+            darkIcon.classList.remove('d-none');
+        } else {
+            darkIcon.classList.add('d-none');
+            lightIcon.classList.remove('d-none');
         }
     }
+    
+    // Initial update of header styles
+    updateHeaderStyles(currentTheme);
+    
+    // Handle theme toggle click
+    themeToggleBtn.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // Add transition class for smooth change
+        document.documentElement.classList.add('theme-transition');
+        
+        // Update theme
+        document.documentElement.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // Update header styles
+        updateHeaderStyles(newTheme);
+        
+        // Remove transition class after animation
+        setTimeout(() => {
+            document.documentElement.classList.remove('theme-transition');
+        }, 300);
+        
+        // Dispatch theme change event
+        document.dispatchEvent(new CustomEvent('themeChanged', { 
+            detail: { theme: newTheme }
+        }));
+    });
+    
+    // Listen for theme changes from other sources
+    document.addEventListener('themeChanged', function(e) {
+        updateHeaderStyles(e.detail.theme);
+    });
 });
 </script>
 

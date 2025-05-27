@@ -138,3 +138,51 @@ window.isDarkStyle = window.Helpers.isDarkStyle();
     });
   });
 })();
+
+// Theme helper functions
+window.Helpers = window.Helpers || {};
+
+window.Helpers.getStoredTheme = () => localStorage.getItem('theme');
+
+window.Helpers.getPreferredTheme = () => {
+  const storedTheme = window.Helpers.getStoredTheme();
+  if (storedTheme) {
+    return storedTheme;
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
+
+window.Helpers.setTheme = theme => {
+  if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-bs-theme', 'dark');
+  } else {
+    document.documentElement.setAttribute('data-bs-theme', theme);
+  }
+  
+  // Add transition class
+  document.documentElement.classList.add('theme-transition');
+  
+  // Remove transition class after animation
+  setTimeout(() => {
+    document.documentElement.classList.remove('theme-transition');
+  }, 300);
+  
+  // Dispatch theme change event
+  document.dispatchEvent(new CustomEvent('themeChanged', { 
+    detail: { theme: theme }
+  }));
+};
+
+// Theme initialization
+document.addEventListener('DOMContentLoaded', () => {
+  const theme = window.Helpers.getPreferredTheme();
+  window.Helpers.setTheme(theme);
+  
+  // Watch for system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    const storedTheme = window.Helpers.getStoredTheme();
+    if (storedTheme !== 'light' && storedTheme !== 'dark') {
+      window.Helpers.setTheme(window.Helpers.getPreferredTheme());
+    }
+  });
+});
