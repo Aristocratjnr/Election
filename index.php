@@ -21,12 +21,12 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <!-- Fonts -->    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
       rel="stylesheet" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
     <link rel="stylesheet" href="assets/vendor/fonts/iconify-icons.css" />
 
@@ -38,9 +38,9 @@
     <link rel="stylesheet" href="assets/vendor/css/pages/front-page.css" />
 
     <link rel="stylesheet" href="assets/vendor/libs/nouislider/nouislider.css" />
-    <link rel="stylesheet" href="assets/vendor/libs/swiper/swiper.css" />
-
-    <link rel="stylesheet" href="assets/vendor/css/pages/front-page-landing.css" />
+    <link rel="stylesheet" href="assets/vendor/libs/swiper/swiper.css" />    <link rel="stylesheet" href="assets/vendor/css/pages/front-page-landing.css" />
+    <link rel="stylesheet" href="assets/css/modern-ui.css" />
+    <link rel="stylesheet" href="assets/css/improved-footer.css" />
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="assets/vendor/js/template-customizer.js"></script>
 
@@ -1226,81 +1226,143 @@
       <!-- Contact Us: End -->
     </div>
 
-    <!-- / Sections:End -->
-
-    <!-- Footer: Start -->
-    <footer class="landing-footer bg-body footer-text">
-      <div class="footer-top position-relative overflow-hidden z-1">
+    <!-- / Sections:End -->  
+       <!-- Footer: Start -->    
+     <footer class="landing-footer bg-body footer-text footer-animated">
+      <!-- Link to modern footer stylesheet -->
+      <link rel="stylesheet" href="assets/css/improved-footer.css">
+      <link rel="stylesheet" href="assets/css/footer-animations.css">
+      
+      <!-- Back to top button -->
+      <button id="back-to-top" class="btn btn-primary btn-icon scroll-top" type="button" aria-label="Back to top">
+        <i class="bx bx-up-arrow-alt"></i>
+      </button>
+        <div class="footer-top position-relative overflow-hidden z-1">
         <img
-          src="assets/img/front-pages/backgrounds/footer-bg.png"
-          alt="footer bg"
-          class="footer-bg banner-bg-img z-n1" />
+          src="assets/img/front-pages/backgrounds/footer-bg-light.png"
+          class="position-absolute bottom-0 end-0 scaleX-n1-rtl h-100 w-100 z-n1"
+          alt="footer image"
+          data-app-light-img="front-pages/backgrounds/footer-bg-light.png"
+          data-app-dark-img="front-pages/backgrounds/footer-bg-dark.png" />
+        </div>
+
         <div class="container">
           <div class="row gx-0 gy-6 g-lg-10">
-            <div class="col-lg-5">
-              <a href="landing-page.html" class="app-brand-link mb-6">
-                <span class="app-brand-logo demo">
-                  <span class="text-primary">
-                  <img src="assets/img/favicon/favicon.ico" alt="logo" width="22%" class="logo-img" />
-                </span>
-                <span class="app-brand-text demo text-white fw-bold ms-2 ps-1">SmartVote</span>
-              </a>
-              <p class="footer-text footer-logo-description mb-6">
-SmartVote is a secure, developer-friendly, and highly customizable educational voting system designed to streamline elections and decision-making in academic institutions.
+            <div class="col-lg-4">
+              <div class="footer-logo-container">
+                <a href="index.php" class="app-brand-link mb-4" aria-label="SmartVote Home">
+                  <span class="app-brand-logo demo">
+                    <span class="text-primary">
+                    <img src="assets/img/favicon/favicon.ico" alt="SmartVote logo" width="22%" class="logo-img" />
+                  </span>
+                  <span class="app-brand-text demo  fw-bold ms-2 ps-1">SmartVote</span>
+                </a>
+              </div>
+              <p class="footer-tagline mb-4">
+                SmartVote is a secure, developer-friendly, and highly customizable educational voting system designed to streamline elections and decision-making in academic institutions.
               </p>
-              <form class="footer-form">
+              <form class="footer-form mb-4" aria-label="Newsletter subscription">
                 <label for="footer-email" class="small">Subscribe to newsletter</label>
-                <div class="d-flex mt-1">
+                <div class="fancy-input-group mt-2">
                   <input
                     type="email"
-                    class="form-control rounded-0 rounded-start-bottom rounded-start-top"
+                    class="form-control"
                     id="footer-email"
-                    placeholder="Your email" />
+                    placeholder="Your email"
+                    aria-label="Enter your email" 
+                    aria-required="true" />
                   <button
                     type="submit"
-                    class="btn btn-primary shadow-none rounded-0 rounded-end-bottom rounded-end-top">
+                    class="btn btn-primary"
+                    aria-label="Subscribe to newsletter">
                     Subscribe
                   </button>
                 </div>
               </form>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-              
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-             
+              <div class="footer-social d-flex mb-4">
+                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="Facebook">
+                  <i class="bx bxl-facebook"></i>
+                </a>
+                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="Twitter">
+                  <i class="bx bxl-twitter"></i>
+                </a>
+                <a href="https://www.github.com/aristocratjnr" target="_blank" class="social-icon social-icon-fancy me-2" aria-label="GitHub">
+                  <i class="bx bxl-github"></i>
+                </a>
+                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="LinkedIn">
+                  <i class="bx bxl-linkedin"></i>
+                </a>
+              </div>
             </div>
             
+            <div class="col-lg-8">
+              <div class="row">                <div class="col-md-6 col-sm-6 mb-4 mb-md-0">
+                  <h5 class="footer-links-title mb-3">Quick Links</h5>
+                  <ul class="footer-links-list list-unstyled">
+                    <li><a href="index.php">Home</a></li>
+                    <li><a href="login.php">Login</a></li>
+                    <li><a href="dashboard.php">Dashboard</a></li>
+                    <li><a href="profile.php">Profile</a></li>
+                  </ul>
+                </div>
+                
+                <div class="col-md-6 col-sm-6 mb-4 mb-md-0">
+                  <h5 class="footer-links-title mb-3">Elections</h5>
+                  <ul class="footer-links-list list-unstyled">
+                    <li><a href="live_results.php">Live Results</a></li>
+                    <li><a href="election_details.php">Election Details</a></li>
+                    <li><a href="voters.php">Voters</a></li>
+                    <li><a href="blockchain_learn.php">Blockchain</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
         </div>
       </div>
-      
-      <div class="footer-bottom py-3 py-md-5">
-        <div
-          class="container d-flex flex-wrap justify-content-between flex-md-row flex-column text-center text-md-start">
-          <div class="mb-2 mb-md-0">
-            <span class="footer-bottom-text"
-              >©
-              <script>
-                document.write(new Date().getFullYear());
-              </script>
-            </span>
-            <a href="https://www.github.com/aristocratjnr" target="_blank" class="text-white">Election Management System</a><br>
-            <span class="footer-bottom-text"> Made by Obuobi Ayim David</span>
+        <div class="footer-bottom py-3">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+              <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
+                <span class="footer-bottom-text">
+                  © <script>document.write(new Date().getFullYear());</script>
+                  <a href="https://www.github.com/aristocratjnr" target="_blank" rel="noopener">Election Management System</a>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex justify-content-center justify-content-md-end align-items-center">
+                <span class="footer-bottom-text me-3">Made with <i class="bx bxs-heart text-danger" aria-hidden="true"></i> by Obuobi Ayim David</span>
+                <a href="https://www.github.com/aristocratjnr" class="social-icon social-icon-fancy" target="_blank" rel="noopener" aria-label="GitHub">
+                  <i class="bx bxl-github"></i>
+                </a>
+              </div>
+            </div>
           </div>
-          <div>
-            <a href="https://www.github.com/aristocratjnr" class="me-4 text-white" target="_blank">
-              <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M10.7184 2.19556C6.12757 2.19556 2.40674 5.91639 2.40674 10.5072C2.40674 14.1789 4.78757 17.2947 8.0909 18.3947C8.50674 18.4697 8.65674 18.2139 8.65674 17.9939C8.65674 17.7964 8.65007 17.2731 8.64757 16.5806C6.33507 17.0822 5.84674 15.4656 5.84674 15.4656C5.47007 14.5056 4.92424 14.2497 4.92424 14.2497C4.17007 13.7339 4.98174 13.7456 4.98174 13.7456C5.81674 13.8039 6.25424 14.6022 6.25424 14.6022C6.9959 15.8722 8.2009 15.5056 8.67257 15.2931C8.7484 14.7556 8.96507 14.3889 9.20174 14.1814C7.35674 13.9722 5.41674 13.2589 5.41674 10.0731C5.41674 9.16722 5.74091 8.42389 6.27007 7.84389C6.1859 7.63306 5.89841 6.78722 6.35257 5.64389C6.35257 5.64389 7.05007 5.41972 8.63757 6.49472C9.31557 6.31028 10.0149 6.21614 10.7176 6.21472C11.4202 6.21586 12.1196 6.31001 12.7976 6.49472C14.3859 5.41889 15.0826 5.64389 15.0826 5.64389C15.5367 6.78722 15.2517 7.63306 15.1651 7.84389C15.6984 8.42389 16.0184 9.16639 16.0184 10.0731C16.0184 13.2672 14.0767 13.9689 12.2251 14.1747C12.5209 14.4314 12.7876 14.9381 12.7876 15.7131C12.7876 16.8247 12.7776 17.7214 12.7776 17.9939C12.7776 18.2164 12.9259 18.4747 13.3501 18.3931C16.6517 17.2914 19.0301 14.1781 19.0301 10.5072C19.0301 5.91639 15.3092 2.19556 10.7184 2.19556Z"
-                  fill="currentColor" />
-              </svg>
         </div>
-      
+      </div>
     </footer>
+    
+    <!-- Schema.org JSON-LD for improved SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "SmartVote",
+      "url": "https://smartvote.42web.io",
+      "logo": "assets/img/favicon/favicon.ico",
+      "description": "SmartVote is a secure, developer-friendly, and highly customizable educational voting system designed to streamline elections and decision-making in academic institutions.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@smartvote.example.com"
+      },
+      "sameAs": [
+        "https://www.github.com/aristocratjnr"
+      ]
+    }
+    </script>
 
     <script src="assets/vendor/libs/popper/popper.js"></script>
     <script src="assets/vendor/js/bootstrap.js"></script>
@@ -1316,12 +1378,10 @@ SmartVote is a secure, developer-friendly, and highly customizable educational v
 
     <!-- Main JS -->
 
-    <script src="assets/js/front-main.js"></script>
-
-    <!-- Page JS -->
+    <script src="assets/js/front-main.js"></script>    <!-- Page JS -->
     <script src="assets/js/front-page-landing.js"></script>
-    
-<!-- Theme Switcher JavaScript -->
+    <script src="assets/js/footer-interactions.js"></script>
+    <!-- Theme Switcher JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Get current theme from localStorage or detect system preference
@@ -1374,6 +1434,128 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
+</script>
+
+<!-- Custom Footer Styling -->
+<style>
+/* Footer Customizations for Landing Page */
+.landing-footer {
+  margin-top: 2rem;
+}
+
+.landing-footer .social-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+  font-size: 1.25rem;
+}
+
+.landing-footer .social-icon:hover {
+  transform: translateY(-3px);
+  background-color: var(--bs-primary);
+  color: #fff;
+}
+
+.landing-footer .footer-links-title {
+  color: var(--bs-primary);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.landing-footer .footer-links-list a {
+  color: var(--bs-body-color);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.landing-footer .footer-links-list a:hover {
+  color: var(--bs-primary);
+  transform: translateX(3px);
+}
+
+[data-bs-theme="dark"] .landing-footer {
+  background-color: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .landing-footer .footer-links-list a {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-bottom-text {
+  color: var(--bs-body-color);
+}
+
+.footer-form .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.footer-form .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Back to top button */
+.scroll-top {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  z-index: 99;
+  display: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.25);
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s;
+}
+
+.scroll-top:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(var(--bs-primary-rgb), 0.35);
+}
+
+.scroll-top i {
+  font-size: 20px;
+}
+</style>
+
+<!-- Back to top button script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Back to top button functionality
+    const backToTopButton = document.getElementById('back-to-top');
+    
+    if (backToTopButton) {
+      // Show/hide button based on scroll position
+      window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) { // Show after scrolling 300px
+          backToTopButton.style.display = 'flex';
+        } else {
+          backToTopButton.style.display = 'none';
+        }
+      });
+      
+      // Scroll to top on click
+      backToTopButton.addEventListener('click', function() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
+  });
 </script>
   </body>
 </html>
