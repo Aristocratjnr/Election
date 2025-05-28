@@ -2228,48 +2228,58 @@ html[data-bs-theme="dark"] .sticky-bottom {
     color: #E5E7EB;
 }
 
-/* Update responsive styles to remove sidebar/ficon */
-@media (max-width: 992px) {
-    .sidebar {
-        display: none; /* Hide sidebar completely on mobile */
-    }
-    
-    .mobile-header {
-        display: none; /* Hide mobile header */
-    }
-    
-    .mobile-toggle {
-        display: none; /* Hide mobile toggle button */
-    }
-    
-    .sidebar-overlay {
-        display: none; /* Hide sidebar overlay */
-    }
-    
-    .container {
-        padding-left: 15px; /* Reset container padding */
-        padding-right: 15px;
-        width: 100%;
-        max-width: none;
-    }
-    
-    .main-content {
-        margin-left: 0; /* Remove margin for sidebar */
-        width: 100%;
-        margin: 0 auto;
-        padding: 2rem 1.5rem;
-        max-width: 1200px;
-    }
-    
-    /* Adjust the grid for better mobile layout */
-    .col-md-6, .col-lg-4 {
-        flex: 1 1 100%;
-        max-width: 100%;
-        margin-bottom: 1rem;
-    }
-    
-    .voting-card {
-        margin: 0;
-        border-radius: 12px;
-    }
+/* Remove image sharpness by adding soft filter effects */
+img, .avatar, .candidate-photo, .candidate-avatar, .student-avatar {
+    filter: none !important; /* Remove any existing sharpening filters */
+    image-rendering: auto; /* Use browser's default rendering */
+    transform: translateZ(0); /* Fix for mobile rendering */
+}
+
+/* Soften images with subtle blur */
+.candidate-photo, .avatar, .candidate-avatar {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    border-radius: 50%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Remove harsh box shadows */
+.avatar-container, .student-avatar {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Soften selection effects */
+.candidate-card.selected .avatar {
+    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+}
+
+/* Reduce highlight intensity */
+.candidate-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Tone down image transitions */
+.feature-highlight-img {
+    transform: none !important;
+    transition: box-shadow 0.4s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.feature-highlight:hover .feature-highlight-img {
+    transform: none !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Soften welcome illustration */
+.welcome-illustration {
+    filter: brightness(0.98);
+    transition: transform 0.4s ease;
+}
+
+/* Adjust dark mode image appearance */
+[data-bs-theme="dark"] img, 
+[data-bs-theme="dark"] .avatar, 
+[data-bs-theme="dark"] .candidate-photo, 
+[data-bs-theme="dark"] .candidate-avatar {
+    filter: brightness(0.9) !important;
 }
