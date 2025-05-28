@@ -8,14 +8,19 @@ use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
 
-// Load environment variables
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
-
 $error = '';
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Load environment variables with error handling
+try {
+    $dotenv = Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+} catch (Exception $e) {
+    error_log("Dotenv Error: " . $e->getMessage());
+    $error = 'Configuration error. Please contact administrator.';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
     $email = $conn->real_escape_string($_POST['email']);
     
     // Check if email exists in students table
@@ -32,54 +37,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour expiration
             
             // Store token in password_resets table
-            $stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at)");
             $stmt->bind_param("sss", $email, $token, $expires);
             $stmt->execute();
             
             // Create reset link
-            $resetLink = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]/reset-password.php?token=$token";
+            $resetLink = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]/Election/reset-password.php?token=$token";
             
             // Send email using PHPMailer
             $mail = new PHPMailer(true);
             try {
+                // Check if environment variables exist
+                $smtpEmail = $_ENV['SMTP_EMAIL'] ?? '';
+                $smtpPassword = $_ENV['SMTP_PASSWORD'] ?? '';
+                
+                if (empty($smtpEmail) || empty($smtpPassword)) {
+                    throw new Exception('SMTP credentials not configured');
+                }
+                
                 // Server settings
                 $mail->isSMTP();
                 $mail->Host       = 'smtp.gmail.com'; 
                 $mail->SMTPAuth   = true;
-                $mail->Username   =  $_ENV['SMTP_EMAIL']; 
-                $mail->Password   = $_ENV['SMTP_PASSWORD']; 
+                $mail->Username   = $smtpEmail; 
+                $mail->Password   = $smtpPassword; 
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                 $mail->Port       = 465;
 
                 // Recipients
-                $mail->setFrom('no-reply@smartvote.com', 'SmartVote');
+                $mail->setFrom('no-reply@smartvote.com', $_ENV['APP_NAME'] ?? 'SmartVote');
                 $mail->addAddress($email);
 
                 // Content
                 $mail->isHTML(true);
                 $mail->Subject = 'Password Reset Request - SmartVote';
                 $mail->Body    = "
-                    <h2>Password Reset Request</h2>
-                    <p>Hello,</p>
-                    <p>You requested a password reset for your SmartVote account.</p>
-                    <p><a href='$resetLink' style='background:#7367f0;color:white;padding:10px 15px;text-decoration:none;border-radius:5px;'>Reset Password</a></p>
-                    <p>Or copy this link: <code>$resetLink</code></p>
-                    <p>This link will expire in 1 hour.</p>
-                    <p>If you didn't request this, please ignore this email.</p>
-                    <p>Best regards,<br>SmartVote </p>
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); padding: 20px; text-align: center;'>
+                            <h1 style='color: white; margin: 0;'>SmartVote</h1>
+                        </div>
+                        <div style='padding: 30px; background: #f8f9fa;'>
+                            <h2 style='color: #333;'>Password Reset Request</h2>
+                            <p>Hello,</p>
+                            <p>You requested a password reset for your SmartVote account.</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='$resetLink' style='background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;'>Reset Password</a>
+                            </div>
+                            <p><strong>Or copy this link:</strong><br>
+                            <code style='background: #e9ecef; padding: 5px; border-radius: 4px; word-break: break-all;'>$resetLink</code></p>
+                            <p style='color: #666;'><em>This link will expire in 1 hour.</em></p>
+                            <p>If you didn't request this, please ignore this email.</p>
+                            <hr style='margin: 30px 0; border: none; border-top: 1px solid #dee2e6;'>
+                            <p style='color: #666; font-size: 14px;'>Best regards,<br>SmartVote Team</p>
+                        </div>
+                    </div>
                 ";
                 $mail->AltBody = "Password Reset Link: $resetLink";
 
                 $mail->send();
                 $success = 'Password reset link has been sent to your email. Check your inbox (and spam folder).';
             } catch (Exception $e) {
-                $error = "Email could not be sent. Error: {$mail->ErrorInfo}";
+                error_log("Email Error: " . $e->getMessage());
+                $error = "Email could not be sent. Please try again later.";
             }
         } else {
             $error = 'Email not found in our system.';
         }
     } catch (mysqli_sql_exception $e) {
-        $error = 'Database error: ' . $e->getMessage();
+        error_log("Database Error: " . $e->getMessage());
+        $error = 'An error occurred. Please try again later.';
     }
 }
 ?>
