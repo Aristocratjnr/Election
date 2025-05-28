@@ -1890,14 +1890,7 @@
       <button id="back-to-top" class="btn btn-primary btn-icon scroll-top" type="button" aria-label="Back to top">
         <i class="bx bx-up-arrow-alt"></i>
       </button>
-        <div class="footer-top position-relative overflow-hidden z-1">
-        <img
-          src="assets/img/front-pages/backgrounds/footer-bg-light.png"
-          class="position-absolute bottom-0 end-0 scaleX-n1-rtl h-100 w-100 z-n1"
-          alt="footer image"
-          data-app-light-img="front-pages/backgrounds/footer-bg-light.png"
-          data-app-dark-img="front-pages/backgrounds/footer-bg-dark.png" />
-        </div>
+
 
         <div class="container">
           <div class="row gx-0 gy-6 g-lg-10">
