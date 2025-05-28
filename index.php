@@ -761,7 +761,7 @@
               <div class="card team-card shadow-sm border-0 h-100 text-center position-relative overflow-hidden">
                 <div class="team-photo-wrapper mx-auto mt-4 mb-3">
                   <img
-                    src="assets/img/front-pages/landing-page/team-member-1.png"
+                    src="assets/img/front-pages/landing-page/team-member-1.jpeg"
                     class="team-photo img-fluid rounded-circle border border-primary"
                     alt="Obuobi Ayim David" />
                   <span class="team-badge bg-primary text-white">Lead</span>
