@@ -743,8 +743,8 @@
             <span class="badge bg-label-primary">Our Great Team</span>
           </div>
           <h4 class="text-center mb-1">
-            <span class="position-relative fw-extrabold z-1"
-              >Supported
+            <span class="position-relative fw-extrabold z-1">
+              Supported
               <img
                 src="assets/img/front-pages/icons/section-title-icon.png"
                 alt="laptop charging"
@@ -755,69 +755,95 @@
           <p class="text-center mb-md-11 pb-0 pb-xl-12">
           Our team of election specialists and technology experts is dedicated to creating secure and efficient voting solutions
           </p>
-          <div class="row gy-12 mt-2">
+          <div class="row gy-5 mt-2 justify-content-center">
+            <!-- Team Member 1 -->
             <div class="col-lg-3 col-sm-6">
-              <div class="card mt-3 mt-lg-0 shadow-none">
-                <div
-                  class="bg-label-primary border border-bottom-0 border-primary-subtle position-relative team-image-box">
+              <div class="card team-card shadow-sm border-0 h-100 text-center position-relative overflow-hidden">
+                <div class="team-photo-wrapper mx-auto mt-4 mb-3">
                   <img
                     src="assets/img/front-pages/landing-page/team-member-1.png"
-                    class="position-absolute card-img-position bottom-0 start-50"
-                    alt="human image" />
+                    class="team-photo img-fluid rounded-circle border border-primary"
+                    alt="Obuobi Ayim David" />
+                  <span class="team-badge bg-primary text-white">Lead</span>
                 </div>
-                <div class="card-body border border-top-0 border-primary-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Obuobi Ayim David</h5>
-                  <p class="text-body-secondary mb-0">Software Engineer</p>
+                <div class="card-body pb-4">
+                  <h5 class="card-title mb-1">Obuobi Ayim David</h5>
+                  <p class="text-body-secondary mb-2">Software Engineer</p>
+                  <div class="team-social d-flex justify-content-center gap-2">
+                    <a href="https://www.linkedin.com/in/obuobi-ayim-david/" target="_blank" class="btn btn-icon btn-outline-primary btn-sm" aria-label="LinkedIn"><i class="bx bxl-linkedin"></i></a>
+                    <a href="https://github.com/aristocratjnr" target="_blank" class="btn btn-icon btn-outline-dark btn-sm" aria-label="GitHub"><i class="bx bxl-github"></i></a>
+                  </div>
                 </div>
               </div>
             </div>
+            <!-- Team Member 2 -->
             <div class="col-lg-3 col-sm-6">
-              <div class="card mt-3 mt-lg-0 shadow-none">
-                <div class="bg-label-info border border-bottom-0 border-info-subtle position-relative team-image-box">
+              <div class="card team-card shadow-sm border-0 h-100 text-center position-relative overflow-hidden">
+                <div class="team-photo-wrapper mx-auto mt-4 mb-3">
                   <img
                     src="assets/img/front-pages/landing-page/team-member-2.png"
-                    class="position-absolute card-img-position bottom-0 start-50"
-                    alt="human image" />
+                    class="team-photo img-fluid rounded-circle border border-info"
+                    alt="Mavis Maryes" />
+                  <span class="team-badge bg-info text-white">UI/UX</span>
                 </div>
-                <div class="card-body border border-top-0 border-info-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Mavis Maryes</h5>
-                  <p class="text-body-secondary mb-0">UI Designer</p>
+                <div class="card-body pb-4">
+                  <h5 class="card-title mb-1">Mavis Maryes</h5>
+                  <p class="text-body-secondary mb-2">UI Designer</p>
+                  <div class="team-social d-flex justify-content-center gap-2">
+                    <a href="#" class="btn btn-icon btn-outline-primary btn-sm" aria-label="LinkedIn"><i class="bx bxl-linkedin"></i></a>
+                    <a href="#" class="btn btn-icon btn-outline-dark btn-sm" aria-label="GitHub"><i class="bx bxl-github"></i></a>
+                  </div>
                 </div>
               </div>
             </div>
+            <!-- Team Member 3 -->
             <div class="col-lg-3 col-sm-6">
-              <div class="card mt-3 mt-lg-0 shadow-none">
-                <div
-                  class="bg-label-danger border border-bottom-0 border-danger-subtle position-relative team-image-box">
+              <div class="card team-card shadow-sm border-0 h-100 text-center position-relative overflow-hidden">
+                <div class="team-photo-wrapper mx-auto mt-4 mb-3">
                   <img
                     src="assets/img/front-pages/landing-page/team-member-3.png"
-                    class="position-absolute card-img-position bottom-0 start-50"
-                    alt="human image" />
+                    class="team-photo img-fluid rounded-circle border border-danger"
+                    alt="Nannie HayFord" />
+                  <span class="team-badge bg-danger text-white">Dev Lead</span>
                 </div>
-                <div class="card-body border border-top-0 border-danger-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Nannie HayFord</h5>
-                  <p class="text-body-secondary mb-0">Development Lead</p>
+                <div class="card-body pb-4">
+                  <h5 class="card-title mb-1">Nannie HayFord</h5>
+                  <p class="text-body-secondary mb-2">Development Lead</p>
+                  <div class="team-social d-flex justify-content-center gap-2">
+                    <a href="#" class="btn btn-icon btn-outline-primary btn-sm" aria-label="LinkedIn"><i class="bx bxl-linkedin"></i></a>
+                    <a href="#" class="btn btn-icon btn-outline-dark btn-sm" aria-label="GitHub"><i class="bx bxl-github"></i></a>
+                  </div>
                 </div>
               </div>
             </div>
+            <!-- Team Member 4 -->
             <div class="col-lg-3 col-sm-6">
-              <div class="card mt-3 mt-lg-0 shadow-none">
-                <div
-                  class="bg-label-success border border-bottom-0 border-success-subtle position-relative team-image-box">
+              <div class="card team-card shadow-sm border-0 h-100 text-center position-relative overflow-hidden">
+                <div class="team-photo-wrapper mx-auto mt-4 mb-3">
                   <img
                     src="assets/img/front-pages/landing-page/team-member-4.png"
-                    class="position-absolute card-img-position bottom-0 start-50"
-                    alt="human image" />
+                    class="team-photo img-fluid rounded-circle border border-success"
+                    alt="Chris Jason" />
+                  <span class="team-badge bg-success text-white">Marketing</span>
                 </div>
-                <div class="card-body border border-top-0 border-success-subtle text-center py-5">
-                  <h5 class="card-title mb-0">Chris Jason</h5>
-                  <p class="text-body-secondary mb-0">Marketing Manager</p>
+                <div class="card-body pb-4">
+                  <h5 class="card-title mb-1">Chris Jason</h5>
+                  <p class="text-body-secondary mb-2">Marketing Manager</p>
+                  <div class="team-social d-flex justify-content-center gap-2">
+                    <a href="#" class="btn btn-icon btn-outline-primary btn-sm" aria-label="LinkedIn"><i class="bx bxl-linkedin"></i></a>
+                    <a href="#" class="btn btn-icon btn-outline-dark btn-sm" aria-label="GitHub"><i class="bx bxl-github"></i></a>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <!-- Decorative shapes for extra flair -->
+          <div class="team-bg-shape-1"></div>
+          <div class="team-bg-shape-2"></div>
         </div>
-      </section>      <section id="landingPricing" class="section-py bg-body landing-pricing">
+      </section>
+      <!-- Team Section: End -->
+      <section id="landingPricing" class="section-py bg-body landing-pricing">
         <div class="container">
           <div class="text-center mb-4 pricing-header">
             <span class="badge bg-label-primary pricing-badge">Pricing Plans</span>
@@ -880,7 +906,7 @@
                   <ul class="list-unstyled pricing-list">
                     <li>
                       <h6 class="d-flex align-items-center mb-3">
-                        <span class="badge badge-center rounded-pill bg-label-primary p-0 me-3"
+                                               <span class="badge badge-center rounded-pill bg-label-primary p-0 me-3"
                           ><i class="icon-base bx bx-check icon-12px"></i
                         ></span>
                         Up to 500 registered voters
