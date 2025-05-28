@@ -190,8 +190,98 @@
   border-top-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Touch Device Optimizations */
+@media (hover: none) {
+  .feature-card:hover {
+    transform: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  }
+  
+  .feature-highlight-img {
+    transform: none;
+  }
+  
+  .feature-highlight:hover .feature-highlight-img {
+    transform: none;
+  }
+}
+
 /* Responsive Adjustments */
+@media (max-width: 1199.98px) {
+  .landing-features::before {
+    width: 200px;
+    height: 200px;
+    top: -100px;
+    left: -100px;
+  }
+  
+  .landing-features::after {
+    width: 200px;
+    height: 200px;
+    bottom: -100px;
+    right: -100px;
+  }
+  
+  .feature-highlight-shape-1 {
+    width: 150px;
+    height: 150px;
+    bottom: -75px;
+    right: -75px;
+  }
+  
+  .feature-highlight-shape-2 {
+    width: 80px;
+    height: 80px;
+    top: -40px;
+    left: 25%;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .section-py {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+  
+  .feature-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .feature-highlight-img {
+    margin-top: 1.5rem;
+    transform: none;
+  }
+  
+  .feature-highlight:hover .feature-highlight-img {
+    transform: none;
+  }
+  
+  .display-6 {
+    font-size: calc(1.275rem + 0.9vw);
+  }
+  
+  .features-subtitle {
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 767.98px) {
+  .landing-features::before,
+  .landing-features::after {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .landing-features::before {
+    top: -75px;
+    left: -75px;
+  }
+  
+  .landing-features::after {
+    bottom: -75px;
+    right: -75px;
+  }
+  
   .feature-highlight-img {
     transform: none;
     margin-top: 2rem;
@@ -209,5 +299,183 @@
   .feature-icon {
     width: 40px;
     height: 40px;
+  }
+  
+  .feature-mini-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
+  }
+  
+  .feature-highlight {
+    padding: 1.5rem !important;
+  }
+  
+  /* Stack benefits in mobile view */
+  .feature-benefits .d-flex {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Adjust section title for mobile */
+  .section-title-img {
+    width: 80px;
+  }
+  
+  /* Improve card touch interaction on mobile */
+  .feature-card:active {
+    transform: translateY(-4px);
+    transition: transform 0.2s ease;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .landing-features {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .section-py {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+  
+  .feature-card-body {
+    padding: 1.25rem !important;
+  }
+  
+  .feature-title {
+    font-size: 1.1rem;
+  }
+  
+  .feature-description {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-benefits {
+    font-size: 0.8rem;
+  }
+  
+  .feature-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-icon {
+    width: 35px;
+    height: 35px;
+  }
+  
+  /* Adjust feature highlight content */
+  .feature-highlight h3 {
+    font-size: 1.35rem;
+  }
+  
+  .feature-highlight p {
+    font-size: 0.9rem;
+  }
+  
+  /* Make decorative elements less intrusive on small screens */
+  .feature-highlight-shape-1,
+  .feature-highlight-shape-2 {
+    opacity: 0.05;
+  }
+  
+  /* Optimize badge for small screens */
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.35rem 0.65rem !important;
+  }
+  
+  /* Better layout for stacked content */
+  .row > [class*="col-"] {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .g-4 {
+    --bs-gutter-y: 1rem;
+  }
+  
+  /* Optimize feature stat numbers */
+  .feature-stat h2 {
+    font-size: 1.75rem;
+  }
+  
+  .feature-stat p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Orientation specific optimizations */
+@media (max-width: 767.98px) and (orientation: landscape) {
+  .row.g-4 {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    padding-bottom: 1rem;
+  }
+  
+  .row.g-4::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  .row.g-4 > div {
+    scroll-snap-align: start;
+    min-width: 85%;
+    padding: 0 0.5rem;
+  }
+  
+  .feature-card {
+    margin-bottom: 0;
+  }
+}
+
+/* Add smooth transition to card interaction on touch devices */
+@media (pointer: coarse) {
+  .feature-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .feature-card:active {
+    transform: translateY(-5px) scale(0.98);
+  }
+}
+
+/* Print styles */
+@media print {
+  .landing-features::before,
+  .landing-features::after,
+  .feature-highlight-shape-1,
+  .feature-highlight-shape-2 {
+    display: none;
+  }
+  
+  .feature-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+  
+  .feature-highlight {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    background-color: #f8f9fa !important;
+    box-shadow: none !important;
+  }
+  
+  .feature-highlight-img {
+    max-width: 80% !important;
+    margin: 0 auto;
+    display: block;
+  }
+  
+  .feature-icon-bg {
+    background-color: #f8f9fa !important;
   }
 }

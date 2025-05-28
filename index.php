@@ -483,7 +483,7 @@
         <div class="feature-highlight p-4 p-md-5 rounded-3 bg-primary bg-opacity-10 position-relative overflow-hidden">
           <div class="row align-items-center">
             <div class="col-lg-7 pe-lg-5">
-              <h3 class="mb-3 text-primary">Comprehensive Analytics Dashboard</h3>
+              <h3 class="mb-3 text-primary">Student Insights</h3>
               <p class="mb-4">
                 Get deep insights into your election with our powerful analytics tools. Track voter turnout, analyze voting patterns, and generate detailed reports to make data-driven decisions.
               </p>
