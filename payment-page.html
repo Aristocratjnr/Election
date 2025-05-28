@@ -331,23 +331,306 @@
         animation: fadeInUp 0.5s ease forwards;
       }
       
-      /* Responsive Adjustments */
-      @media (max-width: 991.98px) {
-        .payment-page-container {
-          padding-top: 2rem;
-          padding-bottom: 2rem;
+      /* Enhanced Mobile Order Summary Styles */
+      .show-summary-btn {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.4);
+        border: none;
+        font-size: 1.5rem;
+        z-index: 1030;
+        transition: all 0.3s ease;
+        animation: pulse-animation 2s infinite;
+      }
+
+      .show-summary-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.5);
+      }
+
+      .show-summary-btn:active {
+        transform: scale(0.95);
+      }
+
+      @keyframes pulse-animation {
+        0% {
+          box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(var(--bs-primary-rgb), 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0);
         }
       }
-      
-      @media (max-width: 767.98px) {
-        .payment-method-tabs .nav-link {
-          padding: 0.6rem 1rem;
-          font-size: 0.9rem;
+
+      /* Mini Floating Summary */
+      .mini-order-summary {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--bs-body-bg);
+        border-top: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        padding: 1rem;
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        z-index: 1020;
+        display: none;
+        transition: transform 0.3s ease-in-out;
+        transform: translateY(100%);
+      }
+
+      .mini-order-summary.show {
+        transform: translateY(0);
+      }
+
+      .mini-order-summary-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .mini-order-summary-total {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mini-order-summary-total .plan-name {
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+
+      .mini-order-summary-total .price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--bs-primary);
+      }
+
+      .mini-order-summary .btn {
+        padding: 0.6rem 1.25rem;
+        border-radius: 0.75rem;
+      }
+
+      /* Full Order Summary Modal */
+      .mobile-order-summary {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: var(--bs-body-bg);
+        z-index: 1050;
+        transition: all 0.3s ease;
+        transform: translateY(100%);
+        overflow-y: auto;
+        padding: 1.5rem;
+        border-radius: 1.5rem 1.5rem 0 0;
+        box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .mobile-order-summary.show {
+        transform: translateY(0);
+      }
+
+      .mobile-order-summary-backdrop {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+      }
+
+      .mobile-order-summary-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .mobile-order-summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+      }
+
+      .mobile-order-summary-header h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+        color: var(--bs-primary);
+      }
+
+      .close-summary {
+        background: none;
+        border: none;
+        color: var(--bs-body-color);
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        transition: all 0.2s ease;
+      }
+
+      .close-summary:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+      }
+
+      .order-summary-mobile-wrapper {
+        padding-bottom: 2rem;
+      }
+
+      .summary-action-buttons {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 1rem;
+      }
+
+      .summary-action-buttons .btn {
+        flex: 1;
+      }
+
+      /* Progress indicator for summary */
+      .checkout-progress {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding: 0 10px;
+      }
+
+      .checkout-progress:before {
+        content: '';
+        position: absolute;
+        height: 2px;
+        background-color: var(--bs-border-color);
+        width: calc(100% - 40px);
+        top: 50%;
+        left: 20px;
+        transform: translateY(-50%);
+        z-index: 0;
+      }
+
+      .checkout-progress-step {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: var(--bs-body-bg);
+        border: 2px solid var(--bs-border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bs-body-color);
+        position: relative;
+        z-index: 1;
+      }
+
+      .checkout-progress-step.active {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: white;
+      }
+
+      .checkout-progress-step.completed {
+        background-color: var(--bs-success);
+        border-color: var(--bs-success);
+        color: white;
+      }
+
+      .checkout-progress-label {
+        position: absolute;
+        top: 35px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        text-align: center;
+        width: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+      }
+
+      /* Enhanced summary card styles for mobile */
+      @media (max-width: 991.98px) {
+        .mini-order-summary {
+          display: flex;
+        }
+
+        .payment-page-container {
+          padding-bottom: 5rem;
         }
         
-        .custom-option {
+        .order-summary-mobile-wrapper .order-summary-details {
+          background-color: rgba(var(--bs-primary-rgb), 0.03);
+          border-radius: 1rem;
           padding: 1rem;
+          margin-bottom: 1.5rem;
+          border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
         }
+        
+        .order-summary-mobile-wrapper .order-summary-features {
+          background-color: rgba(var(--bs-primary-rgb), 0.03);
+          border-radius: 1rem;
+          padding: 1rem;
+          margin-bottom: 1.5rem;
+          border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        }
+        
+        .order-summary-mobile-wrapper .plan-features li {
+          margin-bottom: 0.5rem !important;
+        }
+        
+        .order-summary-mobile-wrapper .order-summary-help {
+          margin-top: 0;
+          border-radius: 1rem;
+        }
+      }
+
+      /* Dark mode adjustments */
+      [data-bs-theme="dark"] .mini-order-summary {
+        background-color: var(--bs-body-bg);
+        border-top-color: rgba(255, 255, 255, 0.1);
+      }
+
+      [data-bs-theme="dark"] .mobile-order-summary {
+        background-color: var(--bs-body-bg);
+      }
+
+      [data-bs-theme="dark"] .mobile-order-summary-backdrop {
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+
+      [data-bs-theme="dark"] .close-summary {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      [data-bs-theme="dark"] .checkout-progress-step {
+        background-color: var(--bs-body-bg);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      [data-bs-theme="dark"] .checkout-progress:before {
+        background-color: rgba(255, 255, 255, 0.2);
       }
     </style>
   </head>
@@ -1000,5 +1283,241 @@
     
     <!-- Theme Switcher JavaScript -->
     <script src="assets/js/theme-switcher.js"></script>
+    
+    <!-- Add these elements just before the closing </body> tag -->
+
+    <!-- Mobile Order Summary Button -->
+    <button class="show-summary-btn d-lg-none" id="showSummaryBtn">
+      <i class="bx bx-receipt"></i>
+    </button>
+
+    <!-- Mini Floating Summary -->
+    <div class="mini-order-summary d-lg-none" id="miniOrderSummary">
+      <div class="mini-order-summary-content">
+        <div class="mini-order-summary-total">
+          <span class="plan-name" id="mini-summary-plan">Team Plan (Monthly)</span>
+          <span class="price" id="mini-summary-price">₵29.00</span>
+        </div>
+        <button class="btn btn-primary" id="viewSummaryBtn">
+          <i class="bx bx-receipt me-1"></i> View Summary
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Order Summary Backdrop -->
+    <div class="mobile-order-summary-backdrop d-lg-none" id="orderSummaryBackdrop"></div>
+
+    <!-- Full Mobile Order Summary -->
+    <div class="mobile-order-summary d-lg-none" id="mobileOrderSummary">
+      <div class="mobile-order-summary-header">
+        <h5>Order Summary</h5>
+        <button type="button" class="close-summary" id="closeSummaryBtn" aria-label="Close">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+      
+      <!-- Checkout Progress -->
+      <div class="checkout-progress mb-4">
+        <div class="checkout-progress-step completed">
+          <i class="bx bx-check"></i>
+          <span class="checkout-progress-label">Plan</span>
+        </div>
+        <div class="checkout-progress-step active">
+          <span>2</span>
+          <span class="checkout-progress-label">Payment</span>
+        </div>
+        <div class="checkout-progress-step">
+          <span>3</span>
+          <span class="checkout-progress-label">Confirmation</span>
+        </div>
+      </div>
+      
+      <div class="order-summary-mobile-wrapper">
+        <!-- This will be filled dynamically from desktop summary -->
+      </div>
+      
+      <!-- Summary action buttons -->
+      <div class="summary-action-buttons">
+        <button type="button" class="btn btn-outline-primary" id="continueShopping">
+          <i class="bx bx-arrow-back me-1"></i> Continue Shopping
+        </button>
+        <button type="button" class="btn btn-primary" id="proceedPayment">
+          <i class="bx bx-credit-card me-1"></i> Complete Payment
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Enhanced Mobile Order Summary functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const miniOrderSummary = document.getElementById('miniOrderSummary');
+        const viewSummaryBtn = document.getElementById('viewSummaryBtn');
+        const mobileOrderSummary = document.getElementById('mobileOrderSummary');
+        const orderSummaryBackdrop = document.getElementById('orderSummaryBackdrop');
+        const closeSummaryBtn = document.getElementById('closeSummaryBtn');
+        const continueShoppingBtn = document.getElementById('continueShopping');
+        const proceedPaymentBtn = document.getElementById('proceedPayment');
+        const desktopSummary = document.querySelector('.order-summary-card .card-body');
+        const mobileWrapper = document.querySelector('.order-summary-mobile-wrapper');
+        const miniSummaryPlan = document.getElementById('mini-summary-plan');
+        const miniSummaryPrice = document.getElementById('mini-summary-price');
+        const paymentForm = document.getElementById('payment-form');
+        
+        // Show mini summary after scrolling
+        let hasShownMiniSummary = false;
+        window.addEventListener('scroll', function() {
+          if (window.innerWidth < 992 && !hasShownMiniSummary && window.scrollY > 300) {
+            miniOrderSummary.classList.add('show');
+            hasShownMiniSummary = true;
+          }
+        });
+        
+        // Clone desktop summary to mobile view
+        function updateMobileSummary() {
+          if (desktopSummary) {
+            const clonedContent = desktopSummary.cloneNode(true);
+            mobileWrapper.innerHTML = '';
+            mobileWrapper.appendChild(clonedContent);
+            
+            // Update mini summary
+            const planType = document.getElementById('summary-plan').textContent;
+            const billingType = document.getElementById('summary-billing').textContent;
+            const totalPrice = document.getElementById('summary-total').textContent;
+            
+            miniSummaryPlan.textContent = `${planType} Plan (${billingType})`;
+            miniSummaryPrice.textContent = totalPrice;
+          }
+        }
+        
+        // Initialize mobile summary
+        updateMobileSummary();
+        
+        // Open full summary
+        if (viewSummaryBtn) {
+          viewSummaryBtn.addEventListener('click', function() {
+            mobileOrderSummary.classList.add('show');
+            orderSummaryBackdrop.classList.add('show');
+            document.body.style.overflow = 'hidden';
+          });
+        }
+        
+        // Close full summary
+        if (closeSummaryBtn) {
+          closeSummaryBtn.addEventListener('click', closeMobileOrderSummary);
+        }
+        
+        if (orderSummaryBackdrop) {
+          orderSummaryBackdrop.addEventListener('click', closeMobileOrderSummary);
+        }
+        
+        if (continueShoppingBtn) {
+          continueShoppingBtn.addEventListener('click', closeMobileOrderSummary);
+        }
+        
+        function closeMobileOrderSummary() {
+          mobileOrderSummary.classList.remove('show');
+          orderSummaryBackdrop.classList.remove('show');
+          document.body.style.overflow = '';
+        }
+        
+        // Proceed to payment
+        if (proceedPaymentBtn) {
+          proceedPaymentBtn.addEventListener('click', function() {
+            // Close the modal
+            closeMobileOrderSummary();
+            
+            // Scroll to payment form and focus
+            const paymentSection = document.querySelector('.payment-details-form');
+            if (paymentSection) {
+              paymentSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Flash the payment button
+            const payBtn = document.querySelector('.pay-btn');
+            if (payBtn) {
+              payBtn.classList.add('btn-pulse');
+              setTimeout(() => {
+                payBtn.classList.remove('btn-pulse');
+              }, 2000);
+            }
+          });
+        }
+        
+        // Observe changes to desktop summary
+        const updateObserver = new MutationObserver(function(mutations) {
+          updateMobileSummary();
+        });
+        
+        // Start observing
+        if (desktopSummary) {
+          updateObserver.observe(desktopSummary, { 
+            childList: true, 
+            subtree: true,
+            characterData: true,
+            attributes: true
+          });
+        }
+        
+        // Sync form submission between desktop and mobile
+        if (paymentForm) {
+          paymentForm.addEventListener('submit', function(e) {
+            // If already submitting, don't do anything
+            if (document.querySelector('.pay-btn').disabled) {
+              return;
+            }
+            
+            e.preventDefault();
+            
+            // Show processing state
+            const submitBtn = paymentForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            // Also update mobile button
+            if (proceedPaymentBtn) {
+              proceedPaymentBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Processing...';
+              proceedPaymentBtn.disabled = true;
+            }
+            
+            // Simulate payment processing
+            setTimeout(() => {
+              // Redirect to success page
+              window.location.href = 'payment-success.html';
+            }, 2000);
+          });
+        }
+        
+        // If mobile proceed button clicked, trigger main form submission
+        if (proceedPaymentBtn) {
+          proceedPaymentBtn.addEventListener('click', function() {
+            if (paymentForm && !this.disabled) {
+              paymentForm.requestSubmit();
+            }
+          });
+        }
+        
+        // Add extra class for animation
+        document.querySelectorAll('.plan-features li').forEach((item, index) => {
+          item.style.animationDelay = `${0.1 * index}s`;
+          item.classList.add('animate-fade-in-up');
+        });
+        
+        // Handle mobile viewport height issues
+        function adjustForMobileViewport() {
+          const vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', `${vh}px`);
+          
+          // Adjust max-height of mobile summary
+          if (window.innerWidth < 992 && mobileOrderSummary) {
+            mobileOrderSummary.style.maxHeight = `${window.innerHeight}px`;
+          }
+        }
+        
+        window.addEventListener('resize', adjustForMobileViewport);
+        adjustForMobileViewport();
+      });
+    </script>
   </body>
 </html>
