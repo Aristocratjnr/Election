@@ -114,8 +114,15 @@
         <!-- Theme Switcher -->
         <li class="nav-item dropdown me-3 theme-switch-wrapper">
           <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bx fs-5 me-2 theme-icon"></i>
-            <span class="d-none d-lg-inline">Theme</span>
+            <div class="theme-toggle-wrapper me-2">
+              <div class="theme-toggle" role="switch" aria-checked="false" tabindex="0">
+                <div class="theme-toggle-track">
+                  <i class="bx bx-sun theme-toggle-sun"></i>
+                  <i class="bx bx-moon theme-toggle-moon"></i>
+                </div>
+                <div class="theme-toggle-thumb"></div>
+              </div>
+            </div>
           </a>
           <ul class="dropdown-menu dropdown-menu-end enhanced-dropdown" aria-labelledby="themeDropdown">
             <li>
@@ -1963,5 +1970,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 </script>
+<script src="assets/js/theme-switcher.js"></script>
   </body>
 </html>
