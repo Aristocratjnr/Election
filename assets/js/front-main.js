@@ -8,7 +8,7 @@ window.isDarkStyle = window.Helpers.isDarkStyle();
 
 (function () {
   const menu = document.getElementById('navbarSupportedContent'),
-    nav = document.querySelector('.layout-navbar'),
+    nav = document.querySelector('.layout-navbar') || document.querySelector('.navbar'), // Fix: Add fallback selector
     navItemLink = document.querySelectorAll('.navbar-nav .nav-link');
 
   // Initialised custom options if checked
@@ -38,65 +38,81 @@ window.isDarkStyle = window.Helpers.isDarkStyle();
   }
 
   // Navbar
-  window.addEventListener('scroll', e => {
-    if (window.scrollY > 10) {
-      nav.classList.add('navbar-active');
-    } else {
-      nav.classList.remove('navbar-active');
-    }
-  });
-  window.addEventListener('load', e => {
-    if (window.scrollY > 10) {
-      nav.classList.add('navbar-active');
-    } else {
-      nav.classList.remove('navbar-active');
-    }
-  });
+  if (nav) { // Fix: Check if nav exists before adding event listeners
+    window.addEventListener('scroll', e => {
+      if (window.scrollY > 10) {
+        nav.classList.add('navbar-active');
+      } else {
+        nav.classList.remove('navbar-active');
+      }
+    });
+    window.addEventListener('load', e => {
+      if (window.scrollY > 10) {
+        nav.classList.add('navbar-active');
+      } else {
+        nav.classList.remove('navbar-active');
+      }
+    });
+  }
 
   // Function to close the mobile menu
   function closeMenu() {
-    menu.classList.remove('show');
+    if (menu) { // Fix: Check if menu exists
+      menu.classList.remove('show');
+    }
   }
 
   document.addEventListener('click', function (event) {
-    // Check if the clicked element is inside mobile menu
-    if (!menu.contains(event.target)) {
+    // Check if menu exists and if the clicked element is inside mobile menu
+    if (menu && !menu.contains(event.target)) {
       closeMenu();
     }
   });
-  navItemLink.forEach(link => {
-    link.addEventListener('click', event => {
-      if (!link.classList.contains('dropdown-toggle')) {
-        closeMenu();
-      } else {
-        event.preventDefault();
-      }
-    });
-  });
-
-  // Mega dropdown
-  const megaDropdown = document.querySelectorAll('.nav-link.mega-dropdown');
-  if (megaDropdown) {
-    megaDropdown.forEach(e => {
-      new MegaDropdown(e);
+  
+  if (navItemLink.length > 0) { // Fix: Check if navItemLink exists
+    navItemLink.forEach(link => {
+      link.addEventListener('click', event => {
+        if (!link.classList.contains('dropdown-toggle')) {
+          closeMenu();
+        } else {
+          event.preventDefault();
+        }
+      });
     });
   }
 
-  // Get style from local storage or use 'system' as default
-  let storedStyle =
-    localStorage.getItem('templateCustomizer-' + templateName + '--Theme') || //if no template style then use Customizer style
-    (window.templateCustomizer?.settings?.defaultStyle ?? document.documentElement.getAttribute('data-bs-theme')); //!if there is no Customizer then use default style as light
+  // Mega dropdown
+  const megaDropdown = document.querySelectorAll('.nav-link.mega-dropdown');
+  if (megaDropdown.length > 0) { // Fix: Check if megaDropdown exists
+    megaDropdown.forEach(e => {
+      if (typeof MegaDropdown !== 'undefined') { // Fix: Check if MegaDropdown is defined
+        new MegaDropdown(e);
+      }
+    });
+  }
 
+  // Style switcher
   let styleSwitcher = document.querySelector('.dropdown-style-switcher');
-  const styleSwitcherIcon = styleSwitcher.querySelector('i');
+  if (styleSwitcher) { // Fix: Check if styleSwitcher exists
+    const styleSwitcherIcon = styleSwitcher.querySelector('i');
+    
+    // Get style from local storage or use 'system' as default
+    let storedStyle =
+      localStorage.getItem('templateCustomizer-' + (typeof templateName !== 'undefined' ? templateName : 'template') + '--Theme') || //if no template style then use Customizer style
+      ((window.templateCustomizer?.settings?.defaultStyle) ?? document.documentElement.getAttribute('data-bs-theme')); //!if there is no Customizer then use default style as light
 
-  new bootstrap.Tooltip(styleSwitcherIcon, {
-    title: storedStyle.charAt(0).toUpperCase() + storedStyle.slice(1) + ' Mode',
-    fallbackPlacements: ['bottom']
-  });
+    if (styleSwitcherIcon) { // Fix: Check if styleSwitcherIcon exists
+      new bootstrap.Tooltip(styleSwitcherIcon, {
+        title: storedStyle.charAt(0).toUpperCase() + storedStyle.slice(1) + ' Mode',
+        fallbackPlacements: ['bottom']
+      });
+    }
 
-  // Run switchImage function based on the stored style
-  window.Helpers.switchImage(storedStyle);
+    // Run switchImage function based on the stored style
+    if (typeof window.Helpers.switchImage === 'function') { // Fix: Check if switchImage function exists
+      window.Helpers.switchImage(storedStyle);
+    }
+  }
 
   // Update light/dark image based on current style
   window.Helpers.setTheme(window.Helpers.getPreferredTheme());
@@ -121,19 +137,32 @@ window.isDarkStyle = window.Helpers.isDarkStyle();
     document.querySelectorAll('[data-bs-theme-value]').forEach(toggle => {
       toggle.addEventListener('click', () => {
         const theme = toggle.getAttribute('data-bs-theme-value');
-        window.Helpers.setStoredTheme(templateName, theme);
+        window.Helpers.setStoredTheme(typeof templateName !== 'undefined' ? templateName : 'template', theme);
         window.Helpers.setTheme(theme);
         window.Helpers.showActiveTheme(theme, true);
-        window.Helpers.syncCustomOptions(theme);
+        
+        if (typeof window.Helpers.syncCustomOptions === 'function') { // Fix: Check if syncCustomOptions function exists
+          window.Helpers.syncCustomOptions(theme);
+        }
+        
         let currTheme = theme;
         if (theme === 'system') {
           currTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
-        new bootstrap.Tooltip(styleSwitcherIcon, {
-          title: theme.charAt(0).toUpperCase() + theme.slice(1) + ' Mode',
-          fallbackPlacements: ['bottom']
-        });
-        window.Helpers.switchImage(currTheme);
+        
+        if (styleSwitcher) { // Fix: Check if styleSwitcher exists
+          const styleSwitcherIcon = styleSwitcher.querySelector('i');
+          if (styleSwitcherIcon) { // Fix: Check if styleSwitcherIcon exists
+            new bootstrap.Tooltip(styleSwitcherIcon, {
+              title: theme.charAt(0).toUpperCase() + theme.slice(1) + ' Mode',
+              fallbackPlacements: ['bottom']
+            });
+          }
+        }
+        
+        if (typeof window.Helpers.switchImage === 'function') { // Fix: Check if switchImage function exists
+          window.Helpers.switchImage(currTheme);
+        }
       });
     });
   });
