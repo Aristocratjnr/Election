@@ -52,7 +52,7 @@
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="assets/vendor/js/template-customizer.js"></script>   
      <script src="assets/js/front-config.js"></script>
-    <script src="assets/js/scroll-progress.js"></script>
+    
   </head>
 
   <body>
@@ -1585,23 +1585,18 @@
                 </div>
               </form>
               <div class="footer-social d-flex mb-4">
-                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="Facebook">
-                  <i class="bx bxl-facebook"></i>
-                </a>
-                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="Twitter">
-                  <i class="bx bxl-twitter"></i>
-                </a>
                 <a href="https://www.github.com/aristocratjnr" target="_blank" class="social-icon social-icon-fancy me-2" aria-label="GitHub">
                   <i class="bx bxl-github"></i>
                 </a>
-                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="LinkedIn">
+                <a href="https://www.linkedin.com/in/obuobi-ayim-david/" class="social-icon social-icon-fancy me-2" aria-label="LinkedIn">
                   <i class="bx bxl-linkedin"></i>
                 </a>
               </div>
             </div>
             
             <div class="col-lg-8">
-              <div class="row">                <div class="col-md-6 col-sm-6 mb-4 mb-md-0">
+              <div class="row">                
+                <div class="col-md-6 col-sm-6 mb-4 mb-md-0">
                   <h5 class="footer-links-title mb-3">Quick Links</h5>
                   <ul class="footer-links-list list-unstyled">
                     <li><a href="index.php">Home</a></li>
