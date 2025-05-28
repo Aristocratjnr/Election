@@ -1,0 +1,213 @@
+/* Enhanced Features Section Styling */
+.landing-features {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-features::before,
+.landing-features::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.landing-features::before {
+  background: var(--bs-primary);
+  opacity: 0.05;
+  top: -150px;
+  left: -150px;
+}
+
+.landing-features::after {
+  background: var(--bs-info);
+  opacity: 0.05;
+  bottom: -100px;
+  right: -100px;
+}
+
+.features-subtitle {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--bs-body-color);
+  opacity: 0.8;
+}
+
+/* Feature Cards */
+.feature-card {
+  border-radius: 12px;
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+  transition: all 0.3s ease;
+  background-color: var(--bs-body-bg);
+  overflow: hidden;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.feature-card-body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Feature Icon */
+.feature-icon-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.feature-icon-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  transform: rotate(10deg);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon-bg {
+  transform: rotate(0deg) scale(1.1);
+}
+
+.feature-icon {
+  position: relative;
+  z-index: 1;
+  width: 45px;
+  height: 45px;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+/* Feature Content */
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--bs-body-color);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-title {
+  color: var(--bs-primary);
+}
+
+.feature-description {
+  color: var(--bs-body-color);
+  opacity: 0.8;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.feature-benefits {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+  font-size: 0.875rem;
+}
+
+/* Feature Highlight Box */
+.feature-highlight {
+  border-radius: 16px;
+  box-shadow: 0 5px 20px rgba(var(--bs-primary-rgb), 0.1);
+  overflow: hidden;
+}
+
+.feature-highlight-img {
+  transform: perspective(1000px) rotateY(-10deg);
+  transition: all 0.5s ease;
+  max-width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.feature-highlight:hover .feature-highlight-img {
+  transform: perspective(1000px) rotateY(0deg);
+}
+
+.feature-mini-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+/* Decorative Shapes */
+.feature-highlight-shape-1,
+.feature-highlight-shape-2 {
+  position: absolute;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  opacity: 0.1;
+}
+
+.feature-highlight-shape-1 {
+  width: 200px;
+  height: 200px;
+  bottom: -100px;
+  right: -100px;
+}
+
+.feature-highlight-shape-2 {
+  width: 100px;
+  height: 100px;
+  top: -50px;
+  left: 30%;
+}
+
+/* Dark Mode Adjustments */
+[data-bs-theme="dark"] .feature-card {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .feature-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-color: rgba(var(--bs-primary-rgb), 0.4);
+}
+
+[data-bs-theme="dark"] .feature-description,
+[data-bs-theme="dark"] .features-subtitle {
+  opacity: 0.7;
+}
+
+[data-bs-theme="dark"] .feature-benefits {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+  .feature-highlight-img {
+    transform: none;
+    margin-top: 2rem;
+  }
+  
+  .feature-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .feature-icon-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
