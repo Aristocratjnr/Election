@@ -1342,10 +1342,10 @@
                   </p>
                   <div class="d-flex align-items-center pt-1">
                     <div class="avatar avatar-sm me-2">
-                      <img src="assets/img/front-pages/landing-page/team-member-1.png" alt="Dr. Sarah Chen" class="rounded-circle">
+                      <img src="assets/img/front-pages/landing-page/team-member-1.jpeg" alt="Dr. David Ayim Obuobi" class="rounded-circle">
                     </div>
                     <div>
-                      <h6 class="mb-0">Dr. Sarah Chen</h6>
+                      <h6 class="mb-0">Dr. David Ayim Obuobi</h6>
                       <small class="text-muted">Dean of Student Affairs</small>
                     </div>
                   </div>
