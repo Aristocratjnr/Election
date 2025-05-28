@@ -1,0 +1,187 @@
+/* Enhanced FAQ Styling */
+.landing-faq {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-faq::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: var(--bs-primary);
+  opacity: 0.05;
+  top: -150px;
+  left: -150px;
+  z-index: 0;
+}
+
+.landing-faq::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--bs-info);
+  opacity: 0.05;
+  bottom: -100px;
+  right: -100px;
+  z-index: 0;
+}
+
+.faq-image-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.faq-image-bg-shape {
+  position: absolute;
+  width: 90%;
+  height: 90%;
+  background-color: var(--bs-primary);
+  opacity: 0.08;
+  border-radius: 2rem;
+  transform: rotate(-3deg);
+  z-index: 0;
+}
+
+.faq-image {
+  position: relative;
+  z-index: 1;
+  transform: rotate(2deg);
+  transition: transform 0.3s ease;
+}
+
+.faq-image:hover {
+  transform: rotate(0) scale(1.02);
+}
+
+.faq-floating-icon {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+.faq-icon-1 {
+  top: 10%;
+  right: 5%;
+  animation-delay: 0s;
+}
+
+.faq-icon-2 {
+  bottom: 15%;
+  left: 5%;
+  animation-delay: 1.5s;
+}
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.faq-tag {
+  position: absolute;
+  bottom: 10%;
+  right: -10px;
+  background: var(--bs-primary);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.15);
+  z-index: 2;
+  transform: rotate(3deg);
+}
+
+.custom-accordion .accordion-item {
+  transition: all 0.3s ease;
+}
+
+.custom-accordion .accordion-item:hover {
+  transform: translateY(-3px);
+}
+
+.custom-accordion .accordion-button {
+  padding: 1.25rem 1.5rem;
+  font-weight: 500;
+  border: none;
+  background-color: #fff;
+  color: var(--bs-body-color);
+  box-shadow: none;
+}
+
+.custom-accordion .accordion-button:not(.collapsed) {
+  color: var(--bs-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  box-shadow: none;
+}
+
+.custom-accordion .accordion-button::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23696cff' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+  transition: all 0.3s ease;
+}
+
+.custom-accordion .accordion-button.collapsed::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+}
+
+.custom-accordion .accordion-body {
+  padding: 0 1.5rem 1.25rem 1.5rem;
+}
+
+.faq-answer-icon {
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+}
+
+.faq-answer-content {
+  color: var(--bs-body-color);
+  line-height: 1.6;
+}
+
+.faq-contact-card {
+  border-left: 4px solid var(--bs-primary);
+  transition: all 0.3s ease;
+}
+
+.faq-contact-card:hover {
+  transform: translateY(-5px);
+}
+
+.faq-search-wrapper {
+  border-left: 4px solid var(--bs-primary);
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .custom-accordion .accordion-button {
+  background-color: var(--bs-dark);
+  color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .custom-accordion .accordion-button:not(.collapsed) {
+  background-color: rgba(var(--bs-primary-rgb), 0.15);
+}
+
+[data-bs-theme="dark"] .faq-contact-card {
+  background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+[data-bs-theme="dark"] .faq-search-wrapper {
+  background-color: var(--bs-dark) !important;
+}

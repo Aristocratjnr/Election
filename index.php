@@ -47,11 +47,13 @@
     <link rel="stylesheet" href="assets/css/enhanced-cta.css">
     <link rel="stylesheet" href="assets/css/hero.css" />
     <link rel="stylesheet" href="assets/css/success-stories.css" />  
+    <link rel="stylesheet" href="assets/css/enhanced-faq.css" />
       <link rel="stylesheet" href="assets/css/enhanced-pricing.css" />
     <link rel="stylesheet" href="assets/css/badge-icons.css" />
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="assets/vendor/js/template-customizer.js"></script>   
      <script src="assets/js/front-config.js"></script>
+     
     
   </head>
 
@@ -1243,123 +1245,196 @@
           class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
       </span>
     </h4>
-    <p class="text-center mb-12 pb-md-4">
+    <p class="text-center mb-5">
       Browse through these FAQs to find answers to commonly asked questions about SmartVote.
     </p>
-    <div class="row gy-12 align-itSmartVote-center">
+    
+    <div class="row gy-5">
       <div class="col-lg-5">
-        <div class="text-center">
+        <div class="faq-image-wrapper position-relative">
+          <div class="faq-image-bg-shape"></div>
           <img
             src="assets/img/front-pages/landing-page/faq-boy-with-logos.png"
-            alt="faq boy with logos"
-            class="faq-image" />
+            alt="faq illustration"
+            class="faq-image img-fluid rounded-4 shadow-lg" />
+          <div class="faq-floating-icon faq-icon-1">
+            <i class="bx bx-question-mark fs-2 text-primary"></i>
+          </div>
+          <div class="faq-floating-icon faq-icon-2">
+            <i class="bx bx-bulb fs-2 text-warning"></i>
+          </div>
+          <div class="faq-tag">
+            <span>Got questions?</span>
+          </div>
+        </div>
+        
+        <div class="faq-contact-card mt-5 bg-primary bg-opacity-10 p-4 rounded-3 border border-primary border-opacity-25">
+          <h5 class="mb-3"><i class="bx bx-support me-2"></i> Still have questions?</h5>
+          <p class="mb-3">Can't find the answer you're looking for? Please contact our friendly support team.</p>
+          <a href="#landingContact" class="btn btn-primary">Contact Support</a>
         </div>
       </div>
+      
       <div class="col-lg-7">
-        <div class="accordion" id="accordionExample">
-          <div class="card accordion-item">
-            <h2 class="accordion-header" id="headingOne">
+        <div class="accordion custom-accordion" id="faqAccordion">
+          <div class="card accordion-item mb-3 shadow-sm border-0 rounded-3 overflow-hidden">
+            <h2 class="accordion-header">
+              <button
+                type="button"
+                class="accordion-button collapsed"
+                data-bs-toggle="collapse"
+                data-bs-target="#faqOne"
+                aria-expanded="false"
+                aria-controls="faqOne">
+                <i class="bx bx-help-circle text-primary me-2 fs-5"></i>
+                <span class="fw-medium">Is SmartVote free to use for elections?</span>
+              </button>
+            </h2>
+            <div id="faqOne" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body pt-0">
+                <div class="d-flex">
+                  <div class="faq-answer-icon me-3">
+                    <i class="bx bx-info-circle text-primary fs-5"></i>
+                  </div>
+                  <div class="faq-answer-content">
+                    SmartVote offers a free tier for small-scale elections, such as student council votes or small community polls. For larger elections or advanced features, you can upgrade to a paid plan.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card accordion-item mb-3 shadow-sm border-0 rounded-3 overflow-hidden">
+            <h2 class="accordion-header">
+              <button
+                type="button"
+                class="accordion-button collapsed"
+                data-bs-toggle="collapse"
+                data-bs-target="#faqTwo"
+                aria-expanded="false"
+                aria-controls="faqTwo">
+                <i class="bx bx-help-circle text-primary me-2 fs-5"></i>
+                <span class="fw-medium">Can SmartVote handle large-scale elections?</span>
+              </button>
+            </h2>
+            <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body pt-0">
+                <div class="d-flex">
+                  <div class="faq-answer-icon me-3">
+                    <i class="bx bx-info-circle text-primary fs-5"></i>
+                  </div>
+                  <div class="faq-answer-content">
+                    Yes, SmartVote is designed to handle elections of all sizes, from small local polls to large national elections. Our platform scales to meet your needs.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card accordion-item mb-3 shadow-sm border-0 rounded-3 overflow-hidden">
+            <h2 class="accordion-header">
               <button
                 type="button"
                 class="accordion-button"
                 data-bs-toggle="collapse"
-                data-bs-target="#accordionOne"
+                data-bs-target="#faqThree"
                 aria-expanded="true"
-                aria-controls="accordionOne">
-                Is SmartVote free to use for elections?
+                aria-controls="faqThree">
+                <i class="bx bx-help-circle text-primary me-2 fs-5"></i>
+                <span class="fw-medium">How does SmartVote ensure election security?</span>
               </button>
             </h2>
-            <div id="accordionOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                SmartVote offers a free tier for small-scale elections, such as student council votes or small community polls. For larger elections or advanced features, you can upgrade to a paid plan.
+            <div id="faqThree" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+              <div class="accordion-body pt-0">
+                <div class="d-flex">
+                  <div class="faq-answer-icon me-3">
+                    <i class="bx bx-info-circle text-primary fs-5"></i>
+                  </div>
+                  <div class="faq-answer-content">
+                    SmartVote uses advanced encryption, multi-factor authentication, and blockchain technology to ensure the integrity and security of your elections. Regular audits are conducted to maintain the highest standards.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="card accordion-item">
-            <h2 class="accordion-header" id="headingTwo">
+          
+          <div class="card accordion-item mb-3 shadow-sm border-0 rounded-3 overflow-hidden">
+            <h2 class="accordion-header">
               <button
                 type="button"
                 class="accordion-button collapsed"
                 data-bs-toggle="collapse"
-                data-bs-target="#accordionTwo"
+                data-bs-target="#faqFour"
                 aria-expanded="false"
-                aria-controls="accordionTwo">
-                Can SmartVote handle large-scale elections?
+                aria-controls="faqFour">
+                <i class="bx bx-help-circle text-primary me-2 fs-5"></i>
+                <span class="fw-medium">Can I customize the voting process with SmartVote?</span>
               </button>
             </h2>
-            <div
-              id="accordionTwo"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingTwo"
-              data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                Yes, SmartVote is designed to handle elections of all sizes, from small local polls to large national elections. Our platform scales to meet your needs.
+            <div id="faqFour" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body pt-0">
+                <div class="d-flex">
+                  <div class="faq-answer-icon me-3">
+                    <i class="bx bx-info-circle text-primary fs-5"></i>
+                  </div>
+                  <div class="faq-answer-content">
+                    Absolutely! SmartVote allows you to customize ballot designs, voting rules, and eligibility criteria to fit the specific needs of your election.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="card accordion-item active">
-            <h2 class="accordion-header" id="headingThree">
-              <button
-                type="button"
-                class="accordion-button"
-                data-bs-toggle="collapse"
-                data-bs-target="#accordionThree"
-                aria-expanded="false"
-                aria-controls="accordionThree">
-                How does SmartVote ensure election security?
-              </button>
-            </h2>
-            <div
-              id="accordionThree"
-              class="accordion-collapse collapse show"
-              aria-labelledby="headingThree"
-              data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                SmartVote uses advanced encryption, multi-factor authentication, and blockchain technology to ensure the integrity and security of your elections. Regular audits are conducted to maintain the highest standards.
-              </div>
-            </div>
-          </div>
-          <div class="card accordion-item">
-            <h2 class="accordion-header" id="headingFour">
+          
+          <div class="card accordion-item mb-3 shadow-sm border-0 rounded-3 overflow-hidden">
+            <h2 class="accordion-header">
               <button
                 type="button"
                 class="accordion-button collapsed"
                 data-bs-toggle="collapse"
-                data-bs-target="#accordionFour"
+                data-bs-target="#faqFive"
                 aria-expanded="false"
-                aria-controls="accordionFour">
-                Can I customize the voting process with SmartVote?
+                aria-controls="faqFive">
+                <i class="bx bx-help-circle text-primary me-2 fs-5"></i>
+                <span class="fw-medium">What kind of support does SmartVote offer?</span>
               </button>
             </h2>
-            <div
-              id="accordionFour"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingFour"
-              data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                Absolutely! SmartVote allows you to customize ballot designs, voting rules, and eligibility criteria to fit the specific needs of your election.
+            <div id="faqFive" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body pt-0">
+                <div class="d-flex">
+                  <div class="faq-answer-icon me-3">
+                    <i class="bx bx-info-circle text-primary fs-5"></i>
+                  </div>
+                  <div class="faq-answer-content">
+                    SmartVote provides 24/7 customer support via email, chat, and phone. We also offer detailed documentation and training resources to help you get started.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="card accordion-item">
-            <h2 class="accordion-header" id="headingFive">
+          
+          <div class="card accordion-item shadow-sm border-0 rounded-3 overflow-hidden">
+            <h2 class="accordion-header">
               <button
                 type="button"
                 class="accordion-button collapsed"
                 data-bs-toggle="collapse"
-                data-bs-target="#accordionFive"
+                data-bs-target="#faqSix"
                 aria-expanded="false"
-                aria-controls="accordionFive">
-                What kind of support does SmartVote offer?
+                aria-controls="faqSix">
+                <i class="bx bx-help-circle text-primary me-2 fs-5"></i>
+                <span class="fw-medium">Is my data secure with SmartVote?</span>
               </button>
             </h2>
-            <div
-              id="accordionFive"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingFive"
-              data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                SmartVote provides 24/7 customer support via email, chat, and phone. We also offer detailed documentation and training resources to help you get started.
+            <div id="faqSix" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body pt-0">
+                <div class="d-flex">
+                  <div class="faq-answer-icon me-3">
+                    <i class="bx bx-info-circle text-primary fs-5"></i>
+                  </div>
+                  <div class="faq-answer-content">
+                    Yes, we take data security very seriously. SmartVote uses industry-leading encryption and security practices to protect your election data. We are fully GDPR compliant and never share your information with third parties.
+                  </div>
+                </div>
               </div>
             </div>
           </div>
