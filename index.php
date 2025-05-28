@@ -21,12 +21,12 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <!-- Fonts -->    <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
       rel="stylesheet" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
     <link rel="stylesheet" href="assets/vendor/fonts/iconify-icons.css" />
 
@@ -37,14 +37,17 @@
 
     <link rel="stylesheet" href="assets/vendor/css/pages/front-page.css" />
 
-    <link rel="stylesheet" href="assets/vendor/libs/nouislider/nouislider.css" />
-    <link rel="stylesheet" href="assets/vendor/libs/swiper/swiper.css" />
-
-    <link rel="stylesheet" href="assets/vendor/css/pages/front-page-landing.css" />
+    <link rel="stylesheet" href="assets/vendor/libs/nouislider/nouislider.css" />    <link rel="stylesheet" href="assets/vendor/libs/swiper/swiper.css" />    <link rel="stylesheet" href="assets/vendor/css/pages/front-page-landing.css" />
+    <link rel="stylesheet" href="assets/css/modern-ui.css" />
+    <link rel="stylesheet" href="assets/css/improved-footer.css" />
+    <link rel="stylesheet" href="assets/css/enhanced-reviews.css" />
+    <link rel="stylesheet" href="assets/css/enhanced-navbar.css" />
+    <link rel="stylesheet" href="assets/css/hero.css" />
+    <link rel="stylesheet" href="assets/css/success-stories.css" />    <link rel="stylesheet" href="assets/css/enhanced-pricing.css" />
+    <link rel="stylesheet" href="assets/css/badge-icons.css" />
     <script src="assets/vendor/js/helpers.js"></script>
-    <script src="assets/vendor/js/template-customizer.js"></script>
-
-    <script src="assets/js/front-config.js"></script>
+    <script src="assets/vendor/js/template-customizer.js"></script>    <script src="assets/js/front-config.js"></script>
+    <script src="assets/js/scroll-progress.js"></script>
   </head>
 
   <body>
@@ -77,7 +80,7 @@
     <!-- Brand & Mobile Toggle -->
     <a class="navbar-brand d-flex align-items-center" href="landing-page.html">
       <img src="assets/img/favicon/favicon.ico" alt="logo" width="30" height="30" class="me-2">
-      <span class="d-none d-sm-inline fw-bold">SmartVote</span>
+      <span class="d-none d-sm-inline fw-bold brand-text">SmartVote</span>
     </a>
     
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
@@ -88,6 +91,15 @@
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
+          <a class="nav-link" href="#landingFeatures">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#landingReviews">Reviews</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#landingPricing">Pricing</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="login.php" target="_blank">Admin</a>
         </li>
       </ul>
@@ -95,12 +107,12 @@
       <!-- Right Side Items -->
       <ul class="navbar-nav ms-auto align-items-center">
         <!-- Theme Switcher -->
-        <li class="nav-item dropdown me-3">
+        <li class="nav-item dropdown me-3 theme-switch-wrapper">
           <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bx fs-5 me-2 theme-icon"></i>
             <span class="d-none d-lg-inline">Theme</span>
           </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+          <ul class="dropdown-menu dropdown-menu-end enhanced-dropdown" aria-labelledby="themeDropdown">
             <li>
               <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="light">
                 <i class="bx bx-sun me-2"></i>
@@ -124,11 +136,11 @@
 
         <!-- Auth Buttons -->
         <li class="nav-item d-flex flex-wrap gap-2">
-          <a href="login.php" class="btn btn-primary" target="_blank">
+          <a href="login.php" class="btn btn-primary navbar-cta" target="_blank">
             <i class="bx bx-log-in-circle d-none d-lg-inline me-1"></i>
             <span>Login</span>
           </a>
-          <a href="register.php" class="btn btn-success" target="_blank">
+          <a href="register.php" class="btn btn-success auth-btn" target="_blank">
             <i class="bx bx-user-plus d-none d-lg-inline me-1"></i>
             <span>Register</span>
           </a>
@@ -140,51 +152,32 @@
 <!-- Navbar: End -->
 
     <!-- Sections:Start -->
-
     <div data-bs-spy="scroll" class="scrollspy-example">
       <!-- Hero: Start -->
       <section id="hero-animation">
-        <div id="landingHero" class="section-py landing-hero position-relative">
-          <img
-            src="assets/img/front-pages/backgrounds/hero-bg.png"
-            alt="hero background"
-            class="position-absolute top-0 start-50 translate-middle-x object-fit-cover w-100 h-100"
-            data-speed="1" />
+        <div id="landingHero" class="landing-hero">
+        
+          <div class="hero-bg-pattern"></div>
+
           <div class="container">
-            <div class="hero-text-box text-center position-relative">
-              <h1 class="text-primary hero-title display-6 fw-extrabold">
-              One platform to manage all your elections
+            <div class="hero-content">
+              <h1 class="hero-title">
+                Transform <span>Election Management</span><br>
+                with Smart Technology
               </h1>
-              <h2 class="hero-sub-title h6 mb-6">
-              Secure, transparent, and efficient election management system <br class="d-none d-lg-block" />
-              for educational institution of all sizes.
-              </h2>
-              <div class="landing-hero-btn d-inline-block position-relative">
-                <span class="hero-btn-item position-absolute d-none d-md-flex fw-medium"
-                  >Try it out
-                  <img
-                    src="assets/img/front-pages/icons/Join-community-arrow.png"
-                    alt="Join community arrow"
-                    class="scaleX-n1-rtl"
-                /></span>
-                <a href="register.php" class="btn btn-primary btn-lg">Get early access</a>
-              </div>
-            </div><br><br>
-            <div id="heroDashboardAnimation" class="hero-animation-img">
-              <a href="../vertical-menu-template/app-ecommerce-dashboard.html" target="_blank">
-                <div id="heroAnimationImg" class="position-relative hero-dashboard-img">
-                  <img
-                    src="assets/img/front-pages/landing-page/hero-dashboard-light.png"
-                    alt="hero dashboard"
-                    class="animation-img"
-                    data-app-light-img="front-pages/landing-page/hero-dashboard-light.png"
-                    data-app-dark-img="front-pages/landing-page/hero-dashboard-dark.png" />
-                </div>
+              <p class="hero-subtitle">
+                A secure, transparent, and efficient voting system designed for<br class="d-none d-lg-block">
+                modern educational institutions. Experience the future of elections.
+              </p>
+              <a href="register.php" class="btn btn-primary hero-cta">
+                Get Started Now
+                <i class="bx bx-right-arrow-alt hero-cta-arrow"></i>
               </a>
             </div>
+          <div class="scroll-down-indicator">
+            <div class="scroll-down-arrow"></div>
           </div>
         </div>
-        <div class="landing-hero-blank"></div>
       </section>
       <section id="landingFeatures" class="section-py landing-features">
         <div class="container">
@@ -207,7 +200,7 @@
           <div class="features-icon-wrapper row gx-0 gy-6 g-sm-12">
             <div class="col-lg-4 col-sm-6 text-center features-icon-box">
               <div class="mb-4 text-primary text-center">
-               <svg width="64px" height="64px" viewBox="0 0 1024 1024" fill="#000000" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M296.542 160.114c-4.414 0-8.076-3.576-8.076-7.998s3.498-7.998 7.918-7.998h0.156c4.42 0 7.998 3.576 7.998 7.998s-3.574 7.998-7.996 7.998zM328.532 160.114c-4.412 0-8.074-3.576-8.074-7.998s3.498-7.998 7.918-7.998h0.156c4.422 0 7.998 3.576 7.998 7.998s-3.576 7.998-7.998 7.998zM360.522 160.114c-4.412 0-8.076-3.576-8.076-7.998s3.5-7.998 7.918-7.998h0.156c4.422 0 7.998 3.576 7.998 7.998s-3.574 7.998-7.996 7.998z" fill=""></path><path d="M775.918 176.11H264.076a7.994 7.994 0 0 1-7.998-7.998v-15.996c0-13.23 10.762-23.994 23.992-23.994h479.854c13.23 0 23.992 10.764 23.992 23.994v15.996a7.992 7.992 0 0 1-7.998 7.998z m-503.844-15.996h495.848v-7.998a8.008 8.008 0 0 0-7.996-7.998H280.072a8.004 8.004 0 0 0-7.998 7.998v7.998z" fill=""></path><path d="M775.918 512.006H264.076a7.994 7.994 0 0 1-7.998-7.998V168.112a7.994 7.994 0 0 1 7.998-7.998h511.842c4.422 0 8 3.578 8 7.998v335.896a7.994 7.994 0 0 1-8 7.998z m-503.844-15.994h495.848V176.11H272.074v319.902z" fill=""></path><path d="M743.93 304.072H296.066a7.994 7.994 0 0 1-7.998-7.998v-95.97a7.994 7.994 0 0 1 7.998-7.998h447.864a7.992 7.992 0 0 1 7.996 7.998v95.97a7.992 7.992 0 0 1-7.996 7.998z m-439.866-15.996h431.87V208.1H304.064v79.976z" fill=""></path><path d="M695.946 256.084H344.052c-4.42 0-7.998-3.576-7.998-7.998s3.578-7.998 7.998-7.998h351.894c4.418 0 7.996 3.576 7.996 7.998s-3.578 7.998-7.996 7.998zM743.93 352.056H535.992c-4.418 0-7.996-3.576-7.996-7.998s3.578-7.998 7.996-7.998h207.938c4.422 0 7.996 3.576 7.996 7.998s-3.574 7.998-7.996 7.998zM743.93 384.046H535.992c-4.418 0-7.996-3.576-7.996-7.998s3.578-7.998 7.996-7.998h207.938c4.422 0 7.996 3.576 7.996 7.998s-3.574 7.998-7.996 7.998zM743.93 416.036H535.992c-4.418 0-7.996-3.576-7.996-7.998s3.578-7.998 7.996-7.998h207.938c4.422 0 7.996 3.576 7.996 7.998s-3.574 7.998-7.996 7.998zM639.96 448.026h-103.968a7.992 7.992 0 0 1-7.996-7.998 7.994 7.994 0 0 1 7.996-7.998h103.968a7.992 7.992 0 0 1 7.996 7.998 7.988 7.988 0 0 1-7.996 7.998zM504.002 480.016H296.066a7.994 7.994 0 0 1-7.998-7.998v-143.956a7.994 7.994 0 0 1 7.998-7.998h207.936a7.994 7.994 0 0 1 7.998 7.998v143.956a7.994 7.994 0 0 1-7.998 7.998z m-199.938-15.994h191.942v-127.96h-191.942v127.96z" fill=""></path><path d="M488.014 480.016a7.988 7.988 0 0 1-6.864-3.88l-41.128-68.55-41.128 68.55a7.992 7.992 0 0 1-10.972 2.74 7.996 7.996 0 0 1-2.742-10.972l47.986-79.976c2.89-4.812 10.824-4.812 13.714 0l47.984 79.976a7.996 7.996 0 0 1-6.85 12.112z" fill=""></path><path d="M344.044 480.016a7.988 7.988 0 0 1-4.428-1.344 7.988 7.988 0 0 1-2.218-11.09l31.99-47.986c2.968-4.452 10.34-4.452 13.308 0l24.25 36.364a7.992 7.992 0 0 1-2.218 11.09 8.008 8.008 0 0 1-11.09-2.218l-17.596-26.382-25.336 38.004a7.988 7.988 0 0 1-6.662 3.562z" fill=""></path><path d="M344.052 400.042c-13.23 0-23.992-10.764-23.992-23.994s10.762-23.994 23.992-23.994 23.992 10.762 23.992 23.994c0 13.23-10.762 23.994-23.992 23.994z m0-31.99c-4.412 0-7.998 3.584-7.998 7.998s3.586 7.998 7.998 7.998 7.998-3.584 7.998-7.998-3.586-7.998-7.998-7.998z" fill=""></path><path d="M48.618 751.942c-4.412 0-8.076-3.576-8.076-7.996 0-4.422 3.5-7.998 7.918-7.998h0.156a7.992 7.992 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.996zM80.608 751.942c-4.412 0-8.076-3.576-8.076-7.996 0-4.422 3.5-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.996zM112.598 751.942c-4.412 0-8.076-3.576-8.076-7.996 0-4.422 3.5-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.996z" fill=""></path><path d="M280.072 767.938H8.156a7.994 7.994 0 0 1-7.998-7.998v-15.994c0-13.23 10.762-23.992 23.992-23.992h239.926c13.23 0 23.994 10.762 23.994 23.992v15.994a7.994 7.994 0 0 1-7.998 7.998z m-263.92-15.996h255.92v-7.996a7.996 7.996 0 0 0-7.998-7.998H24.15a8 8 0 0 0-7.998 7.998v7.996z" fill=""></path><path d="M280.072 959.878H8.156a7.994 7.994 0 0 1-7.998-7.998v-191.94a7.994 7.994 0 0 1 7.998-7.998h271.916a7.994 7.994 0 0 1 7.998 7.998v191.942a7.994 7.994 0 0 1-7.998 7.996z m-263.92-15.996h255.92v-175.946H16.152v175.946z" fill=""></path><path d="M248.082 847.912H40.146a7.992 7.992 0 0 1-7.998-7.998v-47.984a7.994 7.994 0 0 1 7.998-7.998h207.936a7.994 7.994 0 0 1 7.998 7.998v47.984a7.994 7.994 0 0 1-7.998 7.998z m-199.94-15.994h191.94v-31.99h-191.94v31.99zM128.118 927.888H40.146a7.994 7.994 0 0 1-7.998-7.998v-47.984a7.992 7.992 0 0 1 7.998-7.998h87.972a7.994 7.994 0 0 1 7.998 7.998v47.984a7.994 7.994 0 0 1-7.998 7.998z m-79.976-15.996H120.12v-31.99H48.142v31.99zM248.082 879.902H160.108a7.992 7.992 0 0 1-7.998-7.996 7.994 7.994 0 0 1 7.998-7.998h87.972a7.994 7.994 0 0 1 7.998 7.998 7.99 7.99 0 0 1-7.996 7.996z" fill=""></path><path d="M248.082 911.892H160.108a7.994 7.994 0 0 1-7.998-7.998 7.992 7.992 0 0 1 7.998-7.996h87.972a7.992 7.992 0 0 1 7.998 7.996 7.992 7.992 0 0 1-7.996 7.998z" fill=""></path><path d="M784.386 751.942c-4.406 0-8.062-3.576-8.062-7.996 0-4.422 3.5-7.998 7.906-7.998h0.156a7.982 7.982 0 0 1 7.996 7.998 7.982 7.982 0 0 1-7.996 7.996zM816.376 751.942c-4.402 0-8.058-3.576-8.058-7.996 0-4.422 3.5-7.998 7.902-7.998h0.156c4.438 0 8 3.576 8 7.998a7.984 7.984 0 0 1-8 7.996zM848.368 751.942c-4.406 0-8.062-3.576-8.062-7.996 0-4.422 3.5-7.998 7.906-7.998h0.156a7.982 7.982 0 0 1 7.996 7.998 7.984 7.984 0 0 1-7.996 7.996z" fill=""></path><path d="M1015.848 767.938H743.93a7.992 7.992 0 0 1-7.996-7.998v-15.994c0-13.23 10.762-23.992 23.992-23.992h239.926c13.23 0 23.992 10.762 23.992 23.992v15.994a7.994 7.994 0 0 1-7.996 7.998z m-263.922-15.996h255.922v-7.996a8.002 8.002 0 0 0-7.996-7.998H759.926c-4.406 0-8 3.576-8 7.998v7.996z" fill=""></path><path d="M1015.848 959.878H743.93a7.992 7.992 0 0 1-7.996-7.998v-191.94a7.992 7.992 0 0 1 7.996-7.998h271.918a7.994 7.994 0 0 1 7.996 7.998v191.942a7.994 7.994 0 0 1-7.996 7.996z m-263.922-15.996h255.922v-175.946H751.926v175.946z" fill=""></path><path d="M983.856 847.912H775.918a7.992 7.992 0 0 1-7.996-7.998v-47.984a7.994 7.994 0 0 1 7.996-7.998h207.938a7.992 7.992 0 0 1 7.996 7.998v47.984a7.99 7.99 0 0 1-7.996 7.998z m-199.938-15.994h191.942v-31.99h-191.942v31.99zM863.89 927.888h-87.972a7.994 7.994 0 0 1-7.996-7.998v-47.984a7.992 7.992 0 0 1 7.996-7.998h87.972c4.422 0 8 3.576 8 7.998v47.984a7.994 7.994 0 0 1-8 7.998z m-79.972-15.996h71.976v-31.99h-71.976v31.99zM983.856 879.902h-87.972a7.99 7.99 0 0 1-7.996-7.996 7.99 7.99 0 0 1 7.996-7.998h87.972a7.99 7.99 0 0 1 7.996 7.998 7.99 7.99 0 0 1-7.996 7.996z" fill=""></path><path d="M983.856 911.892h-87.972a7.99 7.99 0 0 1-7.996-7.998 7.99 7.99 0 0 1 7.996-7.996h87.972a7.99 7.99 0 0 1 7.996 7.996 7.99 7.99 0 0 1-7.996 7.998z" fill=""></path><path d="M416.506 799.928c-4.414 0-8.076-3.576-8.076-7.998 0-4.42 3.498-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.992 7.992 0 0 1-7.996 7.998zM448.496 799.928c-4.414 0-8.076-3.576-8.076-7.998 0-4.42 3.498-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.99 7.99 0 0 1-7.996 7.998zM480.486 799.928c-4.414 0-8.076-3.576-8.076-7.998 0-4.42 3.498-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.998z" fill=""></path><path d="M647.958 815.922H376.042a7.992 7.992 0 0 1-7.998-7.996v-15.996c0-13.23 10.762-23.992 23.994-23.992h239.928c13.23 0 23.992 10.762 23.992 23.992v15.996c0 4.42-3.58 7.996-8 7.996z m-263.918-15.994h255.92v-7.998a8.004 8.004 0 0 0-7.996-7.998H392.038a8 8 0 0 0-7.998 7.998v7.998z" fill=""></path><path d="M647.958 1007.864H376.042a7.992 7.992 0 0 1-7.998-7.996v-191.942a7.994 7.994 0 0 1 7.998-7.998h271.916c4.422 0 8 3.576 8 7.998v191.942c0 4.42-3.58 7.996-8 7.996z m-263.918-15.994h255.92v-175.948H384.04v175.948z" fill=""></path><path d="M615.968 895.898H408.032a7.994 7.994 0 0 1-7.998-7.998v-47.986a7.992 7.992 0 0 1 7.998-7.996h207.936a7.99 7.99 0 0 1 7.996 7.996v47.986a7.992 7.992 0 0 1-7.996 7.998z m-199.938-15.996h191.942v-31.99h-191.942v31.99zM496.004 975.874h-87.972a7.994 7.994 0 0 1-7.998-7.998v-47.984a7.994 7.994 0 0 1 7.998-7.998h87.972a7.994 7.994 0 0 1 7.998 7.998v47.984a7.994 7.994 0 0 1-7.998 7.998z m-79.974-15.996h71.976v-31.99h-71.976v31.99zM615.968 927.888h-87.972c-4.422 0-8-3.578-8-7.998s3.578-7.998 8-7.998h87.972c4.422 0 7.996 3.578 7.996 7.998s-3.574 7.998-7.996 7.998z" fill=""></path><path d="M615.968 959.878h-87.972c-4.422 0-8-3.578-8-7.998s3.578-7.998 8-7.998h87.972c4.422 0 7.996 3.578 7.996 7.998s-3.574 7.998-7.996 7.998z" fill=""></path><path d="M575.98 112.13h-111.966a7.994 7.994 0 0 1-7.998-7.998V56.148c0-2.774 1.438-5.35 3.796-6.802a8.018 8.018 0 0 1 7.778-0.352l24.774 12.386 19.946-40.738a8.004 8.004 0 0 1 7.124-4.482c2.644-0.25 5.808 1.664 7.184 4.358l20.882 40.926 24.898-12.45a7.964 7.964 0 0 1 7.782 0.352 7.994 7.994 0 0 1 3.792 6.802v47.984a7.986 7.986 0 0 1-7.992 7.998z m-103.968-15.996h95.972V69.088l-20.418 10.208a8.008 8.008 0 0 1-10.7-3.514l-17.222-33.74-16.462 33.614a8 8 0 0 1-4.624 4.062 7.91 7.91 0 0 1-6.138-0.422l-20.408-10.208v27.046z" fill=""></path><path d="M519.996 703.958A7.994 7.994 0 0 1 512 695.96v-111.964a7.994 7.994 0 0 1 7.996-7.998c4.422 0 8 3.578 8 7.998v111.964a7.996 7.996 0 0 1-8 7.998z" fill=""></path><path d="M519.996 703.958a7.994 7.994 0 0 1-5.652-13.652l15.996-15.996a7.996 7.996 0 1 1 11.308 11.31l-15.996 15.994a7.976 7.976 0 0 1-5.656 2.344z" fill=""></path><path d="M519.996 703.958a7.974 7.974 0 0 1-5.652-2.344l-15.996-15.994a7.996 7.996 0 1 1 11.308-11.31l15.996 15.996a7.994 7.994 0 0 1-5.656 13.652z" fill=""></path><path d="M168.106 655.972a7.994 7.994 0 0 1-5.654-13.652l79.976-79.976a7.994 7.994 0 0 1 11.308 0 7.994 7.994 0 0 1 0 11.308L173.76 653.628a7.964 7.964 0 0 1-5.654 2.344z" fill=""></path><path d="M190.724 655.972H168.106c-4.42 0-7.998-3.578-7.998-7.998s3.576-7.998 7.998-7.998h22.618c4.42 0 7.998 3.578 7.998 7.998s-3.578 7.998-7.998 7.998z" fill=""></path><path d="M168.106 655.972a7.994 7.994 0 0 1-7.998-7.998v-22.62c0-4.42 3.576-7.996 7.998-7.996s7.998 3.576 7.998 7.996v22.62a7.996 7.996 0 0 1-7.998 7.998z" fill=""></path><path d="M871.89 655.972a7.976 7.976 0 0 1-5.656-2.344l-79.972-79.976a7.994 7.994 0 0 1 0-11.308 7.994 7.994 0 0 1 11.308 0l79.972 79.976a7.994 7.994 0 0 1 0 11.308 7.948 7.948 0 0 1-5.652 2.344z" fill=""></path><path d="M871.89 655.972h-22.618c-4.422 0-8-3.578-8-7.998s3.578-7.998 8-7.998h22.618c4.418 0 7.996 3.578 7.996 7.998s-3.578 7.998-7.996 7.998z" fill=""></path><path d="M871.89 655.972c-4.422 0-8-3.578-8-7.998v-22.62a7.994 7.994 0 0 1 8-7.996 7.992 7.992 0 0 1 7.996 7.996v22.62a7.994 7.994 0 0 1-7.996 7.998z" fill=""></path></g></svg>
+               <svg width="64px" height="64px" viewBox="0 0 1024 1024" fill="#000000" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M296.542 160.114c-4.414 0-8.076-3.576-8.076-7.998s3.498-7.998 7.918-7.998h0.156c4.42 0 7.998 3.576 7.998 7.998s-3.574 7.998-7.996 7.998zM328.532 160.114c-4.412 0-8.074-3.576-8.074-7.998s3.498-7.998 7.918-7.998h0.156c4.422 0 7.998 3.576 7.998 7.998s-3.576 7.998-7.998 7.998zM360.522 160.114c-4.412 0-8.076-3.576-8.076-7.998s3.5-7.998 7.918-7.998h0.156c4.422 0 7.998 3.576 7.998 7.998s-3.574 7.998-7.996 7.998z" fill=""></path><path d="M775.918 176.11H264.076a7.994 7.994 0 0 1-7.998-7.998v-15.996c0-13.23 10.762-23.994 23.992-23.994h479.854c13.23 0 23.992 10.764 23.992 23.994v15.996a7.992 7.992 0 0 1-7.998 7.998z m-503.844-15.996h495.848v-7.998a8.008 8.008 0 0 0-7.996-7.998H280.072a8.004 8.004 0 0 0-7.998 7.998v7.998z" fill=""></path><path d="M775.918 512.006H264.076a7.994 7.994 0 0 1-7.998-7.998V168.112a7.994 7.994 0 0 1 7.998-7.998h511.842c4.422 0 8 3.578 8 7.998v335.896a7.994 7.994 0 0 1-8 7.998z m-503.844-15.994h495.848V176.11H272.074v319.902z" fill=""></path><path d="M743.93 304.072H296.066a7.994 7.994 0 0 1-7.998-7.998v-95.97a7.994 7.994 0 0 1 7.998-7.998h447.864a7.992 7.992 0 0 1 7.996 7.998v95.97a7.992 7.992 0 0 1-7.996 7.998z m-439.866-15.996h431.87V208.1H304.064v79.976z" fill=""></path><path d="M695.946 256.084H344.052c-4.42 0-7.998-3.576-7.998-7.998s3.578-7.998 7.998-7.998h351.894c4.418 0 7.996 3.576 7.996 7.998s-3.578 7.998-7.996 7.998zM743.93 352.056H535.992c-4.418 0-7.996-3.576-7.996-7.998s3.578-7.998 7.996-7.998h207.938c4.422 0 7.996 3.576 7.996 7.998s-3.574 7.998-7.996 7.998zM743.93 384.046H535.992c-4.418 0-7.996-3.576-7.996-7.998s3.578-7.998 7.996-7.998h207.938c4.422 0 7.996 3.576 7.996 7.998s-3.574 7.998-7.996 7.998zM743.93 416.036H535.992c-4.418 0-7.996-3.576-7.996-7.998s3.578-7.998 7.996-7.998h207.938c4.422 0 7.996 3.576 7.996 7.998s-3.574 7.998-7.996 7.998zM639.96 448.026h-103.968a7.992 7.992 0 0 1-7.996-7.998 7.994 7.994 0 0 1 7.996-7.998h103.968a7.992 7.992 0 0 1 7.996 7.998 7.988 7.988 0 0 1-7.996 7.998zM504.002 480.016H296.066a7.994 7.994 0 0 1-7.998-7.998v-143.956a7.994 7.994 0 0 1 7.998-7.998h207.936a7.994 7.994 0 0 1 7.998 7.998v143.956a7.994 7.994 0 0 1-7.998 7.998z m-199.938-15.994h191.942v-127.96h-191.942v127.96z" fill=""></path><path d="M488.014 480.016a7.988 7.988 0 0 1-6.864-3.88l-41.128-68.55-41.128 68.55a7.992 7.992 0 0 1-10.972 2.74 7.996 7.996 0 0 1-2.742-10.972l47.986-79.976c2.89-4.812 10.824-4.812 13.714 0l47.984 79.976a7.996 7.996 0 0 1-6.85 12.112z" fill=""></path><path d="M344.044 480.016a7.988 7.988 0 0 1-4.428-1.344 7.988 7.988 0 0 1-2.218-11.09l31.99-47.986c2.968-4.452 10.34-4.452 13.308 0l24.25 36.364a7.992 7.992 0 0 1-2.218 11.09 8.008 8.008 0 0 1-11.09-2.218l-17.596-26.382-25.336 38.004a7.988 7.988 0 0 1-6.662 3.562z" fill=""></path><path d="M344.052 400.042c-13.23 0-23.992-10.764-23.992-23.994s10.762-23.994 23.992-23.994 23.992 10.762 23.992 23.994c0 13.23-10.762 23.994-23.992 23.994z m0-31.99c-4.412 0-7.998 3.584-7.998 7.998s3.586 7.998 7.998 7.998 7.998-3.584 7.998-7.998-3.586-7.998-7.998-7.998z" fill=""></path><path d="M48.618 751.942c-4.412 0-8.076-3.576-8.076-7.996 0-4.422 3.5-7.998 7.918-7.998h0.156a7.992 7.992 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.996zM80.608 751.942c-4.412 0-8.076-3.576-8.076-7.996 0-4.422 3.5-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.996zM112.598 751.942c-4.412 0-8.076-3.576-8.076-7.996 0-4.422 3.5-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.996z" fill=""></path><path d="M280.072 767.938H8.156a7.994 7.994 0 0 1-7.998-7.998v-15.994c0-13.23 10.762-23.992 23.992-23.992h239.926c13.23 0 23.994 10.762 23.994 23.992v15.994a7.994 7.994 0 0 1-7.998 7.998z m-263.92-15.996h255.92v-7.996a7.996 7.996 0 0 0-7.998-7.998H24.15a8 8 0 0 0-7.998 7.998v7.996z" fill=""></path><path d="M280.072 959.878H8.156a7.994 7.994 0 0 1-7.998-7.998v-191.94a7.994 7.994 0 0 1 7.998-7.998h271.916a7.994 7.994 0 0 1 7.998 7.998v191.942a7.994 7.994 0 0 1-7.998 7.996z m-263.92-15.996h255.92v-175.946H16.152v175.946z" fill=""></path><path d="M248.082 847.912H40.146a7.992 7.992 0 0 1-7.998-7.998v-47.984a7.994 7.994 0 0 1 7.998-7.998h207.936a7.994 7.994 0 0 1 7.998 7.998v47.984a7.994 7.994 0 0 1-7.998 7.998z m-199.94-15.994h191.94v-31.99h-191.94v31.99zM128.118 927.888H40.146a7.994 7.994 0 0 1-7.998-7.998v-47.984a7.992 7.992 0 0 1 7.998-7.998h87.972a7.994 7.994 0 0 1 7.998 7.998v47.984a7.994 7.994 0 0 1-7.998 7.998z m-79.976-15.996H120.12v-31.99H48.142v31.99zM248.082 879.902H160.108a7.992 7.992 0 0 1-7.998-7.996 7.994 7.994 0 0 1 7.998-7.998h87.972a7.994 7.994 0 0 1 7.998 7.998 7.99 7.99 0 0 1-7.996 7.996z" fill=""></path><path d="M248.082 911.892H160.108a7.994 7.994 0 0 1-7.998-7.998 7.992 7.992 0 0 1 7.998-7.996h87.972a7.992 7.992 0 0 1 7.998 7.996 7.992 7.992 0 0 1-7.996 7.998z" fill=""></path><path d="M784.386 751.942c-4.406 0-8.062-3.576-8.062-7.996 0-4.422 3.5-7.998 7.906-7.998h0.156a7.982 7.982 0 0 1 7.996 7.998 7.982 7.982 0 0 1-7.996 7.996zM816.376 751.942c-4.402 0-8.058-3.576-8.058-7.996 0-4.422 3.5-7.998 7.902-7.998h0.156c4.438 0 8 3.576 8 7.998a7.984 7.984 0 0 1-8 7.996zM848.368 751.942c-4.406 0-8.062-3.576-8.062-7.996 0-4.422 3.5-7.998 7.906-7.998h0.156a7.982 7.982 0 0 1 7.996 7.998 7.984 7.984 0 0 1-7.996 7.996z" fill=""></path><path d="M1015.848 767.938H743.93a7.992 7.992 0 0 1-7.996-7.998v-15.994c0-13.23 10.762-23.992 23.992-23.992h239.926c13.23 0 23.992 10.762 23.992 23.992v15.994a7.994 7.994 0 0 1-7.996 7.998z m-263.922-15.996h255.922v-7.996a8.002 8.002 0 0 0-7.996-7.998H759.926c-4.406 0-8 3.576-8 7.998v7.996z" fill=""></path><path d="M1015.848 959.878H743.93a7.992 7.992 0 0 1-7.996-7.998v-191.94a7.992 7.992 0 0 1 7.996-7.998h271.918a7.994 7.994 0 0 1 7.996 7.998v191.942a7.994 7.994 0 0 1-7.996 7.996z m-263.922-15.996h255.922v-175.946H751.926v175.946z" fill=""></path><path d="M983.856 847.912H775.918a7.992 7.992 0 0 1-7.996-7.998v-47.984a7.994 7.994 0 0 1 7.996-7.998h207.938a7.992 7.992 0 0 1 7.996 7.998v47.984a7.99 7.99 0 0 1-7.996 7.998z m-199.938-15.994h191.942v-31.99h-191.942v31.99zM863.89 927.888h-87.972a7.994 7.994 0 0 1-7.996-7.998v-47.984a7.992 7.992 0 0 1 7.996-7.998h87.972a7.994 7.994 0 0 1 7.998 7.998v47.984a7.994 7.994 0 0 1-7.998 7.998z m-79.972-15.996h71.976v-31.99h-71.976v31.99zM983.856 879.902h-87.972a7.99 7.99 0 0 1-7.996-7.996 7.99 7.99 0 0 1 7.996-7.998h87.972a7.99 7.99 0 0 1 7.996 7.998 7.99 7.99 0 0 1-7.996 7.996z" fill=""></path><path d="M983.856 911.892h-87.972a7.99 7.99 0 0 1-7.996-7.998 7.99 7.99 0 0 1 7.996-7.996h87.972a7.99 7.99 0 0 1 7.996 7.996 7.99 7.99 0 0 1-7.996 7.998z" fill=""></path><path d="M416.506 799.928c-4.414 0-8.076-3.576-8.076-7.998 0-4.42 3.498-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.992 7.992 0 0 1-7.996 7.998zM448.496 799.928c-4.414 0-8.076-3.576-8.076-7.998 0-4.42 3.498-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.99 7.99 0 0 1-7.996 7.998zM480.486 799.928c-4.414 0-8.076-3.576-8.076-7.998 0-4.42 3.498-7.998 7.918-7.998h0.156a7.994 7.994 0 0 1 7.998 7.998 7.988 7.988 0 0 1-7.996 7.998z" fill=""></path><path d="M647.958 815.922H376.042a7.992 7.992 0 0 1-7.998-7.996v-15.996c0-13.23 10.762-23.992 23.994-23.992h239.928c13.23 0 23.992 10.762 23.992 23.992v15.996c0 4.42-3.58 7.996-8 7.996z m-263.918-15.994h255.92v-7.998a8.004 8.004 0 0 0-7.996-7.998H392.038a8 8 0 0 0-7.998 7.998v7.998z" fill=""></path><path d="M647.958 1007.864H376.042a7.992 7.992 0 0 1-7.998-7.996v-191.942a7.994 7.994 0 0 1 7.998-7.998h271.916c4.422 0 8 3.576 8 7.998v191.942c0 4.42-3.58 7.996-8 7.996z m-263.918-15.994h255.92v-175.948H384.04v175.948z" fill=""></path><path d="M615.968 895.898H408.032a7.994 7.994 0 0 1-7.998-7.998v-47.986a7.992 7.992 0 0 1 7.998-7.996h207.936a7.99 7.99 0 0 1 7.996 7.996v47.986a7.992 7.992 0 0 1-7.996 7.998z m-199.938-15.996h191.942v-31.99h-191.942v31.99zM496.004 975.874h-87.972a7.994 7.994 0 0 1-7.998-7.998v-47.984a7.994 7.994 0 0 1 7.998-7.998h87.972a7.994 7.994 0 0 1 7.998 7.998v47.984a7.994 7.994 0 0 1-7.998 7.998z m-79.974-15.996h71.976v-31.99h-71.976v31.99zM615.968 927.888h-87.972c-4.422 0-8-3.578-8-7.998s3.578-7.998 8-7.998h87.972c4.422 0 7.996 3.578 7.996 7.998s-3.574 7.998-7.996 7.998z" fill=""></path><path d="M615.968 959.878h-87.972c-4.422 0-8-3.578-8-7.998s3.578-7.998 8-7.998h87.972c4.422 0 7.996 3.578 7.996 7.998s-3.574 7.998-7.996 7.998z" fill=""></path><path d="M575.98 112.13h-111.966a7.994 7.994 0 0 1-7.998-7.998V56.148c0-2.774 1.438-5.35 3.796-6.802a8.018 8.018 0 0 1 7.778-0.352l24.774 12.386 19.946-40.738a8.004 8.004 0 0 1 7.124-4.482c2.644-0.25 5.808 1.664 7.184 4.358l20.882 40.926 24.898-12.45a7.964 7.964 0 0 1 7.782 0.352 7.994 7.994 0 0 1 3.792 6.802v47.984a7.986 7.986 0 0 1-7.992 7.998z m-103.968-15.996h95.972V69.088l-20.418 10.208a8.008 8.008 0 0 1-10.7-3.514l-17.222-33.74-16.462 33.614a8 8 0 0 1-4.624 4.062 7.91 7.91 0 0 1-6.138-0.422l-20.408-10.208v27.046z" fill=""></path><path d="M519.996 703.958A7.994 7.994 0 0 1 512 695.96v-111.964a7.994 7.994 0 0 1 7.996-7.998c4.422 0 8 3.578 8 7.998v111.964a7.996 7.996 0 0 1-8 7.998z" fill=""></path><path d="M519.996 703.958a7.994 7.994 0 0 1-5.652-13.652l15.996-15.996a7.996 7.996 0 1 1 11.308 11.31l-15.996 15.994a7.976 7.976 0 0 1-5.656 2.344z" fill=""></path><path d="M519.996 703.958a7.974 7.974 0 0 1-5.652-2.344l-15.996-15.994a7.996 7.996 0 1 1 11.308-11.31l15.996 15.996a7.994 7.994 0 0 1-5.656 13.652z" fill=""></path><path d="M168.106 655.972a7.994 7.994 0 0 1-5.654-13.652l79.976-79.976a7.994 7.994 0 0 1 11.308 0 7.994 7.994 0 0 1 0 11.308L173.76 653.628a7.964 7.964 0 0 1-5.654 2.344z" fill=""></path><path d="M190.724 655.972H168.106c-4.42 0-7.998-3.578-7.998-7.998s3.576-7.998 7.998-7.998h22.618c4.42 0 7.998 3.578 7.998 7.998s-3.578 7.998-7.998 7.998z" fill=""></path><path d="M168.106 655.972a7.994 7.994 0 0 1-7.998-7.998v-22.62c0-4.42 3.576-7.996 7.998-7.996s7.998 3.576 7.998 7.996v22.62a7.996 7.996 0 0 1-7.998 7.998z" fill=""></path><path d="M871.89 655.972a7.976 7.976 0 0 1-5.656-2.344l-79.972-79.976a7.994 7.994 0 0 1 0-11.308 7.994 7.994 0 0 1 11.308 0l79.972 79.976a7.994 7.994 0 0 1 0 11.308 7.948 7.948 0 0 1-5.652 2.344z" fill=""></path><path d="M871.89 655.972h-22.618c-4.422 0-8-3.578-8-7.998s3.578-7.998 8-7.998h22.618c4.418 0 7.996 3.578 7.996 7.998s-3.578 7.998-7.996 7.998z" fill=""></path><path d="M871.89 655.972c-4.422 0-8-3.578-8-7.998v-22.62a7.994 7.994 0 0 1 8-7.996 7.992 7.992 0 0 1 7.996 7.996v22.62a7.994 7.994 0 0 1-7.996 7.998z" fill=""></path></g></svg>
               </div>
               <h5 class="mb-2">Multi-platform Access</h5>
               <p class="features-icon-description">
@@ -290,15 +283,18 @@
       <!-- Useful features: End -->
 
       <!-- Real customers reviews: Start -->
-      <section id="landingReviews" class="section-py bg-body landing-reviews pb-0">
+      <section id="landingReviews" class="section-py bg-body landing-reviews pb-0 position-relative">
+        <!-- Decorative background elements -->
+        <div class="reviews-bg-element reviews-bg-element-1"></div>
+        <div class="reviews-bg-element reviews-bg-element-2"></div>
         <!-- What people say slider: Start -->
         <div class="container">
           <div class="row align-items-center gx-0 gy-4 g-lg-5 mb-5 pb-md-5">
-            <div class="col-md-6 col-lg-5 col-xl-3">
-              <div class="mb-4">
-                <span class="badge bg-label-primary">Real Customers Reviews</span>
+            <div class="col-md-6 col-lg-5 col-xl-4">
+              <div class="mb-4 reviews-badge-container">
+                <span class="badge bg-label-primary reviews-badge">Real Customers Reviews</span>
               </div>
-              <h4 class="mb-1">
+              <h2 class="mb-3 reviews-title">
                 <span class="position-relative fw-extrabold z-1"
                   >What people say
                   <img
@@ -306,68 +302,79 @@
                     alt="laptop charging"
                     class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
                 </span>
-              </h4>
-              <p class="mb-5 mb-md-12">
+              </h2>
+              <p class="mb-5 mb-md-6 reviews-subtitle">
                 See what our customers have to<br class="d-none d-xl-block" />
-                say about their experience.
+                say about their experience with SmartVote.
               </p>
               <div class="landing-reviews-btns">
-                <button id="reviews-previous-btn" class="btn btn-icon btn-label-primary reviews-btn me-3" type="button">
+                <button id="reviews-previous-btn" class="btn btn-icon btn-primary reviews-btn me-3 shadow-sm" type="button">
                   <i class="icon-base bx bx-chevron-left icon-md scaleX-n1-rtl"></i>
                 </button>
-                <button id="reviews-next-btn" class="btn btn-icon btn-label-primary reviews-btn" type="button">
+                <button id="reviews-next-btn" class="btn btn-icon btn-primary reviews-btn shadow-sm" type="button">
                   <i class="icon-base bx bx-chevron-right icon-md scaleX-n1-rtl"></i>
                 </button>
               </div>
             </div>
-            <div class="col-md-6 col-lg-7 col-xl-9">
+            <div class="col-md-6 col-lg-7 col-xl-8">
               <div class="swiper-reviews-carousel overflow-hidden">
                 <div class="swiper" id="swiper-reviews">
                   <div class="swiper-wrapper">
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          
-                          <p>
-                          The Election Management System has completely transformed how we run our university student council elections. The process is now more transparent, secure, and efficient than ever before
-                          </p>
-                          <div class="text-warning mb-4">
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
                           </div>
+                          <p class="review-text mb-4">
+                          The Election Management System has completely transformed how we run our university student council elections. The process is now more transparent, secure, and efficient than ever before.
+                          </p>
+                          <div class="text-warning mb-4 review-stars">
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                            <i class="icon-base bx bxs-star"></i>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                            
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-primary">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Sarah Afrifa</h6>
+                              <h6 class="mb-0 fw-semibold">Sarah Afrifa</h6>
                               <p class="small text-body-secondary mb-0">SRC Organizer</p>
-                             
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "As a city election commissioner, I needed a reliable system that could handle thousands of voters. This platform delivered beyond expectations with its robust security features and real-time reporting."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
-                          </div>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                           
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-info">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Emmanuel Danso</h6>
+                              <h6 class="mb-0 fw-semibold">Emmanuel Danso</h6>
                               <p class="small text-body-secondary mb-0">SRC President</p>
-                             
                             </div>
                           </div>
                         </div>
@@ -375,45 +382,59 @@
                     </div>
                   
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "The analytics and reporting features have been invaluable for our organization. We can now make data-driven decisions about our election processes and improve voter engagement."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bx-star"></i>
-                          </div>
-                          <div class="d-flex align-items-center">
+                          </div>                         
+                           <div class="d-flex align-items-center">
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-success">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Lilian Maryes</h6>
-                              <p class="small text-body-secondary mb-0"> SRC Secretary</p>
-                           
+                              <h6 class="mb-0 fw-semibold">Lilian Maryes</h6>
+                              <p class="small text-body-secondary mb-0">SRC Secretary</p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "Setting up our corporate board elections used to be a logistical nightmare. With this system, we've cut preparation time by 70% and increased participation rates significantly."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
-                          </div>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                            
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-warning">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
                             <div>
-                              <h6 class="mb-0">Gloria Adams</h6>
+                              <h6 class="mb-0 fw-semibold">Gloria Adams</h6>
                               <p class="small text-body-secondary mb-0">SRC Vice President</p>
                             </div>
                           </div>
@@ -421,21 +442,29 @@
                       </div>
                     </div>
                     <div class="swiper-slide">
-                      <div class="card h-100">
+                      <div class="card h-100 review-card shadow-sm">
                         <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-    
-                          <p>
+                          <div class="mb-3 review-quote">
+                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                          </div>
+                          <p class="review-text mb-4">
                           "The accessibility features of this platform have allowed us to include voters with disabilities in our election process like never before. It's truly an inclusive solution."
                           </p>
-                          <div class="text-warning mb-4">
+                          <div class="text-warning mb-4 review-stars">
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bxs-star"></i>
                             <i class="icon-base bx bx-star"></i>
-                          </div>
+                          </div>                          
                           <div class="d-flex align-items-center">
-                              <h6 class="mb-0">Joseph Appiah</h6>
+                            <div class="avatar avatar-md me-3 review-avatar">
+                              <div class="avatar-initial rounded-circle bg-label-danger">
+                                <i class="bx bx-user"></i>
+                              </div>
+                            </div>
+                            <div>
+                              <h6 class="mb-0 fw-semibold">Joseph Appiah</h6>
                               <p class="small text-body-secondary mb-0">Lecturer</p>
                             </div>
                           </div>
@@ -443,8 +472,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="swiper-button-next"></div>
-                  <div class="swiper-button-prev"></div>
+                  <div class="swiper-pagination reviews-pagination mt-5"></div>
                 </div>
               </div>
             </div>
@@ -454,6 +482,7 @@
         </div>
     
       </section>
+      <!-- Real customers reviews: End -->
       <section id="landingTeam" class="section-py landing-team">
         <div class="container">
           <div class="text-center mb-4">
@@ -534,37 +563,36 @@
             </div>
           </div>
         </div>
-      </section>
-      <section id="landingPricing" class="section-py bg-body landing-pricing">
+      </section>      <section id="landingPricing" class="section-py bg-body landing-pricing">
         <div class="container">
-          <div class="text-center mb-4">
-            <span class="badge bg-label-primary">Pricing Plans</span>
+          <div class="text-center mb-4 pricing-header">
+            <span class="badge bg-label-primary pricing-badge">Pricing Plans</span>
           </div>
-          <h4 class="text-center mb-1">
-            <span class="position-relative fw-extrabold z-1"
+          <h4 class="text-center mb-1 pricing-title">
+            <span class="position-relative fw-extrabold z-1 pricing-title-highlight"
               >Tailored pricing plans
               <img
                 src="assets/img/front-pages/icons/section-title-icon.png"
                 alt="laptop charging"
                 class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
             </span>
-            designed for all educational institution
+            designed for all educational institutions
           </h4>
-          <p class="text-center pb-2 mb-7">
+          <p class="text-center pb-2 mb-7 pricing-subtitle">
           Choose the perfect plan for your election needs, from small organizations to large-scale educational elections
           </p>
           <div class="text-center mb-12">
             <div class="position-relative d-inline-block pt-3 pt-md-0">
-              <label class="switch switch-sm switch-primary me-0">
-                <span class="switch-label fs-6 text-body me-3">Pay Monthly</span>
+              <label class="switch switch-sm switch-primary me-0 pricing-toggle-container">
+                <span class="switch-label fs-6 text-body me-3 pricing-toggle-label monthly active">Pay Monthly</span>
                 <input type="checkbox" class="switch-input price-duration-toggler" checked />
-                <span class="switch-toggle-slider">
+                <span class="switch-toggle-slider pricing-toggle-switch toggled">
                   <span class="switch-on"></span>
                   <span class="switch-off"></span>
                 </span>
-                <span class="switch-label fs-6 text-body ms-3">Pay Annual</span>
+                <span class="switch-label fs-6 text-body ms-3 pricing-toggle-label annual active">Pay Annual</span>
               </label>
-              <div class="pricing-plans-item position-absolute d-flex">
+              <div class="pricing-plans-item position-absolute d-flex pricing-save-badge">
                 <img
                   src="assets/img/front-pages/icons/pricing-plans-arrow.png"
                   alt="pricing plans arrow"
@@ -932,30 +960,263 @@
                     <svg width="65" height="65" viewBox="0 0 65 65" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
                         opacity="0.2"
-                        d="M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C38.1 54.0288 35.625 58.5288 32.5 58.5288C29.375 58.5288 27 54.0788 24.075 52.8538C21.15 51.6288 16.425 53.2038 14.125 50.9038Z"
+                        d="M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C37.6 53.9663 35.125 58.4663 32 58.4663C28.875 58.4663 26.5 54.0163 23.575 52.7913C20.65 51.5663 15.925 53.1413 13.625 50.8413Z"
                         fill="currentColor" />
                       <path
-                        d="M43.5 26.5288L28.825 40.5288L21.5 33.5288M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C38.1 54.0288 35.625 58.5288 32.5 58.5288C29.375 58.5288 27 54.0788 24.075 52.8538C21.15 51.6288 16.425 53.2038 14.125 50.9038Z"
+                        d="M43.5 26.5288L28.825 40.5288L21.5 33.5288M14.125 50.9038C11.825 48.6038 13.35 43.7788 12.175 40.9538C11 38.1288 6.5 35.6538 6.5 32.5288C6.5 29.4038 10.95 27.0288 12.175 24.1038C13.4 21.1788 11.825 16.4538 14.125 14.1538C16.425 11.8538 21.25 13.3788 24.075 12.2038C26.9 11.0288 29.375 6.52881 32.5 6.52881C35.625 6.52881 38 10.9788 40.925 12.2038C43.85 13.4288 48.575 11.8538 50.875 14.1538C53.175 16.4538 51.65 21.2788 52.825 24.1038C54 26.9288 58.5 29.4038 58.5 32.5288C58.5 35.6538 54.05 38.0288 52.825 40.9538C51.6 43.8788 53.175 48.6038 50.875 50.9038C48.575 53.2038 43.75 51.6788 40.925 52.8538C37.6 53.9663 35.125 58.4663 32 58.4663C28.875 58.4663 26.5 54.0163 23.575 52.7913C20.65 51.5663 15.925 53.1413 13.625 50.8413Z"
                         stroke="currentColor"
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round" />
-                    </svg>
+                </svg>
                   </div>
-                  <h3 class="mb-0">100%</h3>
-                  <p class="fw-medium mb-0">
-                    Money Back<br />
-                    Guarantee
+                  <h5 class="mb-2">100%</h5>
+                  <p class="features-icon-description">
+                Money Back<br />
+                Guarantee
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Fun facts: Start -->      
+       <!-- Success Stories: Start -->
+      <section id="successStories" class="section-py bg-body landing-success-stories">
+        <div class="container">
+          <div class="text-center mb-4">
+            <span class="badge bg-label-primary">Success Stories</span>
+          </div>
+          <h4 class="text-center mb-1">
+            <span class="position-relative fw-extrabold z-1">
+              Transforming Elections
+              <img
+                src="assets/img/front-pages/icons/section-title-icon.png"
+                alt="success stories icon"
+                class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
+            </span>
+            Through Innovation
+          </h4>
+          <p class="text-center mb-5">
+            Real success stories from institutions that have revolutionized their election process with SmartVote
+          </p>
+
+          <!-- Key Statistics -->
+          <div class="row justify-content-center mb-8">
+            <div class="col-sm-4 text-center mb-4 mb-sm-0">
+              <div class="p-4 border rounded-3 bg-label-primary bg-opacity-10 h-100">
+                <i class="bx bx-like fs-1 text-primary mb-2"></i>
+                <h2 class="mb-2 fw-bold">98%</h2>
+                <p class="mb-0">Satisfaction Rate</p>
+              </div>
+            </div>
+            <div class="col-sm-4 text-center mb-4 mb-sm-0">
+              <div class="p-4 border rounded-3 bg-label-success bg-opacity-10 h-100">
+                <i class="bx bx-check-shield fs-1 text-success mb-2"></i>
+                <h2 class="mb-2 fw-bold">2M+</h2>
+                <p class="mb-0">Votes Processed</p>
+              </div>
+            </div>
+            <div class="col-sm-4 text-center">
+              <div class="p-4 border rounded-3 bg-label-info bg-opacity-10 h-100">
+                <i class="bx bx-buildings fs-1 text-info mb-2"></i>
+                <h2 class="mb-2 fw-bold">500+</h2>
+                <p class="mb-0">Institutions Using SmartVote</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="row gy-4 g-lg-5">
+            <!-- Success Story 1 -->
+            <div class="col-lg-4 col-md-6">
+              <div class="card h-100 shadow-sm border-primary border-opacity-25">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-4">
+                    <div class="flex-shrink-0">
+                      <div class="avatar avatar-lg">
+                        <img src="assets/img/front-pages/landing-page/university.jpg" alt="University of Innovation" class="rounded-3">
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h5 class="mb-1">University of Innovation</h5>
+                      <span class="badge bg-label-primary">Higher Education</span>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-trending-up text-primary me-2"></i>
+                      <span>85% increase in voter turnout</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-time text-primary me-2"></i>
+                      <span>75% reduction in counting time</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <i class="bx bx-check-shield text-primary me-2"></i>
+                      <span>Zero security incidents</span>
+                    </div>
+                  </div>
+                  <p class="mb-3">
+                    "SmartVote transformed our student council elections completely. The mobile voting feature and real-time analytics helped us achieve record participation rates."
                   </p>
+                  <div class="d-flex align-items-center pt-1">
+                    <div class="avatar avatar-sm me-2">
+                      <img src="assets/img/front-pages/landing-page/team-member-1.png" alt="Dr. Sarah Chen" class="rounded-circle">
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Dr. Sarah Chen</h6>
+                      <small class="text-muted">Dean of Student Affairs</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Success Story 2 -->
+            <div class="col-lg-4 col-md-6">
+              <div class="card h-100 shadow-sm border-primary border-opacity-25">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-4">
+                    <div class="flex-shrink-0">
+                      <div class="avatar avatar-lg">
+                        <img src="assets/img/front-pages/landing-page/global.png" alt="Global Tech Academy" class="rounded-3">
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h5 class="mb-1">Global Tech Academy</h5>
+                      <span class="badge bg-label-success">Technical Institute</span>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-block text-success me-2"></i>
+                      <span>100% transparency achieved</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-user-check text-success me-2"></i>
+                      <span>15,000+ verified votes</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <i class="bx bx-money text-success me-2"></i>
+                      <span>40% cost reduction</span>
+                    </div>
+                  </div>
+                  <p class="mb-3">
+                    "The blockchain verification and real-time monitoring features revolutionized our election transparency. Our students now have complete confidence in the results."
+                  </p>
+                  <div class="d-flex align-items-center pt-1">
+                    <div class="avatar avatar-sm me-2">
+                      <img src="assets/img/front-pages/landing-page/team-member-3.png" alt="Prof. James Wilson" class="rounded-circle">
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Prof. James Wilson</h6>
+                      <small class="text-muted">IT Director</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Success Story 3 -->
+            <div class="col-lg-4 col-md-6">
+              <div class="card h-100 shadow-sm border-primary border-opacity-25">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-4">
+                    <div class="flex-shrink-0">
+                      <div class="avatar avatar-lg">
+                        <img src="assets/img/front-pages/landing-page/metro.png" alt="Metropolitan College" class="rounded-3">
+                      </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                      <h5 class="mb-1">Metropolitan College</h5>
+                      <span class="badge bg-label-info">Multi-Campus</span>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-globe text-info me-2"></i>
+                      <span>5 campuses connected</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-mobile text-info me-2"></i>
+                      <span>92% mobile voting rate</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <i class="bx bx-timer text-info me-2"></i>
+                      <span>Results in under 1 hour</span>
+                    </div>
+                  </div>
+                  <p class="mb-3">
+                    "SmartVote's multi-campus support and mobile voting capabilities made it possible to conduct our first-ever unified student election across all five campuses."
+                  </p>
+                  <div class="d-flex align-items-center pt-1">
+                    <div class="avatar avatar-sm me-2">
+                      <img src="assets/img/front-pages/landing-page/team-member-2.png" alt="Jennifer Martinez" class="rounded-circle">
+                    </div>
+                    <div>
+                      <h6 class="mb-0">Jennifer Martinez</h6>
+                      <small class="text-muted">Election Commissioner</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Metrics -->
+          <div class="text-center mt-8">
+            <h5 class="mb-4">Trusted by Leading Educational Institutions</h5>
+            <div class="row justify-content-center">
+              <div class="col-12 col-lg-8">                <div class="row row-cols-2 row-cols-md-4 g-4">
+                  <div class="col">
+                    <div class="p-3">                      <div class="badge-icon bg-label-primary rounded-circle p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="security-shield-svg">
+                          <path fill="#696cff" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 8.42-7 9.88-3.87-1.46-7-5.21-7-9.88V6.3l7-3.12zm-2 8.82h4c0 1.1-.9 2-2 2s-2-.9-2-2zm1-7h2v5h-2V5z"/>
+                        </svg>
+                      </div>
+                      <p class="small mt-2 mb-0 fw-semibold">Security Certified</p>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="p-3">                      <div class="badge-icon bg-label-success rounded-circle p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="gdpr-svg">
+                          <path fill="#71dd37" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zm-9-7h8v2H9v-2zm0 4h8v2H9v-2zm0-8h5v2H9V9z"/>
+                          <path fill="#71dd37" d="M15 13l-4 4l-2-2l-1 1l3 3l5-5z"/>
+                        </svg>
+                      </div>
+                      <p class="small mt-2 mb-0 fw-semibold">GDPR Compliant</p>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="p-3">                      <div class="badge-icon bg-label-info rounded-circle p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="blockchain-svg">
+                          <path fill="#03c3ec" d="M4 7v2c0 .55.45 1 1 1h1v6c0 .55.45 1 1 1h10c.55 0 1-.45 1-1V8h1c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1v2zm14 0v2H6V7h12zM7 10h10v6H7v-6zm3-5h4v1h-4V5z"/>
+                          <path fill="#03c3ec" d="M12 12l-2 2l2 2l2-2l-2-2zm-6 6h12v2H6v-2z"/>
+                        </svg>
+                      </div>
+                      <p class="small mt-2 mb-0 fw-semibold">Blockchain Verified</p>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="p-3">                      <div class="badge-icon bg-label-warning rounded-circle p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="uptime-svg">
+                          <path fill="#ffab00" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8s8 3.59 8 8s-3.59 8-8 8zm.5-13H11v6l5.25 3.15l.75-1.23l-4.5-2.67V7z"/>
+                        </svg>
+                      </div>
+                      <p class="small mt-2 mb-0 fw-semibold">99.9% Uptime</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-    
+      <!-- Success Stories: End -->
 
-   <!-- FAQ: Start -->
+      <!-- FAQ: Start -->
 <section id="landingFAQ" class="section-py bg-body landing-faq">
   <div class="container">
     <div class="text-center mb-4">
@@ -1138,6 +1399,7 @@
                 class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
             </span>
             together
+         
           </h4>
           <p class="text-center mb-12 pb-md-4">Any question or remark? just write us a message</p>
           <div class="row g-6">
@@ -1226,81 +1488,143 @@
       <!-- Contact Us: End -->
     </div>
 
-    <!-- / Sections:End -->
-
-    <!-- Footer: Start -->
-    <footer class="landing-footer bg-body footer-text">
-      <div class="footer-top position-relative overflow-hidden z-1">
+    <!-- / Sections:End -->  
+       <!-- Footer: Start -->    
+     <footer class="landing-footer bg-body footer-text footer-animated">
+      <!-- Link to modern footer stylesheet -->
+      <link rel="stylesheet" href="assets/css/improved-footer.css">
+      <link rel="stylesheet" href="assets/css/footer-animations.css">
+      
+      <!-- Back to top button -->
+      <button id="back-to-top" class="btn btn-primary btn-icon scroll-top" type="button" aria-label="Back to top">
+        <i class="bx bx-up-arrow-alt"></i>
+      </button>
+        <div class="footer-top position-relative overflow-hidden z-1">
         <img
-          src="assets/img/front-pages/backgrounds/footer-bg.png"
-          alt="footer bg"
-          class="footer-bg banner-bg-img z-n1" />
+          src="assets/img/front-pages/backgrounds/footer-bg-light.png"
+          class="position-absolute bottom-0 end-0 scaleX-n1-rtl h-100 w-100 z-n1"
+          alt="footer image"
+          data-app-light-img="front-pages/backgrounds/footer-bg-light.png"
+          data-app-dark-img="front-pages/backgrounds/footer-bg-dark.png" />
+        </div>
+
         <div class="container">
           <div class="row gx-0 gy-6 g-lg-10">
-            <div class="col-lg-5">
-              <a href="landing-page.html" class="app-brand-link mb-6">
-                <span class="app-brand-logo demo">
-                  <span class="text-primary">
-                  <img src="assets/img/favicon/favicon.ico" alt="logo" width="22%" class="logo-img" />
-                </span>
-                <span class="app-brand-text demo text-white fw-bold ms-2 ps-1">SmartVote</span>
-              </a>
-              <p class="footer-text footer-logo-description mb-6">
-SmartVote is a secure, developer-friendly, and highly customizable educational voting system designed to streamline elections and decision-making in academic institutions.
+            <div class="col-lg-4">
+              <div class="footer-logo-container">
+                <a href="index.php" class="app-brand-link mb-4" aria-label="SmartVote Home">
+                  <span class="app-brand-logo demo">
+                    <span class="text-primary">
+                    <img src="assets/img/favicon/favicon.ico" alt="SmartVote logo" width="22%" class="logo-img" />
+                  </span>
+                  <span class="app-brand-text demo  fw-bold ms-2 ps-1">SmartVote</span>
+                </a>
+              </div>
+              <p class="footer-tagline mb-4">
+                SmartVote is a secure, developer-friendly, and highly customizable educational voting system designed to streamline elections and decision-making in academic institutions.
               </p>
-              <form class="footer-form">
+              <form class="footer-form mb-4" aria-label="Newsletter subscription">
                 <label for="footer-email" class="small">Subscribe to newsletter</label>
-                <div class="d-flex mt-1">
+                <div class="fancy-input-group mt-2">
                   <input
                     type="email"
-                    class="form-control rounded-0 rounded-start-bottom rounded-start-top"
+                    class="form-control"
                     id="footer-email"
-                    placeholder="Your email" />
+                    placeholder="Your email"
+                    aria-label="Enter your email" 
+                    aria-required="true" />
                   <button
                     type="submit"
-                    class="btn btn-primary shadow-none rounded-0 rounded-end-bottom rounded-end-top">
+                    class="btn btn-primary"
+                    aria-label="Subscribe to newsletter">
                     Subscribe
                   </button>
                 </div>
               </form>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-              
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-             
+              <div class="footer-social d-flex mb-4">
+                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="Facebook">
+                  <i class="bx bxl-facebook"></i>
+                </a>
+                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="Twitter">
+                  <i class="bx bxl-twitter"></i>
+                </a>
+                <a href="https://www.github.com/aristocratjnr" target="_blank" class="social-icon social-icon-fancy me-2" aria-label="GitHub">
+                  <i class="bx bxl-github"></i>
+                </a>
+                <a href="#" class="social-icon social-icon-fancy me-2" aria-label="LinkedIn">
+                  <i class="bx bxl-linkedin"></i>
+                </a>
+              </div>
             </div>
             
+            <div class="col-lg-8">
+              <div class="row">                <div class="col-md-6 col-sm-6 mb-4 mb-md-0">
+                  <h5 class="footer-links-title mb-3">Quick Links</h5>
+                  <ul class="footer-links-list list-unstyled">
+                    <li><a href="index.php">Home</a></li>
+                    <li><a href="login.php">Login</a></li>
+                    <li><a href="dashboard.php">Dashboard</a></li>
+                    <li><a href="profile.php">Profile</a></li>
+                  </ul>
+                </div>
+                
+                <div class="col-md-6 col-sm-6 mb-4 mb-md-0">
+                  <h5 class="footer-links-title mb-3">Elections</h5>
+                  <ul class="footer-links-list list-unstyled">
+                    <li><a href="live_results.php">Live Results</a></li>
+                    <li><a href="election_details.php">Election Details</a></li>
+                    <li><a href="voters.php">Voters</a></li>
+                    <li><a href="blockchain_learn.php">Blockchain</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
         </div>
       </div>
-      
-      <div class="footer-bottom py-3 py-md-5">
-        <div
-          class="container d-flex flex-wrap justify-content-between flex-md-row flex-column text-center text-md-start">
-          <div class="mb-2 mb-md-0">
-            <span class="footer-bottom-text"
-              >©
-              <script>
-                document.write(new Date().getFullYear());
-              </script>
-            </span>
-            <a href="https://www.github.com/aristocratjnr" target="_blank" class="text-white">Election Management System</a><br>
-            <span class="footer-bottom-text"> Made by Obuobi Ayim David</span>
+        <div class="footer-bottom py-3">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+              <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
+                <span class="footer-bottom-text">
+                  © <script>document.write(new Date().getFullYear());</script>
+                  <a href="https://www.github.com/aristocratjnr" target="_blank" rel="noopener">Election Management System</a>
+                </span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex justify-content-center justify-content-md-end align-items-center">
+                <span class="footer-bottom-text me-3">Developed by Obuobi Ayim David</span>
+                <a href="https://www.github.com/aristocratjnr" class="social-icon social-icon-fancy" target="_blank" rel="noopener" aria-label="GitHub">
+                  <i class="bx bxl-github"></i>
+                </a>
+              </div>
+            </div>
           </div>
-          <div>
-            <a href="https://www.github.com/aristocratjnr" class="me-4 text-white" target="_blank">
-              <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M10.7184 2.19556C6.12757 2.19556 2.40674 5.91639 2.40674 10.5072C2.40674 14.1789 4.78757 17.2947 8.0909 18.3947C8.50674 18.4697 8.65674 18.2139 8.65674 17.9939C8.65674 17.7964 8.65007 17.2731 8.64757 16.5806C6.33507 17.0822 5.84674 15.4656 5.84674 15.4656C5.47007 14.5056 4.92424 14.2497 4.92424 14.2497C4.17007 13.7339 4.98174 13.7456 4.98174 13.7456C5.81674 13.8039 6.25424 14.6022 6.25424 14.6022C6.9959 15.8722 8.2009 15.5056 8.67257 15.2931C8.7484 14.7556 8.96507 14.3889 9.20174 14.1814C7.35674 13.9722 5.41674 13.2589 5.41674 10.0731C5.41674 9.16722 5.74091 8.42389 6.27007 7.84389C6.1859 7.63306 5.89841 6.78722 6.35257 5.64389C6.35257 5.64389 7.05007 5.41972 8.63757 6.49472C9.31557 6.31028 10.0149 6.21614 10.7176 6.21472C11.4202 6.21586 12.1196 6.31001 12.7976 6.49472C14.3859 5.41889 15.0826 5.64389 15.0826 5.64389C15.5367 6.78722 15.2517 7.63306 15.1651 7.84389C15.6984 8.42389 16.0184 9.16639 16.0184 10.0731C16.0184 13.2672 14.0767 13.9689 12.2251 14.1747C12.5209 14.4314 12.7876 14.9381 12.7876 15.7131C12.7876 16.8247 12.7776 17.7214 12.7776 17.9939C12.7776 18.2164 12.9259 18.4747 13.3501 18.3931C16.6517 17.2914 19.0301 14.1781 19.0301 10.5072C19.0301 5.91639 15.3092 2.19556 10.7184 2.19556Z"
-                  fill="currentColor" />
-              </svg>
         </div>
-      
+      </div>
     </footer>
+    
+    <!-- Schema.org JSON-LD for improved SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "SmartVote",
+      "url": "https://smartvote.42web.io",
+      "logo": "assets/img/favicon/favicon.ico",
+      "description": "SmartVote is a secure, developer-friendly, and highly customizable educational voting system designed to streamline elections and decision-making in academic institutions.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@smartvote.example.com"
+      },
+      "sameAs": [
+        "https://www.github.com/aristocratjnr"
+      ]
+    }
+    </script>
 
     <script src="assets/vendor/libs/popper/popper.js"></script>
     <script src="assets/vendor/js/bootstrap.js"></script>
@@ -1316,12 +1640,11 @@ SmartVote is a secure, developer-friendly, and highly customizable educational v
 
     <!-- Main JS -->
 
-    <script src="assets/js/front-main.js"></script>
-
-    <!-- Page JS -->
+    <script src="assets/js/front-main.js"></script>    <!-- Page JS -->
     <script src="assets/js/front-page-landing.js"></script>
-    
-<!-- Theme Switcher JavaScript -->
+    <script src="assets/js/footer-interactions.js"></script>
+    <script src="assets/js/enhanced-reviews.js"></script>
+    <!-- Theme Switcher JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Get current theme from localStorage or detect system preference
@@ -1330,50 +1653,277 @@ document.addEventListener('DOMContentLoaded', function() {
     if (storedTheme) {
       return storedTheme;
     }
+    // Check system preference
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   };
 
-  // Set the theme
+  // Set the theme with smooth transition
   const setTheme = (theme) => {
+    const root = document.documentElement;
     if (theme === 'auto') {
-      document.documentElement.setAttribute('data-bs-theme', 
-        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      );
-    } else {
-      document.documentElement.setAttribute('data-bs-theme', theme);
+      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     
-    // Update icon
+    // Add transition class for smooth color changes
+    root.classList.add('theme-transition');
+    root.setAttribute('data-bs-theme', theme);
+    
+    // Update theme-specific elements
+    const header = document.getElementById('header');
+    if (header) {
+      if (theme === 'dark') {
+        header.classList.remove('bg-white');
+        header.classList.add('bg-dark');
+      } else {
+        header.classList.remove('bg-dark');
+        header.classList.add('bg-white');
+      }
+    }
+
+    // Store theme preference
+    if (theme !== 'auto') {
+      localStorage.setItem('theme', theme);
+    }
+
+    // Update theme icon
     const themeIcon = document.querySelector('.theme-icon');
     if (themeIcon) {
-      themeIcon.className = theme === 'dark' ? 'bx bx-moon fs-5 me-2 theme-icon' : 'bx bx-sun fs-5 me-2 theme-icon';
+      themeIcon.className = `bx ${theme === 'dark' ? 'bx-moon' : 'bx-sun'} fs-5 me-2 theme-icon`;
     }
     
     // Update active state in dropdown
     document.querySelectorAll('.theme-item').forEach(item => {
       item.classList.toggle('active', item.getAttribute('data-bs-theme-value') === theme);
     });
+
+    // Remove transition class after colors have changed
+    setTimeout(() => {
+      root.classList.remove('theme-transition');
+    }, 300);
+
+    // Dispatch theme change event
+    document.dispatchEvent(new CustomEvent('themeChanged', { 
+      detail: { theme: theme }
+    }));
   };
 
   // Initialize theme
   setTheme(getPreferredTheme());
 
   // Watch for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
     if (localStorage.getItem('theme') === 'auto') {
       setTheme('auto');
     }
   });
 
-  // Handle theme selection
+  // Handle theme selection from dropdown
   document.querySelectorAll('[data-bs-theme-value]').forEach(item => {
     item.addEventListener('click', () => {
       const theme = item.getAttribute('data-bs-theme-value');
-      localStorage.setItem('theme', theme);
       setTheme(theme);
     });
   });
 });
+</script>
+
+<!-- Custom Footer Styling -->
+
+<style>
+/* Footer Customizations for Landing Page */
+.landing-footer {
+  margin-top: 2rem;
+}
+
+.landing-footer .social-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+  font-size: 1.25rem;
+}
+
+.landing-footer .social-icon:hover {
+  transform: translateY(-3px);
+  background-color: var(--bs-primary);
+  color: #fff;
+}
+
+.landing-footer .footer-links-title {
+  color: var(--bs-primary);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.landing-footer .footer-links-list a {
+  color: var(--bs-body-color);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.landing-footer .footer-links-list a:hover {
+  color: var(--bs-primary);
+  transform: translateX(3px);
+}
+
+[data-bs-theme="dark"] .landing-footer {
+  background-color: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .landing-footer .footer-links-list a {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.footer-bottom-text {
+  color: var(--bs-body-color);
+}
+
+.footer-form .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.footer-form .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Back to top button */
+.scroll-top {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  z-index: 99;
+  display: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.25);
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s;
+}
+
+.scroll-top:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(var(--bs-primary-rgb), 0.35);
+}
+
+.scroll-top i {
+  font-size: 20px;
+}
+</style>
+
+<!-- Back to top button script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Back to top button functionality
+    const backToTopButton = document.getElementById('back-to-top');
+    
+    if (backToTopButton) {
+      // Show/hide button based on scroll position
+      window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) { // Show after scrolling 300px
+          backToTopButton.style.display = 'flex';
+        } else {
+          backToTopButton.style.display = 'none';
+        }
+      });
+      
+      // Scroll to top on click
+      backToTopButton.addEventListener('click', function() {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }  });
+</script>
+
+<!-- Enhanced UI Scripts -->
+<script src="assets/js/enhanced-navbar.js"></script>
+<script src="assets/js/enhanced-pricing.js"></script>
+<script>
+  // Initialize enhanced hero section
+  document.addEventListener('DOMContentLoaded', function() {
+    const heroSection = document.getElementById('landingHero');
+    if (heroSection) {
+      heroSection.classList.add('enhanced-hero');
+      
+      // Add animated background
+      const animatedBg = document.createElement('div');
+      animatedBg.classList.add('hero-animated-bg');
+      heroSection.prepend(animatedBg);
+      
+      // Add background pattern
+      const bgPattern = document.createElement('div');
+      bgPattern.classList.add('hero-bg-pattern');
+      heroSection.prepend(bgPattern);
+      
+      // Enhance hero content
+      const heroTextBox = heroSection.querySelector('.hero-text-box');
+      if (heroTextBox) {
+        heroTextBox.classList.add('hero-content');
+        
+        // Enhance hero title
+        const heroTitle = heroTextBox.querySelector('.hero-title');
+        if (heroTitle) {
+          heroTitle.innerHTML = heroTitle.textContent.replace(
+            'One platform to manage all your elections',
+            '<span>One platform</span> to manage all your elections'
+          );
+        }
+        
+        // Enhance hero subtitle
+        const heroSubTitle = heroTextBox.querySelector('.hero-sub-title');
+        if (heroSubTitle) {
+          heroSubTitle.classList.add('hero-subtitle');
+        }
+        
+        // Enhance CTA button
+        const heroCta = heroTextBox.querySelector('.btn-primary');
+        if (heroCta) {
+          heroCta.classList.add('hero-cta');
+          heroCta.innerHTML = heroCta.textContent + '<i class="bx bx-right-arrow-alt hero-cta-arrow"></i>';
+        }
+      }
+      
+      // Add floating elements
+      for (let i = 1; i <= 4; i++) {
+        const floatingElement = document.createElement('div');
+        floatingElement.classList.add('floating-element', `floating-element-${i}`);
+        heroSection.appendChild(floatingElement);
+      }
+      
+      // Add scroll down indicator
+      const scrollIndicator = document.createElement('div');
+      scrollIndicator.classList.add('scroll-down-indicator');
+      scrollIndicator.innerHTML = `
+        <div class="scroll-down-text">Scroll down</div>
+        <div class="scroll-down-arrow"></div>
+      `;
+      heroSection.appendChild(scrollIndicator);
+      
+      // Add wave divider
+      const waveDiv = document.createElement('div');
+      waveDiv.classList.add('hero-wave');
+      waveDiv.innerHTML = `
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+        </svg>
+      `;
+      heroSection.appendChild(waveDiv);
+    }
+  });
 </script>
   </body>
 </html>

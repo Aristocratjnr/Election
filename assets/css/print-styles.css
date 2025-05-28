@@ -1,0 +1,77 @@
+/* Print styles for enhanced UI elements */
+@media print {
+  /* General adjustments */
+  .landing-reviews,
+  .review-card,
+  .badge-icon {
+    background-color: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    -ms-filter: none !important;
+    page-break-inside: avoid;
+  }
+  
+  /* Make sure SVGs are visible */
+  .badge-icon svg {
+    fill: #000 !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+  
+  /* Badge icon adjustments */
+  .badge-icon {
+    border: 1px solid #ddd !important;
+  }
+  
+  .security-shield-svg path,
+  .gdpr-svg path,
+  .blockchain-svg path,
+  .uptime-svg path {
+    fill: #444 !important;
+  }
+  
+  /* Review card adjustments */
+  .review-card {
+    border: 1px solid #ddd !important;
+    padding: 1.5rem !important;
+    margin-bottom: 2rem !important;
+    page-break-inside: avoid;
+  }
+  
+  .review-card::before,
+  .review-card::after {
+    display: none !important;
+  }
+  
+  .review-quote-icon {
+    color: #666 !important;
+    opacity: 0.5 !important;
+  }
+  
+  .review-text {
+    color: #000 !important;
+  }
+  
+  .review-stars {
+    color: #FF9800 !important;
+  }
+  
+  .review-avatar {
+    border: 1px solid #ddd !important;
+    background: none !important;
+  }
+  
+  /* Hide background elements */
+  .reviews-bg-element {
+    display: none !important;
+  }
+  
+  /* Remove animations */
+  * {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}

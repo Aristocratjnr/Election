@@ -1,23 +1,32 @@
-/* Light mode variables (default) */
-  :root {
+/* Theme transition class for smooth color changes */
+.theme-transition,
+.theme-transition *,
+.theme-transition *:before,
+.theme-transition *:after {
+    transition: all 0.3s ease !important;
+    transition-delay: 0 !important;
+}
+
+/* Base theme variables */
+:root {
     --primary: #4361ee;
-    --primary-light: rgba(67, 97, 238, 0.08);
+    --primary-light: rgba(67, 97, 238, 0.15);
     --primary-dark: #3a56d4;
-    --success: #10b981;
-    --success-light: rgba(16, 185, 129, 0.1);
+    --success: #198754;
+    --success-light: rgba(25, 135, 84, 0.15);
     --surface: #ffffff;
-    --surface-hover: #f9fafb;
-    --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    --card-hover-shadow: 0 15px 35px rgba(67, 97, 238, 0.12);
+    --surface-hover: #f8f9fa;
+    --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    --card-hover-shadow: 0 15px 35px rgba(110, 168, 254, 0.25);
     --text: #374151;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-    --bg: #f3f4f6;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+    --bg: #F9FAFB;
     --header-bg: #ffffff;
     --shadow-color: rgba(0,0,0,0.05);
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #0dcaf0;
     
     /* Default Bootstrap theme for light mode */
     color-scheme: light;
@@ -46,6 +55,22 @@
     
     /* Default Bootstrap theme for dark mode */
     color-scheme: dark;
+}
+
+/* Apply transitions to color-based properties */
+body,
+#header,
+.card,
+.modal-content,
+.btn,
+.form-control,
+.nav-link,
+.dropdown-menu,
+.alert {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
 }
 
 body {
@@ -1542,6 +1567,8 @@ box-shadow: 0 0 0 2px var(--primary), 0 12px 24px rgba(67, 97, 238, 0.15);
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
     transition: all 0.3s ease;
+}
+
 .status-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(67, 97, 238, 0.08);
@@ -2245,5 +2272,4 @@ html[data-bs-theme="dark"] .sticky-bottom {
         margin: 0;
         border-radius: 12px;
     }
-}
 }

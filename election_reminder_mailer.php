@@ -18,9 +18,19 @@ use PHPMailer\PHPMailer\Exception;
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Load environment variables
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+// Load environment variables (with error handling)
+try {
+    if (file_exists(__DIR__ . '/.env')) {
+        $dotenv = Dotenv::createImmutable(__DIR__);
+        $dotenv->load();
+    } else {
+        // Log warning but continue execution
+        error_log("Warning: .env file not found. Using fallback values for SMTP configuration.");
+    }
+} catch (Exception $e) {
+    error_log("Error loading .env file: " . $e->getMessage());
+    // Continue execution
+}
 
 // Include database connection
 require 'configs/dbconnection.php';
@@ -61,13 +71,24 @@ try {
     
     logMessage("Looking for elections between $tomorrowStart and $tomorrowEnd");
     
-    $query = "SELECT * FROM elections 
+    // Check database connection before proceeding
+    if (!$conn || $conn->connect_error) {
+        throw new Exception("Database connection failed: " . ($conn ? $conn->connect_error : "Connection object is null"));
+    }
+      $query = "SELECT * FROM elections 
               WHERE status = 'Scheduled' 
               AND startDate BETWEEN ? AND ?";
     
     $stmt = $conn->prepare($query);
+    if (!$stmt) {
+        throw new Exception("Query preparation failed: " . $conn->error);
+    }
+    
     $stmt->bind_param('ss', $tomorrowStart, $tomorrowEnd);
-    $stmt->execute();
+    if (!$stmt->execute()) {
+        throw new Exception("Query execution failed: " . $stmt->error);
+    }
+    
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
@@ -85,17 +106,33 @@ try {
         
         logMessage("Processing election: $electionName (ID: $electionID), starting on $startDate at $startTime");
         
-        // Get all active students
-        $studentQuery = "SELECT * FROM students WHERE status = 'Active'";
-        $studentResult = $conn->query($studentQuery);
-        
-        if ($studentResult->num_rows === 0) {
-            logMessage("No active students found", "WARNING");
-            continue;
-        }
-        
-        $successCount = 0;
-        $failureCount = 0;
+    // Get all active students
+    $studentQuery = "SELECT * FROM students WHERE status = 'Active'";
+    $studentResult = $conn->query($studentQuery);
+    
+    if ($studentResult->num_rows === 0) {
+        logMessage("No active students found", "WARNING");
+        continue;
+    }
+    
+    // Check if notifications have already been sent for this election
+    $checkNotificationQuery = "SELECT COUNT(*) as count FROM notifications 
+                             WHERE related_election = ? 
+                             AND type = 'reminder' 
+                             AND DATE(created_at) = CURDATE()";
+    $checkStmt = $conn->prepare($checkNotificationQuery);
+    $checkStmt->bind_param("i", $electionID);
+    $checkStmt->execute();
+    $notificationResult = $checkStmt->get_result();
+    $notificationData = $notificationResult->fetch_assoc();
+    
+    if ($notificationData['count'] > 0) {
+        logMessage("Reminders already sent today for election: $electionName (ID: $electionID)", "INFO");
+        continue;
+    }
+    
+    $successCount = 0;
+    $failureCount = 0;
         
         // Send reminder to each student
         while ($student = $studentResult->fetch_assoc()) {
@@ -160,22 +197,27 @@ try {
 function sendReminderEmail($email, $name, $electionName, $startDate, $startTime, $endDate, $department) {
     $mail = new PHPMailer(true);
     try {
-        // Server settings
+        // Server settings with fallbacks
         $mail->isSMTP();
-        $mail->Host = $_ENV['SMTP_HOST'];
+        $mail->Host = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = $_ENV['SMTP_EMAIL'];
-        $mail->Password = $_ENV['SMTP_PASSWORD'];
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = intval($_ENV['SMTP_PORT']);
+        $mail->Username = $_ENV['SMTP_EMAIL'] ?? '';
+        $mail->Password = $_ENV['SMTP_PASSWORD'] ?? '';
+        $mail->SMTPSecure = $_ENV['SMTP_SECURE'] ?? PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = intval($_ENV['SMTP_PORT'] ?? 587);
+        
+        // If SMTP credentials are missing, log error and return false
+        if (empty($mail->Username) || empty($mail->Password)) {
+            logMessage("SMTP credentials not configured. Email not sent to $email", "ERROR");
+            return false;
+        }
         
         // Enable debug output when running from CLI
         if (php_sapi_name() === 'cli') {
             $mail->SMTPDebug = 2;
         }
-        
-        // Recipients
-        $mail->setFrom($_ENV['SMTP_FROM_EMAIL'], 'SmartVote EMS');
+          // Recipients
+        $mail->setFrom($_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@smartvote.com', 'SmartVote EMS');
         $mail->addAddress($email, $name);
         
         // Content

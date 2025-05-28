@@ -1,0 +1,328 @@
+/* Enhanced Navbar Styling for Election Management System
+ * This file provides modern styling for the navigation bar
+ * including improved responsiveness, animations, and visual appeal
+ */
+
+/* Main Navbar Container */
+.enhanced-navbar {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98));
+  border-bottom: 1px solid rgba(231, 234, 238, 0.7);
+}
+
+.navbar-scrolled {
+  padding: 0.5rem 0;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(231, 234, 238, 0.9);
+}
+
+[data-bs-theme="dark"] .navbar-scrolled {
+  background: rgba(33, 37, 41, 0.98);
+  border-bottom: 1px solid rgba(55, 58, 64, 0.7);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Brand Logo & Text */
+.navbar-brand {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand img {
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img {
+  transform: scale(1.1);
+}
+
+.brand-text {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, var(--bs-primary), var(--bs-info));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease;
+}
+
+/* Navigation Links */
+.nav-link {
+  position: relative;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  margin: 0 0.25rem;
+}
+
+.nav-link:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: var(--bs-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover:after,
+.nav-link.active:after {
+  width: 80%;
+}
+
+.nav-link:hover {
+  color: var(--bs-primary) !important;
+}
+
+/* Dropdown Styling */
+.enhanced-dropdown {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 0;
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.show > .enhanced-dropdown {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.dropdown-item {
+  padding: 0.6rem 1.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  transform: translateX(5px);
+}
+
+.dropdown-item i {
+  transition: transform 0.2s ease;
+}
+
+.dropdown-item:hover i {
+  transform: translateX(3px);
+}
+
+/* Mobile Toggle Button */
+.navbar-toggler {
+  border: none;
+  background: transparent;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+}
+
+.navbar-toggler i {
+  font-size: 1.75rem;
+  transition: all 0.3s ease;
+}
+
+.navbar-toggler:hover i {
+  color: var(--bs-primary);
+}
+
+/* Mobile Menu */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    max-height: 80vh;
+    overflow-y: auto;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .enhanced-dropdown {
+    box-shadow: none;
+    border-left: 2px solid var(--bs-primary);
+    border-radius: 0;
+    margin-left: 1rem;
+    padding-left: 0.5rem;
+  }
+  
+  .nav-link:after {
+    left: 0;
+    transform: translateX(0);
+  }
+  
+  .nav-link:hover:after,
+  .nav-link.active:after {
+    width: 30px;
+  }
+  
+  .navbar-nav {
+    padding: 0.5rem 0;
+  }
+}
+
+/* Auth Buttons */
+.auth-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.auth-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.auth-btn:hover::before {
+  width: 100%;
+}
+
+.auth-btn i {
+  transition: transform 0.3s ease;
+}
+
+.auth-btn:hover i {
+  transform: translateX(3px);
+}
+
+/* Theme Switcher */
+.theme-switch-wrapper {
+  position: relative;
+}
+
+.theme-item {
+  transition: all 0.2s ease;
+}
+
+.theme-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  transform: translateX(5px);
+}
+
+.theme-item.active {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+}
+
+/* Navbar CTA Button */
+.navbar-cta {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.navbar-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, var(--bs-info), var(--bs-primary));
+  transition: all 0.5s ease;
+  z-index: -1;
+}
+
+.navbar-cta:hover::before {
+  left: 0;
+}
+
+.navbar-cta:hover {
+  box-shadow: 0 4px 15px rgba(var(--bs-primary-rgb), 0.4);
+  transform: translateY(-2px);
+}
+
+/* Sticky Navbar Animation */
+.navbar-sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1030;
+  animation: slideDown 0.5s ease forwards;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Dark Mode Adjustments */
+[data-bs-theme="dark"] .enhanced-navbar {
+  background: linear-gradient(to right, rgba(33, 37, 41, 0.92), rgba(33, 37, 41, 0.97));
+  border-bottom: 1px solid rgba(55, 58, 64, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+[data-bs-theme="dark"] .brand-text {
+  background: linear-gradient(90deg, var(--bs-primary), var(--bs-info));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-bs-theme="dark"] .navbar-collapse {
+  background: rgba(33, 37, 41, 0.95);
+}
+
+[data-bs-theme="dark"] .enhanced-dropdown {
+  background: #2b3035;
+}
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.65rem;
+  border-radius: 50%;
+  background-color: var(--bs-danger);
+  color: white;
+  transform: translate(50%, -50%);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--bs-danger-rgb), 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--bs-danger-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--bs-danger-rgb), 0);
+  }
+}

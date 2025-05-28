@@ -1,0 +1,139 @@
+/* Success Stories Section Styles */
+.pricing-success-stories {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, 
+    rgba(var(--bs-primary-rgb), 0.05) 0%,
+    rgba(var(--bs-info-rgb), 0.05) 100%
+  );
+  border-radius: 24px;
+  margin: 3rem auto;
+}
+
+.pricing-success-title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  color: var(--bs-primary);
+}
+
+.pricing-success-card {
+  background: var(--bs-body-bg);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(var(--bs-primary-rgb), 0.1);
+  transform: translateY(0);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.pricing-success-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(var(--bs-primary-rgb), 0.15);
+}
+
+.success-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.success-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.success-metric-item {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(var(--bs-primary-rgb), 0.05);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.success-metric-item:hover {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  transform: translateY(-5px);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--bs-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: var(--bs-body-color);
+  opacity: 0.8;
+  text-transform: capitalize;
+}
+
+.story-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bs-primary);
+  margin-bottom: 0.5rem;
+}
+
+.story-organization {
+  font-size: 1rem;
+  color: var(--bs-body-color);
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.story-impact {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--bs-body-color);
+  padding: 1rem;
+  background: rgba(var(--bs-success-rgb), 0.1);
+  border-radius: 8px;
+  border-left: 4px solid var(--bs-success);
+}
+
+/* Animation for cards appearing */
+.pricing-success-card {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: storyCardAppear 0.6s ease forwards;
+}
+
+@keyframes storyCardAppear {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pricing-success-stories {
+    padding: 2rem 1rem;
+    margin: 2rem auto;
+  }
+  
+  .success-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .metric-value {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .success-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pricing-success-card {
+    padding: 1.5rem;
+  }
+}
