@@ -11,7 +11,7 @@
 
 .pricing-success-title {
   text-align: center;
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 5vw, 2rem);
   font-weight: 700;
   margin-bottom: 3rem;
   color: var(--bs-primary);
@@ -41,7 +41,7 @@
 
 .success-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1.5rem;
   margin-top: 1rem;
 }
@@ -112,28 +112,204 @@
   }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Enhanced responsive adjustments */
+@media (max-width: 991.98px) {
   .pricing-success-stories {
-    padding: 2rem 1rem;
+    padding: 3rem 1.5rem;
+    border-radius: 20px;
+    margin: 2.5rem auto;
+  }
+  
+  .pricing-success-title {
+    margin-bottom: 2.5rem;
+  }
+  
+  .success-metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.25rem;
+  }
+  
+  .story-title {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .pricing-success-stories {
+    padding: 2.5rem 1rem;
+    border-radius: 16px;
     margin: 2rem auto;
+  }
+  
+  .pricing-success-title {
+    margin-bottom: 2rem;
+  }
+  
+  .pricing-success-card {
+    padding: 1.75rem;
+    border-radius: 14px;
   }
   
   .success-metrics-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .success-metric-item {
+    padding: 0.75rem;
   }
   
   .metric-value {
     font-size: 1.75rem;
   }
+  
+  .story-impact {
+    font-size: 1rem;
+    padding: 0.875rem;
+  }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 575.98px) {
+  .pricing-success-stories {
+    padding: 2rem 0.75rem;
+    border-radius: 12px;
+    margin: 1.5rem auto;
+  }
+  
+  .pricing-success-title {
+    margin-bottom: 1.5rem;
+  }
+  
+  .pricing-success-card {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+  }
+  
+  .success-content {
+    gap: 1rem;
+  }
+  
+  .success-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .success-metric-item {
+    padding: 0.625rem;
+    border-radius: 8px;
+  }
+  
+  .metric-value {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .metric-label {
+    font-size: 0.75rem;
+  }
+  
+  .story-title {
+    font-size: 1.25rem;
+  }
+  
+  .story-organization {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .story-impact {
+    font-size: 0.9rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    border-left-width: 3px;
+    line-height: 1.5;
+  }
+}
+
+/* Small/portrait phones */
+@media (max-width: 375px) {
+  .pricing-success-card {
+    padding: 1rem;
+  }
+  
   .success-metrics-grid {
     grid-template-columns: 1fr;
   }
   
+  .success-metric-item:hover {
+    transform: translateY(-3px);
+  }
+  
+  .story-title {
+    font-size: 1.15rem;
+  }
+  
+  .metric-value {
+    font-size: 1.35rem;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 480px) and (orientation: landscape) {
+  .pricing-success-stories {
+    padding: 1.5rem 0.75rem;
+  }
+  
+  .pricing-success-title {
+    margin-bottom: 1rem;
+  }
+  
   .pricing-success-card {
-    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .success-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+  .pricing-success-card:hover {
+    transform: translateY(0);
+  }
+  
+  .success-metric-item:hover {
+    transform: none;
+  }
+  
+  .pricing-success-card:active {
+    transform: translateY(-5px);
+  }
+  
+  .success-metric-item:active {
+    background: rgba(var(--bs-primary-rgb), 0.1);
+  }
+}
+
+/* Print optimization */
+@media print {
+  .pricing-success-stories {
+    background: none;
+    margin: 1rem auto;
+    padding: 0;
+  }
+  
+  .pricing-success-card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+  
+  .success-metric-item {
+    background: none;
+    border: 1px solid #eee;
+  }
+  
+  .story-impact {
+    background: none;
+    border: 1px solid #ddd;
+    border-left: 3px solid #333;
   }
 }

@@ -177,12 +177,12 @@
 
 .pricing-save-badge {
   position: absolute;
-  top: -15px;
-  right: -25px;
-  padding: 0.5rem 1.25rem;
+  top: -12px;
+  right: -20px;
+  padding: 0.35rem 1rem;
   background: linear-gradient(135deg, var(--bs-success) 0%, #2fb344 100%);
   color: white;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
   border-radius: 50px;
   transform: rotate(10deg);
@@ -191,6 +191,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(5px);
   z-index: 10;
+  white-space: nowrap;
 }
 
 .pricing-save-badge::before {
@@ -213,17 +214,66 @@
     transform: rotate(10deg) translateY(0);
   }
   50% {
-    transform: rotate(10deg) translateY(-8px);
+    transform: rotate(10deg) translateY(-5px);
   }
 }
 
-@keyframes saveBadgeGlow {
-  0%, 100% {
-    box-shadow: 0 4px 15px rgba(var(--bs-success-rgb), 0.35);
+/* Enhanced responsive adjustments for the save badge */
+@media (max-width: 1199.98px) {
+  .pricing-save-badge {
+    top: -10px;
+    right: -15px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.7rem;
   }
-  50% {
-    box-shadow: 0 4px 25px rgba(var(--bs-success-rgb), 0.5),
-                0 0 15px rgba(var(--bs-success-rgb), 0.3);
+}
+
+@media (max-width: 991.98px) {
+  .pricing-save-badge {
+    top: -10px;
+    right: -10px;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.65rem;
+    transform: rotate(5deg);
+  }
+  
+  @keyframes saveBadgeFloat {
+    0%, 100% {
+      transform: rotate(5deg) translateY(0);
+    }
+    50% {
+      transform: rotate(5deg) translateY(-4px);
+    }
+  }
+}
+
+@media (max-width: 767.98px) {
+  .pricing-save-badge {
+    position: relative;
+    top: 0;
+    right: 0;
+    display: inline-block;
+    margin: 0.5rem 0;
+    transform: rotate(0deg);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.65rem;
+  }
+  
+  @keyframes saveBadgeFloat {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+}
+
+@media (max-width: 575.98px) {
+  .pricing-save-badge {
+    padding: 0.2rem 0.65rem;
+    font-size: 0.6rem;
+    margin: 0.25rem 0;
   }
 }
 
