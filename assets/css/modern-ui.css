@@ -1,0 +1,107 @@
+/* --- Team Section Enhancements --- */
+.landing-team {
+  position: relative;
+  z-index: 1;
+  background: var(--bs-body-bg);
+  padding-bottom: 4rem;
+}
+
+.team-card {
+  border-radius: 1.25rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+  background: var(--bs-white);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  overflow: visible;
+}
+.team-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+}
+
+.team-photo-wrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin-top: -40px;
+  margin-bottom: 0.5rem;
+}
+.team-photo {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  background: #fff;
+}
+.team-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transform: translate(30%, 30%);
+}
+
+.team-social .btn {
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+.team-social .btn:hover {
+  background: var(--bs-primary);
+  color: #fff;
+  border-color: var(--bs-primary);
+}
+
+.team-bg-shape-1,
+.team-bg-shape-2 {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  opacity: 0.07;
+  pointer-events: none;
+}
+.team-bg-shape-1 {
+  width: 220px;
+  height: 220px;
+  background: var(--bs-primary);
+  left: -80px;
+  top: 40px;
+}
+.team-bg-shape-2 {
+  width: 160px;
+  height: 160px;
+  background: var(--bs-success);
+  right: -60px;
+  bottom: 30px;
+}
+
+@media (max-width: 991.98px) {
+  .team-photo-wrapper {
+    width: 90px;
+    height: 90px;
+  }
+  .team-photo {
+    width: 90px;
+    height: 90px;
+  }
+}
+@media (max-width: 767.98px) {
+  .team-bg-shape-1,
+  .team-bg-shape-2 {
+    display: none;
+  }
+  .team-card {
+    margin-bottom: 2rem;
+  }
+}

@@ -1,0 +1,1523 @@
+<!doctype html>
+<html
+  lang="en"
+  class="layout-navbar-fixed layout-wide"
+  dir="ltr"
+  data-skin="default"
+  data-assets-path="assets/"
+  data-template="front-pages"
+  data-bs-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+    <title>Premium Plan Payment - SmartVote</title>
+
+    <meta name="description" content="Complete your subscription to SmartVote premium plan with secure payment options" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
+
+    <!-- Fonts -->    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
+      rel="stylesheet" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <link rel="stylesheet" href="assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="assets/vendor/css/pages/front-page.css" />
+    <link rel="stylesheet" href="assets/css/modern-ui.css" />
+    <link rel="stylesheet" href="assets/css/enhanced-navbar.css" />
+    <link rel="stylesheet" href="assets/css/payment-page.css" />
+    
+    <script src="assets/vendor/js/helpers.js"></script>
+    <script src="assets/js/front-config.js"></script>
+    
+    <style>
+      /* Enhanced Payment Page Styles */
+      .payment-page-container {
+        background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.03) 0%, rgba(var(--bs-info-rgb), 0.03) 100%);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .payment-page-container::before,
+      .payment-page-container::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        z-index: 0;
+      }
+      
+      .payment-page-container::before {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(rgba(var(--bs-primary-rgb), 0.05), transparent 70%);
+        top: -250px;
+        left: -100px;
+      }
+      
+      .payment-page-container::after {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(rgba(var(--bs-info-rgb), 0.05), transparent 70%);
+        bottom: -200px;
+        right: -100px;
+      }
+      
+      .payment-card {
+        border-radius: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+      }
+      
+      .order-summary-card {
+        border-radius: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+      }
+      
+      /* Improved Form Elements */
+      .form-control, 
+      .form-select,
+      .input-group-text {
+        border-radius: 0.75rem;
+        border-color: rgba(var(--bs-primary-rgb), 0.2);
+        padding: 0.6rem 1rem;
+        transition: all 0.2s ease;
+      }
+      
+      .form-control:focus, 
+      .form-select:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.15);
+      }
+      
+      /* Enhanced Custom Options */
+      .custom-option {
+        border-radius: 1rem;
+        padding: 1.25rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      }
+      
+      .custom-option:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.1);
+        border-color: rgba(var(--bs-primary-rgb), 0.3);
+      }
+      
+      .custom-option.active {
+        background-color: rgba(var(--bs-primary-rgb), 0.03);
+        border-color: var(--bs-primary);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.15);
+      }
+      
+      /* Payment Method Tabs */
+      .payment-method-tabs {
+        padding: 0.25rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        border-radius: 0.75rem;
+        border: none;
+        display: inline-flex;
+        width: auto;
+        margin-bottom: 1.5rem;
+      }
+      
+      .payment-method-tabs .nav-link {
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        margin: 0.25rem;
+        font-weight: 500;
+        color: var(--bs-body-color);
+        border: none;
+        transition: all 0.2s ease;
+      }
+      
+      .payment-method-tabs .nav-link.active {
+        background-color: var(--bs-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.2);
+      }
+      
+      .payment-method-tabs .nav-link:not(.active):hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary);
+      }
+      
+      /* Enhanced Security Badges */
+      .payment-security-badge {
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.25rem;
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .payment-security-badge:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        background-color: white;
+      }
+      
+      /* Pay Button Animation */
+      .pay-btn {
+        border-radius: 0.75rem;
+        padding: 0.8rem 1.5rem;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(var(--bs-primary-rgb), 0.2);
+      }
+      
+      .pay-btn::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: -100%;
+        background: linear-gradient(90deg, 
+          rgba(255,255,255,0) 0%, 
+          rgba(255,255,255,0.2) 50%, 
+          rgba(255,255,255,0) 100%);
+        transition: all 0.8s ease;
+      }
+      
+      .pay-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(var(--bs-primary-rgb), 0.3);
+      }
+      
+      .pay-btn:hover::after {
+        left: 100%;
+      }
+      
+      /* Order Summary Card */
+      .order-summary-card {
+        background-color: var(--bs-body-bg);
+      }
+      
+      .plan-features li {
+        position: relative;
+        padding-left: 0.5rem;
+        margin-bottom: 0.75rem !important;
+        transition: all 0.3s ease;
+      }
+      
+      .plan-features li:hover {
+        transform: translateX(3px);
+      }
+      
+      .plan-features li i {
+        background-color: rgba(var(--bs-success-rgb), 0.1);
+        border-radius: 50%;
+        padding: 0.25rem;
+        color: var(--bs-success);
+      }
+      
+      /* Testimonial Card */
+      .testimonial-card {
+        border-radius: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.05) 0%, rgba(var(--bs-primary-rgb), 0.1) 100%);
+        border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        position: relative;
+      }
+      
+      .testimonial-card::before {
+        content: '"';
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 5rem;
+        font-family: serif;
+        color: rgba(var(--bs-primary-rgb), 0.1);
+        line-height: 1;
+      }
+      
+      .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(var(--bs-primary-rgb), 0.1);
+      }
+      
+      .avatar img {
+        border: 2px solid var(--bs-primary);
+      }
+      
+      /* Footer Enhancements */
+      .enhanced-footer {
+        border-top: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        position: relative;
+      }
+      
+      .payment-badge-img {
+        transition: all 0.3s ease;
+        filter: grayscale(20%);
+      }
+      
+      .payment-badge-img:hover {
+        filter: grayscale(0%);
+        transform: translateY(-2px);
+      }
+      
+      /* Dark Mode Adjustments */
+      [data-bs-theme="dark"] .payment-page-container {
+        background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.1) 0%, rgba(0,0,0,0) 100%);
+      }
+      
+      [data-bs-theme="dark"] .payment-card,
+      [data-bs-theme="dark"] .order-summary-card,
+      [data-bs-theme="dark"] .testimonial-card {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      [data-bs-theme="dark"] .custom-option {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      [data-bs-theme="dark"] .custom-option.active {
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+        border-color: var(--bs-primary);
+      }
+      
+      [data-bs-theme="dark"] .payment-method-tabs {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      
+      [data-bs-theme="dark"] .payment-security-badge {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      [data-bs-theme="dark"] .payment-security-badge:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+      }
+      
+      [data-bs-theme="dark"] .plan-features li i {
+        background-color: rgba(var(--bs-success-rgb), 0.2);
+      }
+      
+      [data-bs-theme="dark"] .enhanced-footer {
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease forwards;
+      }
+      
+      /* Enhanced Mobile Order Summary Styles */
+      .show-summary-btn {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--bs-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(var(--bs-primary-rgb), 0.4);
+        border: none;
+        font-size: 1.5rem;
+        z-index: 1030;
+        transition: all 0.3s ease;
+        animation: pulse-animation 2s infinite;
+      }
+
+      .show-summary-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.5);
+      }
+
+      .show-summary-btn:active {
+        transform: scale(0.95);
+      }
+
+      @keyframes pulse-animation {
+        0% {
+          box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(var(--bs-primary-rgb), 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(var(--bs-primary-rgb), 0);
+        }
+      }
+
+      /* Mini Floating Summary */
+      .mini-order-summary {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--bs-body-bg);
+        border-top: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        padding: 1rem;
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        z-index: 1020;
+        display: none;
+        transition: transform 0.3s ease-in-out;
+        transform: translateY(100%);
+      }
+
+      .mini-order-summary.show {
+        transform: translateY(0);
+      }
+
+      .mini-order-summary-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .mini-order-summary-total {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mini-order-summary-total .plan-name {
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+
+      .mini-order-summary-total .price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--bs-primary);
+      }
+
+      .mini-order-summary .btn {
+        padding: 0.6rem 1.25rem;
+        border-radius: 0.75rem;
+      }
+
+      /* Full Order Summary Modal */
+      .mobile-order-summary {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: var(--bs-body-bg);
+        z-index: 1050;
+        transition: all 0.3s ease;
+        transform: translateY(100%);
+        overflow-y: auto;
+        padding: 1.5rem;
+        border-radius: 1.5rem 1.5rem 0 0;
+        box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .mobile-order-summary.show {
+        transform: translateY(0);
+      }
+
+      .mobile-order-summary-backdrop {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+      }
+
+      .mobile-order-summary-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .mobile-order-summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+      }
+
+      .mobile-order-summary-header h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+        color: var(--bs-primary);
+      }
+
+      .close-summary {
+        background: none;
+        border: none;
+        color: var(--bs-body-color);
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        transition: all 0.2s ease;
+      }
+
+      .close-summary:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+      }
+
+      .order-summary-mobile-wrapper {
+        padding-bottom: 2rem;
+      }
+
+      .summary-action-buttons {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 1rem;
+      }
+
+      .summary-action-buttons .btn {
+        flex: 1;
+      }
+
+      /* Progress indicator for summary */
+      .checkout-progress {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding: 0 10px;
+      }
+
+      .checkout-progress:before {
+        content: '';
+        position: absolute;
+        height: 2px;
+        background-color: var(--bs-border-color);
+        width: calc(100% - 40px);
+        top: 50%;
+        left: 20px;
+        transform: translateY(-50%);
+        z-index: 0;
+      }
+
+      .checkout-progress-step {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: var(--bs-body-bg);
+        border: 2px solid var(--bs-border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bs-body-color);
+        position: relative;
+        z-index: 1;
+      }
+
+      .checkout-progress-step.active {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: white;
+      }
+
+      .checkout-progress-step.completed {
+        background-color: var(--bs-success);
+        border-color: var(--bs-success);
+        color: white;
+      }
+
+      .checkout-progress-label {
+        position: absolute;
+        top: 35px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        text-align: center;
+        width: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+      }
+
+      /* Enhanced summary card styles for mobile */
+      @media (max-width: 991.98px) {
+        .mini-order-summary {
+          display: flex;
+        }
+
+        .payment-page-container {
+          padding-bottom: 5rem;
+        }
+        
+        .order-summary-mobile-wrapper .order-summary-details {
+          background-color: rgba(var(--bs-primary-rgb), 0.03);
+          border-radius: 1rem;
+          padding: 1rem;
+          margin-bottom: 1.5rem;
+          border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        }
+        
+        .order-summary-mobile-wrapper .order-summary-features {
+          background-color: rgba(var(--bs-primary-rgb), 0.03);
+          border-radius: 1rem;
+          padding: 1rem;
+          margin-bottom: 1.5rem;
+          border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+        }
+        
+        .order-summary-mobile-wrapper .plan-features li {
+          margin-bottom: 0.5rem !important;
+        }
+        
+        .order-summary-mobile-wrapper .order-summary-help {
+          margin-top: 0;
+          border-radius: 1rem;
+        }
+      }
+
+      /* Dark mode adjustments */
+      [data-bs-theme="dark"] .mini-order-summary {
+        background-color: var(--bs-body-bg);
+        border-top-color: rgba(255, 255, 255, 0.1);
+      }
+
+      [data-bs-theme="dark"] .mobile-order-summary {
+        background-color: var(--bs-body-bg);
+      }
+
+      [data-bs-theme="dark"] .mobile-order-summary-backdrop {
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+
+      [data-bs-theme="dark"] .close-summary {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      [data-bs-theme="dark"] .checkout-progress-step {
+        background-color: var(--bs-body-bg);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      [data-bs-theme="dark"] .checkout-progress:before {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar: Start -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary py-0">
+      <div class="container">
+        <!-- Brand & Mobile Toggle -->
+        <a class="navbar-brand d-flex align-items-center" href="index.php">
+          <img src="assets/img/favicon/favicon.ico" alt="logo" width="30" height="30" class="me-2">
+          <span class="d-none d-sm-inline fw-bold brand-text">SmartVote</span>
+        </a>
+        
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+          <i class="bx bx-menu fs-3"></i>
+        </button>
+
+        <!-- Collapsible Content -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.php#landingFeatures">Features</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.php#landingPricing">Pricing</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.php#landingContact">Contact</a>
+            </li>
+          </ul>
+
+          <!-- Right Side Items -->
+          <ul class="navbar-nav ms-auto align-items-center">
+            <!-- Theme Switcher -->
+            <li class="nav-item dropdown me-3 theme-switch-wrapper">
+              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="theme-toggle-wrapper me-2">
+                  <div class="theme-toggle" role="switch" aria-checked="false" tabindex="0">
+                    <div class="theme-toggle-track">
+                      <i class="bx bx-sun theme-toggle-sun"></i>
+                      <i class="bx bx-moon theme-toggle-moon"></i>
+                    </div>
+                    <div class="theme-toggle-thumb"></div>
+                  </div>
+                </div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end enhanced-dropdown" aria-labelledby="themeDropdown">
+                <li>
+                  <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="light">
+                    <i class="bx bx-sun me-2"></i>
+                    <span>Light</span>
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="dark">
+                    <i class="bx bx-moon me-2"></i>
+                    <span>Dark</span>
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item d-flex align-items-center theme-item" type="button" data-bs-theme-value="auto">
+                    <i class="bx bx-desktop me-2"></i>
+                    <span>System</span>
+                  </button>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Auth Buttons -->
+            <li class="nav-item d-flex flex-wrap gap-2">
+              <a href="login.php" class="btn btn-outline-primary navbar-cta">
+                <i class="bx bx-log-in-circle d-none d-lg-inline me-1"></i>
+                <span>Login</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- Navbar: End -->
+
+    <!-- Main Content -->
+    <div class="container-fluid py-5 payment-page-container">
+      <div class="container">
+        <!-- Page Title -->
+        <div class="text-center mb-5 animate-fade-in-up">
+          <span class="badge bg-label-primary rounded-pill px-3 py-2 mb-2">Secure Checkout</span>
+          <h2 class="fw-bold">Complete Your Premium Plan Purchase</h2>
+          <p class="text-muted">You're just a few steps away from unlocking premium features</p>
+        </div>
+        
+        <div class="row g-4">
+          <!-- Checkout Form Column -->
+          <div class="col-lg-8 mb-4 mb-lg-0">
+            <div class="card payment-card border-0 shadow-sm animate-fade-in-up" style="animation-delay: 0.1s;">
+              <div class="card-body p-4 p-lg-5">
+                <!-- Plan Selection -->
+                <div class="mb-4 payment-plan-selector">
+                  <h5 class="fw-semibold text-primary mb-3">
+                    <i class="bx bx-package me-2"></i>Selected Plan
+                  </h5>
+                  <div class="row g-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                      <div class="form-check custom-option custom-option-basic active">
+                        <label class="form-check-label custom-option-content" for="plan-team">
+                          <input name="plan-selection" class="form-check-input" type="radio" value="team" id="plan-team" checked />
+                          <span class="custom-option-header">
+                            <span class="h6 mb-0">Team Plan</span>
+                            <span class="badge bg-primary rounded-pill">Popular</span>
+                            <span class="custom-option-body">
+                              <small>Perfect for schools and small organizations</small>
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check custom-option custom-option-basic">
+                        <label class="form-check-label custom-option-content" for="plan-enterprise">
+                          <input name="plan-selection" class="form-check-input" type="radio" value="enterprise" id="plan-enterprise" />
+                          <span class="custom-option-header">
+                            <span class="h6 mb-0">Enterprise Plan</span>
+                            <span class="badge bg-label-success rounded-pill">Premium</span>
+                            <span class="custom-option-body">
+                              <small>For large institutions with advanced needs</small>
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Billing Frequency -->
+                <div class="mb-4 billing-frequency">
+                  <h5 class="fw-semibold text-primary mb-3">
+                    <i class="bx bx-calendar me-2"></i>Billing Frequency
+                  </h5>
+                  <div class="row g-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                      <div class="form-check custom-option custom-option-basic active">
+                        <label class="form-check-label custom-option-content" for="billing-monthly">
+                          <input name="billing-frequency" class="form-check-input" type="radio" value="monthly" id="billing-monthly" checked />
+                          <span class="custom-option-header">
+                            <span class="h6 mb-0">Monthly</span>
+                            <span class="custom-option-body d-flex align-items-center">
+                              <span class="h5 mb-0 me-1 text-primary plan-price" id="monthly-price">₵29</span>
+                              <small>per month</small>
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check custom-option custom-option-basic">
+                        <label class="form-check-label custom-option-content" for="billing-annual">
+                          <input name="billing-frequency" class="form-check-input" type="radio" value="annual" id="billing-annual" />
+                          <span class="custom-option-header">
+                            <span class="h6 mb-0">Annual</span>
+                            <span class="badge bg-label-success rounded-pill">Save 25%</span>
+                            <span class="custom-option-body d-flex align-items-center">
+                              <span class="h5 mb-0 me-1 text-primary plan-price" id="annual-price">₵264</span>
+                              <small>per year</small>
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Payment Details Form -->
+                <div class="mb-4">
+                  <h5 class="fw-semibold text-primary mb-3">
+                    <i class="bx bx-credit-card me-2"></i>Payment Details
+                  </h5>
+                  <form id="payment-form" class="row g-3">
+                    <!-- Name Fields -->
+                    <div class="col-md-6">
+                      <label for="firstName" class="form-label">First Name</label>
+                      <div class="input-group input-group-merge">
+                        <span class="input-group-text border-end-0 bg-transparent">
+                          <i class="bx bx-user text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="firstName" placeholder="John" required>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="lastName" class="form-label">Last Name</label>
+                      <div class="input-group input-group-merge">
+                        <span class="input-group-text border-end-0 bg-transparent">
+                          <i class="bx bx-user text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="lastName" placeholder="Doe" required>
+                      </div>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="col-12">
+                      <label for="email" class="form-label">Email</label>
+                      <div class="input-group input-group-merge">
+                        <span class="input-group-text border-end-0 bg-transparent">
+                          <i class="bx bx-envelope text-muted"></i>
+                        </span>
+                        <input type="email" class="form-control border-start-0" id="email" placeholder="john@example.com" required>
+                      </div>
+                    </div>
+                    
+                    <!-- Organization -->
+                    <div class="col-12">
+                      <label for="organization" class="form-label">Organization/Institution</label>
+                      <div class="input-group input-group-merge">
+                        <span class="input-group-text border-end-0 bg-transparent">
+                          <i class="bx bx-buildings text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="organization" placeholder="Your School or Organization">
+                      </div>
+                    </div>
+                    
+                    <!-- Payment Method Tabs -->
+                    <div class="col-12 mt-4">
+                      <ul class="nav nav-pills payment-method-tabs" id="paymentMethodTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link active" id="credit-card-tab" data-bs-toggle="pill" data-bs-target="#credit-card" type="button" role="tab" aria-controls="credit-card" aria-selected="true">
+                            <i class="bx bx-credit-card me-1"></i> Credit Card
+                          </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" id="mobile-money-tab" data-bs-toggle="pill" data-bs-target="#mobile-money" type="button" role="tab" aria-controls="mobile-money" aria-selected="false">
+                            <i class="bx bx-mobile me-1"></i> Mobile Money
+                          </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link" id="paypal-tab" data-bs-toggle="pill" data-bs-target="#paypal" type="button" role="tab" aria-controls="paypal" aria-selected="false">
+                            <i class="bx bxl-paypal me-1"></i> PayPal
+                          </button>
+                        </li>
+                      </ul>
+                      
+                      <div class="tab-content p-0 mt-3" id="paymentMethodTabsContent">
+                        <!-- Credit Card Form -->
+                        <div class="tab-pane fade show active" id="credit-card" role="tabpanel" aria-labelledby="credit-card-tab">
+                          <div class="row g-3">
+                            <div class="col-12">
+                              <label for="cardNumber" class="form-label">Card Number</label>
+                              <div class="input-group">
+                                <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" required>
+                                <span class="input-group-text">
+                                  <i class="bx bxl-visa text-primary fs-4 me-1"></i>
+                                  <i class="bx bxl-mastercard text-danger fs-4"></i>
+                                </span>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label for="expiryDate" class="form-label">Expiry Date</label>
+                              <div class="input-group input-group-merge">
+                                <span class="input-group-text border-end-0 bg-transparent">
+                                  <i class="bx bx-calendar text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="expiryDate" placeholder="MM/YY" required>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label for="cvv" class="form-label">CVV Code</label>
+                              <div class="input-group">
+                                <div class="input-group input-group-merge">
+                                  <span class="input-group-text border-end-0 bg-transparent">
+                                    <i class="bx bx-lock-alt text-muted"></i>
+                                  </span>
+                                  <input type="text" class="form-control border-start-0" id="cvv" placeholder="123" required>
+                                </div>
+                                <span class="input-group-text bg-transparent" data-bs-toggle="tooltip" data-bs-placement="top" title="3-digit code on the back of your card">
+                                  <i class="bx bx-help-circle text-muted"></i>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <!-- Mobile Money Form -->
+                        <div class="tab-pane fade" id="mobile-money" role="tabpanel" aria-labelledby="mobile-money-tab">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label for="mobileProvider" class="form-label">Mobile Provider</label>
+                              <div class="input-group input-group-merge">
+                                <span class="input-group-text border-end-0 bg-transparent">
+                                  <i class="bx bx-phone text-muted"></i>
+                                </span>
+                                <select class="form-select border-start-0" id="mobileProvider" required>
+                                  <option value="" selected disabled>Select Provider</option>
+                                  <option value="mtn">MTN Mobile Money</option>
+                                  <option value="vodafone">Vodafone Cash</option>
+                                  <option value="airtel">AirtelTigo Money</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label for="mobileNumber" class="form-label">Mobile Number</label>
+                              <div class="input-group input-group-merge">
+                                <span class="input-group-text border-end-0 bg-transparent">
+                                  <i class="bx bx-mobile-alt text-muted"></i>
+                                </span>
+                                <input type="tel" class="form-control border-start-0" id="mobileNumber" placeholder="0551234567" required>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <!-- PayPal -->
+                        <div class="tab-pane fade" id="paypal" role="tabpanel" aria-labelledby="paypal-tab">
+                          <div class="text-center py-4">
+                            <img src="assets/img/front-pages/landing-page/paypal.png" alt="PayPal" height="60" class="mb-3">
+                            <p>You will be redirected to PayPal to complete your payment securely.</p>
+                            <div class="alert alert-info d-inline-flex align-items-center mt-2">
+                              <i class="bx bx-info-circle me-2"></i>
+                              <span>PayPal accepts all major credit cards and bank payments</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Terms & Conditions -->
+                    <div class="col-12 mt-3">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="termsConditions" required>
+                        <label class="form-check-label" for="termsConditions">
+                          I agree to the <a href="#" class="text-primary">Terms & Conditions</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="col-12 mt-4">
+                      <button type="submit" class="btn btn-primary btn-lg w-100 pay-btn">
+                        <i class="bx bx-lock-alt me-1"></i> Complete Payment
+                      </button>
+                    </div>
+                  </form>
+                </div>
+                
+                <!-- Security Badges -->
+                <div class="text-center mt-4">
+                  <div class="d-flex justify-content-center align-items-center flex-wrap gap-3">
+                    <div class="payment-security-badge">
+                      <i class="bx bx-lock fs-3 text-primary"></i>
+                      <span>Secure Payment</span>
+                    </div>
+                    <div class="payment-security-badge">
+                      <i class="bx bx-check-shield fs-3 text-success"></i>
+                      <span>Money Back Guarantee</span>
+                    </div>
+                    <div class="payment-security-badge">
+                      <i class="bx bx-support fs-3 text-info"></i>
+                      <span>24/7 Support</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Order Summary Column -->
+          <div class="col-lg-4">
+            <div class="card order-summary-card border-0 shadow-sm mb-4 position-sticky animate-fade-in-up" style="top: 100px; animation-delay: 0.3s;">
+              <div class="card-header bg-transparent py-3 border-bottom border-light">
+                <h5 class="fw-bold mb-0">Order Summary</h5>
+              </div>
+              <div class="card-body p-4">
+                <div class="order-summary-details">
+                  <div class="d-flex justify-content-between mb-2">
+                    <span>Plan</span>
+                    <span class="fw-semibold" id="summary-plan">Team</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2">
+                    <span>Billing</span>
+                    <span class="fw-semibold" id="summary-billing">Monthly</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2">
+                    <span>Price</span>
+                    <span class="fw-semibold" id="summary-price">₵29.00</span>
+                  </div>
+                  
+                  <hr>
+                  
+                  <div class="d-flex justify-content-between mb-3">
+                    <span class="h6">Total</span>
+                    <span class="h5 text-primary" id="summary-total">₵29.00</span>
+                  </div>
+                </div>
+                
+                <div class="order-summary-features mt-4">
+                  <h6 class="fw-bold mb-3">Plan Features</h6>
+                  <ul class="list-unstyled plan-features" id="plan-features-list">
+                    <li class="mb-2"><i class="bx bx-check text-success me-2"></i> Everything in basic plan</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-2"></i> Up to 5,000 registered voters</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-2"></i> Advanced ballot design tools</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-2"></i> Enhanced security features</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-2"></i> Priority email & phone support</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-2"></i> Advanced analytics</li>
+                    <li class="mb-2"><i class="bx bx-check text-success me-2"></i> Custom branding</li>
+                  </ul>
+                </div>
+                
+                <div class="order-summary-help mt-4 p-3 rounded-3 bg-label-primary bg-opacity-10">
+                  <div class="d-flex align-items-center mb-3">
+                    <i class="bx bx-question-mark fs-4 bg-primary text-white rounded-circle p-1 me-2"></i>
+                    <h6 class="mb-0">Need Help?</h6>
+                  </div>
+                  <p class="small mb-2">For any questions about your order:</p>
+                  <a href="index.php#landingContact" class="d-flex align-items-center text-primary mb-1">
+                    <i class="bx bx-envelope me-1"></i> Contact Support
+                  </a>
+                  <a href="tel:+233551784926" class="d-flex align-items-center text-primary">
+                    <i class="bx bx-phone me-1"></i> +233 551784926
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Customer Testimonial -->
+            <div class="card testimonial-card border-0 shadow-sm animate-fade-in-up" style="animation-delay: 0.5s;">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="avatar avatar-sm me-3">
+                    <img src="assets/img/front-pages/landing-page/team-member-2.png" alt="Customer Avatar" class="rounded-circle">
+                  </div>
+                  <div>
+                    <h6 class="mb-0">Sarah Afrifa</h6>
+                    <small class="text-muted">SRC Organizer</small>
+                  </div>
+                </div>
+                <p class="mb-0">
+                  <i class="bx bxs-quote-alt-left text-primary me-1"></i>
+                  SmartVote transformed our student council elections completely. The mobile voting feature and real-time analytics helped us achieve record participation rates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer enhanced-footer py-4 mt-5">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+            <p class="mb-0">&copy; <script>document.write(new Date().getFullYear())</script> SmartVote. All rights reserved.</p>
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex justify-content-center justify-content-md-end">
+              <div class="d-flex align-items-center flex-wrap gap-3">
+                <img src="assets/img/front-pages/landing-page/ssl.jpg" height="30" alt="SSL Secure" class="me-3 payment-badge-img">
+                <img src="assets/img/front-pages/landing-page/payment.png" height="24" alt="Payment Methods" class="payment-badge-img">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Core JS -->
+    <script src="assets/vendor/libs/popper/popper.js"></script>
+    <script src="assets/vendor/js/bootstrap.js"></script>
+    
+    <!-- Page JS -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Plan selection
+        const planTeam = document.getElementById('plan-team');
+        const planEnterprise = document.getElementById('plan-enterprise');
+        const summaryPlan = document.getElementById('summary-plan');
+        const planFeaturesList = document.getElementById('plan-features-list');
+        
+        // Billing frequency
+        const billingMonthly = document.getElementById('billing-monthly');
+        const billingAnnual = document.getElementById('billing-annual');
+        const summaryBilling = document.getElementById('summary-billing');
+        const summaryPrice = document.getElementById('summary-price');
+        const summaryTotal = document.getElementById('summary-total');
+        const monthlyPrice = document.getElementById('monthly-price');
+        const annualPrice = document.getElementById('annual-price');
+        
+        // Team Plan Features
+        const teamFeatures = [
+          'Everything in basic plan',
+          'Up to 5,000 registered voters',
+          'Advanced ballot design tools',
+          'Enhanced security features',
+          'Priority email & phone support',
+          'Advanced analytics',
+          'Custom branding'
+        ];
+        
+        // Enterprise Plan Features
+        const enterpriseFeatures = [
+          'Everything in team plan',
+          'Unlimited registered voters',
+          'Premium ballot design tools',
+          'Military-grade security',
+          '24/7 dedicated support',
+          'Custom branding & white labeling',
+          'Social media integration',
+          'Advanced API access'
+        ];
+        
+        // Plan prices
+        const prices = {
+          team: {
+            monthly: 29,
+            annual: 264
+          },
+          enterprise: {
+            monthly: 49,
+            annual: 444
+          }
+        };
+        
+        // Update summary based on selections
+        function updateSummary() {
+          const plan = planTeam.checked ? 'team' : 'enterprise';
+          const billing = billingMonthly.checked ? 'monthly' : 'annual';
+          
+          summaryPlan.textContent = planTeam.checked ? 'Team' : 'Enterprise';
+          summaryBilling.textContent = billingMonthly.checked ? 'Monthly' : 'Annual';
+          
+          const price = prices[plan][billing];
+          summaryPrice.textContent = `₵${price.toFixed(2)}`;
+          summaryTotal.textContent = `₵${price.toFixed(2)}`;
+          
+          // Update monthly price display
+          monthlyPrice.textContent = `₵${prices[plan].monthly}`;
+          annualPrice.textContent = `₵${prices[plan].annual}`;
+          
+          // Update features list
+          updateFeaturesList(plan);
+        }
+        
+        function updateFeaturesList(plan) {
+          const features = plan === 'team' ? teamFeatures : enterpriseFeatures;
+          
+          // Clear existing features
+          planFeaturesList.innerHTML = '';
+          
+          // Add new features
+          features.forEach(feature => {
+            const li = document.createElement('li');
+            li.className = 'mb-2';
+            li.innerHTML = `<i class="bx bx-check text-success me-2"></i> ${feature}`;
+            planFeaturesList.appendChild(li);
+          });
+        }
+        
+        // Add event listeners
+        planTeam.addEventListener('change', updateSummary);
+        planEnterprise.addEventListener('change', updateSummary);
+        billingMonthly.addEventListener('change', updateSummary);
+        billingAnnual.addEventListener('change', updateSummary);
+        
+        // Custom option selection behavior
+        const customOptions = document.querySelectorAll('.custom-option');
+        customOptions.forEach(option => {
+          option.addEventListener('click', function() {
+            const parent = this.closest('.row');
+            parent.querySelectorAll('.custom-option').forEach(opt => {
+              opt.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Find and check the radio input
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+              radio.checked = true;
+              radio.dispatchEvent(new Event('change'));
+            }
+          });
+        });
+        
+        // Form submission
+        const paymentForm = document.getElementById('payment-form');
+        paymentForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Show processing state
+          const submitBtn = paymentForm.querySelector('button[type="submit"]');
+          const originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Processing...';
+          submitBtn.disabled = true;
+          
+          // Simulate payment processing
+          setTimeout(() => {
+            // Redirect to success page (this would be replaced with actual payment processing)
+            window.location.href = 'payment-success.html';
+          }, 2000);
+        });
+        
+        // Credit card number formatting
+        const cardNumberInput = document.getElementById('cardNumber');
+        if (cardNumberInput) {
+          cardNumberInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            let formattedValue = '';
+            
+            for (let i = 0; i < value.length; i++) {
+              if (i > 0 && i % 4 === 0) {
+                formattedValue += ' ';
+              }
+              formattedValue += value[i];
+            }
+            
+            // Limit to 16 digits plus spaces
+            if (formattedValue.length > 19) {
+              formattedValue = formattedValue.substring(0, 19);
+            }
+            
+            e.target.value = formattedValue;
+          });
+        }
+        
+        // Expiry date formatting
+        const expiryDateInput = document.getElementById('expiryDate');
+        if (expiryDateInput) {
+          expiryDateInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            let formattedValue = '';
+            
+            if (value.length > 0) {
+              formattedValue = value.substring(0, 2);
+              if (value.length > 2) {
+                formattedValue += '/' + value.substring(2, 4);
+              }
+            }
+            
+            e.target.value = formattedValue;
+          });
+        }
+        
+        // Initialize the summary
+        updateSummary();
+      });
+    </script>
+    
+    <!-- Theme Switcher JavaScript -->
+    <script src="assets/js/theme-switcher.js"></script>
+    
+    <!-- Add these elements just before the closing </body> tag -->
+
+    <!-- Mobile Order Summary Button -->
+    <button class="show-summary-btn d-lg-none" id="showSummaryBtn">
+      <i class="bx bx-receipt"></i>
+    </button>
+
+    <!-- Mini Floating Summary -->
+    <div class="mini-order-summary d-lg-none" id="miniOrderSummary">
+      <div class="mini-order-summary-content">
+        <div class="mini-order-summary-total">
+          <span class="plan-name" id="mini-summary-plan">Team Plan (Monthly)</span>
+          <span class="price" id="mini-summary-price">₵29.00</span>
+        </div>
+        <button class="btn btn-primary" id="viewSummaryBtn">
+          <i class="bx bx-receipt me-1"></i> View Summary
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Order Summary Backdrop -->
+    <div class="mobile-order-summary-backdrop d-lg-none" id="orderSummaryBackdrop"></div>
+
+    <!-- Full Mobile Order Summary -->
+    <div class="mobile-order-summary d-lg-none" id="mobileOrderSummary">
+      <div class="mobile-order-summary-header">
+        <h5>Order Summary</h5>
+        <button type="button" class="close-summary" id="closeSummaryBtn" aria-label="Close">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+      
+      <!-- Checkout Progress -->
+      <div class="checkout-progress mb-4">
+        <div class="checkout-progress-step completed">
+          <i class="bx bx-check"></i>
+          <span class="checkout-progress-label">Plan</span>
+        </div>
+        <div class="checkout-progress-step active">
+          <span>2</span>
+          <span class="checkout-progress-label">Payment</span>
+        </div>
+        <div class="checkout-progress-step">
+          <span>3</span>
+          <span class="checkout-progress-label">Confirmation</span>
+        </div>
+      </div>
+      
+      <div class="order-summary-mobile-wrapper">
+        <!-- This will be filled dynamically from desktop summary -->
+      </div>
+      
+      <!-- Summary action buttons -->
+      <div class="summary-action-buttons">
+        <button type="button" class="btn btn-outline-primary" id="continueShopping">
+          <i class="bx bx-arrow-back me-1"></i> Continue Shopping
+        </button>
+        <button type="button" class="btn btn-primary" id="proceedPayment">
+          <i class="bx bx-credit-card me-1"></i> Complete Payment
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Enhanced Mobile Order Summary functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const miniOrderSummary = document.getElementById('miniOrderSummary');
+        const viewSummaryBtn = document.getElementById('viewSummaryBtn');
+        const mobileOrderSummary = document.getElementById('mobileOrderSummary');
+        const orderSummaryBackdrop = document.getElementById('orderSummaryBackdrop');
+        const closeSummaryBtn = document.getElementById('closeSummaryBtn');
+        const continueShoppingBtn = document.getElementById('continueShopping');
+        const proceedPaymentBtn = document.getElementById('proceedPayment');
+        const desktopSummary = document.querySelector('.order-summary-card .card-body');
+        const mobileWrapper = document.querySelector('.order-summary-mobile-wrapper');
+        const miniSummaryPlan = document.getElementById('mini-summary-plan');
+        const miniSummaryPrice = document.getElementById('mini-summary-price');
+        const paymentForm = document.getElementById('payment-form');
+        
+        // Show mini summary after scrolling
+        let hasShownMiniSummary = false;
+        window.addEventListener('scroll', function() {
+          if (window.innerWidth < 992 && !hasShownMiniSummary && window.scrollY > 300) {
+            miniOrderSummary.classList.add('show');
+            hasShownMiniSummary = true;
+          }
+        });
+        
+        // Clone desktop summary to mobile view
+        function updateMobileSummary() {
+          if (desktopSummary) {
+            const clonedContent = desktopSummary.cloneNode(true);
+            mobileWrapper.innerHTML = '';
+            mobileWrapper.appendChild(clonedContent);
+            
+            // Update mini summary
+            const planType = document.getElementById('summary-plan').textContent;
+            const billingType = document.getElementById('summary-billing').textContent;
+            const totalPrice = document.getElementById('summary-total').textContent;
+            
+            miniSummaryPlan.textContent = `${planType} Plan (${billingType})`;
+            miniSummaryPrice.textContent = totalPrice;
+          }
+        }
+        
+        // Initialize mobile summary
+        updateMobileSummary();
+        
+        // Open full summary
+        if (viewSummaryBtn) {
+          viewSummaryBtn.addEventListener('click', function() {
+            mobileOrderSummary.classList.add('show');
+            orderSummaryBackdrop.classList.add('show');
+            document.body.style.overflow = 'hidden';
+          });
+        }
+        
+        // Close full summary
+        if (closeSummaryBtn) {
+          closeSummaryBtn.addEventListener('click', closeMobileOrderSummary);
+        }
+        
+        if (orderSummaryBackdrop) {
+          orderSummaryBackdrop.addEventListener('click', closeMobileOrderSummary);
+        }
+        
+        if (continueShoppingBtn) {
+          continueShoppingBtn.addEventListener('click', closeMobileOrderSummary);
+        }
+        
+        function closeMobileOrderSummary() {
+          mobileOrderSummary.classList.remove('show');
+          orderSummaryBackdrop.classList.remove('show');
+          document.body.style.overflow = '';
+        }
+        
+        // Proceed to payment
+        if (proceedPaymentBtn) {
+          proceedPaymentBtn.addEventListener('click', function() {
+            // Close the modal
+            closeMobileOrderSummary();
+            
+            // Scroll to payment form and focus
+            const paymentSection = document.querySelector('.payment-details-form');
+            if (paymentSection) {
+              paymentSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Flash the payment button
+            const payBtn = document.querySelector('.pay-btn');
+            if (payBtn) {
+              payBtn.classList.add('btn-pulse');
+              setTimeout(() => {
+                payBtn.classList.remove('btn-pulse');
+              }, 2000);
+            }
+          });
+        }
+        
+        // Observe changes to desktop summary
+        const updateObserver = new MutationObserver(function(mutations) {
+          updateMobileSummary();
+        });
+        
+        // Start observing
+        if (desktopSummary) {
+          updateObserver.observe(desktopSummary, { 
+            childList: true, 
+            subtree: true,
+            characterData: true,
+            attributes: true
+          });
+        }
+        
+        // Sync form submission between desktop and mobile
+        if (paymentForm) {
+          paymentForm.addEventListener('submit', function(e) {
+            // If already submitting, don't do anything
+            if (document.querySelector('.pay-btn').disabled) {
+              return;
+            }
+            
+            e.preventDefault();
+            
+            // Show processing state
+            const submitBtn = paymentForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            // Also update mobile button
+            if (proceedPaymentBtn) {
+              proceedPaymentBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Processing...';
+              proceedPaymentBtn.disabled = true;
+            }
+            
+            // Simulate payment processing
+            setTimeout(() => {
+              // Redirect to success page
+              window.location.href = 'payment-success.html';
+            }, 2000);
+          });
+        }
+        
+        // If mobile proceed button clicked, trigger main form submission
+        if (proceedPaymentBtn) {
+          proceedPaymentBtn.addEventListener('click', function() {
+            if (paymentForm && !this.disabled) {
+              paymentForm.requestSubmit();
+            }
+          });
+        }
+        
+        // Add extra class for animation
+        document.querySelectorAll('.plan-features li').forEach((item, index) => {
+          item.style.animationDelay = `${0.1 * index}s`;
+          item.classList.add('animate-fade-in-up');
+        });
+        
+        // Handle mobile viewport height issues
+        function adjustForMobileViewport() {
+          const vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', `${vh}px`);
+          
+          // Adjust max-height of mobile summary
+          if (window.innerWidth < 992 && mobileOrderSummary) {
+            mobileOrderSummary.style.maxHeight = `${window.innerHeight}px`;
+          }
+        }
+        
+        window.addEventListener('resize', adjustForMobileViewport);
+        adjustForMobileViewport();
+      });
+    </script>
+  </body>
+</html>

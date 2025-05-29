@@ -1,0 +1,480 @@
+/* Enhanced Features Section Styling */
+.landing-features {
+  position: relative;
+  overflow: hidden;
+  --feature-accent: var(--bs-primary);
+  --feature-secondary: var(--bs-info);
+}
+
+.landing-features::before,
+.landing-features::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  z-index: -1;
+  filter: blur(40px);
+  transition: opacity 0.5s ease;
+}
+
+.landing-features::before {
+  background: var(--feature-accent);
+  opacity: 0.07;
+  top: -150px;
+  left: -150px;
+}
+
+.landing-features::after {
+  background: var(--feature-secondary);
+  opacity: 0.07;
+  bottom: -100px;
+  right: -100px;
+}
+
+.landing-features:hover::before,
+.landing-features:hover::after {
+  opacity: 0.12;
+}
+
+.features-subtitle {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--bs-body-color);
+  opacity: 0.85;
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+/* Feature Cards */
+.feature-card {
+  border-radius: 16px;
+  border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background-color: var(--bs-body-bg);
+  overflow: hidden;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(5px);
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12), 0 5px 10px rgba(0, 0, 0, 0.05);
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.feature-card-body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem !important;
+}
+
+/* Feature Icon */
+.feature-icon-wrapper {
+  position: relative;
+  width: 85px;
+  height: 85px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+}
+
+.feature-icon-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  transform: rotate(10deg);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.feature-card:hover .feature-icon-bg {
+  transform: rotate(0deg) scale(1.15);
+}
+
+.feature-icon {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  transition: all 0.4s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.15);
+}
+
+/* Feature Content */
+.feature-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--bs-body-color);
+  transition: all 0.3s ease;
+  letter-spacing: -0.01em;
+}
+
+.feature-card:hover .feature-title {
+  color: var(--bs-primary);
+}
+
+.feature-description {
+  color: var(--bs-body-color);
+  opacity: 0.85;
+  margin-bottom: 1.75rem;
+  flex-grow: 1;
+  line-height: 1.7;
+}
+
+.feature-benefits {
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(var(--bs-primary-rgb), 0.15);
+  font-size: 0.9rem;
+}
+
+/* Feature Highlight Box */
+.feature-highlight {
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(var(--bs-primary-rgb), 0.12);
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.feature-highlight:hover {
+  box-shadow: 0 15px 40px rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.feature-highlight-img {
+  transform: perspective(1200px) rotateY(-12deg);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  max-width: 100%;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+}
+
+.feature-highlight:hover .feature-highlight-img {
+  transform: perspective(1200px) rotateY(0deg);
+}
+
+/* Add new subtle animation for benefits */
+.feature-benefits .d-flex {
+  transition: transform 0.3s ease;
+}
+
+.feature-benefits .d-flex:hover {
+  transform: translateX(5px);
+}
+
+/* Improve focus styles for accessibility */
+.feature-card:focus-within {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 3px;
+}
+
+/* Dark Mode Improvements */
+[data-bs-theme="dark"] .feature-card {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .feature-card:hover {
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+  border-color: rgba(var(--bs-primary-rgb), 0.5);
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) {
+  .feature-card:hover {
+    transform: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  }
+  
+  .feature-highlight-img {
+    transform: none;
+  }
+  
+  .feature-highlight:hover .feature-highlight-img {
+    transform: none;
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1199.98px) {
+  .landing-features::before {
+    width: 200px;
+    height: 200px;
+    top: -100px;
+    left: -100px;
+  }
+  
+  .landing-features::after {
+    width: 200px;
+    height: 200px;
+    bottom: -100px;
+    right: -100px;
+  }
+  
+  .feature-highlight-shape-1 {
+    width: 150px;
+    height: 150px;
+    bottom: -75px;
+    right: -75px;
+  }
+  
+  .feature-highlight-shape-2 {
+    width: 80px;
+    height: 80px;
+    top: -40px;
+    left: 25%;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .section-py {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+  
+  .feature-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .feature-highlight-img {
+    margin-top: 1.5rem;
+    transform: none;
+  }
+  
+  .feature-highlight:hover .feature-highlight-img {
+    transform: none;
+  }
+  
+  .display-6 {
+    font-size: calc(1.275rem + 0.9vw);
+  }
+  
+  .features-subtitle {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .landing-features::before,
+  .landing-features::after {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .landing-features::before {
+    top: -75px;
+    left: -75px;
+  }
+  
+  .landing-features::after {
+    bottom: -75px;
+    right: -75px;
+  }
+  
+  .feature-highlight-img {
+    transform: none;
+    margin-top: 2rem;
+  }
+  
+  .feature-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .feature-icon-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .feature-mini-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
+  }
+  
+  .feature-highlight {
+    padding: 1.5rem !important;
+  }
+  
+  /* Stack benefits in mobile view */
+  .feature-benefits .d-flex {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Adjust section title for mobile */
+  .section-title-img {
+    width: 80px;
+  }
+  
+  /* Improve card touch interaction on mobile */
+  .feature-card:active {
+    transform: translateY(-4px);
+    transition: transform 0.2s ease;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .landing-features {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  .section-py {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+  
+  .feature-card-body {
+    padding: 1.25rem !important;
+  }
+  
+  .feature-title {
+    font-size: 1.1rem;
+  }
+  
+  .feature-description {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-benefits {
+    font-size: 0.8rem;
+  }
+  
+  .feature-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-icon {
+    width: 35px;
+    height: 35px;
+  }
+  
+  /* Adjust feature highlight content */
+  .feature-highlight h3 {
+    font-size: 1.35rem;
+  }
+  
+  .feature-highlight p {
+    font-size: 0.9rem;
+  }
+  
+  /* Make decorative elements less intrusive on small screens */
+  .feature-highlight-shape-1,
+  .feature-highlight-shape-2 {
+    opacity: 0.05;
+  }
+  
+  /* Optimize badge for small screens */
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.35rem 0.65rem !important;
+  }
+  
+  /* Better layout for stacked content */
+  .row > [class*="col-"] {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .g-4 {
+    --bs-gutter-y: 1rem;
+  }
+  
+  /* Optimize feature stat numbers */
+  .feature-stat h2 {
+    font-size: 1.75rem;
+  }
+  
+  .feature-stat p {
+    font-size: 0.8rem;
+  }
+}
+
+/* Orientation specific optimizations */
+@media (max-width: 767.98px) and (orientation: landscape) {
+  .row.g-4 {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    padding-bottom: 1rem;
+  }
+  
+  .row.g-4::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  .row.g-4 > div {
+    scroll-snap-align: start;
+    min-width: 85%;
+    padding: 0 0.5rem;
+  }
+  
+  .feature-card {
+    margin-bottom: 0;
+  }
+}
+
+/* Add smooth transition to card interaction on touch devices */
+@media (pointer: coarse) {
+  .feature-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .feature-card:active {
+    transform: translateY(-5px) scale(0.98);
+  }
+}
+
+/* Print styles */
+@media print {
+  .landing-features::before,
+  .landing-features::after,
+  .feature-highlight-shape-1,
+  .feature-highlight-shape-2 {
+    display: none;
+  }
+  
+  .feature-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+  
+  .feature-highlight {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    background-color: #f8f9fa !important;
+    box-shadow: none !important;
+  }
+  
+  .feature-highlight-img {
+    max-width: 80% !important;
+    margin: 0 auto;
+    display: block;
+  }
+  
+  .feature-icon-bg {
+    background-color: #f8f9fa !important;
+  }
+}
