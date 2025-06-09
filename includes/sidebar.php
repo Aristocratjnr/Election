@@ -731,6 +731,25 @@ if (!empty($profile_pic)) {
         </div>
       </li>
 
+      <!-- Blockchain Management -->
+      <li class="nav-item <?= in_array($current_script, ['blockchain.php','transactions.php','verify.php','blockchain_config.php']) ? 'active' : '' ?>">
+        <div class="nav-parent">
+          <div class="nav-link settings-toggle" data-tooltip="Blockchain Operations">
+            <i class="bi bi-link-45deg"></i>
+            <span>Blockchain</span>
+            <i class="nav-arrow bi bi-chevron-down"></i>
+          </div>
+          <ul class="submenu settings-dropdown">
+            <li class="submenu-item <?= ($current_script === 'blockchain.php') ? 'active' : '' ?>">
+              <a href="admin_blockchain_setup.php">
+                <i class="bi bi-boxes"></i>
+                <span>Explorer</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+
       <!-- System Settings -->
       <li class="nav-item <?= in_array($current_script, ['profile.php','security.php','preferences.php','activity.php','appearance.php']) ? 'active' : '' ?>">
         <div class="nav-parent">
