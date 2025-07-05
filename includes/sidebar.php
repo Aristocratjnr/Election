@@ -777,12 +777,6 @@ if (!empty($profile_pic)) {
                 <span>Appearance</span>
               </a>
             </li>
-            <li class="submenu-item <?= ($current_script === 'preferences.php') ? 'active' : '' ?>">
-              <a href="preferences.php">
-                <i class="bi bi-sliders"></i>
-                <span>Preferences</span>
-              </a>
-            </li>
             <li class="submenu-item <?= ($current_script === 'activity.php') ? 'active' : '' ?>">
               <a href="activity.php">
                 <i class="bi bi-activity"></i>
