@@ -36,8 +36,11 @@ $admin_filter = isset($_GET['admin_filter']) ? $_GET['admin_filter'] : '';
 
 // Prepare filter conditions
 $where_clause = "";
+$count_where_clause = "";
 $params = [];
+$count_params = [];
 $types = "";
+$count_types = "";
 
 // Date range filter
 if (!empty($date_range)) {
@@ -45,10 +48,14 @@ if (!empty($date_range)) {
     if (count($dates) === 2) {
         $start_date = date('Y-m-d 00:00:00', strtotime($dates[0]));
         $end_date = date('Y-m-d 23:59:59', strtotime($dates[1]));
-        $where_clause .= " WHERE timestamp BETWEEN ? AND ?";
+        $where_clause .= " WHERE l.timestamp BETWEEN ? AND ?";
+        $count_where_clause .= " WHERE timestamp BETWEEN ? AND ?";
         $params[] = $start_date;
         $params[] = $end_date;
+        $count_params[] = $start_date;
+        $count_params[] = $end_date;
         $types .= "ss";
+        $count_types .= "ss";
     }
 }
 
@@ -56,63 +63,99 @@ if (!empty($date_range)) {
 if (!empty($filter) && $filter !== 'all') {
     if ($filter === 'login') {
         $where_clause = empty($where_clause) ? " WHERE " : $where_clause . " AND ";
-        $where_clause .= "(activity LIKE ? OR activity LIKE ?)";
+        $count_where_clause = empty($count_where_clause) ? " WHERE " : $count_where_clause . " AND ";
+        $where_clause .= "(l.activity LIKE ? OR l.activity LIKE ?)";
+        $count_where_clause .= "(activity LIKE ? OR activity LIKE ?)";
         $params[] = '%login%';
         $params[] = '%logout%';
+        $count_params[] = '%login%';
+        $count_params[] = '%logout%';
         $types .= "ss";
+        $count_types .= "ss";
     } elseif ($filter === 'security') {
         $where_clause = empty($where_clause) ? " WHERE " : $where_clause . " AND ";
-        $where_clause .= "(activity LIKE ? OR activity LIKE ? OR activity LIKE ?)";
+        $count_where_clause = empty($count_where_clause) ? " WHERE " : $count_where_clause . " AND ";
+        $where_clause .= "(l.activity LIKE ? OR l.activity LIKE ? OR l.activity LIKE ?)";
+        $count_where_clause .= "(activity LIKE ? OR activity LIKE ? OR activity LIKE ?)";
         $params[] = '%password%';
         $params[] = '%security%';
         $params[] = '%2fa%';
+        $count_params[] = '%password%';
+        $count_params[] = '%security%';
+        $count_params[] = '%2fa%';
         $types .= "sss";
+        $count_types .= "sss";
     } elseif ($filter === 'election') {
         $where_clause = empty($where_clause) ? " WHERE " : $where_clause . " AND ";
-        $where_clause .= "(activity LIKE ? OR activity LIKE ? OR activity LIKE ?)";
+        $count_where_clause = empty($count_where_clause) ? " WHERE " : $count_where_clause . " AND ";
+        $where_clause .= "(l.activity LIKE ? OR l.activity LIKE ? OR l.activity LIKE ?)";
+        $count_where_clause .= "(activity LIKE ? OR activity LIKE ? OR activity LIKE ?)";
         $params[] = '%election%';
         $params[] = '%vote%';
         $params[] = '%ballot%';
+        $count_params[] = '%election%';
+        $count_params[] = '%vote%';
+        $count_params[] = '%ballot%';
         $types .= "sss";
+        $count_types .= "sss";
     } elseif ($filter === 'user') {
         $where_clause = empty($where_clause) ? " WHERE " : $where_clause . " AND ";
-        $where_clause .= "(activity LIKE ? OR activity LIKE ? OR activity LIKE ?)";
+        $count_where_clause = empty($count_where_clause) ? " WHERE " : $count_where_clause . " AND ";
+        $where_clause .= "(l.activity LIKE ? OR l.activity LIKE ? OR l.activity LIKE ?)";
+        $count_where_clause .= "(activity LIKE ? OR activity LIKE ? OR activity LIKE ?)";
         $params[] = '%user%';
         $params[] = '%voter%';
         $params[] = '%admin%';
+        $count_params[] = '%user%';
+        $count_params[] = '%voter%';
+        $count_params[] = '%admin%';
         $types .= "sss";
+        $count_types .= "sss";
     } elseif ($filter === 'self') {
         $where_clause = empty($where_clause) ? " WHERE " : $where_clause . " AND ";
-        $where_clause .= "adminID = ?";
+        $count_where_clause = empty($count_where_clause) ? " WHERE " : $count_where_clause . " AND ";
+        $where_clause .= "l.adminID = ?";
+        $count_where_clause .= "adminID = ?";
         $params[] = $admin_id;
+        $count_params[] = $admin_id;
         $types .= "i";
+        $count_types .= "i";
     }
 }
 
 // Admin filter
 if (!empty($admin_filter) && is_numeric($admin_filter)) {
     $where_clause = empty($where_clause) ? " WHERE " : $where_clause . " AND ";
-    $where_clause .= "adminID = ?";
+    $count_where_clause = empty($count_where_clause) ? " WHERE " : $count_where_clause . " AND ";
+    $where_clause .= "l.adminID = ?";
+    $count_where_clause .= "adminID = ?";
     $params[] = $admin_filter;
+    $count_params[] = $admin_filter;
     $types .= "i";
+    $count_types .= "i";
 }
 
 // Add search condition if provided
 if (!empty($search)) {
     $where_clause = empty($where_clause) ? " WHERE " : $where_clause . " AND ";
-    $where_clause .= "(activity LIKE ? OR ip_address LIKE ? OR admin_name LIKE ?)";
+    $count_where_clause = empty($count_where_clause) ? " WHERE " : $count_where_clause . " AND ";
+    $where_clause .= "(l.activity LIKE ? OR l.ip_address LIKE ? OR a.name LIKE ?)";
+    $count_where_clause .= "(activity LIKE ? OR ip_address LIKE ?)";
     $params[] = "%$search%";
     $params[] = "%$search%";
     $params[] = "%$search%";
+    $count_params[] = "%$search%";
+    $count_params[] = "%$search%";
     $types .= "sss";
+    $count_types .= "ss";
 }
 
 // Count total records for pagination
-$count_sql = "SELECT COUNT(*) as total FROM admin_activity_log l LEFT JOIN admins a ON l.adminID = a.adminID" . $where_clause;
+$count_sql = "SELECT COUNT(*) as total FROM admin_activity_log" . $count_where_clause;
 $count_stmt = $conn->prepare($count_sql);
 
-if (!empty($params)) {
-    $count_stmt->bind_param($types, ...$params);
+if (!empty($count_params)) {
+    $count_stmt->bind_param($count_types, ...$count_params);
 }
 
 $count_stmt->execute();
@@ -198,13 +241,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $export_stmt = $conn->prepare($export_sql);
         
         if (!empty($params)) {
-            // Remove pagination parameters
-            array_pop($params);
-            array_pop($params);
-            $types = substr($types, 0, -2);
+            // Remove pagination parameters for export
+            $export_params = $params;
+            $export_types = $types;
             
-            if (!empty($types)) {
-                $export_stmt->bind_param($types, ...$params);
+            if (count($export_params) >= 2) {
+                array_pop($export_params);
+                array_pop($export_params);
+                $export_types = substr($export_types, 0, -2);
+            }
+            
+            if (!empty($export_types)) {
+                $export_stmt->bind_param($export_types, ...$export_params);
             }
         }
         
