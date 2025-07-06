@@ -247,11 +247,6 @@ include 'includes/header.php';
         transition: var(--transition);
     }
     
-    .status-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-    
     .status-item i {
         font-size: 1.25rem;
         margin-right: 0.75rem;
@@ -557,47 +552,6 @@ include 'includes/header.php';
                 <div class="row g-4">
                     <!-- Left Column -->
                     <div class="col-lg-8">
-                        <!-- Security Status Card -->
-                        <div class="security-status-card">
-                            <div class="status-header">
-                                <h3><i class="bi bi-shield-check me-2"></i> Protection Level</h3>
-                                <div class="security-score">
-                                    <div class="score-value"><?php echo $security_score; ?>%</div>
-                                    <div class="score-progress">
-                                        <div class="progress-bar" style="width: <?php echo $security_score; ?>%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="status-items">
-                                <div class="status-item <?php echo $email_verified ? 'verified' : 'warning'; ?>">
-                                    <i class="bi bi-envelope-check"></i>
-                                    <span>Email Verified</span>
-                                    <span class="badge <?php echo $email_verified ? 'verified-badge' : 'warning-badge'; ?>">
-                                        <?php echo $email_verified ? 'Confirmed' : 'Not Verified'; ?>
-                                    </span>
-                                </div>
-                                
-                                <div class="status-item <?php echo $has_2fa ? 'active' : 'warning'; ?>">
-                                    <i class="bi bi-shield-lock"></i>
-                                    <span>2FA Protection</span>
-                                    <span class="badge <?php echo $has_2fa ? 'active-badge' : 'warning-badge'; ?>">
-                                        <?php echo $has_2fa ? 'Active' : 'Inactive'; ?>
-                                    </span>
-                                </div>
-                                
-                                <div class="status-item warning">
-                                    <i class="bi bi-clock-history"></i>
-                                    <span>Password Age</span>
-                                    <span class="badge warning-badge">
-                                        <?php 
-                                            $days = round((time() - strtotime($last_password_change)) / (60 * 60 * 24));
-                                            echo $days . ' day' . ($days != 1 ? 's' : '');
-                                        ?>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
                         
                         <!-- Security Tabs -->
                         <div class="card security-card">
