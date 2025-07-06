@@ -737,6 +737,7 @@ include 'includes/header.php';
     <div class="row">
         <!-- Sidebar -->
         <?php include 'includes/sidebar.php'; ?>
+         <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
         
         <!-- Main Content -->
         <main class="col-md-10 ms-auto col-lg-9 px-md-6 py-3"><br><br><br>
