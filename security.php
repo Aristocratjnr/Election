@@ -520,12 +520,7 @@ include 'includes/header.php';
                         </h1>
                         <p class="text-muted mb-0">Manage your account security settings and monitor activity</p>
                     </div>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <button type="button" class="btn btn-primary" id="securityHelp">
-                            <i class="bi bi-question-circle me-1"></i>
-                            Security Guide
-                        </button>
-                    </div>
+                  
                 </div>
                 
                 <!-- Alerts -->
