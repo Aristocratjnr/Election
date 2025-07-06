@@ -739,7 +739,7 @@ include 'includes/header.php';
         <?php include 'includes/sidebar.php'; ?>
         
         <!-- Main Content -->
-        <main class="col-md-10 ms-auto col-lg-9 px-md-6 py-3"><br><br>
+        <main class="col-md-10 ms-auto col-lg-9 px-md-6 py-3"><br><br><br>
             <div class="container-fluid">
                 <!-- Header Section -->
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-6 pb-2 mb-2 border-bottom">
