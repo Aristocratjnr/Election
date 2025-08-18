@@ -53,7 +53,6 @@ try {
     $error = "System temporarily unavailable. Please try again later.";
 }
 
-// Remove the override of election status - we want the actual status
 
 // Get student details
 $student = [];
@@ -1155,19 +1154,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <!-- Audio element for notification sound -->
     <audio id="notification-sound" preload="auto">
-        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
-        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
-    </audio>
 
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script>
-         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize theme from localStorage
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', currentTheme);
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Session Timeout Script -->
+<script src="assets/js/session-timeout.js"></script>
+<script>
+    // Theme management
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-bs-theme', currentTheme);
             
             // Apply dark mode to header on load if needed
             if (currentTheme === 'dark') {
