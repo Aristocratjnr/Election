@@ -2917,19 +2917,17 @@
 
         /* Fix alert backgrounds in dark mode */
         [data-bs-theme="dark"] .alert-light {
-            background-color: var(--surface);
-            color: var(--text);
-            border-color: var(--border);
-        }
 
-        /* Fix any bg-light sections within candidate cards */
-        [data-bs-theme="dark"] .candidate-card .bg-light {
-            background-color: rgba(0, 0, 0, 0.2) !important;
-        }
+/* Fix any bg-light sections within candidate cards */
+[data-bs-theme="dark"] .candidate-card .bg-light {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+}
 
-        /* Fix the candidate tagline background */
-        [data-bs-theme="dark"] .candidate-tagline.bg-light {
-            background-color: rgba(0, 0, 0, 0.2) !important;
+/* Fix the candidate tagline background */
+[data-bs-theme="dark"] .candidate-tagline.bg-light {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    color: var(--text);
+}
             color: var(--text);
         }
 

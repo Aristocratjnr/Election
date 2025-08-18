@@ -1,0 +1,38 @@
+CPU:
+11th Gen Core i5-11357 Quad-core, 8-thread
+base clock around 2.4 GHz, Turbo Boost up to approximately 4.2 GHz
+
+INTEL GRAPHICS:
+Intel® Iris® Xe Graphics 
+
+NVIDIA GRAPHICS:
+Nvidia MX350, 2GB dedicated
+
+RAM:
+16GB DDR4 2933MHz
+
+STORAGE:
+256GB SSD PCIe NVMe
+
+DISPLAY:
+15.6 inch, anti-glare IPS dispaly, sRBG with 250nits
+
+WIFI CONNECTIVITY:
+Wi-Fi 6(802.11ax)
+
+WEBCAM:
+HD 720p
+
+Bluetooth:
+Bluetooth 5.1
+
+PORTS:
+USB-C Gen 1 and USB3.2 Gen 1
+HDMI 
+RJ45
+
+Security:
+Fingerprint
+
+Battery:
+45Whz, uses 65W charger type C

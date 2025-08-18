@@ -564,11 +564,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <link rel="manifest" href="/Election/manifest.json">
     <meta name="theme-color" content="#4e73df">
     <link href="assets/css/student-portal.css" rel="stylesheet">
+    <link href="assets/css/responsive-student-portal.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?><br>
+    <?php include 'includes/header.php'; ?>
+    
+    <!-- Audio element for notification sound -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <br>
     
     <main class="container py-5">
         <div class="row justify-content-center">
