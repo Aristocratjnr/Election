@@ -1508,7 +1508,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             
             // Check for new notifications every 30 seconds
             setInterval(checkNewNotifications, 30000);
-        });        // Add bubble pop effect to time unit
+
+        // Add bubble pop effect to time unit
         function addBubblePop(element, intensity = 'normal') {
             if (!element) return;
             

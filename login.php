@@ -279,6 +279,9 @@
                     })
                     .catch(error => {
                         console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
     </script>
     
     <!-- PWA Install Prompt -->
