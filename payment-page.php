@@ -84,20 +84,204 @@
         border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
       }
       
-      /* Improved Form Elements */
-      .form-control, 
-      .form-select,
-      .input-group-text {
-        border-radius: 0.75rem;
-        border-color: rgba(var(--bs-primary-rgb), 0.2);
-        padding: 0.6rem 1rem;
-        transition: all 0.2s ease;
+      /* Enhanced Form Validation Styles */
+      .form-control.is-invalid,
+      .form-select.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.15);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.7.7-1.4 1.4 1.4 1.4-.7.7-1.4-1.4-1.4 1.4-.7-.7 1.4-1.4L2.7 4.3l.7-.7 1.4 1.4 1.4-1.4Z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
       }
-      
-      .form-control:focus, 
-      .form-select:focus {
-        border-color: var(--bs-primary);
-        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.15);
+
+      .form-control.is-valid,
+      .form-select.is-valid {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.15);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 1.38-1.38.94-.94.72.72L5.49 5l.01.01L3.66 6.84 2.3 6.73z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+      }
+
+      .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #dc3545;
+        animation: shake 0.5s ease-in-out;
+      }
+
+      .valid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #198754;
+      }
+
+      /* Shake animation for error feedback */
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+
+      /* Security indicator for sensitive fields */
+      .secure-field {
+        position: relative;
+      }
+
+      .secure-field::after {
+        content: '🔒';
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.875rem;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      /* Loading state for buttons */
+      .btn-loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.8;
+      }
+
+      .btn-loading::before {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        margin: auto;
+        border: 2px solid transparent;
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Card type indicators */
+      .card-type-indicator {
+        transition: all 0.3s ease;
+      }
+
+      .card-type-indicator.active {
+        transform: scale(1.1);
+        opacity: 1 !important;
+      }
+
+      /* Security badges enhanced */
+      .security-badge {
+        background: linear-gradient(135deg, rgba(var(--bs-success-rgb), 0.1) 0%, rgba(var(--bs-success-rgb), 0.05) 100%);
+        border: 1px solid rgba(var(--bs-success-rgb), 0.2);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .security-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(var(--bs-success-rgb), 0.15);
+      }
+
+      .security-badge i {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--bs-success);
+      }
+
+      /* Enhanced payment method tabs */
+      .payment-method-tabs .nav-link {
+        position: relative;
+      }
+
+      .payment-method-tabs .nav-link.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      /* Real-time validation feedback */
+      .validation-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid var(--bs-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 0.5rem;
+      }
+
+      /* Form progress indicator */
+      .form-progress {
+        height: 4px;
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+      }
+
+      .form-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--bs-primary), var(--bs-info));
+        border-radius: 2px;
+        transition: width 0.5s ease;
+        width: 0%;
+      }
+
+      /* Enhanced alert positioning */
+      .alert-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 9999;
+        max-width: 400px;
+      }
+
+      .alert-slide-in {
+        animation: slideInRight 0.5s ease-out;
+      }
+
+      @keyframes slideInRight {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      /* Dark mode validation adjustments */
+      [data-bs-theme="dark"] .form-control.is-invalid,
+      [data-bs-theme="dark"] .form-select.is-invalid {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-color: #dc3545;
+      }
+
+      [data-bs-theme="dark"] .form-control.is-valid,
+      [data-bs-theme="dark"] .form-select.is-valid {
+        background-color: rgba(25, 135, 84, 0.1);
+        border-color: #198754;
+      }
+
+      [data-bs-theme="dark"] .security-badge {
+        background: rgba(var(--bs-success-rgb), 0.15);
+        border-color: rgba(var(--bs-success-rgb), 0.3);
       }
       
       /* Enhanced Custom Options */
@@ -956,10 +1140,13 @@
                     
                     <!-- Terms & Conditions -->
                     <div class="col-12 mt-3">
+                      <!-- Honeypot field for bot detection -->
+                      <input type="text" name="website" style="display: none;" tabindex="-1" autocomplete="off">
+                      
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="termsConditions" required>
+                        <input class="form-check-input" type="checkbox" id="termsConditions" name="termsConditions" required>
                         <label class="form-check-label" for="termsConditions">
-                          I agree to the <a href="#" class="text-primary">Terms & Conditions</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                          I agree to the <a href="terms.php" class="text-primary" target="_blank">Terms & Conditions</a> and <a href="privacy.php" class="text-primary" target="_blank">Privacy Policy</a>
                         </label>
                       </div>
                     </div>
@@ -1098,6 +1285,22 @@
     <script src="assets/vendor/libs/popper/popper.js"></script>
     <script src="assets/vendor/js/bootstrap.js"></script>
     
+    <!-- Fallback Bootstrap CDN if local files fail -->
+    <script>
+      // Check if Bootstrap is loaded, if not load from CDN
+      if (typeof bootstrap === 'undefined') {
+        console.log('Loading Bootstrap from CDN...');
+        const bootstrapScript = document.createElement('script');
+        bootstrapScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
+        bootstrapScript.onload = function() {
+          console.log('Bootstrap loaded from CDN');
+        };
+        document.head.appendChild(bootstrapScript);
+      } else {
+        console.log('Bootstrap already loaded');
+      }
+    </script>
+    
     <!-- Page JS -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -1106,6 +1309,317 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
           return new bootstrap.Tooltip(tooltipTriggerEl)
         });
+
+        // Form validation utilities
+        const validationRules = {
+          firstName: {
+            required: true,
+            minLength: 2,
+            maxLength: 50,
+            pattern: /^[a-zA-Z\s]+$/,
+            message: 'First name must be 2-50 characters and contain only letters'
+          },
+          lastName: {
+            required: true,
+            minLength: 2,
+            maxLength: 50,
+            pattern: /^[a-zA-Z\s]+$/,
+            message: 'Last name must be 2-50 characters and contain only letters'
+          },
+          email: {
+            required: true,
+            pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+            message: 'Please enter a valid email address'
+          },
+          organization: {
+            required: false,
+            minLength: 2,
+            maxLength: 100,
+            pattern: /^[a-zA-Z0-9\s\-_.&()]+$/,
+            message: 'Organization name can contain letters, numbers, spaces, and basic punctuation'
+          },
+          cardNumber: {
+            required: true,
+            pattern: /^[0-9\s]{19}$/,
+            message: 'Please enter a valid 16-digit card number'
+          },
+          expiryDate: {
+            required: true,
+            pattern: /^(0[1-9]|1[0-2])\/([0-9]{2})$/,
+            message: 'Please enter a valid expiry date (MM/YY)'
+          },
+          cvv: {
+            required: true,
+            pattern: /^[0-9]{3,4}$/,
+            message: 'CVV must be 3 or 4 digits'
+          },
+          mobileProvider: {
+            required: true,
+            message: 'Please select a mobile money provider'
+          },
+          mobileNumber: {
+            required: true,
+            pattern: /^0[2-9][0-9]{8}$/,
+            message: 'Please enter a valid Ghana mobile number (10 digits starting with 0)'
+          }
+        };
+
+        // Real-time validation function
+        function validateField(field, showError = true) {
+          const fieldName = field.id;
+          const value = field.value.trim();
+          const rules = validationRules[fieldName];
+          
+          if (!rules) return true;
+
+          // Remove existing error styling
+          field.classList.remove('is-invalid', 'is-valid');
+          const existingError = field.parentNode.parentNode.querySelector('.invalid-feedback');
+          if (existingError) {
+            existingError.remove();
+          }
+
+          // Required field check
+          if (rules.required && !value) {
+            if (showError) {
+              showFieldError(field, `${getFieldLabel(fieldName)} is required`);
+            }
+            return false;
+          }
+
+          // Skip other validations if field is empty and not required
+          if (!value && !rules.required) {
+            field.classList.add('is-valid');
+            return true;
+          }
+
+          // Length validation
+          if (rules.minLength && value.length < rules.minLength) {
+            if (showError) {
+              showFieldError(field, rules.message);
+            }
+            return false;
+          }
+
+          if (rules.maxLength && value.length > rules.maxLength) {
+            if (showError) {
+              showFieldError(field, rules.message);
+            }
+            return false;
+          }
+
+          // Pattern validation
+          if (rules.pattern && !rules.pattern.test(value)) {
+            if (showError) {
+              showFieldError(field, rules.message);
+            }
+            return false;
+          }
+
+          // Special validations
+          if (fieldName === 'expiryDate' && value) {
+            const [month, year] = value.split('/');
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear() % 100;
+            const currentMonth = currentDate.getMonth() + 1;
+            
+            const cardYear = parseInt(year);
+            const cardMonth = parseInt(month);
+            
+            if (cardYear < currentYear || (cardYear === currentYear && cardMonth < currentMonth)) {
+              if (showError) {
+                showFieldError(field, 'Card has expired');
+              }
+              return false;
+            }
+          }
+
+          if (fieldName === 'cardNumber' && value) {
+            if (!luhnCheck(value.replace(/\s/g, ''))) {
+              if (showError) {
+                showFieldError(field, 'Invalid card number');
+              }
+              return false;
+            }
+          }
+
+          // Field is valid
+          field.classList.add('is-valid');
+          return true;
+        }
+
+        // Luhn algorithm for credit card validation
+        function luhnCheck(cardNumber) {
+          let sum = 0;
+          let isEven = false;
+          
+          for (let i = cardNumber.length - 1; i >= 0; i--) {
+            let digit = parseInt(cardNumber[i]);
+            
+            if (isEven) {
+              digit *= 2;
+              if (digit > 9) {
+                digit -= 9;
+              }
+            }
+            
+            sum += digit;
+            isEven = !isEven;
+          }
+          
+          return sum % 10 === 0;
+        }
+
+        // Show field error
+        function showFieldError(field, message) {
+          field.classList.add('is-invalid');
+          
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'invalid-feedback';
+          errorDiv.textContent = message;
+          
+          field.parentNode.parentNode.appendChild(errorDiv);
+        }
+
+        // Get field label for error messages
+        function getFieldLabel(fieldName) {
+          const labels = {
+            firstName: 'First Name',
+            lastName: 'Last Name',
+            email: 'Email',
+            organization: 'Organization',
+            cardNumber: 'Card Number',
+            expiryDate: 'Expiry Date',
+            cvv: 'CVV',
+            mobileProvider: 'Mobile Provider',
+            mobileNumber: 'Mobile Number'
+          };
+          return labels[fieldName] || fieldName;
+        }
+
+        // Add real-time validation to all form fields
+        const formFields = document.querySelectorAll('#payment-form input, #payment-form select');
+        formFields.forEach(field => {
+          // Validate on blur
+          field.addEventListener('blur', function() {
+            validateField(this);
+          });
+
+          // Validate on input for immediate feedback
+          field.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+              validateField(this);
+            }
+          });
+        });
+
+        // Custom email validation with domain checks
+        function validateEmail(email) {
+          const commonDomains = [
+            'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
+            'edu.gh', 'ug.edu.gh', 'knust.edu.gh', 'ucc.edu.gh'
+          ];
+          
+          const basicPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+          if (!basicPattern.test(email)) {
+            return false;
+          }
+
+          // Check for suspicious patterns
+          const suspiciousPatterns = [
+            /^[0-9]+@/,  // Starts with only numbers
+            /@[0-9]+\./,  // Domain starts with numbers
+            /\.\./,       // Double dots
+            /^\.|\.$|@\.|\.@/  // Dots at wrong positions
+          ];
+
+          return !suspiciousPatterns.some(pattern => pattern.test(email));
+        }
+
+        // Enhanced email validation
+        const emailField = document.getElementById('email');
+        if (emailField) {
+          emailField.addEventListener('blur', function() {
+            const email = this.value.trim();
+            if (email && !validateEmail(email)) {
+              showFieldError(this, 'Please enter a valid email address');
+              this.classList.add('is-invalid');
+            }
+          });
+        }
+
+        // Rate limiting for form submissions
+        let lastSubmissionTime = 0;
+        const submissionCooldown = 5000; // 5 seconds
+
+        // Enhanced form validation
+        function validateCurrentPaymentMethod() {
+          const activeTab = document.querySelector('#paymentMethodTabs .nav-link.active');
+          const activeTabId = activeTab.getAttribute('data-bs-target');
+          
+          let isValid = true;
+
+          if (activeTabId === '#credit-card') {
+            const cardFields = ['cardNumber', 'expiryDate', 'cvv'];
+            cardFields.forEach(fieldId => {
+              const field = document.getElementById(fieldId);
+              if (field && !validateField(field)) {
+                isValid = false;
+              }
+            });
+          } else if (activeTabId === '#mobile-money') {
+            const mobileFields = ['mobileProvider', 'mobileNumber'];
+            mobileFields.forEach(fieldId => {
+              const field = document.getElementById(fieldId);
+              if (field && !validateField(field)) {
+                isValid = false;
+              }
+            });
+          }
+
+          return isValid;
+        }
+
+        // Security checks
+        function performSecurityChecks() {
+          // Check for suspicious activity
+          const formData = new FormData(document.getElementById('payment-form'));
+          const email = formData.get('email');
+          const cardNumber = formData.get('cardNumber');
+
+          // Basic fraud detection
+          if (email && cardNumber) {
+            const emailDomain = email.split('@')[1];
+            const suspiciousDomains = ['tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+            
+            if (suspiciousDomains.includes(emailDomain)) {
+              showAlert('warning', 'Please use a permanent email address for your account.');
+              return false;
+            }
+          }
+
+          return true;
+        }
+
+        // Show alert messages
+        function showAlert(type, message) {
+          const alertDiv = document.createElement('div');
+          alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+          alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+          alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          `;
+          
+          document.body.appendChild(alertDiv);
+          
+          // Auto-remove after 5 seconds
+          setTimeout(() => {
+            if (alertDiv.parentNode) {
+              alertDiv.remove();
+            }
+          }, 5000);
+        }
         
         // Plan selection
         const planTeam = document.getElementById('plan-team');
@@ -1217,30 +1731,171 @@
           });
         });
         
-        // Form submission
+        // Form submission with comprehensive validation
         const paymentForm = document.getElementById('payment-form');
         paymentForm.addEventListener('submit', function(e) {
           e.preventDefault();
           
+          // Check rate limiting
+          const currentTime = Date.now();
+          if (currentTime - lastSubmissionTime < submissionCooldown) {
+            showAlert('warning', 'Please wait before submitting again.');
+            return;
+          }
+
+          // Validate all basic fields
+          let isFormValid = true;
+          const basicFields = ['firstName', 'lastName', 'email'];
+          
+          basicFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field && !validateField(field)) {
+              isFormValid = false;
+            }
+          });
+
+          // Validate payment method specific fields
+          if (!validateCurrentPaymentMethod()) {
+            isFormValid = false;
+          }
+
+          // Check terms and conditions
+          const termsCheckbox = document.getElementById('termsConditions');
+          if (!termsCheckbox.checked) {
+            showAlert('warning', 'Please accept the Terms & Conditions to continue.');
+            isFormValid = false;
+          }
+
+          // Perform security checks
+          if (!performSecurityChecks()) {
+            isFormValid = false;
+          }
+
+          if (!isFormValid) {
+            showAlert('danger', 'Please correct the errors in the form before submitting.');
+            return;
+          }
+
+          // Update last submission time
+          lastSubmissionTime = currentTime;
+          
           // Show processing state
           const submitBtn = paymentForm.querySelector('button[type="submit"]');
           const originalText = submitBtn.innerHTML;
-          submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Processing...';
+          submitBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Processing Payment...';
           submitBtn.disabled = true;
-          
-          // Simulate payment processing
-          setTimeout(() => {
-            // Redirect to success page (this would be replaced with actual payment processing)
-            window.location.href = 'payment-success.html';
-          }, 2000);
+
+          // Collect form data for validation
+          const formData = new FormData(paymentForm);
+          const paymentData = {
+            firstName: formData.get('firstName'),
+            lastName: formData.get('lastName'),
+            email: formData.get('email'),
+            organization: formData.get('organization'),
+            'plan-selection': document.querySelector('input[name="plan-selection"]:checked').value,
+            'billing-frequency': document.querySelector('input[name="billing-frequency"]:checked').value,
+            'payment-method': document.querySelector('#paymentMethodTabs .nav-link.active').getAttribute('data-bs-target').replace('#', ''),
+            termsConditions: formData.get('termsConditions'),
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            screenResolution: `${screen.width}x${screen.height}`,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          };
+
+          // Add payment method specific data
+          const paymentMethod = paymentData['payment-method'];
+          if (paymentMethod === 'credit-card') {
+            paymentData.cardNumber = formData.get('cardNumber');
+            paymentData.expiryDate = formData.get('expiryDate');
+            paymentData.cvv = formData.get('cvv');
+          } else if (paymentMethod === 'mobile-money') {
+            paymentData.mobileProvider = formData.get('mobileProvider');
+            paymentData.mobileNumber = formData.get('mobileNumber');
+          }
+
+          // Submit to server for processing
+          fetch('api/process_payment.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(paymentData)
+          })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(data => {
+                throw new Error(data.message || 'Payment processing failed');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              showAlert('success', 'Payment processed successfully! Redirecting...');
+              
+              // Clear sensitive data
+              clearSensitiveFields();
+              
+              setTimeout(() => {
+                if (data.redirect_url) {
+                  window.location.href = data.redirect_url;
+                } else {
+                  window.location.href = 'payment-success.php';
+                }
+              }, 2000);
+            } else {
+              throw new Error(data.message || 'Payment processing failed');
+            }
+          })
+          .catch(error => {
+            console.error('Payment error:', error);
+            
+            // Reset form
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            
+            // Show error message
+            let errorMessage = 'Payment failed. Please try again.';
+            if (error.message) {
+              errorMessage = error.message;
+            }
+            
+            showAlert('danger', errorMessage);
+            
+            // If validation errors, highlight fields
+            if (error.errors && Array.isArray(error.errors)) {
+              error.errors.forEach(err => {
+                const field = document.getElementById(err.field);
+                if (field) {
+                  showFieldError(field, err.message);
+                }
+              });
+            }
+          });
         });
+
+        // Clear sensitive form fields
+        function clearSensitiveFields() {
+          const sensitiveFields = ['cardNumber', 'cvv', 'expiryDate'];
+          sensitiveFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+              field.value = '';
+              field.classList.remove('is-valid', 'is-invalid');
+            }
+          });
+        }
         
-        // Credit card number formatting
+        // Enhanced credit card number formatting with validation
         const cardNumberInput = document.getElementById('cardNumber');
         if (cardNumberInput) {
           cardNumberInput.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             let formattedValue = '';
+            
+            // Limit to 16 digits
+            value = value.substring(0, 16);
             
             for (let i = 0; i < value.length; i++) {
               if (i > 0 && i % 4 === 0) {
@@ -1249,16 +1904,56 @@
               formattedValue += value[i];
             }
             
-            // Limit to 16 digits plus spaces
-            if (formattedValue.length > 19) {
-              formattedValue = formattedValue.substring(0, 19);
-            }
-            
             e.target.value = formattedValue;
+            
+            // Real-time card type detection
+            updateCardTypeDisplay(value);
+            
+            // Validate on complete input
+            if (value.length === 16) {
+              validateField(e.target, false);
+            }
+          });
+
+          // Prevent paste of invalid content
+          cardNumberInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            const numbers = paste.replace(/\D/g, '');
+            if (numbers.length <= 16) {
+              this.value = '';
+              this.dispatchEvent(new Event('input'));
+              setTimeout(() => {
+                const formatted = numbers.replace(/(.{4})/g, '$1 ').trim();
+                this.value = formatted;
+                this.dispatchEvent(new Event('input'));
+              }, 0);
+            }
           });
         }
+
+        // Update card type display
+        function updateCardTypeDisplay(cardNumber) {
+          const cardTypeIcons = document.querySelector('#cardNumber + .input-group-text');
+          if (!cardTypeIcons) return;
+          
+          // Reset icons
+          cardTypeIcons.querySelectorAll('i').forEach(icon => {
+            icon.style.opacity = '0.3';
+          });
+          
+          // Highlight detected card type
+          const cardType = detectCardType(cardNumber);
+          if (cardType === 'Visa') {
+            const visaIcon = cardTypeIcons.querySelector('.bxl-visa');
+            if (visaIcon) visaIcon.style.opacity = '1';
+          } else if (cardType === 'Mastercard') {
+            const mastercardIcon = cardTypeIcons.querySelector('.bxl-mastercard');
+            if (mastercardIcon) mastercardIcon.style.opacity = '1';
+          }
+        }
         
-        // Expiry date formatting
+        // Enhanced expiry date formatting with validation
         const expiryDateInput = document.getElementById('expiryDate');
         if (expiryDateInput) {
           expiryDateInput.addEventListener('input', function(e) {
@@ -1266,18 +1961,377 @@
             let formattedValue = '';
             
             if (value.length > 0) {
-              formattedValue = value.substring(0, 2);
+              // Format month
+              let month = value.substring(0, 2);
+              if (month.length === 1 && parseInt(month) > 1) {
+                month = '0' + month;
+              }
+              if (month.length === 2 && parseInt(month) > 12) {
+                month = '12';
+              }
+              formattedValue = month;
+              
+              // Format year
               if (value.length > 2) {
                 formattedValue += '/' + value.substring(2, 4);
               }
             }
             
             e.target.value = formattedValue;
+            
+            // Validate complete date
+            if (formattedValue.length === 5) {
+              validateField(e.target, false);
+            }
+          });
+
+          expiryDateInput.addEventListener('keydown', function(e) {
+            // Allow backspace to work properly
+            if (e.key === 'Backspace' && this.value.endsWith('/')) {
+              e.preventDefault();
+              this.value = this.value.slice(0, -1);
+            }
           });
         }
+
+        // CVV input validation
+        const cvvInput = document.getElementById('cvv');
+        if (cvvInput) {
+          cvvInput.addEventListener('input', function(e) {
+            // Only allow numbers
+            let value = e.target.value.replace(/\D/g, '');
+            
+            // Limit to 4 digits (for Amex)
+            value = value.substring(0, 4);
+            e.target.value = value;
+            
+            // Validate when complete
+            if (value.length >= 3) {
+              validateField(e.target, false);
+            }
+          });
+        }
+
+        // Mobile number formatting for Ghana
+        const mobileNumberInput = document.getElementById('mobileNumber');
+        if (mobileNumberInput) {
+          mobileNumberInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            // Auto-add leading zero if missing
+            if (value.length > 0 && !value.startsWith('0')) {
+              value = '0' + value;
+            }
+            
+            // Limit to 10 digits
+            value = value.substring(0, 10);
+            e.target.value = value;
+            
+            // Validate complete number
+            if (value.length === 10) {
+              validateField(e.target, false);
+            }
+          });
+
+          // Format on blur for better display
+          mobileNumberInput.addEventListener('blur', function(e) {
+            const value = e.target.value;
+            if (value.length === 10) {
+              // Format as XXX XXX XXXX
+              const formatted = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3');
+              e.target.value = formatted;
+            }
+          });
+
+          mobileNumberInput.addEventListener('focus', function(e) {
+            // Remove formatting on focus
+            e.target.value = e.target.value.replace(/\s/g, '');
+          });
+        }
+
+        // Organization name validation
+        const organizationInput = document.getElementById('organization');
+        if (organizationInput) {
+          organizationInput.addEventListener('input', function(e) {
+            // Prevent XSS attempts
+            const value = e.target.value;
+            const sanitized = value.replace(/<[^>]*>/g, '').replace(/[<>]/g, '');
+            if (value !== sanitized) {
+              e.target.value = sanitized;
+              showAlert('warning', 'HTML tags are not allowed in organization name.');
+            }
+          });
+        }
+
+        // Email input enhancement
+        if (emailField) {
+          emailField.addEventListener('input', function(e) {
+            // Convert to lowercase
+            this.value = this.value.toLowerCase();
+            
+            // Basic format validation on typing
+            if (this.value.includes(' ')) {
+              this.value = this.value.replace(/\s/g, '');
+              showAlert('info', 'Spaces removed from email address.');
+            }
+          });
+        }
+
+        // Name field validation (prevent numbers and special chars)
+        const nameFields = ['firstName', 'lastName'];
+        nameFields.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            field.addEventListener('input', function(e) {
+              // Allow only letters and basic punctuation
+              const value = e.target.value;
+              const sanitized = value.replace(/[^a-zA-Z\s'-]/g, '');
+              if (value !== sanitized) {
+                e.target.value = sanitized;
+              }
+            });
+
+            // Capitalize first letter on blur
+            field.addEventListener('blur', function(e) {
+              const value = e.target.value.trim();
+              if (value) {
+                e.target.value = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+              }
+            });
+          }
+        });
+
+        // Prevent form submission on Enter key in card number field
+        if (cardNumberInput) {
+          cardNumberInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const expiryField = document.getElementById('expiryDate');
+              if (expiryField) expiryField.focus();
+            }
+          });
+        }
+
+        // Security: Disable right-click on sensitive fields
+        const sensitiveFields = [cardNumberInput, cvvInput, expiryDateInput];
+        sensitiveFields.forEach(field => {
+          if (field) {
+            field.addEventListener('contextmenu', function(e) {
+              e.preventDefault();
+            });
+            
+            // Disable certain key combinations
+            field.addEventListener('keydown', function(e) {
+              if (e.ctrlKey && (e.key === 'a' || e.key === 'c' || e.key === 'v')) {
+                if (e.key === 'c') {
+                  e.preventDefault();
+                  showAlert('warning', 'Copying card details is disabled for security.');
+                }
+              }
+            });
+          }
+        });
         
         // Initialize the summary
         updateSummary();
+
+        // Debug: Check if Bootstrap is loaded
+        console.log('Bootstrap loaded:', typeof bootstrap !== 'undefined');
+        console.log('Modal constructor:', typeof bootstrap?.Modal);
+
+        // Manual modal initialization for troubleshooting
+        document.addEventListener('click', function(e) {
+          if (e.target.matches('[data-bs-toggle="modal"]')) {
+            e.preventDefault();
+            const targetId = e.target.getAttribute('data-bs-target');
+            const targetModal = document.querySelector(targetId);
+            
+            console.log('Modal clicked:', targetId);
+            console.log('Modal element found:', !!targetModal);
+            
+            if (targetModal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+              try {
+                const modal = new bootstrap.Modal(targetModal);
+                modal.show();
+                console.log('Modal initialized and shown');
+              } catch (error) {
+                console.error('Error showing modal:', error);
+                // Fallback to manual modal display
+                showModalManually(targetModal);
+              }
+            } else {
+              console.error('Bootstrap Modal not available, using fallback');
+              // Fallback to manual modal display
+              showModalManually(targetModal);
+            }
+          }
+        });
+
+        // Fallback manual modal display
+        function showModalManually(modalElement) {
+          if (!modalElement) return;
+          
+          // Create backdrop
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+          `;
+          
+          // Show modal
+          modalElement.style.display = 'block';
+          modalElement.style.zIndex = '1050';
+          modalElement.classList.add('show');
+          modalElement.setAttribute('aria-modal', 'true');
+          modalElement.setAttribute('role', 'dialog');
+          
+          // Add backdrop
+          document.body.appendChild(backdrop);
+          document.body.classList.add('modal-open');
+          
+          // Close modal functionality
+          const closeModal = () => {
+            modalElement.style.display = 'none';
+            modalElement.classList.remove('show');
+            modalElement.removeAttribute('aria-modal');
+            modalElement.removeAttribute('role');
+            document.body.removeChild(backdrop);
+            document.body.classList.remove('modal-open');
+          };
+          
+          // Close on backdrop click
+          backdrop.addEventListener('click', closeModal);
+          
+          // Close on close button click
+          const closeButtons = modalElement.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
+          closeButtons.forEach(btn => {
+            btn.addEventListener('click', closeModal);
+          });
+          
+          // Close on Escape key
+          const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+              closeModal();
+              document.removeEventListener('keydown', escapeHandler);
+            }
+          };
+          document.addEventListener('keydown', escapeHandler);
+          
+          console.log('Manual modal displayed');
+        }
+
+        // Terms and Privacy Modal Functions
+        window.acceptTerms = function() {
+          const termsCheckbox = document.getElementById('termsConditions');
+          if (termsCheckbox) {
+            termsCheckbox.checked = true;
+            termsCheckbox.dispatchEvent(new Event('change'));
+          }
+          
+          // Close the modal (try Bootstrap first, then manual)
+          const termsModalElement = document.getElementById('termsModal');
+          try {
+            const termsModal = bootstrap.Modal.getInstance(termsModalElement);
+            if (termsModal) {
+              termsModal.hide();
+            } else {
+              // Manual close
+              closeModalManually(termsModalElement);
+            }
+          } catch (error) {
+            // Fallback to manual close
+            closeModalManually(termsModalElement);
+          }
+          
+          // Show success message
+          showAlert('success', 'Terms & Conditions accepted successfully!');
+        };
+
+        window.acceptPrivacy = function() {
+          const termsCheckbox = document.getElementById('termsConditions');
+          if (termsCheckbox) {
+            termsCheckbox.checked = true;
+            termsCheckbox.dispatchEvent(new Event('change'));
+          }
+          
+          // Close the modal (try Bootstrap first, then manual)
+          const privacyModalElement = document.getElementById('privacyModal');
+          try {
+            const privacyModal = bootstrap.Modal.getInstance(privacyModalElement);
+            if (privacyModal) {
+              privacyModal.hide();
+            } else {
+              // Manual close
+              closeModalManually(privacyModalElement);
+            }
+          } catch (error) {
+            // Fallback to manual close
+            closeModalManually(privacyModalElement);
+          }
+          
+          // Show success message
+          showAlert('success', 'Privacy Policy understood and accepted!');
+        };
+
+        // Manual modal close function
+        function closeModalManually(modalElement) {
+          if (!modalElement) return;
+          
+          modalElement.style.display = 'none';
+          modalElement.classList.remove('show');
+          modalElement.removeAttribute('aria-modal');
+          modalElement.removeAttribute('role');
+          
+          // Remove backdrop
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            document.body.removeChild(backdrop);
+          }
+          
+          document.body.classList.remove('modal-open');
+        }
+
+        // Enhanced modal behavior
+        document.addEventListener('show.bs.modal', function (event) {
+          const modal = event.target;
+          const modalBody = modal.querySelector('.modal-body');
+          
+          // Reset scroll position
+          if (modalBody) {
+            modalBody.scrollTop = 0;
+          }
+          
+          // Add backdrop blur effect
+          document.body.style.backdropFilter = 'blur(3px)';
+        });
+
+        document.addEventListener('hidden.bs.modal', function (event) {
+          // Remove backdrop blur effect
+          document.body.style.backdropFilter = '';
+        });
+
+        // Track reading progress
+        const modalBodies = document.querySelectorAll('.modal-body');
+        modalBodies.forEach(modalBody => {
+          modalBody.addEventListener('scroll', function() {
+            const scrollTop = this.scrollTop;
+            const scrollHeight = this.scrollHeight;
+            const clientHeight = this.clientHeight;
+            const progress = (scrollTop / (scrollHeight - clientHeight)) * 100;
+            
+            // Update progress indicator if exists
+            const progressBar = this.parentNode.querySelector('.reading-progress');
+            if (progressBar) {
+              progressBar.style.width = Math.min(progress, 100) + '%';
+            }
+          });
+        });
       });
     </script>
     

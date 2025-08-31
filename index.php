@@ -1906,30 +1906,37 @@
                       class="d-none d-lg-block" />
                     partnerships, or have pre-sales questions, you&apos;re at the right place.
                   </p>
-                  <form>
+                  <form id="contactForm" action="send_contact_email.php" method="POST">
                     <div class="row g-4">
                       <div class="col-md-6">
                         <label class="form-label" for="contact-form-fullname">Full Name</label>
-                        <input type="text" class="form-control" id="contact-form-fullname" placeholder="john" />
+                        <input type="text" class="form-control" id="contact-form-fullname" name="fullname" placeholder="john" required />
                       </div>
                       <div class="col-md-6">
                         <label class="form-label" for="contact-form-email">Email</label>
                         <input
-                          type="text"
+                          type="email"
                           id="contact-form-email"
+                          name="email"
                           class="form-control"
-                          placeholder="johndoe@gmail.com" />
+                          placeholder="johndoe@gmail.com" 
+                          required />
                       </div>
                       <div class="col-12">
                         <label class="form-label" for="contact-form-message">Message</label>
                         <textarea
                           id="contact-form-message"
+                          name="message"
                           class="form-control"
                           rows="11"
-                          placeholder="Write a message"></textarea>
+                          placeholder="Write a message"
+                          required></textarea>
                       </div>
                       <div class="col-12">
-                        <button type="submit" class="btn btn-primary">Send inquiry</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                          <span class="btn-text">Send inquiry</span>
+                          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
                       </div>
                     </div>
                   </form>
@@ -1940,6 +1947,69 @@
         </div>
       </section>
       <!-- Contact Us: End -->
+
+      <!-- Success Modal -->
+      <div class="modal fade" id="contactSuccessModal" tabindex="-1" aria-labelledby="contactSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0 text-center">
+              <div class="w-100">
+                <div class="mb-3">
+                  <div class="success-icon mx-auto">
+                    <i class="bx bx-check-circle text-success" style="font-size: 4rem;"></i>
+                  </div>
+                </div>
+                <h4 class="modal-title text-success fw-bold" id="contactSuccessModalLabel">Message Sent Successfully!</h4>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center px-4 pb-4">
+              <p class="mb-3 text-muted">
+                Thank you for reaching out to us! Your message has been successfully sent to our team.
+              </p>
+              <p class="mb-4 fw-medium">
+                We'll get back to you within 24 hours at the email address you provided.
+              </p>
+              <div class="d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>
+                <a href="#landingFAQ" class="btn btn-primary" data-bs-dismiss="modal">View FAQ</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Modal -->
+      <div class="modal fade" id="contactErrorModal" tabindex="-1" aria-labelledby="contactErrorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0 text-center">
+              <div class="w-100">
+                <div class="mb-3">
+                  <div class="error-icon mx-auto">
+                    <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
+                  </div>
+                </div>
+                <h4 class="modal-title text-danger fw-bold" id="contactErrorModalLabel">Message Failed to Send</h4>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center px-4 pb-4">
+              <p class="mb-3 text-muted">
+                We're sorry, but there was an error sending your message. Please try again.
+              </p>
+              <p class="mb-4 fw-medium">
+                If the problem persists, you can reach us directly at: <br>
+                <a href="mailto:ayimobuobi@gmail.com" class="text-primary">ayimobuobi@gmail.com</a>
+              </p>
+              <div class="d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="document.getElementById('contactForm').scrollIntoView()">Try Again</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- / Sections:End -->  
@@ -2263,6 +2333,90 @@ document.addEventListener('DOMContentLoaded', function() {
 .scroll-top i {
   font-size: 20px;
 }
+
+/* Contact Form & Modal Styles */
+#contactForm .btn {
+  position: relative;
+  overflow: hidden;
+}
+
+#contactForm .btn .spinner-border {
+  width: 1rem;
+  height: 1rem;
+  margin-left: 0.5rem;
+}
+
+.modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.success-icon, .error-icon {
+  display: inline-block;
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding-bottom: 0;
+}
+
+.modal-body {
+  padding-top: 0;
+}
+
+/* Form validation styles */
+.form-control:invalid {
+  border-color: #dc3545;
+}
+
+.form-control:valid {
+  border-color: #198754;
+}
+
+/* Loading animation for submit button */
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Enhanced modal backdrop */
+.modal-backdrop {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Responsive modal adjustments */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .modal-content {
+    border-radius: 10px;
+  }
+  
+  .success-icon i, .error-icon i {
+    font-size: 3rem !important;
+  }
+}
 </style>
 
 <!-- Back to top button script -->
@@ -2294,6 +2448,66 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Enhanced UI Scripts -->
 <script src="assets/js/enhanced-navbar.js"></script>
 <script src="assets/js/enhanced-pricing.js"></script>
+
+<!-- Contact Form Handler -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const contactForm = document.getElementById('contactForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const btnText = submitBtn.querySelector('.btn-text');
+  const spinner = submitBtn.querySelector('.spinner-border');
+
+  contactForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Show loading state
+    btnText.textContent = 'Sending...';
+    spinner.classList.remove('d-none');
+    submitBtn.disabled = true;
+
+    // Get form data
+    const formData = new FormData(contactForm);
+
+    // Send AJAX request
+    fetch('send_contact_email.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Reset button state
+      btnText.textContent = 'Send inquiry';
+      spinner.classList.add('d-none');
+      submitBtn.disabled = false;
+
+      if (data.success) {
+        // Show success modal
+        const successModal = new bootstrap.Modal(document.getElementById('contactSuccessModal'));
+        successModal.show();
+        
+        // Reset form
+        contactForm.reset();
+      } else {
+        // Show error modal
+        const errorModal = new bootstrap.Modal(document.getElementById('contactErrorModal'));
+        errorModal.show();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      
+      // Reset button state
+      btnText.textContent = 'Send inquiry';
+      spinner.classList.add('d-none');
+      submitBtn.disabled = false;
+      
+      // Show error modal
+      const errorModal = new bootstrap.Modal(document.getElementById('contactErrorModal'));
+      errorModal.show();
+    });
+  });
+});
+</script>
 <script>
   // Initialize enhanced hero section
   document.addEventListener('DOMContentLoaded', function() {
