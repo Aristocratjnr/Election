@@ -43,9 +43,9 @@ function sendLoginNotification($email, $name, $studentID, $userRole = 'student',
         $mail->setFrom($_ENV['SMTP_FROM_EMAIL'] ?? 'noreply@smartvote.com', 'SmartVote EMS');
         $mail->addAddress($email, $name);
         
-        // Set default values
+        // Set default values but get real IP and user agent
         $loginTime = $loginTime ?: date('Y-m-d H:i:s');
-        $ipAddress = $ipAddress ?: ($_SERVER['REMOTE_ADDR'] ?? 'Unknown');
+        $ipAddress = $ipAddress ?: getRealIPAddress();
         $userAgent = $userAgent ?: ($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown');
         
         // Parse user agent for better display
@@ -263,40 +263,155 @@ HTML;
 }
 
 /**
+ * Get the real IP address of the user
+ * Handles proxies, load balancers, and CDNs
+ * @return string
+ */
+function getRealIPAddress() {
+    // Check for IP from shared internet
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    }
+    // Check for IP passed from proxy
+    elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // Can contain multiple IPs, get the first one
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ips[0]);
+    }
+    // Check for IP from remote address (standard)
+    elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    // Check for IP from CloudFlare
+    elseif (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+    }
+    // Check for IP from other proxy headers
+    elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        $ip = $_SERVER['HTTP_X_REAL_IP'];
+    }
+    else {
+        $ip = 'Unknown';
+    }
+    
+    // Validate IP address
+    if ($ip !== 'Unknown' && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        // If it's a private/reserved IP, still return it but mark as local
+        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $ip . ' (Local)';
+        }
+        return 'Unknown';
+    }
+    
+    return $ip;
+}
+
+/**
  * Get browser and device information from user agent
  * @param string $userAgent
  * @return string
  */
 function getBrowserInfo($userAgent) {
     $browser = 'Unknown Browser';
+    $version = '';
     $os = 'Unknown OS';
+    $architecture = '';
     
-    // Detect browser
-    if (strpos($userAgent, 'Chrome') !== false && strpos($userAgent, 'Edg') === false) {
+    // Detect browser and version
+    if (preg_match('/Chrome\/([0-9\.]+)/', $userAgent, $matches) && strpos($userAgent, 'Edg') === false) {
         $browser = 'Google Chrome';
-    } elseif (strpos($userAgent, 'Firefox') !== false) {
+        $version = $matches[1];
+    } elseif (preg_match('/Firefox\/([0-9\.]+)/', $userAgent, $matches)) {
         $browser = 'Mozilla Firefox';
-    } elseif (strpos($userAgent, 'Safari') !== false && strpos($userAgent, 'Chrome') === false) {
+        $version = $matches[1];
+    } elseif (preg_match('/Safari\/([0-9\.]+)/', $userAgent, $matches) && strpos($userAgent, 'Chrome') === false) {
         $browser = 'Safari';
-    } elseif (strpos($userAgent, 'Edg') !== false) {
+        if (preg_match('/Version\/([0-9\.]+)/', $userAgent, $versionMatches)) {
+            $version = $versionMatches[1];
+        }
+    } elseif (preg_match('/Edg\/([0-9\.]+)/', $userAgent, $matches)) {
         $browser = 'Microsoft Edge';
-    } elseif (strpos($userAgent, 'Opera') !== false || strpos($userAgent, 'OPR') !== false) {
+        $version = $matches[1];
+    } elseif (preg_match('/OPR\/([0-9\.]+)/', $userAgent, $matches)) {
         $browser = 'Opera';
+        $version = $matches[1];
+    } elseif (preg_match('/Opera\/([0-9\.]+)/', $userAgent, $matches)) {
+        $browser = 'Opera';
+        $version = $matches[1];
     }
     
-    // Detect OS
-    if (strpos($userAgent, 'Windows NT 10') !== false) {
-        $os = 'Windows 10/11';
-    } elseif (strpos($userAgent, 'Windows NT') !== false) {
-        $os = 'Windows';
-    } elseif (strpos($userAgent, 'Macintosh') !== false) {
-        $os = 'macOS';
+    // Detect OS with more detail
+    if (preg_match('/Windows NT ([0-9\.]+)/', $userAgent, $matches)) {
+        $ntVersion = $matches[1];
+        switch ($ntVersion) {
+            case '10.0': $os = 'Windows 10/11'; break;
+            case '6.3': $os = 'Windows 8.1'; break;
+            case '6.2': $os = 'Windows 8'; break;
+            case '6.1': $os = 'Windows 7'; break;
+            default: $os = 'Windows NT ' . $ntVersion; break;
+        }
+        
+        // Check for architecture
+        if (strpos($userAgent, 'WOW64') !== false || strpos($userAgent, 'Win64') !== false) {
+            $architecture = ' (64-bit)';
+        } else {
+            $architecture = ' (32-bit)';
+        }
+    } elseif (preg_match('/Mac OS X ([0-9_\.]+)/', $userAgent, $matches)) {
+        $osVersion = str_replace('_', '.', $matches[1]);
+        $os = 'macOS ' . $osVersion;
+        
+        // Check for Intel vs Apple Silicon
+        if (strpos($userAgent, 'Intel') !== false) {
+            $architecture = ' (Intel)';
+        } elseif (strpos($userAgent, 'arm64') !== false) {
+            $architecture = ' (Apple Silicon)';
+        }
+    } elseif (preg_match('/Android ([0-9\.]+)/', $userAgent, $matches)) {
+        $os = 'Android ' . $matches[1];
+        
+        // Get device model if available
+        if (preg_match('/\(([^)]+)\)/', $userAgent, $deviceMatches)) {
+            $deviceInfo = $deviceMatches[1];
+            if (strpos($deviceInfo, ';') !== false) {
+                $deviceParts = explode(';', $deviceInfo);
+                foreach ($deviceParts as $part) {
+                    $part = trim($part);
+                    if (!empty($part) && !in_array(strtolower($part), ['mobile', 'android', 'webkit'])) {
+                        $architecture = ' (' . $part . ')';
+                        break;
+                    }
+                }
+            }
+        }
+    } elseif (preg_match('/iPhone OS ([0-9_]+)/', $userAgent, $matches)) {
+        $osVersion = str_replace('_', '.', $matches[1]);
+        $os = 'iOS ' . $osVersion;
+        
+        // Get iPhone model
+        if (preg_match('/iPhone([0-9,]+)/', $userAgent, $modelMatches)) {
+            $architecture = ' (iPhone)';
+        }
+    } elseif (preg_match('/iPad.*OS ([0-9_]+)/', $userAgent, $matches)) {
+        $osVersion = str_replace('_', '.', $matches[1]);
+        $os = 'iPadOS ' . $osVersion;
+        $architecture = ' (iPad)';
     } elseif (strpos($userAgent, 'Linux') !== false) {
         $os = 'Linux';
-    } elseif (strpos($userAgent, 'Android') !== false) {
-        $os = 'Android';
-    } elseif (strpos($userAgent, 'iPhone') !== false || strpos($userAgent, 'iPad') !== false) {
-        $os = 'iOS';
+        
+        // Check for specific distributions
+        if (strpos($userAgent, 'Ubuntu') !== false) {
+            $os = 'Ubuntu Linux';
+        } elseif (strpos($userAgent, 'CentOS') !== false) {
+            $os = 'CentOS Linux';
+        }
+        
+        // Check architecture
+        if (strpos($userAgent, 'x86_64') !== false) {
+            $architecture = ' (64-bit)';
+        } elseif (strpos($userAgent, 'i686') !== false) {
+            $architecture = ' (32-bit)';
+        }
     }
     
     // Detect if mobile
@@ -304,7 +419,14 @@ function getBrowserInfo($userAgent) {
     
     $deviceType = $isMobile ? 'Mobile Device' : 'Desktop';
     
-    return "{$browser} on {$os} ({$deviceType})";
+    // Build the result string
+    $result = $browser;
+    if (!empty($version)) {
+        $result .= ' ' . $version;
+    }
+    $result .= ' on ' . $os . $architecture . ' (' . $deviceType . ')';
+    
+    return $result;
 }
 
 /**
@@ -314,33 +436,179 @@ function getBrowserInfo($userAgent) {
  */
 function getLocationInfo($ipAddress) {
     // For local development
-    if ($ipAddress === '127.0.0.1' || $ipAddress === '::1' || strpos($ipAddress, '192.168.') === 0) {
-        return 'Local Network';
+    if ($ipAddress === '127.0.0.1' || $ipAddress === '::1' || 
+        strpos($ipAddress, '192.168.') === 0 || 
+        strpos($ipAddress, '10.') === 0 || 
+        strpos($ipAddress, '172.') === 0 ||
+        strpos($ipAddress, '(Local)') !== false) {
+        return 'Local Network (Development)';
     }
     
-    // You can integrate with IP geolocation services here
-    // For now, return basic info
-    return $ipAddress . ' (External)';
+    // Check if it's a valid public IP
+    if (!filter_var($ipAddress, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        return $ipAddress . ' (Private Network)';
+    }
+    
+    // Try to get location using free IP geolocation service
+    try {
+        // Using ip-api.com (free, no API key required, 45 requests per minute)
+        $locationData = getLocationFromIPAPI($ipAddress);
+        if ($locationData) {
+            return $locationData;
+        }
+        
+        // Fallback to ipinfo.io (free tier: 1000 requests per day)
+        $locationData = getLocationFromIPInfo($ipAddress);
+        if ($locationData) {
+            return $locationData;
+        }
+        
+        // If all services fail, return basic info
+        return $ipAddress . ' (External IP)';
+        
+    } catch (Exception $e) {
+        error_log("Location lookup failed: " . $e->getMessage());
+        return $ipAddress . ' (Location lookup failed)';
+    }
 }
 
 /**
- * Log login activity to database
+ * Get location from ip-api.com service
+ * @param string $ip
+ * @return string|false
+ */
+function getLocationFromIPAPI($ip) {
+    try {
+        $url = "http://ip-api.com/json/{$ip}?fields=status,message,country,regionName,city,isp,timezone";
+        
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 5, // 5 second timeout
+                'user_agent' => 'SmartVote-EMS/1.0'
+            ]
+        ]);
+        
+        $response = @file_get_contents($url, false, $context);
+        if ($response === false) {
+            return false;
+        }
+        
+        $data = json_decode($response, true);
+        if (!$data || $data['status'] !== 'success') {
+            return false;
+        }
+        
+        $location = [];
+        if (!empty($data['city'])) $location[] = $data['city'];
+        if (!empty($data['regionName'])) $location[] = $data['regionName'];
+        if (!empty($data['country'])) $location[] = $data['country'];
+        
+        $locationStr = implode(', ', $location);
+        
+        // Add ISP info if available
+        if (!empty($data['isp'])) {
+            $locationStr .= ' (' . $data['isp'] . ')';
+        }
+        
+        // Add timezone if available
+        if (!empty($data['timezone'])) {
+            $locationStr .= ' [' . $data['timezone'] . ']';
+        }
+        
+        return $locationStr ?: ($ip . ' (External IP)');
+        
+    } catch (Exception $e) {
+        error_log("IP-API lookup failed: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get location from ipinfo.io service
+ * @param string $ip
+ * @return string|false
+ */
+function getLocationFromIPInfo($ip) {
+    try {
+        $url = "https://ipinfo.io/{$ip}/json";
+        
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 5,
+                'user_agent' => 'SmartVote-EMS/1.0'
+            ]
+        ]);
+        
+        $response = @file_get_contents($url, false, $context);
+        if ($response === false) {
+            return false;
+        }
+        
+        $data = json_decode($response, true);
+        if (!$data) {
+            return false;
+        }
+        
+        $location = [];
+        if (!empty($data['city'])) $location[] = $data['city'];
+        if (!empty($data['region'])) $location[] = $data['region'];
+        if (!empty($data['country'])) $location[] = $data['country'];
+        
+        $locationStr = implode(', ', $location);
+        
+        // Add organization/ISP info
+        if (!empty($data['org'])) {
+            $locationStr .= ' (' . $data['org'] . ')';
+        }
+        
+        // Add timezone if available
+        if (!empty($data['timezone'])) {
+            $locationStr .= ' [' . $data['timezone'] . ']';
+        }
+        
+        return $locationStr ?: ($ip . ' (External IP)');
+        
+    } catch (Exception $e) {
+        error_log("IPInfo lookup failed: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Log login activity to database with detailed information
  * @param object $conn Database connection
  * @param int $studentID
  * @param string $userRole
  * @param string $ipAddress
  * @param string $userAgent
+ * @param string $browserInfo
+ * @param string $locationInfo
  * @return bool
  */
-function logLoginActivity($conn, $studentID, $userRole, $ipAddress, $userAgent) {
+function logLoginActivity($conn, $studentID, $userRole, $ipAddress, $userAgent, $browserInfo = null, $locationInfo = null) {
     try {
+        // Get detailed info if not provided
+        if ($browserInfo === null) {
+            $browserInfo = getBrowserInfo($userAgent);
+        }
+        if ($locationInfo === null) {
+            $locationInfo = getLocationInfo($ipAddress);
+        }
+        
         $stmt = $conn->prepare("
-            INSERT INTO login_logs (studentID, user_role, ip_address, user_agent, login_time) 
-            VALUES (?, ?, ?, ?, NOW())
+            INSERT INTO login_logs (studentID, user_role, ip_address, user_agent, browser_info, location_info, login_time, session_id) 
+            VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
         ");
-        $stmt->bind_param("ssss", $studentID, $userRole, $ipAddress, $userAgent);
+        
+        $sessionId = session_id();
+        $stmt->bind_param("sssssss", $studentID, $userRole, $ipAddress, $userAgent, $browserInfo, $locationInfo, $sessionId);
         $result = $stmt->execute();
         $stmt->close();
+        
+        if ($result) {
+            error_log("Login activity logged for user: {$studentID} from {$ipAddress} ({$locationInfo})");
+        }
+        
         return $result;
     } catch (Exception $e) {
         error_log("Failed to log login activity: " . $e->getMessage());

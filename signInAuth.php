@@ -61,10 +61,24 @@ try {
     // Debugging: Log session data
     error_log('Session data: ' . print_r($_SESSION, true));
 
+    // Get detailed login information
+    $realIP = getRealIPAddress();
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+    $browserInfo = getBrowserInfo($userAgent);
+    $locationInfo = getLocationInfo($realIP);
+
+    // Log login activity to database
+    try {
+        logLoginActivity($conn, $user['studentID'], $user['role'], $realIP, $userAgent, $browserInfo, $locationInfo);
+    } catch (Exception $logError) {
+        error_log('Failed to log login activity: ' . $logError->getMessage());
+    }
+
     // Send login notification email (non-blocking)
     try {
         if (!empty($user['email'])) {
-            sendLoginNotification($user['email'], $user['name'], $user['studentID'], $user['role']);
+            sendLoginNotification($user['email'], $user['name'], $user['studentID'], $user['role'], 
+                                date('Y-m-d H:i:s'), $realIP, $userAgent);
         }
     } catch (Exception $emailError) {
         // Log email error but don't fail the login process
