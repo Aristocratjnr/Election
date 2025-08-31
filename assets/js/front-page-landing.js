@@ -59,26 +59,56 @@
   if (swiperReviews) {
     new Swiper(swiperReviews, {
       slidesPerView: 1,
-      spaceBetween: 5,
+      spaceBetween: 10,
       grabCursor: true,
       autoplay: {
         delay: 3000,
-        disableOnInteraction: false
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true
       },
       loop: true,
-      loopAdditionalSlides: 1,
+      loopAdditionalSlides: 2,
       navigation: {
         nextEl: '.swiper-button-next',
         prevEl: '.swiper-button-prev'
       },
+      pagination: {
+        el: '.reviews-pagination',
+        clickable: true,
+        dynamicBullets: true
+      },
       breakpoints: {
+        1400: {
+          slidesPerView: 3,
+          spaceBetween: 30
+        },
         1200: {
           slidesPerView: 3,
-          spaceBetween: 26
+          spaceBetween: 25
         },
         992: {
           slidesPerView: 2,
           spaceBetween: 20
+        },
+        768: {
+          slidesPerView: 2,
+          spaceBetween: 15
+        },
+        576: {
+          slidesPerView: 1,
+          spaceBetween: 10
+        },
+        400: {
+          slidesPerView: 1,
+          spaceBetween: 8
+        }
+      },
+      on: {
+        init: function () {
+          // Add index to each slide for animations
+          this.slides.forEach((slide, index) => {
+            slide.style.setProperty('--slide-index', index);
+          });
         }
       }
     });

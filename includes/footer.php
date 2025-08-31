@@ -16,11 +16,15 @@
   </div>
 </footer>
 
+<?php if (basename($_SERVER['PHP_SELF']) !== 'login.php' && isset($_SESSION['login_id'])): ?>
+<!-- Session Timeout Script -->
+<script src="assets/js/session-timeout.js"></script>
+<?php endif; ?>
+
 <style>
-/* Theme Variables - Light Mode (Default) */
 :root {
-  --footer-bg: #f8f9fa;
-  --footer-border: #e9ecef;
+  --footer-bg: #ffffff;
+  --footer-border: #e0e0e0;
   --footer-text: #495057;
   --footer-logo-color: #1a237e;
   --footer-tagline-color: #6c757d;
@@ -28,7 +32,6 @@
   --footer-link-hover-color: #0a58ca;
 }
 
-/* Dark Mode Variables */
 [data-bs-theme="dark"] {
   --footer-bg: #212529;
   --footer-border: #495057;
@@ -39,14 +42,13 @@
   --footer-link-hover-color: #9ec5fe;
 }
 
-/* ======= Minimal Footer Styles ======= */
 .footer {
   background: var(--footer-bg);
   border-top: 1px solid var(--footer-border);
   padding: 0.75rem 0;
   font-size: 0.85rem;
   color: var(--footer-text);
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .footer-container {

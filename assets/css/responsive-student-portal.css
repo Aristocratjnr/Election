@@ -1,0 +1,269 @@
+/* ===================================
+   RESPONSIVE STUDENT PORTAL STYLES
+   =================================== */
+
+/* Base container and spacing */
+.container {
+    padding-left: 15px;
+    padding-right: 15px;
+    max-width: 100%;
+}
+
+/* Typography adjustments for better readability */
+body {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Header and navigation */
+.navbar {
+    padding: 0.75rem 1rem;
+}
+
+.navbar-brand img {
+    max-height: 40px;
+    width: auto;
+}
+
+/* Student info section */
+.student-info {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+/* Election timer */
+.election-timer {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+.time-unit {
+    text-align: center;
+    margin: 0.25rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: 0.5rem;
+    min-width: 70px;
+}
+
+.time-unit span {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.time-unit small {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+/* Candidate cards */
+.candidate-card {
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.candidate-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.candidate-info {
+    padding: 1.25rem;
+}
+
+/* Voting form elements */
+.voting-form .form-check {
+    margin-bottom: 1rem;
+}
+
+.voting-form .form-check-input {
+    margin-top: 0.25rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+}
+
+/* Footer */
+.footer {
+    padding: 1.5rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* ===================================
+   RESPONSIVE BREAKPOINTS
+   =================================== */
+
+/* Extra small devices (portrait phones, < 576px) */
+@media (max-width: 575.98px) {
+    .student-avatar {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1rem;
+    }
+    
+    .time-unit {
+        min-width: 55px;
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .time-unit span {
+        font-size: 1.25rem;
+    }
+    
+    .time-unit small {
+        font-size: 0.65rem;
+    }
+    
+    .candidate-img {
+        height: 160px;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Small devices (landscape phones, ≥ 576px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .time-unit {
+        min-width: 60px;
+    }
+    
+    .candidate-img {
+        height: 180px;
+    }
+}
+
+/* Medium devices (tablets, ≥ 768px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    .candidate-img {
+        height: 200px;
+    }
+}
+
+/* Large devices (desktops, ≥ 992px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .container {
+        max-width: 960px;
+    }
+    
+    .candidate-img {
+        height: 220px;
+    }
+}
+
+/* Extra large devices (large desktops, ≥ 1200px) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+    
+    .candidate-img {
+        height: 240px;
+    }
+}
+
+/* Ultra-wide screens (≥ 1800px) */
+@media (min-width: 1800px) {
+    .container {
+        max-width: 1600px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        padding: 0.5in;
+        font-size: 12pt;
+        color: #000;
+        background: #fff;
+    }
+    
+    .container {
+        width: auto;
+        max-width: 100%;
+        padding: 0;
+    }
+    
+    .candidate-card {
+        page-break-inside: avoid;
+        border: 1px solid #ddd !important;
+    }
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] {
+    .student-info,
+    .election-timer,
+    .candidate-card {
+        background-color: var(--bs-dark-bg-subtle);
+        border-color: var(--bs-border-color);
+    }
+    
+    .time-unit {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Animation for interactive elements */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.candidate-card {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Accessibility improvements */
+:focus-visible {
+    outline: 3px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+/* Loading states */
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.5);
+    z-index: 10;
+    border-radius: inherit;
+}

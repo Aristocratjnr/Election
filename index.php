@@ -55,12 +55,14 @@
     <script src="assets/vendor/js/helpers.js"></script>
     <script src="assets/vendor/js/template-customizer.js"></script>   
      <script src="assets/js/front-config.js"></script>
+     <script src="assets/js/enhanced-navbar.js"></script>
      
     
   </head>
 
   <body>
   <style>
+/* Enhanced responsive navbar styles */
 @media (max-width: 991.98px) {
   .navbar-collapse {
     padding: 1rem;
@@ -68,6 +70,8 @@
     border-radius: 0.375rem;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     margin-top: 0.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   
   .dropdown-menu {
@@ -78,6 +82,69 @@
   
   .theme-icon {
     margin-right: 0.5rem;
+  }
+  
+  .nav-item {
+    margin: 0.25rem 0;
+  }
+  
+  .nav-link {
+    text-align: center;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .theme-switch-wrapper {
+    margin: 1rem auto;
+    text-align: center;
+  }
+  
+  .auth-btn, .navbar-cta {
+    width: 100%;
+    margin: 0.5rem 0;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+  
+  .navbar-toggler {
+    font-size: 1.5rem;
+    padding: 0.25rem;
+  }
+  
+  .nav-link {
+    font-size: 1.1rem;
+    padding: 0.875rem 1rem !important;
+  }
+  
+  .auth-btn, .navbar-cta {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  
+  .brand-text {
+    font-size: 1.1rem;
+  }
+  
+  .nav-link {
+    font-size: 1rem;
+    padding: 0.75rem !important;
+  }
+  
+  .auth-btn, .navbar-cta {
+    font-size: 0.95rem;
+    padding: 0.625rem 0.875rem;
   }
 }
 </style>
@@ -106,7 +173,7 @@
           <a class="nav-link" href="#landingReviews">Reviews</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#landingPricing">Pricing</a>
+          <a class="nav-link" href="pricing.php" target="_blank">Pricing</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="login.php" target="_blank">Admin</a>
@@ -542,191 +609,193 @@
         <div class="reviews-bg-element reviews-bg-element-1"></div>
         <div class="reviews-bg-element reviews-bg-element-2"></div>
         <!-- What people say slider: Start -->
-        <div class="container">
-          <div class="row align-items-center gx-0 gy-4 g-lg-5 mb-5 pb-md-5">
-            <div class="col-md-6 col-lg-5 col-xl-4">
-              <div class="mb-4 reviews-badge-container">
-                <span class="badge bg-label-primary reviews-badge">Real Customers Reviews</span>
+        <div class="container-fluid px-0 px-md-3 px-lg-5">
+          <div class="container">
+            <div class="row align-items-center gx-0 gy-4 g-lg-5 mb-5 pb-md-5">
+              <div class="col-md-6 col-lg-5 col-xl-4">
+                <div class="mb-4 reviews-badge-container">
+                  <span class="badge bg-label-primary reviews-badge">Real Customers Reviews</span>
+                </div>
+                <h2 class="mb-3 reviews-title">
+                  <span class="position-relative fw-extrabold z-1"
+                    >What people say
+                    <img
+                      src="assets/img/front-pages/icons/section-title-icon.png"
+                      alt="laptop charging"
+                      class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
+                  </span>
+                </h2>
+                <p class="mb-5 mb-md-6 reviews-subtitle">
+                  See what our customers have to<br class="d-none d-xl-block" />
+                  say about their experience with SmartVote.
+                </p>
+                <div class="landing-reviews-btns d-flex d-md-block mb-4 mb-md-0">
+                  <button id="reviews-previous-btn" class="btn btn-icon btn-primary reviews-btn me-3 shadow-sm" type="button">
+                    <i class="icon-base bx bx-chevron-left icon-md scaleX-n1-rtl"></i>
+                  </button>
+                  <button id="reviews-next-btn" class="btn btn-icon btn-primary reviews-btn shadow-sm" type="button">
+                    <i class="icon-base bx bx-chevron-right icon-md scaleX-n1-rtl"></i>
+                  </button>
+                </div>
               </div>
-              <h2 class="mb-3 reviews-title">
-                <span class="position-relative fw-extrabold z-1"
-                  >What people say
-                  <img
-                    src="assets/img/front-pages/icons/section-title-icon.png"
-                    alt="laptop charging"
-                    class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
-                </span>
-              </h2>
-              <p class="mb-5 mb-md-6 reviews-subtitle">
-                See what our customers have to<br class="d-none d-xl-block" />
-                say about their experience with SmartVote.
-              </p>
-              <div class="landing-reviews-btns">
-                <button id="reviews-previous-btn" class="btn btn-icon btn-primary reviews-btn me-3 shadow-sm" type="button">
-                  <i class="icon-base bx bx-chevron-left icon-md scaleX-n1-rtl"></i>
-                </button>
-                <button id="reviews-next-btn" class="btn btn-icon btn-primary reviews-btn shadow-sm" type="button">
-                  <i class="icon-base bx bx-chevron-right icon-md scaleX-n1-rtl"></i>
-                </button>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-7 col-xl-8">
-              <div class="swiper-reviews-carousel overflow-hidden">
-                <div class="swiper" id="swiper-reviews">
-                  <div class="swiper-wrapper">
-                    <div class="swiper-slide">
-                      <div class="card h-100 review-card shadow-sm">
-                        <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <div class="mb-3 review-quote">
-                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
-                          </div>
-                          <p class="review-text mb-4">
-                          The Election Management System has completely transformed how we run our university student council elections. The process is now more transparent, secure, and efficient than ever before.
-                          </p>
-                          <div class="text-warning mb-4 review-stars">
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                          </div>                          
-                          <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 review-avatar">
-                              <div class="avatar-initial rounded-circle bg-label-primary">
-                                <i class="bx bx-user"></i>
+              <div class="col-md-6 col-lg-7 col-xl-8">
+                <div class="swiper-reviews-carousel overflow-hidden">
+                  <div class="swiper" id="swiper-reviews">
+                    <div class="swiper-wrapper">
+                      <div class="swiper-slide">
+                        <div class="card h-100 review-card shadow-sm">
+                          <div class="card-body text-body d-flex flex-column justify-content-between h-100">
+                            <div class="mb-3 review-quote">
+                              <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                            </div>
+                            <p class="review-text mb-4">
+                            The Election Management System has completely transformed how we run our university student council elections. The process is now more transparent, secure, and efficient than ever before.
+                            </p>
+                            <div class="text-warning mb-4 review-stars">
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                            </div>                          
+                            <div class="d-flex align-items-center">
+                              <div class="avatar avatar-md me-3 review-avatar">
+                                <div class="avatar-initial rounded-circle bg-label-primary">
+                                  <i class="bx bx-user"></i>
+                                </div>
+                              </div>
+                              <div>
+                                <h6 class="mb-0 fw-semibold">Sarah Afrifa</h6>
+                                <p class="small text-body-secondary mb-0">SRC Organizer</p>
                               </div>
                             </div>
-                            <div>
-                              <h6 class="mb-0 fw-semibold">Sarah Afrifa</h6>
-                              <p class="small text-body-secondary mb-0">SRC Organizer</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="swiper-slide">
+                        <div class="card h-100 review-card shadow-sm">
+                          <div class="card-body text-body d-flex flex-column justify-content-between h-100">
+                            <div class="mb-3 review-quote">
+                              <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                            </div>
+                            <p class="review-text mb-4">
+                            "As a city election commissioner, I needed a reliable system that could handle thousands of voters. This platform delivered beyond expectations with its robust security features and real-time reporting."
+                            </p>
+                            <div class="text-warning mb-4 review-stars">
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                            </div>                          
+                            <div class="d-flex align-items-center">
+                              <div class="avatar avatar-md me-3 review-avatar">
+                                <div class="avatar-initial rounded-circle bg-label-info">
+                                  <i class="bx bx-user"></i>
+                                </div>
+                              </div>
+                              <div>
+                                <h6 class="mb-0 fw-semibold">Emmanuel Danso</h6>
+                                <p class="small text-body-secondary mb-0">SRC President</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    
+                      <div class="swiper-slide">
+                        <div class="card h-100 review-card shadow-sm">
+                          <div class="card-body text-body d-flex flex-column justify-content-between h-100">
+                            <div class="mb-3 review-quote">
+                              <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                            </div>
+                            <p class="review-text mb-4">
+                            "The analytics and reporting features have been invaluable for our organization. We can now make data-driven decisions about our election processes and improve voter engagement."
+                            </p>
+                            <div class="text-warning mb-4 review-stars">
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bx-star"></i>
+                            </div>                         
+                             <div class="d-flex align-items-center">
+                              <div class="avatar avatar-md me-3 review-avatar">
+                                <div class="avatar-initial rounded-circle bg-label-success">
+                                  <i class="bx bx-user"></i>
+                                </div>
+                              </div>
+                              <div>
+                                <h6 class="mb-0 fw-semibold">Lilian Maryes</h6>
+                                <p class="small text-body-secondary mb-0">SRC Secretary</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="swiper-slide">
+                        <div class="card h-100 review-card shadow-sm">
+                          <div class="card-body text-body d-flex flex-column justify-content-between h-100">
+                            <div class="mb-3 review-quote">
+                              <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                            </div>
+                            <p class="review-text mb-4">
+                            "Setting up our corporate board elections used to be a logistical nightmare. With this system, we've cut preparation time by 70% and increased participation rates significantly."
+                            </p>
+                            <div class="text-warning mb-4 review-stars">
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                            </div>                          
+                            <div class="d-flex align-items-center">
+                              <div class="avatar avatar-md me-3 review-avatar">
+                                <div class="avatar-initial rounded-circle bg-label-warning">
+                                  <i class="bx bx-user"></i>
+                                </div>
+                              </div>
+                              <div>
+                                <h6 class="mb-0 fw-semibold">Gloria Adams</h6>
+                                <p class="small text-body-secondary mb-0">SRC Vice President</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="swiper-slide">
+                        <div class="card h-100 review-card shadow-sm">
+                          <div class="card-body text-body d-flex flex-column justify-content-between h-100">
+                            <div class="mb-3 review-quote">
+                              <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
+                            </div>
+                            <p class="review-text mb-4">
+                            "The accessibility features of this platform have allowed us to include voters with disabilities in our election process like never before. It's truly an inclusive solution."
+                            </p>
+                            <div class="text-warning mb-4 review-stars">
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bxs-star"></i>
+                              <i class="icon-base bx bx-star"></i>
+                            </div>                          
+                            <div class="d-flex align-items-center">
+                              <div class="avatar avatar-md me-3 review-avatar">
+                                <div class="avatar-initial rounded-circle bg-label-danger">
+                                  <i class="bx bx-user"></i>
+                                </div>
+                              </div>
+                              <div>
+                                <h6 class="mb-0 fw-semibold">Joseph Appiah</h6>
+                                <p class="small text-body-secondary mb-0">Lecturer</p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div class="swiper-slide">
-                      <div class="card h-100 review-card shadow-sm">
-                        <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <div class="mb-3 review-quote">
-                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
-                          </div>
-                          <p class="review-text mb-4">
-                          "As a city election commissioner, I needed a reliable system that could handle thousands of voters. This platform delivered beyond expectations with its robust security features and real-time reporting."
-                          </p>
-                          <div class="text-warning mb-4 review-stars">
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                          </div>                          
-                          <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 review-avatar">
-                              <div class="avatar-initial rounded-circle bg-label-info">
-                                <i class="bx bx-user"></i>
-                              </div>
-                            </div>
-                            <div>
-                              <h6 class="mb-0 fw-semibold">Emmanuel Danso</h6>
-                              <p class="small text-body-secondary mb-0">SRC President</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  
-                    <div class="swiper-slide">
-                      <div class="card h-100 review-card shadow-sm">
-                        <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <div class="mb-3 review-quote">
-                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
-                          </div>
-                          <p class="review-text mb-4">
-                          "The analytics and reporting features have been invaluable for our organization. We can now make data-driven decisions about our election processes and improve voter engagement."
-                          </p>
-                          <div class="text-warning mb-4 review-stars">
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bx-star"></i>
-                          </div>                         
-                           <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 review-avatar">
-                              <div class="avatar-initial rounded-circle bg-label-success">
-                                <i class="bx bx-user"></i>
-                              </div>
-                            </div>
-                            <div>
-                              <h6 class="mb-0 fw-semibold">Lilian Maryes</h6>
-                              <p class="small text-body-secondary mb-0">SRC Secretary</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="swiper-slide">
-                      <div class="card h-100 review-card shadow-sm">
-                        <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <div class="mb-3 review-quote">
-                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
-                          </div>
-                          <p class="review-text mb-4">
-                          "Setting up our corporate board elections used to be a logistical nightmare. With this system, we've cut preparation time by 70% and increased participation rates significantly."
-                          </p>
-                          <div class="text-warning mb-4 review-stars">
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                          </div>                          
-                          <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 review-avatar">
-                              <div class="avatar-initial rounded-circle bg-label-warning">
-                                <i class="bx bx-user"></i>
-                              </div>
-                            </div>
-                            <div>
-                              <h6 class="mb-0 fw-semibold">Gloria Adams</h6>
-                              <p class="small text-body-secondary mb-0">SRC Vice President</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="swiper-slide">
-                      <div class="card h-100 review-card shadow-sm">
-                        <div class="card-body text-body d-flex flex-column justify-content-between h-100">
-                          <div class="mb-3 review-quote">
-                            <i class="bx bxs-quote-alt-left text-primary review-quote-icon"></i>
-                          </div>
-                          <p class="review-text mb-4">
-                          "The accessibility features of this platform have allowed us to include voters with disabilities in our election process like never before. It's truly an inclusive solution."
-                          </p>
-                          <div class="text-warning mb-4 review-stars">
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bxs-star"></i>
-                            <i class="icon-base bx bx-star"></i>
-                          </div>                          
-                          <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 review-avatar">
-                              <div class="avatar-initial rounded-circle bg-label-danger">
-                                <i class="bx bx-user"></i>
-                              </div>
-                            </div>
-                            <div>
-                              <h6 class="mb-0 fw-semibold">Joseph Appiah</h6>
-                              <p class="small text-body-secondary mb-0">Lecturer</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <div class="swiper-pagination reviews-pagination mt-5"></div>
                   </div>
-                  <div class="swiper-pagination reviews-pagination mt-5"></div>
                 </div>
               </div>
             </div>
@@ -962,9 +1031,7 @@
                       </h6>
                     </li>
                   </ul>
-                  <div class="d-grid mt-8">
-                    <a href="register.php" class="btn btn-label-primary">Get Started</a>
-                  </div>
+                  
                 </div>
               </div>
             </div>
@@ -1046,9 +1113,7 @@
                       </h6>
                     </li>
                   </ul>
-                  <div class="d-grid mt-8">
-                    <a href="payment-page.html" class="btn btn-primary">Get Started</a>
-                  </div>
+                  
                 </div>
               </div>
             </div>
@@ -1133,9 +1198,7 @@
                       </h6>
                     </li>
                   </ul>
-                  <div class="d-grid mt-8">
-                    <a href="payment-page.html" class="btn btn-label-primary">Get Started</a>
-                  </div>
+                 
                 </div>
               </div>
             </div>

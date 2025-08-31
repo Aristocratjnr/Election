@@ -53,7 +53,6 @@ try {
     $error = "System temporarily unavailable. Please try again later.";
 }
 
-// Remove the override of election status - we want the actual status
 
 // Get student details
 $student = [];
@@ -565,11 +564,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <link rel="manifest" href="/Election/manifest.json">
     <meta name="theme-color" content="#4e73df">
     <link href="assets/css/student-portal.css" rel="stylesheet">
+    <link href="assets/css/responsive-student-portal.css" rel="stylesheet">
+    <link href="assets/css/ai-chat.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?><br>
+    <?php include 'includes/header.php'; ?>
+    
+    <!-- Audio element for notification sound -->
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <br>
     
     <main class="container py-5">
         <div class="row justify-content-center">
@@ -1155,19 +1163,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 
     <!-- Audio element for notification sound -->
     <audio id="notification-sound" preload="auto">
-        <source src="assets/audio/sounds/notification.mp3" type="audio/mpeg">
-        <source src="assets/audio/sounds/notifications.mp3" type="audio/mpeg">
-    </audio>
 
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script>
-         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize theme from localStorage
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', currentTheme);
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Session Timeout Script -->
+<script src="assets/js/session-timeout.js"></script>
+<!-- AI Chat Script -->
+<script src="assets/js/ai-chat.js"></script>
+<script>
+    // Theme management
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-bs-theme', currentTheme);
             
             // Apply dark mode to header on load if needed
             if (currentTheme === 'dark') {
@@ -1512,7 +1519,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             
             // Check for new notifications every 30 seconds
             setInterval(checkNewNotifications, 30000);
-        });        // Add bubble pop effect to time unit
+
+        // Add bubble pop effect to time unit
         function addBubblePop(element, intensity = 'normal') {
             if (!element) return;
             

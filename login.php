@@ -286,6 +286,27 @@
     
     <!-- PWA Install Prompt -->
     <script src="scripts/install-prompt.js"></script>
+    
+    <?php if (isset($_GET['session_expired'])): ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show session expired message
+        const authAlert = document.createElement('div');
+        authAlert.className = 'alert alert-warning alert-dismissible fade show';
+        authAlert.role = 'alert';
+        authAlert.innerHTML = `
+            Your session has expired due to inactivity. Please log in again.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.querySelector('.authentication-inner').insertBefore(authAlert, document.querySelector('.authentication-inner').firstChild);
+    });
+    </script>
+    <?php endif; ?>
+    
+    <?php if (basename($_SERVER['PHP_SELF']) !== 'login.php'): ?>
+    <!-- Session Timeout Script -->
+    <script src="assets/js/session-timeout.js"></script>
+    <?php endif; ?>
                     
   </body>
 </html>

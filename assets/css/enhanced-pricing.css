@@ -4,6 +4,24 @@
  */
 
 /* Main Pricing Section Container */
+.landing-pricing {
+  padding: 4rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 991.98px) {
+  .landing-pricing {
+    padding: 3rem 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .landing-pricing {
+    padding: 2rem 0;
+  }
+}
+
 .enhanced-pricing {
   position: relative;
   overflow: hidden;
@@ -141,6 +159,181 @@
 
 .pricing-toggle-switch.toggled::before {
   left: calc(100% - 27px);
+}
+
+/* Toggle Styles */
+.pricing-toggle-container {
+  margin: 2rem 0 3rem;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pricing-toggle-label {
+  margin: 0 1rem;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pricing-toggle-label.active {
+  color: #696cff;
+  font-weight: 600;
+}
+
+.pricing-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  margin: 0 0.5rem;
+}
+
+.pricing-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.pricing-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e0e0e0;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.pricing-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .pricing-toggle-slider {
+  background-color: #696cff;
+}
+
+input:focus + .pricing-toggle-slider {
+  box-shadow: 0 0 1px #696cff;
+}
+
+input:checked + .pricing-toggle-slider:before {
+  transform: translateX(30px);
+}
+
+/* Save Badge */
+.pricing-save-badge {
+  position: absolute;
+  top: -15px;
+  right: -20px;
+  background: #4caf50;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transform: rotate(5deg);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  z-index: 1;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  animation: floatBadge 3s ease-in-out infinite;
+}
+
+.pricing-save-badge img {
+  margin-right: 0.25rem;
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes floatBadge {
+  0%, 100% {
+    transform: rotate(5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(5deg) translateY(-5px);
+  }
+}
+
+/* Responsive Adjustments for Toggle */
+@media (max-width: 767.98px) {
+  .pricing-toggle-container {
+    margin: 1.5rem 0 2.5rem;
+  }
+  
+  .pricing-toggle-label {
+    font-size: 0.9rem;
+    margin: 0 0.75rem;
+  }
+  
+  .pricing-toggle-switch {
+    width: 50px;
+    height: 26px;
+  }
+  
+  .pricing-toggle-slider:before {
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+  }
+  
+  input:checked + .pricing-toggle-slider:before {
+    transform: translateX(24px);
+  }
+  
+  .pricing-save-badge {
+    top: -12px;
+    right: -15px;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+  }
+  
+  .pricing-save-badge img {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .pricing-toggle-container {
+    margin: 1.25rem 0 2rem;
+    flex-wrap: wrap;
+  }
+  
+  .pricing-toggle-label {
+    font-size: 0.85rem;
+    margin: 0 0.5rem 0.5rem;
+  }
+  
+  .pricing-save-badge {
+    position: relative;
+    top: 0;
+    right: 0;
+    margin: 0.5rem auto 0;
+    transform: none;
+    display: inline-flex;
+    animation: none;
+  }
+  
+  .pricing-save-badge img {
+    margin-right: 0.5rem;
+  }
 }
 
 /* Toggle switch attention animation */
@@ -283,9 +476,9 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 2rem;
+  margin: 0 -15px;
 }
 
-/* Pricing Card */
 .pricing-card {
   flex: 1;
   min-width: 280px;
@@ -490,6 +683,13 @@
   position: relative;
   overflow: hidden;
   z-index: 1;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 1.5rem 0 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .pricing-btn::before {
