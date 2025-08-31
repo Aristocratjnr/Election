@@ -15,3 +15,5 @@
 {"timestamp":"2025-08-31 14:49:48","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":720}
 {"timestamp":"2025-08-31 14:50:28","type":"request","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","user_id":81981218,"user_role":"student","message":"What are the voting requirements?","ip_address":"::1"}
 {"timestamp":"2025-08-31 14:50:30","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":717}
+{"timestamp":"2025-08-31 14:56:46","type":"request","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","user_id":81981218,"user_role":"student","message":"what if i didn&#039;t vote for one candidate?","ip_address":"::1"}
+{"timestamp":"2025-08-31 14:56:50","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":820}

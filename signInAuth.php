@@ -2,6 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 include 'configs/dbconnection.php';
+include 'includes/email_utils.php';
 
 $response = ['status' => 'error', 'message' => 'Login failed'];
 
@@ -21,8 +22,8 @@ try {
         throw new Exception('Password is required');
     }
 
-    // Query to fetch user details including role
-    $stmt = $conn->prepare("SELECT studentID, name, password, role FROM students WHERE LOWER(studentID) = LOWER(?)");
+    // Query to fetch user details including role and email
+    $stmt = $conn->prepare("SELECT studentID, name, email, password, role FROM students WHERE LOWER(studentID) = LOWER(?)");
     if (!$stmt) {
         throw new Exception('Database error');
     }
@@ -59,6 +60,16 @@ try {
 
     // Debugging: Log session data
     error_log('Session data: ' . print_r($_SESSION, true));
+
+    // Send login notification email (non-blocking)
+    try {
+        if (!empty($user['email'])) {
+            sendLoginNotification($user['email'], $user['name'], $user['studentID'], $user['role']);
+        }
+    } catch (Exception $emailError) {
+        // Log email error but don't fail the login process
+        error_log('Email notification failed: ' . $emailError->getMessage());
+    }
 
     // Check the user role and redirect accordingly
     if (strtolower(trim($user['role'])) === 'admin') {
