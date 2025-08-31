@@ -577,13 +577,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
         }
         
         .btn-warning {
-            background-color: var(--warning-color);
-            border-color: var(--warning-color);
+            background-color: #f0ad4e;
+            border-color: #f0ad4e;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #ec971f;
+            border-color: #ec971f;
+            color: white;
         }
         
         .btn-danger {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
+            background-color: #d9534f;
+            border-color: #d9534f;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c9302c;
+            border-color: #c9302c;
+            color: white;
+        }
+        
+        .btn-outline-warning {
+            color: #d4854b;
+            border-color: #d4854b;
+        }
+        
+        .btn-outline-warning:hover {
+            background-color: #d4854b;
+            border-color: #d4854b;
+            color: white;
+        }
+        
+        .btn-outline-danger {
+            color: #c9302c;
+            border-color: #c9302c;
+        }
+        
+        .btn-outline-danger:hover {
+            background-color: #c9302c;
+            border-color: #c9302c;
+            color: white;
         }
         
         .file-input {
@@ -635,12 +671,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
         }
         
         .deactivate-modal .modal-header {
-            background-color: var(--warning-color);
+            background-color: #f0ad4e;
             color: white;
         }
         
         .delete-modal .modal-header {
-            background-color: var(--danger-color);
+            background-color: #d9534f;
             color: white;
         }
         
@@ -763,6 +799,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
         [data-bs-theme="dark"] .deactivate-modal .modal-header,
         [data-bs-theme="dark"] .delete-modal .modal-header {
             color: white;
+        }
+        
+        [data-bs-theme="dark"] .btn-warning {
+            background-color: #d4854b;
+            border-color: #d4854b;
+        }
+        
+        [data-bs-theme="dark"] .btn-danger {
+            background-color: #c9302c;
+            border-color: #c9302c;
         }
 
         [data-bs-theme="dark"] header {
@@ -1091,11 +1137,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                 <form action="settings.php" method="POST">
                     <div class="modal-body">
                         <div class="text-center mb-4">
-                            <i class="bi bi-pause-circle-fill text-warning" style="font-size: 4rem;"></i>
+                            <i class="bi bi-pause-circle-fill" style="font-size: 4rem; color: #d4854b;"></i>
                             <h4 class="mt-3">Account Deactivation</h4>
                             <p class="text-muted"><i class="bi bi-info-circle me-1"></i> Your account will be temporarily deactivated</p>
                         </div>
-                        <div class="alert alert-warning d-flex align-items-center">
+                        <div class="alert d-flex align-items-center" style="background-color: #fcf8e3; color: #8a6d3b; border-color: #faebcc;">
                             <i class="bi bi-info-circle-fill me-2"></i>
                             <div>
                                 You can reactivate your account by logging in again.
@@ -1137,11 +1183,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['disable_2fa'])) {
                 <form action="settings.php" method="POST">
                     <div class="modal-body">
                         <div class="text-center mb-4">
-                            <i class="bi bi-trash3-fill text-danger" style="font-size: 4rem;"></i>
+                            <i class="bi bi-trash3-fill" style="font-size: 4rem; color: #c9302c;"></i>
                             <h4 class="mt-3">Delete Your Account?</h4>
                             <p class="text-muted"><i class="bi bi-exclamation-circle me-1"></i> This action cannot be undone</p>
                         </div>
-                        <div class="alert alert-danger d-flex align-items-center">
+                        <div class="alert d-flex align-items-center" style="background-color: #f2dede; color: #a94442; border-color: #ebccd1;">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <div>
                                 All your data will be permanently erased from our systems.
