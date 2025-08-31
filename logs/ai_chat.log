@@ -1,0 +1,17 @@
+{"timestamp":"2025-08-31 13:50:46","session_id":"h0t347f54ik3hsvu0fl60ha7id","user_id":81981218,"user_role":"student","message":"What if I have problems?","ip_address":"::1"}
+{"timestamp":"2025-08-31 13:50:48","session_id":"h0t347f54ik3hsvu0fl60ha7id","user_id":81981218,"user_role":"student","message":"hi","ip_address":"::1"}
+{"timestamp":"2025-08-31 13:51:00","session_id":"h0t347f54ik3hsvu0fl60ha7id","user_id":81981218,"user_role":"student","message":"Can I change my vote?","ip_address":"::1"}
+{"timestamp":"2025-08-31 13:56:30","type":"request","session_id":"h0t347f54ik3hsvu0fl60ha7id","user_id":81981218,"user_role":"student","message":"What if I have problems?","ip_address":"::1","user_agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/139.0.0.0 Safari\/537.36"}
+{"timestamp":"2025-08-31 13:56:55","type":"request","session_id":"h0t347f54ik3hsvu0fl60ha7id","user_id":81981218,"user_role":"student","message":"is the vote managed by students?","ip_address":"::1","user_agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/139.0.0.0 Safari\/537.36"}
+{"timestamp":"2025-08-31 13:57:25","type":"request","session_id":"h0t347f54ik3hsvu0fl60ha7id","user_id":81981218,"user_role":"student","message":"you haven&#039;t answered my my question","ip_address":"::1","user_agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/139.0.0.0 Safari\/537.36"}
+{"timestamp":"2025-08-31 13:57:26","type":"response","session_id":"h0t347f54ik3hsvu0fl60ha7id","response_type":"restriction","response_length":162}
+{"timestamp":"2025-08-31 14:33:36","type":"request","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","user_id":81981218,"user_role":"student","message":"Can I change my vote?","ip_address":"::1"}
+{"timestamp":"2025-08-31 14:33:42","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":717}
+{"timestamp":"2025-08-31 14:43:30","type":"request","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","user_id":81981218,"user_role":"student","message":"Can I change my vote?","ip_address":"::1"}
+{"timestamp":"2025-08-31 14:43:33","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":717}
+{"timestamp":"2025-08-31 14:49:41","type":"request","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","user_id":81981218,"user_role":"student","message":"Can I change my vote?","ip_address":"::1"}
+{"timestamp":"2025-08-31 14:49:43","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":717}
+{"timestamp":"2025-08-31 14:49:46","type":"request","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","user_id":81981218,"user_role":"student","message":"Can I vote on mobile?","ip_address":"::1"}
+{"timestamp":"2025-08-31 14:49:48","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":720}
+{"timestamp":"2025-08-31 14:50:28","type":"request","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","user_id":81981218,"user_role":"student","message":"What are the voting requirements?","ip_address":"::1"}
+{"timestamp":"2025-08-31 14:50:30","type":"response","session_id":"v72sfh6cjq9kaa7ig4c27h5lam","response_type":"ai_generated","response_source":"openrouter","response_length":717}

@@ -565,6 +565,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <meta name="theme-color" content="#4e73df">
     <link href="assets/css/student-portal.css" rel="stylesheet">
     <link href="assets/css/responsive-student-portal.css" rel="stylesheet">
+    <link href="assets/css/ai-chat.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
@@ -1168,6 +1169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Session Timeout Script -->
 <script src="assets/js/session-timeout.js"></script>
+<!-- AI Chat Script -->
+<script src="assets/js/ai-chat.js"></script>
 <script>
     // Theme management
     const currentTheme = localStorage.getItem('theme') || 'light';
