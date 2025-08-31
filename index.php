@@ -1341,28 +1341,28 @@
             </span>
             Through Innovation
           </h4>
-          <p class="text-center mb-5">
+          <p class="text-center mb-4 mb-md-5">
             Real success stories from institutions that have revolutionized their election process with SmartVote
           </p>
 
           <!-- Key Statistics -->
-          <div class="row justify-content-center mb-8">
-            <div class="col-sm-4 text-center mb-4 mb-sm-0">
-              <div class="p-4 border rounded-3 bg-label-primary bg-opacity-10 h-100">
+          <div class="row justify-content-center mb-4 mb-md-8">
+            <div class="col-md-4 col-sm-6 text-center mb-3 mb-md-0">
+              <div class="success-stats-card p-3 p-md-4 border rounded-3 bg-label-primary bg-opacity-10 h-100">
                 <i class="bx bx-like fs-1 text-primary mb-2"></i>
                 <h2 class="mb-2 fw-bold">98%</h2>
                 <p class="mb-0">Satisfaction Rate</p>
               </div>
             </div>
-            <div class="col-sm-4 text-center mb-4 mb-sm-0">
-              <div class="p-4 border rounded-3 bg-label-success bg-opacity-10 h-100">
+            <div class="col-md-4 col-sm-6 text-center mb-3 mb-md-0">
+              <div class="success-stats-card p-3 p-md-4 border rounded-3 bg-label-success bg-opacity-10 h-100">
                 <i class="bx bx-check-shield fs-1 text-success mb-2"></i>
                 <h2 class="mb-2 fw-bold">2M+</h2>
                 <p class="mb-0">Votes Processed</p>
               </div>
             </div>
-            <div class="col-sm-4 text-center">
-              <div class="p-4 border rounded-3 bg-label-info bg-opacity-10 h-100">
+            <div class="col-md-4 col-sm-12 text-center">
+              <div class="success-stats-card p-3 p-md-4 border rounded-3 bg-label-info bg-opacity-10 h-100">
                 <i class="bx bx-buildings fs-1 text-info mb-2"></i>
                 <h2 class="mb-2 fw-bold">500+</h2>
                 <p class="mb-0">Institutions Using SmartVote</p>
@@ -1373,7 +1373,7 @@
           <div class="row gy-4 g-lg-5">
             <!-- Success Story 1 -->
             <div class="col-lg-4 col-md-6">
-              <div class="card h-100 shadow-sm border-primary border-opacity-25">
+              <div class="success-story-card card h-100 shadow-sm border-primary border-opacity-25">
                 <div class="card-body">
                   <div class="d-flex align-items-center mb-4">
                     <div class="flex-shrink-0">
@@ -1389,15 +1389,15 @@
                   <div class="mb-3">
                     <div class="d-flex align-items-center mb-2">
                       <i class="bx bx-trending-up text-primary me-2"></i>
-                      <span>85% increase in voter turnout</span>
+                      <span class="success-story-metric">85% increase in voter turnout</span>
                     </div>
                     <div class="d-flex align-items-center mb-2">
                       <i class="bx bx-time text-primary me-2"></i>
-                      <span>75% reduction in counting time</span>
+                      <span class="success-story-metric">75% reduction in counting time</span>
                     </div>
                     <div class="d-flex align-items-center">
                       <i class="bx bx-check-shield text-primary me-2"></i>
-                      <span>Zero security incidents</span>
+                      <span class="success-story-metric">Zero security incidents</span>
                     </div>
                   </div>
                   <p class="mb-3">
@@ -1418,7 +1418,7 @@
 
             <!-- Success Story 2 -->
             <div class="col-lg-4 col-md-6">
-              <div class="card h-100 shadow-sm border-primary border-opacity-25">
+              <div class="success-story-card card h-100 shadow-sm border-primary border-opacity-25">
                 <div class="card-body">
                   <div class="d-flex align-items-center mb-4">
                     <div class="flex-shrink-0">
@@ -1434,15 +1434,15 @@
                   <div class="mb-3">
                     <div class="d-flex align-items-center mb-2">
                       <i class="bx bx-block text-success me-2"></i>
-                      <span>100% transparency achieved</span>
+                      <span class="success-story-metric">100% transparency achieved</span>
                     </div>
                     <div class="d-flex align-items-center mb-2">
                       <i class="bx bx-user-check text-success me-2"></i>
-                      <span>15,000+ verified votes</span>
+                      <span class="success-story-metric">15,000+ verified votes</span>
                     </div>
                     <div class="d-flex align-items-center">
                       <i class="bx bx-money text-success me-2"></i>
-                      <span>40% cost reduction</span>
+                      <span class="success-story-metric">40% cost reduction</span>
                     </div>
                   </div>
                   <p class="mb-3">
@@ -1463,7 +1463,7 @@
 
             <!-- Success Story 3 -->
             <div class="col-lg-4 col-md-6">
-              <div class="card h-100 shadow-sm border-primary border-opacity-25">
+              <div class="success-story-card card h-100 shadow-sm border-primary border-opacity-25">
                 <div class="card-body">
                   <div class="d-flex align-items-center mb-4">
                     <div class="flex-shrink-0">
@@ -1479,15 +1479,15 @@
                   <div class="mb-3">
                     <div class="d-flex align-items-center mb-2">
                       <i class="bx bx-globe text-info me-2"></i>
-                      <span>5 campuses connected</span>
+                      <span class="success-story-metric">5 campuses connected</span>
                     </div>
                     <div class="d-flex align-items-center mb-2">
                       <i class="bx bx-mobile text-info me-2"></i>
-                      <span>92% mobile voting rate</span>
+                      <span class="success-story-metric">92% mobile voting rate</span>
                     </div>
                     <div class="d-flex align-items-center">
                       <i class="bx bx-timer text-info me-2"></i>
-                      <span>Results in under 1 hour</span>
+                      <span class="success-story-metric">Results in under 1 hour</span>
                     </div>
                   </div>
                   <p class="mb-3">
@@ -1508,12 +1508,14 @@
           </div>
 
           <!-- Additional Metrics -->
-          <div class="text-center mt-8">
-            <h5 class="mb-4">Trusted by Leading Educational Institutions</h5>
+          <div class="trust-badges text-center mt-4 mt-md-8">
+            <h5 class="mb-3 mb-md-4">Trusted by Leading Educational Institutions</h5>
             <div class="row justify-content-center">
-              <div class="col-12 col-lg-8">                <div class="row row-cols-2 row-cols-md-4 g-4">
+              <div class="col-12 col-lg-8">
+                <div class="row row-cols-2 row-cols-md-4 g-3 g-md-4">
                   <div class="col">
-                    <div class="p-3">                      <div class="badge-icon bg-label-primary rounded-circle p-2">
+                    <div class="p-2 p-md-3">
+                      <div class="badge-icon bg-label-primary rounded-circle p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="security-shield-svg">
                           <path fill="#696cff" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 8.42-7 9.88-3.87-1.46-7-5.21-7-9.88V6.3l7-3.12zm-2 8.82h4c0 1.1-.9 2-2 2s-2-.9-2-2zm1-7h2v5h-2V5z"/>
                         </svg>
@@ -1522,7 +1524,8 @@
                     </div>
                   </div>
                   <div class="col">
-                    <div class="p-3">                      <div class="badge-icon bg-label-success rounded-circle p-2">
+                    <div class="p-2 p-md-3">
+                      <div class="badge-icon bg-label-success rounded-circle p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="gdpr-svg">
                           <path fill="#71dd37" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zm-9-7h8v2H9v-2zm0 4h8v2H9v-2zm0-8h5v2H9V9z"/>
                           <path fill="#71dd37" d="M15 13l-4 4l-2-2l-1 1l3 3l5-5z"/>
@@ -1532,7 +1535,8 @@
                     </div>
                   </div>
                   <div class="col">
-                    <div class="p-3">                      <div class="badge-icon bg-label-info rounded-circle p-2">
+                    <div class="p-2 p-md-3">
+                      <div class="badge-icon bg-label-info rounded-circle p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="blockchain-svg">
                           <path fill="#03c3ec" d="M4 7v2c0 .55.45 1 1 1h1v6c0 .55.45 1 1 1h10c.55 0 1-.45 1-1V8h1c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1v2zm14 0v2H6V7h12zM7 10h10v6H7v-6zm3-5h4v1h-4V5z"/>
                           <path fill="#03c3ec" d="M12 12l-2 2l2 2l2-2l-2-2zm-6 6h12v2H6v-2z"/>
@@ -1542,7 +1546,8 @@
                     </div>
                   </div>
                   <div class="col">
-                    <div class="p-3">                      <div class="badge-icon bg-label-warning rounded-circle p-2">
+                    <div class="p-2 p-md-3">
+                      <div class="badge-icon bg-label-warning rounded-circle p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="uptime-svg">
                           <path fill="#ffab00" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8s8 3.59 8 8s-3.59 8-8 8zm.5-13H11v6l5.25 3.15l.75-1.23l-4.5-2.67V7z"/>
                         </svg>
@@ -1853,12 +1858,12 @@
                 class="section-title-img position-absolute object-fit-contain bottom-0 z-n1" />
             </span>
             together
-         
           </h4>
-          <p class="text-center mb-12 pb-md-4">Any question or remark? just write us a message</p>
-          <div class="row g-6">
-            <div class="col-lg-5">
-              <div class="contact-img-box position-relative border p-2 h-100">
+          <p class="text-center mb-4 mb-md-5 pb-2">Any question or remark? just write us a message</p>
+          
+          <div class="row g-4 g-lg-6">
+            <div class="col-lg-5 col-md-12">
+              <div class="contact-img-box position-relative border p-3 p-lg-2 h-100">
                 <img
                   src="assets/img/front-pages/icons/contact-border.png"
                   alt="contact border"
@@ -1867,29 +1872,31 @@
                   src="assets/img/front-pages/landing-page/contact-customer-service.png"
                   alt="contact customer service"
                   class="contact-img w-100 scaleX-n1-rtl" />
-                <div class="p-4 pb-2">
-                  <div class="row g-4">
-                    <div class="col-md-6 col-lg-12 col-xl-6">
-                      <div class="d-flex align-items-center">
-                        <div class="badge bg-label-primary rounded p-1_5 me-3">
+                <div class="p-3 p-lg-4 pb-2">
+                  <div class="row g-3 g-lg-4">
+                    <div class="col-sm-6 col-lg-12 col-xl-6">
+                      <div class="contact-info-item d-flex align-items-center">
+                        <div class="badge bg-label-primary rounded p-1_5 me-3 flex-shrink-0">
                           <i class="icon-base bx bx-envelope icon-lg"></i>
                         </div>
-                        <div>
-                          <p class="mb-0">Email</p>
+                        <div class="flex-grow-1">
+                          <p class="mb-0 small">Email</p>
                           <h6 class="mb-0">
-                            <a href="ayimobuobi@gmail.com" class="text-heading">ayimobuobi@gmail.com</a>
+                            <a href="mailto:ayimobuobi@gmail.com" class="text-heading text-decoration-none">ayimobuobi@gmail.com</a>
                           </h6>
                         </div>
                       </div>
                     </div>
-                    <div class="col-md-6 col-lg-12 col-xl-6">
-                      <div class="d-flex align-items-center">
-                        <div class="badge bg-label-success rounded p-1_5 me-3">
+                    <div class="col-sm-6 col-lg-12 col-xl-6">
+                      <div class="contact-info-item d-flex align-items-center">
+                        <div class="badge bg-label-success rounded p-1_5 me-3 flex-shrink-0">
                           <i class="icon-base bx bx-phone-call icon-lg"></i>
                         </div>
-                        <div>
-                          <p class="mb-0">Phone</p>
-                          <h6 class="mb-0"><a href="tel:+1234-568-963" class="text-heading">+233 551784926</a></h6>
+                        <div class="flex-grow-1">
+                          <p class="mb-0 small">Phone</p>
+                          <h6 class="mb-0">
+                            <a href="tel:+233551784926" class="text-heading text-decoration-none">+233 551784926</a>
+                          </h6>
                         </div>
                       </div>
                     </div>
@@ -1897,46 +1904,57 @@
                 </div>
               </div>
             </div>
-            <div class="col-lg-7">
-              <div class="card h-100">
-                <div class="card-body">
+            
+            <div class="col-lg-7 col-md-12">
+              <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4 p-lg-5">
                   <h4 class="mb-2">Send a message</h4>
-                  <p class="mb-6">
-                  If you would like to discuss anything related to elections, account setup, licensing,<br
+                  <p class="mb-4 mb-lg-6 text-muted">
+                    If you would like to discuss anything related to elections, account setup, licensing,<br
                       class="d-none d-lg-block" />
-                    partnerships, or have pre-sales questions, you&apos;re at the right place.
+                    partnerships, or have pre-sales questions, you're at the right place.
                   </p>
+                  
                   <form id="contactForm" action="send_contact_email.php" method="POST">
-                    <div class="row g-4">
+                    <div class="row g-3 g-lg-4">
                       <div class="col-md-6">
-                        <label class="form-label" for="contact-form-fullname">Full Name</label>
-                        <input type="text" class="form-control" id="contact-form-fullname" name="fullname" placeholder="john" required />
+                        <label class="form-label" for="contact-form-fullname">Full Name *</label>
+                        <input 
+                          type="text" 
+                          class="form-control" 
+                          id="contact-form-fullname" 
+                          name="fullname" 
+                          placeholder="Enter your full name" 
+                          required 
+                          autocomplete="name" />
                       </div>
                       <div class="col-md-6">
-                        <label class="form-label" for="contact-form-email">Email</label>
+                        <label class="form-label" for="contact-form-email">Email Address *</label>
                         <input
                           type="email"
                           id="contact-form-email"
                           name="email"
                           class="form-control"
-                          placeholder="johndoe@gmail.com" 
-                          required />
+                          placeholder="Enter your email address" 
+                          required 
+                          autocomplete="email" />
                       </div>
                       <div class="col-12">
-                        <label class="form-label" for="contact-form-message">Message</label>
+                        <label class="form-label" for="contact-form-message">Message *</label>
                         <textarea
                           id="contact-form-message"
                           name="message"
                           class="form-control"
-                          rows="11"
-                          placeholder="Write a message"
+                          rows="8"
+                          placeholder="Tell us how we can help you..."
                           required></textarea>
                       </div>
                       <div class="col-12">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <button type="submit" class="btn btn-primary w-100 w-md-auto" id="submitBtn">
                           <span class="btn-text">Send inquiry</span>
-                          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                          <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
                         </button>
+                        <p class="small text-muted mt-2 mb-0">We'll get back to you within 24 hours</p>
                       </div>
                     </div>
                   </form>
@@ -2416,6 +2434,960 @@ document.addEventListener('DOMContentLoaded', function() {
   .success-icon i, .error-icon i {
     font-size: 3rem !important;
   }
+}
+
+/* Contact Section Responsive Styles */
+.landing-contact {
+  padding: 4rem 0;
+}
+
+.contact-img-box {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.contact-img-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.contact-img {
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Form styling enhancements */
+#contactForm .form-control {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  font-size: 15px;
+}
+
+#contactForm .form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+  transform: translateY(-1px);
+}
+
+#contactForm .form-label {
+  font-weight: 600;
+  color: var(--bs-gray-700);
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+#contactForm textarea.form-control {
+  resize: vertical;
+  min-height: 120px;
+}
+
+#contactForm .btn-primary {
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+#contactForm .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+/* Contact info styling */
+.contact-info-item {
+  padding: 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.contact-info-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1199.98px) {
+  .landing-contact {
+    padding: 3rem 0;
+  }
+  
+  .contact-img-box {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .landing-contact {
+    padding: 2.5rem 0;
+  }
+  
+  .landing-contact .container {
+    padding: 0 1.5rem;
+  }
+  
+  .landing-contact h4 {
+    font-size: 1.75rem;
+    line-height: 1.3;
+  }
+  
+  .landing-contact p {
+    font-size: 15px;
+    margin-bottom: 2rem;
+  }
+  
+  .contact-img-box {
+    order: 2;
+    margin-top: 2rem;
+    margin-bottom: 0;
+  }
+  
+  .col-lg-7 {
+    order: 1;
+  }
+  
+  .contact-img-box .row g-4 {
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .landing-contact {
+    padding: 2rem 0;
+  }
+  
+  .landing-contact .mb-12 {
+    margin-bottom: 2rem !important;
+  }
+  
+  .landing-contact .pb-md-4 {
+    padding-bottom: 1rem !important;
+  }
+  
+  .landing-contact h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .landing-contact .badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  .row.g-6 {
+    gap: 1.5rem !important;
+  }
+  
+  .contact-img-box {
+    padding: 1rem;
+  }
+  
+  .contact-img-box .p-4 {
+    padding: 1.5rem !important;
+  }
+  
+  #contactForm .form-control {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  #contactForm .btn-primary {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+  
+  #contactForm textarea.form-control {
+    min-height: 100px;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .card-body h4 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .card-body p {
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .card-body .mb-6 {
+    margin-bottom: 1.5rem !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .landing-contact {
+    padding: 1.5rem 0;
+  }
+  
+  .landing-contact .container {
+    padding: 0 1rem;
+  }
+  
+  .landing-contact h4 {
+    font-size: 1.3rem;
+    line-height: 1.4;
+  }
+  
+  .landing-contact p {
+    font-size: 14px;
+  }
+  
+  .contact-img-box {
+    padding: 0.75rem;
+  }
+  
+  .contact-img-box .p-4 {
+    padding: 1rem !important;
+  }
+  
+  .contact-img-box .pb-2 {
+    padding-bottom: 0.5rem !important;
+  }
+  
+  .contact-info-item {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .contact-info-item .badge {
+    padding: 8px;
+    margin-right: 0.75rem;
+  }
+  
+  .contact-info-item h6 {
+    font-size: 13px;
+  }
+  
+  .contact-info-item p {
+    font-size: 12px;
+    margin-bottom: 0;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .card-body h4 {
+    font-size: 1.1rem;
+  }
+  
+  .card-body p {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  
+  #contactForm .form-control {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  #contactForm .form-label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  #contactForm .btn-primary {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  #contactForm textarea.form-control {
+    min-height: 80px;
+  }
+  
+  .row.g-4 > * {
+    margin-bottom: 1rem;
+  }
+  
+  /* Modal adjustments for very small screens */
+  .modal-content {
+    margin: 0.5rem;
+    border-radius: 8px;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  .modal-header h4 {
+    font-size: 1.1rem;
+  }
+  
+  .modal-body p {
+    font-size: 13px;
+  }
+  
+  .modal-body .btn {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 400px) {
+  .landing-contact h4 {
+    font-size: 1.2rem;
+  }
+  
+  .landing-contact .section-title-img {
+    width: 80px;
+    height: auto;
+  }
+  
+  .contact-img-box {
+    padding: 0.5rem;
+  }
+  
+  .card-body {
+    padding: 0.75rem;
+  }
+  
+  #contactForm .btn-primary {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .contact-info-item .badge {
+    padding: 6px;
+    margin-right: 0.5rem;
+  }
+  
+  .contact-info-item div {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .contact-info-item .badge {
+    margin-bottom: 0.5rem;
+    margin-right: 0;
+  }
+}
+
+/* Dark mode adjustments for contact section */
+[data-bs-theme="dark"] .landing-contact {
+  background-color: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .contact-img-box {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] #contactForm .form-control {
+  background-color: var(--bs-dark);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] #contactForm .form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+[data-bs-theme="dark"] #contactForm .form-label {
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .contact-info-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Success Stories Section Responsive Styles */
+.landing-success-stories {
+  padding: 4rem 0;
+}
+
+.landing-success-stories .section-title-img {
+  max-width: 100px;
+  height: auto;
+}
+
+/* Key Statistics Cards */
+.success-stats-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.success-stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  pointer-events: none;
+}
+
+.success-stats-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.success-stats-card i {
+  transition: all 0.3s ease;
+}
+
+.success-stats-card:hover i {
+  transform: scale(1.1);
+}
+
+/* Success Story Cards */
+.success-story-card {
+  transition: all 0.3s ease;
+  border-radius: 15px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.success-story-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.success-story-card .card-body {
+  padding: 2rem;
+}
+
+.success-story-card .avatar img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.success-story-metric {
+  font-size: 14px;
+  color: var(--bs-gray-600);
+  transition: color 0.3s ease;
+}
+
+.success-story-card:hover .success-story-metric {
+  color: var(--bs-gray-700);
+}
+
+/* Badge Icons Section */
+.trust-badges {
+  background: rgba(var(--bs-primary-rgb), 0.02);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-top: 3rem;
+}
+
+.badge-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  transition: all 0.3s ease;
+}
+
+.badge-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Responsive breakpoints for Success Stories */
+@media (max-width: 1199.98px) {
+  .landing-success-stories {
+    padding: 3rem 0;
+  }
+  
+  .landing-success-stories .mb-8 {
+    margin-bottom: 2.5rem !important;
+  }
+  
+  .landing-success-stories .mt-8 {
+    margin-top: 2.5rem !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .landing-success-stories {
+    padding: 2.5rem 0;
+  }
+  
+  .landing-success-stories .container {
+    padding: 0 1.5rem;
+  }
+  
+  .landing-success-stories h4 {
+    font-size: 1.75rem;
+    line-height: 1.3;
+  }
+  
+  .landing-success-stories .mb-5 {
+    margin-bottom: 2rem !important;
+  }
+  
+  .landing-success-stories .mb-8 {
+    margin-bottom: 2rem !important;
+  }
+  
+  .landing-success-stories .mt-8 {
+    margin-top: 2rem !important;
+  }
+  
+  /* Statistics cards adjustments */
+  .success-stats-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .success-stats-card h2 {
+    font-size: 1.75rem;
+  }
+  
+  .success-stats-card p {
+    font-size: 14px;
+  }
+  
+  /* Story cards adjustments */
+  .success-story-card .card-body {
+    padding: 1.5rem;
+  }
+  
+  .success-story-card h5 {
+    font-size: 1.1rem;
+  }
+  
+  .success-story-card .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  /* Trust badges section */
+  .trust-badges {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .badge-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .badge-icon svg {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .landing-success-stories {
+    padding: 2rem 0;
+  }
+  
+  .landing-success-stories h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .landing-success-stories .badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  .landing-success-stories .mb-5 {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .landing-success-stories .mb-8 {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .landing-success-stories .mt-8 {
+    margin-top: 1.5rem !important;
+  }
+  
+  /* Statistics grid adjustments */
+  .row.justify-content-center .col-sm-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .success-stats-card {
+    padding: 1.5rem !important;
+    margin-bottom: 1rem;
+  }
+  
+  .success-stats-card i {
+    font-size: 2.5rem !important;
+  }
+  
+  .success-stats-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .success-stats-card p {
+    font-size: 13px;
+    margin-bottom: 0;
+  }
+  
+  /* Story cards mobile layout */
+  .success-story-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .success-story-card .card-body {
+    padding: 1.25rem;
+  }
+  
+  .success-story-card .d-flex.align-items-center {
+    flex-direction: column;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .success-story-card .flex-shrink-0 {
+    margin-bottom: 1rem;
+  }
+  
+  .success-story-card .flex-grow-1 {
+    margin-left: 0 !important;
+  }
+  
+  .success-story-card h5 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .success-story-card .success-story-metric {
+    font-size: 13px;
+  }
+  
+  .success-story-card p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .success-story-card .avatar-sm {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .success-story-card h6 {
+    font-size: 13px;
+  }
+  
+  .success-story-card small {
+    font-size: 11px;
+  }
+  
+  /* Trust badges mobile */
+  .trust-badges {
+    padding: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .trust-badges h5 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .trust-badges .row-cols-2 {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.75rem;
+  }
+  
+  .badge-icon {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 0.75rem;
+  }
+  
+  .badge-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .trust-badges .small {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .landing-success-stories {
+    padding: 1.5rem 0;
+  }
+  
+  .landing-success-stories .container {
+    padding: 0 1rem;
+  }
+  
+  .landing-success-stories h4 {
+    font-size: 1.3rem;
+    line-height: 1.4;
+  }
+  
+  .landing-success-stories p {
+    font-size: 14px;
+  }
+  
+  .landing-success-stories .section-title-img {
+    max-width: 80px;
+  }
+  
+  /* Ultra-compact statistics */
+  .success-stats-card {
+    padding: 1rem !important;
+    text-align: center;
+  }
+  
+  .success-stats-card i {
+    font-size: 2rem !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  .success-stats-card h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .success-stats-card p {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  
+  /* Compact story cards */
+  .success-story-card .card-body {
+    padding: 1rem;
+  }
+  
+  .success-story-card .avatar-lg {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .success-story-card .avatar-sm {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .success-story-card h5 {
+    font-size: 0.95rem;
+  }
+  
+  .success-story-card .badge {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  
+  .success-story-card .success-story-metric {
+    font-size: 12px;
+  }
+  
+  .success-story-card p {
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+  
+  .success-story-card h6 {
+    font-size: 12px;
+  }
+  
+  .success-story-card small {
+    font-size: 10px;
+  }
+  
+  /* Minimal trust badges */
+  .trust-badges {
+    padding: 0.75rem;
+    border-radius: 15px;
+  }
+  
+  .trust-badges h5 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .trust-badges .row-cols-2 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+  }
+  
+  .badge-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .badge-icon svg {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .trust-badges .small {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+}
+
+@media (max-width: 400px) {
+  .landing-success-stories h4 {
+    font-size: 1.2rem;
+  }
+  
+  .landing-success-stories .section-title-img {
+    max-width: 70px;
+  }
+  
+  /* Extremely compact for tiny screens */
+  .success-stats-card {
+    padding: 0.75rem !important;
+  }
+  
+  .success-stats-card i {
+    font-size: 1.75rem !important;
+  }
+  
+  .success-stats-card h2 {
+    font-size: 1.1rem;
+  }
+  
+  .success-story-card .card-body {
+    padding: 0.75rem;
+  }
+  
+  .success-story-card .avatar-lg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .success-story-card .flex-shrink-0 {
+    margin-bottom: 0.75rem;
+  }
+  
+  .success-story-card .mb-3 {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .trust-badges {
+    padding: 0.5rem;
+  }
+  
+  .badge-icon {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .badge-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Dark mode adjustments for Success Stories */
+[data-bs-theme="dark"] .landing-success-stories {
+  background-color: var(--bs-dark);
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .landing-success-stories h4,
+[data-bs-theme="dark"] .landing-success-stories h5,
+[data-bs-theme="dark"] .landing-success-stories h6 {
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .landing-success-stories p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+[data-bs-theme="dark"] .success-stats-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .success-stats-card h2 {
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .success-stats-card p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+[data-bs-theme="dark"] .success-story-card {
+  background-color: var(--bs-dark);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .success-story-card .card-body {
+  background-color: var(--bs-dark);
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .success-story-card h5,
+[data-bs-theme="dark"] .success-story-card h6 {
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .success-story-card p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+[data-bs-theme="dark"] .success-story-card small {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-bs-theme="dark"] .trust-badges {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .trust-badges h5 {
+  color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .trust-badges p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+[data-bs-theme="dark"] .success-story-metric {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-bs-theme="dark"] .success-story-card:hover .success-story-metric {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+[data-bs-theme="dark"] .badge.bg-label-primary {
+  background-color: rgba(var(--bs-primary-rgb), 0.2) !important;
+  color: var(--bs-primary) !important;
+}
+
+[data-bs-theme="dark"] .badge.bg-label-success {
+  background-color: rgba(var(--bs-success-rgb), 0.2) !important;
+  color: var(--bs-success) !important;
+}
+
+[data-bs-theme="dark"] .badge.bg-label-info {
+  background-color: rgba(var(--bs-info-rgb), 0.2) !important;
+  color: var(--bs-info) !important;
+}
+
+/* Ensure text contrast in dark mode */
+[data-bs-theme="dark"] .success-story-card .text-muted {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-bs-theme="dark"] .success-stats-card:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .success-story-card:hover {
+  background-color: rgba(255, 255, 255, 0.02);
 }
 </style>
 
