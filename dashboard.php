@@ -606,6 +606,123 @@ try {
         .border-left-info .card-icon { animation: pulse-info 2s infinite; }
         .border-left-warning .card-icon { animation: pulse-warning 2s infinite; }
         
+        /* Reduced color intensity for modals */
+        .modal-header.bg-warning {
+            background-color: #f0ad4e !important;
+        }
+        
+        .modal-header.bg-success {
+            background-color: #5cb85c !important;
+        }
+        
+        .modal-header.bg-danger {
+            background-color: #d9534f !important;
+        }
+        
+        .modal-header.bg-info {
+            background-color: #5bc0de !important;
+        }
+        
+        /* Subdued button colors for modals */
+        .btn-warning {
+            background-color: #f0ad4e;
+            border-color: #f0ad4e;
+        }
+        
+        .btn-warning:hover {
+            background-color: #ec971f;
+            border-color: #ec971f;
+        }
+        
+        .btn-success {
+            background-color: #5cb85c;
+            border-color: #5cb85c;
+        }
+        
+        .btn-success:hover {
+            background-color: #449d44;
+            border-color: #449d44;
+        }
+        
+        .btn-danger {
+            background-color: #d9534f;
+            border-color: #d9534f;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c9302c;
+            border-color: #c9302c;
+        }
+        
+        /* Dark mode overrides for subdued colors */
+        [data-bs-theme="dark"] .modal-header.bg-warning {
+            background-color: #d4854b !important;
+        }
+        
+        [data-bs-theme="dark"] .modal-header.bg-success {
+            background-color: #4a9d4a !important;
+        }
+        
+        [data-bs-theme="dark"] .modal-header.bg-danger {
+            background-color: #c9302c !important;
+        }
+        
+        [data-bs-theme="dark"] .modal-header.bg-info {
+            background-color: #4a9fb8 !important;
+        }
+        
+        [data-bs-theme="dark"] .btn-warning {
+            background-color: #d4854b;
+            border-color: #d4854b;
+        }
+        
+        [data-bs-theme="dark"] .btn-success {
+            background-color: #4a9d4a;
+            border-color: #4a9d4a;
+        }
+        
+        [data-bs-theme="dark"] .btn-danger {
+            background-color: #c9302c;
+            border-color: #c9302c;
+        }
+        
+        /* Alert colors reduced intensity */
+        .alert-info {
+            background-color: #e8f4fd;
+            color: #31708f;
+            border-color: #bce8f1;
+        }
+        
+        .alert-warning {
+            background-color: #fcf8e3;
+            color: #8a6d3b;
+            border-color: #faebcc;
+        }
+        
+        .alert-success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border-color: #d6e9c6;
+        }
+        
+        [data-bs-theme="dark"] .alert-info {
+            background-color: rgba(74, 159, 184, 0.15);
+            color: #5bc0de;
+            border-color: rgba(74, 159, 184, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .alert-warning {
+            background-color: rgba(212, 133, 75, 0.15);
+            color: #f0ad4e;
+            border-color: rgba(212, 133, 75, 0.3);
+        }
+        
+        [data-bs-theme="dark"] .alert-success {
+            background-color: rgba(74, 157, 74, 0.15);
+            color: #5cb85c;
+            border-color: rgba(74, 157, 74, 0.3);
+        }
+        
         @keyframes pulse-primary {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(var(--primary-color-rgb, 13, 110, 253), 0.3); }
