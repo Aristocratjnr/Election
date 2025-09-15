@@ -421,7 +421,7 @@
                 "'; DROP TABLE users; --",
                 "1' OR '1'='1",
                 "UNION SELECT * FROM users",
-                "1'; INSERT INTO"
+                "1'; INSERT INTO users VALUES (1, 'test'); --"
             ];
             
             // Simulate parameterized queries (all should be safe)

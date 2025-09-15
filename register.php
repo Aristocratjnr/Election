@@ -122,6 +122,16 @@ echo '<!doctype html>';
                     autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
+                  <label for="department" class="form-label"><i class="bi bi-buildings department-icon icon"></i>&nbsp;Department:</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="department"
+                    name="department"
+                    placeholder="Enter your department"
+                    autofocus />
+                </div>
+                <div class="mb-6 form-control-validation">
                   <label for="email" class="form-label">  <i class="bi bi-envelope-check action-icon icon"></i>&nbsp;Student Mail:</label>
                   <input type="text" class="form-control" id="email" name="email" placeholder="Enter your student mail" />
                 </div>
@@ -152,16 +162,6 @@ echo '<!doctype html>';
                       <span class="input-group-text cursor-pointer"><i class="icon-base bx bx-hide"></i></span>
                     </div>
                   </div>
-                </div>
-                <div class="mb-6 form-control-validation">
-                  <label for="department" class="form-label"><i class="bi bi-buildings department-icon icon"></i>&nbsp;Department:</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="department"
-                    name="department"
-                    placeholder="Enter your department"
-                    autofocus />
                 </div>
                 <div class="mb-6 form-control-validation">
                   <label for="dob" class="form-label"><i class="bi bi-calendar-date profile-icon icon"></i>&nbsp;
