@@ -566,6 +566,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     <link href="assets/css/student-portal.css" rel="stylesheet">
     <link href="assets/css/responsive-student-portal.css" rel="stylesheet">
     <link href="assets/css/ai-chat.css" rel="stylesheet">
+    <link href="assets/css/custom-overrides.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>

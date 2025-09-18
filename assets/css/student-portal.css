@@ -1682,6 +1682,10 @@
         margin-bottom: 0.5rem; /* Reduced margin */
         font-weight: 600;
         color: var(--text);
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
+        max-width: 100%;
     }
 
     .candidate-department {
@@ -2393,8 +2397,8 @@
         }
 
         .col-md-6, .col-lg-4 {
-            flex: 1 1 calc(33.333% - 0.5rem); /* Adjust width to fit three cards per row */
-            max-width: calc(33.333% - 0.5rem);
+            flex: 1 1 calc(50% - 0.5rem); /* Adjusted width to fit two cards per row for better name visibility */
+            max-width: calc(50% - 0.5rem);
         }
 
         .candidate-card {
@@ -2402,6 +2406,7 @@
             flex-direction: column;
             justify-content: space-between;
             height: 80%;
+            min-width: 200px; /* Ensure minimum width for better readability */
         }
 
         .horizontal-position .row {
